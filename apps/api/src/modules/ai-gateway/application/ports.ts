@@ -1,19 +1,53 @@
 import type { Clock } from '@goodresearch/shared'
 import type { ZodType } from 'zod'
 import type { AiFailure } from '../domain/failure.ts'
+import type { Price } from '../domain/pricing.ts'
 import type { Credential, ProviderKind } from '../domain/provider.ts'
 
 export type Usage = { readonly inputTokens: number | null; readonly outputTokens: number | null }
 
-export type ChatMessage = { readonly role: 'user' | 'assistant'; readonly content: string }
+export type ToolCall = { readonly id: string; readonly name: string; readonly input: unknown }
 
-/** What a task asks the model; the prompt and the answer are never stored (FR-010). */
+/** A conversation turn; tool calls and their results let the model see what the person decided. */
+export type ChatMessage =
+  | { readonly role: 'user'; readonly content: string }
+  | {
+      readonly role: 'assistant'
+      readonly content: string
+      readonly toolCalls?: readonly ToolCall[]
+    }
+  | {
+      readonly role: 'tool'
+      readonly results: readonly {
+        readonly id: string
+        readonly name: string
+        readonly output: string
+      }[]
+    }
+
+/**
+ * A tool the model may call. Tools have no execution here: a call ends the model's step and comes
+ * back to the caller as a proposal (constitution IV, spec 005 research R2).
+ */
+export type ToolSpec = {
+  readonly name: string
+  readonly description: string
+  readonly inputSchema: ZodType
+}
+
+/** What a task asks the model; the prompt and the answer are never stored by the gateway (FR-010). */
 export type ModelRequest = {
   readonly system?: string
   readonly prompt?: string
   readonly messages?: readonly ChatMessage[]
+  readonly tools?: readonly ToolSpec[]
   readonly maxOutputTokens?: number
 }
+
+/** What a streamed call produces: text as it is written, and tool calls. */
+export type StreamPart =
+  | { readonly type: 'text'; readonly delta: string }
+  | { readonly type: 'tool-call'; readonly call: ToolCall }
 
 /** The classified reason of any error thrown by a provider call. */
 export const failureOf = (error: unknown): AiFailure =>
@@ -43,12 +77,12 @@ export interface ModelRunner {
     request: ModelRequest & { schema: ZodType<T> },
     timeoutMs: number,
   ): Promise<{ object: T; usage: Usage }>
-  streamText(
+  stream(
     credential: Credential,
     model: string,
     request: ModelRequest,
     timeoutMs: number,
-  ): { textStream: AsyncIterable<string>; done: Promise<Usage> }
+  ): { parts: AsyncIterable<StreamPart>; done: Promise<Usage> }
 }
 
 /**
@@ -119,6 +153,8 @@ export type UsageEntry = {
   readonly durationMs: number
   /** `cancelled`: the caller stopped reading a stream before its end. */
   readonly outcome: 'success' | 'cancelled' | AiFailure
+  /** What the call was for (e.g. an assistant message id), to sum costs per conversation. */
+  readonly ref: string | null
   readonly createdAt: Date
 }
 
@@ -146,6 +182,8 @@ export interface AiStore {
   usageSummary(
     accountId: string,
   ): Promise<{ calls: number; inputTokens: number; outputTokens: number }>
+  /** The person's entries made for these refs. */
+  usageByRefs(accountId: string, refs: readonly string[]): Promise<UsageEntry[]>
 }
 
 export type AiDeps = {
@@ -161,6 +199,8 @@ export type AiDeps = {
     readonly offered: readonly ProviderKind[]
     readonly models: Readonly<Record<ProviderKind, string>>
     readonly timeoutMs: number
+    /** Deployer prices, added to or replacing the built-in dated catalog. */
+    readonly prices: readonly Price[]
   }
   readonly clock: Clock
   readonly newId: () => string

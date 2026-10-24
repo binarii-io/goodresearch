@@ -11,6 +11,20 @@ export {
   VertexCheckRequest,
   VertexCheckResult,
 } from './ai.ts'
+export {
+  AssistantMessage,
+  AssistantPage,
+  AssistantStreamEvent,
+  ConversationDetail,
+  ConversationParams,
+  ConversationSummary,
+  Proposal,
+  ProposalKind,
+  ProposalParams,
+  ProposalPreview,
+  RenameConversation,
+  SendAssistantMessage,
+} from './assistant.ts'
 export { Created, Id, Language, Timestamp, Version, VersionAck } from './common.ts'
 export { ERROR_CODES, type ErrorCode, HTTP_STATUS, Problem } from './errors.ts'
 export {

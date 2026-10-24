@@ -328,6 +328,318 @@
           "failure"
         ]
       },
+      "AssistantPageInput": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "home",
+              "project",
+              "study",
+              "teams",
+              "members",
+              "sources",
+              "other"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "preparation",
+              "fieldwork",
+              "analysis"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "ProposalPreviewInput": {
+        "type": "object",
+        "properties": {
+          "projectName": {
+            "type": "string"
+          },
+          "teamName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "previousName": {
+            "type": "string"
+          },
+          "previousGoal": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "preparation",
+              "fieldwork",
+              "analysis"
+            ]
+          }
+        }
+      },
+      "ProposalInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "create_project",
+              "update_project_goal",
+              "rename_project",
+              "create_study",
+              "rename_study",
+              "open_project",
+              "open_study"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "applied",
+              "dismissed",
+              "failed"
+            ]
+          },
+          "preview": {
+            "$ref": "#/components/schemas/ProposalPreviewInput"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "project",
+                      "study"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "id"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "state",
+          "preview",
+          "result",
+          "error"
+        ]
+      },
+      "AssistantMessageInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "person",
+              "assistant"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "streaming",
+              "stopped",
+              "failed"
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiFailureInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proposals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProposalInput"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "text",
+          "status",
+          "failure",
+          "proposals",
+          "createdAt"
+        ]
+      },
+      "ConversationSummaryInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "lastActivityAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "lastActivityAt"
+        ]
+      },
+      "ConversationCostInput": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "const": "USD"
+          },
+          "total": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "last": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "currency",
+          "total",
+          "last"
+        ]
+      },
+      "ConversationDetailInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssistantMessageInput"
+            }
+          },
+          "cost": {
+            "$ref": "#/components/schemas/ConversationCostInput"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "messages",
+          "cost"
+        ]
+      },
+      "RenameConversationInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "SendAssistantMessageInput": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "page": {
+            "$ref": "#/components/schemas/AssistantPageInput"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr"
+            ]
+          }
+        },
+        "required": [
+          "text",
+          "page",
+          "language"
+        ]
+      },
       "ProblemInput": {
         "type": "object",
         "properties": {
@@ -371,7 +683,10 @@
               "AI_CHECK_FAILED",
               "AI_PROVIDER_REQUIRED",
               "GOOGLE_NOT_CONFIGURED",
-              "GOOGLE_GRANT_REQUIRED"
+              "GOOGLE_GRANT_REQUIRED",
+              "CONVERSATION_NOT_FOUND",
+              "PROPOSAL_NOT_FOUND",
+              "PROPOSAL_DECIDED"
             ]
           },
           "detail": {
@@ -1797,6 +2112,328 @@
         ],
         "additionalProperties": false
       },
+      "AssistantPage": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "home",
+              "project",
+              "study",
+              "teams",
+              "members",
+              "sources",
+              "other"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "preparation",
+              "fieldwork",
+              "analysis"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "ProposalPreview": {
+        "type": "object",
+        "properties": {
+          "projectName": {
+            "type": "string"
+          },
+          "teamName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "previousName": {
+            "type": "string"
+          },
+          "previousGoal": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "preparation",
+              "fieldwork",
+              "analysis"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Proposal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "create_project",
+              "update_project_goal",
+              "rename_project",
+              "create_study",
+              "rename_study",
+              "open_project",
+              "open_study"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "applied",
+              "dismissed",
+              "failed"
+            ]
+          },
+          "preview": {
+            "$ref": "#/components/schemas/ProposalPreview"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "project",
+                      "study"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "id"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "state",
+          "preview",
+          "result",
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "AssistantMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "person",
+              "assistant"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "streaming",
+              "stopped",
+              "failed"
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiFailure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proposals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Proposal"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "text",
+          "status",
+          "failure",
+          "proposals",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "ConversationSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "lastActivityAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "lastActivityAt"
+        ],
+        "additionalProperties": false
+      },
+      "ConversationCost": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "const": "USD"
+          },
+          "total": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "last": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "currency",
+          "total",
+          "last"
+        ],
+        "additionalProperties": false
+      },
+      "ConversationDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssistantMessage"
+            }
+          },
+          "cost": {
+            "$ref": "#/components/schemas/ConversationCost"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "messages",
+          "cost"
+        ],
+        "additionalProperties": false
+      },
+      "RenameConversation": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "SendAssistantMessage": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "page": {
+            "$ref": "#/components/schemas/AssistantPage"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr"
+            ]
+          }
+        },
+        "required": [
+          "text",
+          "page",
+          "language"
+        ],
+        "additionalProperties": false
+      },
       "Problem": {
         "type": "object",
         "properties": {
@@ -1840,7 +2477,10 @@
               "AI_CHECK_FAILED",
               "AI_PROVIDER_REQUIRED",
               "GOOGLE_NOT_CONFIGURED",
-              "GOOGLE_GRANT_REQUIRED"
+              "GOOGLE_GRANT_REQUIRED",
+              "CONVERSATION_NOT_FOUND",
+              "PROPOSAL_NOT_FOUND",
+              "PROPOSAL_DECIDED"
             ]
           },
           "detail": {
@@ -4147,6 +4787,241 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProviderTestResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assistant/conversations": {
+      "get": {
+        "operationId": "listConversations",
+        "tags": [
+          "assistant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConversationSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createConversation",
+        "tags": [
+          "assistant"
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assistant/conversations/{conversationId}": {
+      "get": {
+        "operationId": "getConversation",
+        "tags": [
+          "assistant"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "conversationId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "renameConversation",
+        "tags": [
+          "assistant"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameConversationInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "conversationId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteConversation",
+        "tags": [
+          "assistant"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "conversationId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/assistant/conversations/{conversationId}/messages": {
+      "post": {
+        "operationId": "sendAssistantMessage",
+        "tags": [
+          "assistant"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendAssistantMessageInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "conversationId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/assistant/proposals/{proposalId}/apply": {
+      "post": {
+        "operationId": "applyProposal",
+        "tags": [
+          "assistant"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "path",
+            "name": "proposalId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assistant/proposals/{proposalId}/dismiss": {
+      "post": {
+        "operationId": "dismissProposal",
+        "tags": [
+          "assistant"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "path",
+            "name": "proposalId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
                 }
               }
             }

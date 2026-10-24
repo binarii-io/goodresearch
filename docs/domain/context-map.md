@@ -32,6 +32,7 @@ Every AI-produced object follows the same lifecycle and the same protections. Th
 | 7 | **Synthesis** | Core | Domain model + policies | Insight, Recommendation, KeyTakeaways |
 | 8 | **Reporting** | Supporting | Read models only (no aggregates) | — (deck, graph, evidence chain, exports) |
 | 9 | **AI Gateway** | Generic | Adapters + ledger | AI provider connection, UsageEntry (append-only), PricingCatalog |
+| 10 | **Assistant** | Supporting | Plain handlers + proposal rules | Conversation (messages, action proposals) |
 
 Background jobs (`Job`, per-item progress, stop, retry) are **shared infrastructure** used by contexts 3–7, not a context of their own.
 
@@ -135,12 +136,19 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 
 Deck (debrief presentation), project graph, evidence chain (recommendation → insights → facts → sessions), anonymised fact export (CSV: no names, no session titles), costs. Built from queries; no aggregates, no writes.
 
+### 10. Assistant (spec 005)
+
+- **Conversation** — a person's chat with the assistant, private to them: messages (person / assistant, with status complete, stopped or failed) and the page each message was sent from.
+- **Page context** — built on the server with the person's own permissions at each message (project, goal, studies; study, phase, folder name only with folder access); never file names or contents.
+- **Page opening** — the assistant can also open a project or study page the person can access (a tool too, run at once: it changes no data).
+- **Action proposal** — an action the assistant proposes through a tool (create a project or study, rename them, write the research goal). It changes nothing until the person applies it; applying runs the Research commands with the person's permissions and the version seen at proposal time; it is decided once (applied, dismissed or failed), and the outcome is given back to the assistant.
+
 ### 9. AI Gateway
 
 - **AI provider connection** (spec 004) — one per person: Vertex AI with the person's own Google account (project and region), or an Anthropic or OpenAI API key. Checked by a real call before saving, encrypted, used only for that person's own actions. The deployer chooses which providers are offered and the model of each.
 - **Gateway** (`runTask`: structured output validated by a schema, or streamed text) — resolves the caller's connection, runs the call, classifies failures into a closed set (invalid credential, permission, no credit or quota, rate limit, model unavailable, API disabled, unreachable). Adapters per provider via the Vercel AI SDK.
 - Concurrency cap per provider credential, retries with backoff on transient errors.
-- **UsageEntry** — **single append-only ledger**: person, task, provider, model, tokens in and out, duration, outcome; never prompt or answer text (spec 004). Later: project/study/session refs, job run ref, cost computed at read time from a dated **PricingCatalog**.
+- **UsageEntry** — **single append-only ledger**: person, task, provider, model, tokens in and out, duration, outcome, `ref` (what the call was for, e.g. an assistant message); never prompt or answer text (spec 004). Cost is computed at read time from a dated **PricingCatalog** (built-in prices for the default models, deployer prices with `AI_PRICES`; spec 005).
 
 ## Bilingual glossary
 
@@ -205,6 +213,10 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Job | Traitement | Background job |
 | Usage ledger | Journal de consommation | |
 | AI provider | Fournisseur IA | Each person's own Vertex AI, Anthropic or OpenAI account |
+| Assistant | Assistant | The chat panel available on every page |
+| Conversation | Conversation | |
+| Action proposal | Proposition | Shown as a card with Apply / Dismiss |
+| Apply / Dismiss | Appliquer / Ignorer | |
 
 ## Domain events (initial list)
 

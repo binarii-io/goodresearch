@@ -23,6 +23,22 @@ const DEFAULT_MODELS: Record<AiProviderKind, string> = {
   fake: 'fake-model',
 }
 
+export type AiPrice = {
+  readonly model: string
+  readonly from: string
+  readonly inputPerMillion: number
+  readonly outputPerMillion: number
+}
+
+const pricesSchema = z.array(
+  z.object({
+    model: z.string().min(1),
+    from: z.iso.date(),
+    inputPerMillion: z.number().nonnegative(),
+    outputPerMillion: z.number().nonnegative(),
+  }),
+)
+
 export type AccessRules = {
   /** Lower-cased emails that become admin at their first sign-in. */
   readonly adminEmails: readonly string[]
@@ -57,6 +73,8 @@ export type AppConfig = {
     readonly offered: readonly AiProviderKind[]
     readonly models: Readonly<Record<AiProviderKind, string>>
     readonly timeoutMs: number
+    /** Extra or replacing dated prices (USD per million tokens), on top of the built-in catalog. */
+    readonly prices: readonly AiPrice[]
   }
   readonly logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
   readonly port: number
@@ -123,6 +141,7 @@ const baseSchema = z.object({
   AI_MODEL_OPENAI: optionalText,
   AI_CALL_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
   AI_FAKE_PROVIDER: bool,
+  AI_PRICES: optionalText,
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   PORT: z.coerce.number().int().positive().default(3000),
 })
@@ -231,6 +250,19 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     else offered.push('fake')
   }
 
+  let prices: AiPrice[] = []
+  if (values.AI_PRICES) {
+    try {
+      const parsed = pricesSchema.safeParse(JSON.parse(values.AI_PRICES))
+      if (parsed.success) prices = parsed.data
+      else issues.push(...describeIssues('AI_PRICES.', parsed.error))
+    } catch {
+      issues.push(
+        'AI_PRICES: must be a JSON array of { model, from, inputPerMillion, outputPerMillion }',
+      )
+    }
+  }
+
   if (issues.length > 0) return fail(issues)
 
   return {
@@ -260,6 +292,7 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
         ...(values.AI_MODEL_OPENAI ? { openai: values.AI_MODEL_OPENAI } : {}),
       },
       timeoutMs: values.AI_CALL_TIMEOUT_MS,
+      prices,
     },
     logLevel: values.LOG_LEVEL,
     port: values.PORT,

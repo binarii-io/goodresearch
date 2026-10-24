@@ -22,13 +22,18 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   DRIVE_NOT_CONFIGURED: msg`Google Drive is not configured on this instance.`,
   INVENTORY_RUNNING: msg`An inventory is already running for this study.`,
   DRIVE_UNAVAILABLE: msg`Google Drive did not answer. Try again in a moment.`,
+  CONVERSATION_NOT_FOUND: msg`This conversation does not exist any more.`,
+  PROPOSAL_DECIDED: msg`This proposal was already applied or dismissed.`,
+  PROPOSAL_NOT_FOUND: msg`This proposal does not exist any more.`,
 }
 
+/** One translated sentence for an error code (never technical details). */
+export const messageForCode = (i18n: I18n, code: string | undefined): string =>
+  i18n._((code ? MESSAGES[code] : undefined) ?? msg`Something went wrong. Please try again.`)
+
 /** One translated sentence for any error (never technical details). */
-export const errorMessage = (i18n: I18n, error: unknown): string => {
-  const descriptor = error instanceof ApiError && error.code ? MESSAGES[error.code] : undefined
-  return i18n._(descriptor ?? msg`Something went wrong. Please try again.`)
-}
+export const errorMessage = (i18n: I18n, error: unknown): string =>
+  messageForCode(i18n, error instanceof ApiError ? error.code : undefined)
 
 export const errorCode = (error: unknown): string | undefined =>
   error instanceof ApiError ? error.code : undefined

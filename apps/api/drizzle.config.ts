@@ -8,6 +8,7 @@ export default defineConfig({
     './src/modules/research/infrastructure/schema.ts',
     './src/modules/ingestion/infrastructure/schema.ts',
     './src/modules/ai-gateway/infrastructure/schema.ts',
+    './src/modules/assistant/infrastructure/schema.ts',
   ],
   out: './drizzle',
   casing: 'snake_case',

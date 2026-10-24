@@ -131,6 +131,15 @@ describe('loadConfig', () => {
     expect(config.ai.models.openai).toBeTruthy()
   })
 
+  it('reads dated price overrides, and refuses malformed ones', () => {
+    const prices = '[{"model":"m","from":"2027-01-01","inputPerMillion":1,"outputPerMillion":2}]'
+    expect(loadConfig({ ...valid, AI_PRICES: prices }).ai.prices).toEqual([
+      { model: 'm', from: '2027-01-01', inputPerMillion: 1, outputPerMillion: 2 },
+    ])
+    expect(errorOf({ ...valid, AI_PRICES: 'nope' })).toContain('AI_PRICES')
+    expect(errorOf({ ...valid, AI_PRICES: '[{"model":"m"}]' })).toContain('AI_PRICES')
+  })
+
   it('refuses a server-wide Vertex AI key', () => {
     expect(errorOf({ ...valid, GOOGLE_VERTEX_API_KEY: 'k' })).toContain('GOOGLE_VERTEX_API_KEY')
   })

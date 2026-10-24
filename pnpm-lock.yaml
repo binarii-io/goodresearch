@@ -513,6 +513,9 @@ importers:
       '@goodresearch/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@goodresearch/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@goodresearch/ui':
         specifier: workspace:*
         version: link:../../packages/ui

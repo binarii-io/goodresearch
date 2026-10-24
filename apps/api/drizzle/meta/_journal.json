@@ -50,6 +50,48 @@
       "when": 1792874480966,
       "tag": "0006_ai_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792877300282,
+      "tag": "0007_assistant",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792877300835,
+      "tag": "0008_assistant_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792878338059,
+      "tag": "0009_assistant_navigation",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792879131788,
+      "tag": "0010_usage_ref",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792879809488,
+      "tag": "0011_proposal_call_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792879810063,
+      "tag": "0012_proposal_call_id_snapshot",
+      "breakpoints": true
     }
   ]
 }

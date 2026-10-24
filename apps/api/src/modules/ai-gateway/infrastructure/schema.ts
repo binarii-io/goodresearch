@@ -49,7 +49,11 @@ export const aiUsageEntries = pgTable(
     outputTokens: integer('output_tokens'),
     durationMs: integer('duration_ms').notNull(),
     outcome: text('outcome').notNull(),
+    ref: text('ref'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
   },
-  (t) => [index('ai_usage_entries_account_idx').on(t.accountId, t.createdAt)],
+  (t) => [
+    index('ai_usage_entries_account_idx').on(t.accountId, t.createdAt),
+    index('ai_usage_entries_ref_idx').on(t.accountId, t.ref),
+  ],
 )

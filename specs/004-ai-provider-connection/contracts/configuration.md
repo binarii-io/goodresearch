@@ -6,6 +6,7 @@
 | `AI_MODEL_VERTEX` | `gemini-3.8-flash` | Model for Vertex AI |
 | `AI_MODEL_ANTHROPIC` | `claude-sonnet-5-5` | Model for Anthropic |
 | `AI_MODEL_OPENAI` | `gpt-5.5` | Model for OpenAI |
+| `AI_PRICES` | none | Dated prices (JSON array, USD per million tokens) added to or replacing the built-in catalog (spec 005) |
 | `AI_CALL_TIMEOUT_MS` | `15000` | Timeout of a check call |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | none | Google OAuth client shared by Drive and Vertex AI (falls back to `GOOGLE_DRIVE_CLIENT_ID` / `_SECRET`) |
 | `AI_FAKE_PROVIDER` | `false` | Dev and tests only: adds a fake provider (research R8) |

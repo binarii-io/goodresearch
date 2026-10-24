@@ -53,10 +53,14 @@ goodresearch only reads the attached folders and, for now, only file metadata; i
 
 ### AI providers
 
+The assistant (a chat panel on every page) and the AI features run on these providers.
+
+
 Every person connects their own AI provider at their first sign-in: the costs and the processing of what they send to the AI stay with their own account. goodresearch stores the credential encrypted and uses it only for that person's actions.
 
 - `AI_PROVIDERS`: providers offered, among `vertex`, `anthropic`, `openai` (default: all three; empty disables AI).
 - `AI_MODEL_VERTEX`, `AI_MODEL_ANTHROPIC`, `AI_MODEL_OPENAI`: model used for each provider (defaults in `packages/config/src/env.ts`).
+- `AI_PRICES`: prices for other models or new rates, as a JSON array of `{ "model", "from": "YYYY-MM-DD", "inputPerMillion", "outputPerMillion" }` in USD. Costs are computed with the price in force on the day of each call; the built-in catalog covers the default models (`apps/api/src/modules/ai-gateway/domain/pricing.ts`).
 - **Anthropic, OpenAI**: nothing to set up; people paste their own API key, checked by a real call.
 - **Google Vertex AI** (offered only with a Google client, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, which Drive uses too): people grant access to Google Cloud with their own Google account, then give their project ID and region; goodresearch checks that the Vertex AI API is enabled, that they may call models, and makes a real call.
   1. On the OAuth consent screen, add the scope `https://www.googleapis.com/auth/cloud-platform` (a *sensitive* scope: an External consent screen needs Google verification; an Internal one does not).

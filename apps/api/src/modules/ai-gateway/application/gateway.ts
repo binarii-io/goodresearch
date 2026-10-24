@@ -6,6 +6,7 @@ import {
   failureOf,
   type ModelRequest,
   ProviderCallError,
+  type StreamPart,
   type Usage,
 } from './ports.ts'
 
@@ -29,6 +30,7 @@ export const makeGateway = (deps: AiDeps) => {
     startedAt: number,
     outcome: 'success' | 'cancelled' | AiFailure,
     usage: Usage,
+    ref: string | null = null,
   ) => {
     await deps.store.appendUsage({
       id: deps.newId(),
@@ -40,6 +42,7 @@ export const makeGateway = (deps: AiDeps) => {
       outputTokens: usage.outputTokens,
       durationMs: Math.max(0, deps.clock.now().getTime() - startedAt),
       outcome,
+      ref,
       createdAt: deps.clock.now(),
     })
   }
@@ -51,11 +54,21 @@ export const makeGateway = (deps: AiDeps) => {
     credential: Credential,
     model: string,
     call: () => Promise<T>,
+    ref: string | null = null,
   ): Promise<T> => {
     const startedAt = deps.clock.now().getTime()
     try {
       const result = await call()
-      await record(accountId, task, credential.provider, model, startedAt, 'success', result.usage)
+      await record(
+        accountId,
+        task,
+        credential.provider,
+        model,
+        startedAt,
+        'success',
+        result.usage,
+        ref,
+      )
       return result
     } catch (error) {
       await record(
@@ -66,6 +79,7 @@ export const makeGateway = (deps: AiDeps) => {
         startedAt,
         failureOf(error),
         NO_USAGE,
+        ref,
       )
       throw error instanceof ProviderCallError ? error : new ProviderCallError('UNKNOWN')
     }
@@ -146,18 +160,32 @@ export const makeGateway = (deps: AiDeps) => {
     },
 
     /**
-     * Streamed text for conversations. Exactly one entry is recorded: when the stream ends, fails,
+     * Streamed answer for conversations (text and tool calls). Exactly one entry is recorded: when the stream ends, fails,
      * or when the caller stops reading it (`cancelled`, e.g. the browser went away).
      */
-    streamText: async (accountId: string, task: string, request: ModelRequest) => {
+    stream: async (
+      accountId: string,
+      task: string,
+      request: ModelRequest,
+      options: { ref?: string } = {},
+    ) => {
       const { credential, model } = await resolve(accountId)
       const startedAt = deps.clock.now().getTime()
-      const inner = deps.runner.streamText(credential, model, request, deps.config.timeoutMs)
+      const inner = deps.runner.stream(credential, model, request, deps.config.timeoutMs)
       let recorded = false
       const recordOnce = async (outcome: 'success' | 'cancelled' | AiFailure, usage: Usage) => {
         if (recorded) return
         recorded = true
-        await record(accountId, task, credential.provider, model, startedAt, outcome, usage)
+        await record(
+          accountId,
+          task,
+          credential.provider,
+          model,
+          startedAt,
+          outcome,
+          usage,
+          options.ref ?? null,
+        )
       }
       const done = inner.done.then(
         async (usage) => {
@@ -172,11 +200,11 @@ export const makeGateway = (deps: AiDeps) => {
       )
       // Callers that only read the text must not leave a rejection unhandled.
       done.catch(() => {})
-      async function* textStream() {
+      async function* parts(): AsyncGenerator<StreamPart> {
         let finished = false
         let failed = false
         try {
-          for await (const chunk of inner.textStream) yield chunk
+          for await (const part of inner.parts) yield part
           finished = true
         } catch (error) {
           failed = true
@@ -185,7 +213,7 @@ export const makeGateway = (deps: AiDeps) => {
           if (!finished && !failed) await recordOnce('cancelled', NO_USAGE)
         }
       }
-      return { textStream: textStream(), done }
+      return { parts: parts(), done }
     },
   }
 }

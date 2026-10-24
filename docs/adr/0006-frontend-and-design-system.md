@@ -55,3 +55,9 @@ Specs 001 and 002 used the neutral shadcn look. The product already had an ident
 
 - Good: one recognisable identity, AA contrast verified per token pair, no external requests.
 - Bad: shell parts of features not built yet (search, recent projects…) are left out and must be added with their features.
+
+## Update 2026-10-24 — assistant panel (spec 005)
+
+- `AppShell` takes a `panel` on the right: on ≥ 768 px its width animates from 0 to 400 px and pushes the page; below, it covers the screen and slides in. Visibility is animated only when closing, so focus can move into the panel as soon as it opens; it is `inert` while closed; Escape closes it; reduced motion disables the animation.
+- The answer streams as server-sent events over `fetch`; events are validated with the shared Zod contract (`@goodresearch/contracts`, now a dependency of the web app). Model text is rendered from a Markdown subset as React elements, never as HTML.
+

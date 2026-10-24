@@ -1,6 +1,6 @@
-import { and, eq, gt, lt, lte, sql } from 'drizzle-orm'
+import { and, eq, gt, inArray, lt, lte, sql } from 'drizzle-orm'
 import type { Db } from '#platform/db.ts'
-import type { AiStore, StoredConnection } from '../application/ports.ts'
+import type { AiStore, StoredConnection, UsageEntry } from '../application/ports.ts'
 import type { AiFailure } from '../domain/failure.ts'
 import type { ProviderKind } from '../domain/provider.ts'
 import {
@@ -111,6 +111,19 @@ export const createAiStore = (db: Db): AiStore => ({
 
   appendUsage: async (entry) => {
     await db.insert(aiUsageEntries).values(entry)
+  },
+
+  usageByRefs: async (accountId, refs) => {
+    if (refs.length === 0) return []
+    const rows = await db
+      .select()
+      .from(aiUsageEntries)
+      .where(and(eq(aiUsageEntries.accountId, accountId), inArray(aiUsageEntries.ref, [...refs])))
+    return rows.map((r) => ({
+      ...r,
+      provider: r.provider as ProviderKind,
+      outcome: r.outcome as UsageEntry['outcome'],
+    }))
   },
 
   usageSummary: async (accountId) => {

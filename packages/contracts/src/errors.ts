@@ -29,6 +29,9 @@ export const ERROR_CODES = [
   'AI_PROVIDER_REQUIRED',
   'GOOGLE_NOT_CONFIGURED',
   'GOOGLE_GRANT_REQUIRED',
+  'CONVERSATION_NOT_FOUND',
+  'PROPOSAL_NOT_FOUND',
+  'PROPOSAL_DECIDED',
 ] as const
 
 export type ErrorCode = (typeof ERROR_CODES)[number]
@@ -61,6 +64,9 @@ export const HTTP_STATUS: Readonly<Record<ErrorCode, number>> = {
   AI_PROVIDER_REQUIRED: 409,
   GOOGLE_NOT_CONFIGURED: 409,
   GOOGLE_GRANT_REQUIRED: 409,
+  CONVERSATION_NOT_FOUND: 404,
+  PROPOSAL_NOT_FOUND: 404,
+  PROPOSAL_DECIDED: 409,
 }
 
 /** RFC 9457 problem details with a stable `code`. */

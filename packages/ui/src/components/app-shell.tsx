@@ -52,6 +52,7 @@ function AppShell({
   labels,
   storageKey = 'goodresearch.sidebar',
   location,
+  panel,
   children,
 }: {
   sidebar: React.ReactNode
@@ -62,10 +63,35 @@ function AppShell({
   /** Changes on every navigation (the current path): the drawer closes, whatever was clicked. */
   location: string
   storageKey?: string
+  /**
+   * A panel on the right (spec 005): on ≥ 768 px it slides in and pushes the page, below it covers
+   * the screen. Animated unless the person prefers reduced motion; inert while closed.
+   */
+  panel?: {
+    id: string
+    label: string
+    open: boolean
+    onClose: () => void
+    content: React.ReactNode
+  }
   children: React.ReactNode
 }) {
   const [collapsed, setCollapsed] = React.useState(() => readCollapsed(storageKey))
   const [drawerOpen, setDrawerOpen] = React.useState(false)
+  const panelRef = React.useRef<HTMLElement>(null)
+  const onPanelClose = panel?.onClose
+  // Escape inside the panel closes it (spec 005 FR-003), unless something in the panel already
+  // used it (an edit field cancelling, a menu closing): listened on window, after React's handlers.
+  React.useEffect(() => {
+    if (!onPanelClose) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      if (!(event.target instanceof Node) || !panelRef.current?.contains(event.target)) return
+      onPanelClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onPanelClose])
   // Any navigation closes the drawer, whatever was clicked (brand, shortcut, dialog).
   React.useEffect(() => setDrawerOpen(false), [location])
   const desktop = React.useMemo<SidebarState>(
@@ -101,31 +127,45 @@ function AppShell({
       >
         <SidebarContext value={desktop}>{sidebar}</SidebarContext>
       </aside>
-      <div className="min-w-0">
-        <div className="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-4 border-b bg-card/90 px-4 py-3 backdrop-blur md:px-8">
-          <div className="flex items-center gap-2 md:hidden">
-            <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-              <SheetTrigger
-                render={<Button variant="ghost" size="icon" aria-label={labels.openMenu} />}
-              >
-                <MenuIcon />
-              </SheetTrigger>
-              <SheetContent
-                side="left"
-                closeLabel={labels.closeMenu}
-                className="w-72 gap-2 bg-sidebar px-4 py-[22px] text-sidebar-foreground"
-              >
-                <SheetTitle className="sr-only">{labels.menu}</SheetTitle>
-                <SidebarContext value={drawer}>{sidebar}</SidebarContext>
-              </SheetContent>
-            </Sheet>
-            {mobileBrand}
+      <div className="flex min-w-0">
+        <div className="min-w-0 flex-1">
+          <div className="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-4 border-b bg-card/90 px-4 py-3 backdrop-blur md:px-8">
+            <div className="flex items-center gap-2 md:hidden">
+              <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+                <SheetTrigger
+                  render={<Button variant="ghost" size="icon" aria-label={labels.openMenu} />}
+                >
+                  <MenuIcon />
+                </SheetTrigger>
+                <SheetContent
+                  side="left"
+                  closeLabel={labels.closeMenu}
+                  className="w-72 gap-2 bg-sidebar px-4 py-[22px] text-sidebar-foreground"
+                >
+                  <SheetTitle className="sr-only">{labels.menu}</SheetTitle>
+                  <SidebarContext value={drawer}>{sidebar}</SidebarContext>
+                </SheetContent>
+              </Sheet>
+              {mobileBrand}
+            </div>
+            <div className="ml-auto flex items-center gap-4">{topbar}</div>
           </div>
-          <div className="ml-auto flex items-center gap-4">{topbar}</div>
+          <main id="main" tabIndex={-1} className="px-4 pt-6 pb-12 outline-none md:px-8">
+            {children}
+          </main>
         </div>
-        <main id="main" tabIndex={-1} className="px-4 pt-6 pb-12 outline-none md:px-8">
-          {children}
-        </main>
+        {panel ? (
+          <aside
+            id={panel.id}
+            aria-label={panel.label}
+            data-open={panel.open || undefined}
+            inert={!panel.open}
+            ref={panelRef}
+            className="invisible fixed inset-0 z-40 translate-x-full bg-card transition-[transform,visibility] duration-200 ease-out data-open:visible data-open:translate-x-0 data-open:transition-transform motion-reduce:transition-none md:sticky md:inset-auto md:top-0 md:z-auto md:h-svh md:w-0 md:shrink-0 md:translate-x-0 md:overflow-hidden md:transition-[width,visibility] md:data-open:transition-[width] md:data-open:border-l md:data-open:w-[400px]"
+          >
+            <div className="flex h-full w-full flex-col md:w-[400px]">{panel.content}</div>
+          </aside>
+        ) : null}
       </div>
     </div>
   )

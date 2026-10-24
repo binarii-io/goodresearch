@@ -37,6 +37,8 @@ x-dev-env: &dev-env
   GOOGLE_DRIVE_CLIENT_SECRET: ""
   # Test AI provider (spec 004): keys starting with "test-ok" work, no real provider is called.
   AI_FAKE_PROVIDER: "true"
+  # A price for the test model, so costs show in the dev stack (USD per million tokens).
+  AI_PRICES: '[{"model":"fake-model","from":"2026-01-01","inputPerMillion":2,"outputPerMillion":10}]'
 
 services:
   mock-oidc:

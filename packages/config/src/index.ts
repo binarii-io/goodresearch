@@ -1,6 +1,7 @@
 export {
   type AccessRules,
   AI_PROVIDER_KINDS,
+  type AiPrice,
   type AiProviderKind,
   type AppConfig,
   type AuthProvider,

@@ -1,9 +1,24 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createVertex } from '@ai-sdk/google-vertex'
 import { createOpenAI } from '@ai-sdk/openai'
-import { APICallError, generateText, type LanguageModel, Output, streamText } from 'ai'
+import {
+  APICallError,
+  generateText,
+  type LanguageModel,
+  type ModelMessage,
+  Output,
+  streamText,
+  type ToolSet,
+  tool,
+} from 'ai'
 import { OAuth2Client } from 'google-auth-library'
-import type { ModelRequest, ModelRunner, Usage } from '../application/ports.ts'
+import type {
+  ChatMessage,
+  ModelRequest,
+  ModelRunner,
+  StreamPart,
+  Usage,
+} from '../application/ports.ts'
 import { ProviderCallError } from '../application/ports.ts'
 import { classifyFailure, type ProviderErrorFacts } from '../domain/failure.ts'
 import type { Credential } from '../domain/provider.ts'
@@ -57,10 +72,50 @@ const usageOf = (usage: {
   outputTokens: usage.outputTokens ?? null,
 })
 
+const toModelMessage = (m: ChatMessage): ModelMessage => {
+  if (m.role === 'user') return { role: 'user', content: m.content }
+  if (m.role === 'tool')
+    return {
+      role: 'tool',
+      content: m.results.map((r) => ({
+        type: 'tool-result' as const,
+        toolCallId: r.id,
+        toolName: r.name,
+        output: { type: 'text' as const, value: r.output },
+      })),
+    }
+  if (!m.toolCalls?.length) return { role: 'assistant', content: m.content }
+  return {
+    role: 'assistant',
+    content: [
+      ...(m.content ? [{ type: 'text' as const, text: m.content }] : []),
+      ...m.toolCalls.map((c) => ({
+        type: 'tool-call' as const,
+        toolCallId: c.id,
+        toolName: c.name,
+        input: c.input,
+      })),
+    ],
+  }
+}
+
+/** Tools without `execute`: a call ends the step and is returned to the caller (spec 005 R2). */
+const toolsOf = (request: ModelRequest): { tools?: ToolSet } =>
+  request.tools?.length
+    ? {
+        tools: Object.fromEntries(
+          request.tools.map((t) => [
+            t.name,
+            tool({ description: t.description, inputSchema: t.inputSchema }),
+          ]),
+        ),
+      }
+    : {}
+
 const promptOf = (request: ModelRequest) => ({
   ...(request.system ? { system: request.system } : {}),
   ...(request.messages
-    ? { messages: request.messages.map((m) => ({ role: m.role, content: m.content })) }
+    ? { messages: request.messages.map(toModelMessage) }
     : { prompt: request.prompt ?? '' }),
   ...(request.maxOutputTokens ? { maxOutputTokens: request.maxOutputTokens } : {}),
 })
@@ -148,13 +203,13 @@ export const createAiSdkRunner = (options: {
       }
     },
 
-    streamText: (credential, model, request, timeoutMs) => {
-      if (credential.provider === 'fake')
-        return fake.streamText(credential, model, request, timeoutMs)
+    stream: (credential, model, request, timeoutMs) => {
+      if (credential.provider === 'fake') return fake.stream(credential, model, request, timeoutMs)
       let failure: unknown
       const result = streamText({
         model: modelFor(credential, model),
         ...promptOf(request),
+        ...toolsOf(request),
         maxRetries: 0,
         // A long answer may stream for minutes: the limit applies to silences, not to the total.
         timeout: { firstChunkMs: timeoutMs, chunkMs: timeoutMs },
@@ -171,7 +226,18 @@ export const createAiSdkRunner = (options: {
           throw toProviderError(failure ?? error)
         },
       )
-      return { textStream: result.textStream, done }
+      async function* parts(): AsyncGenerator<StreamPart> {
+        for await (const part of result.fullStream) {
+          if (part.type === 'text-delta') yield { type: 'text', delta: part.text }
+          else if (part.type === 'tool-call')
+            yield {
+              type: 'tool-call',
+              call: { id: part.toolCallId, name: part.toolName, input: part.input },
+            }
+          else if (part.type === 'error') throw toProviderError(part.error)
+        }
+      }
+      return { parts: parts(), done }
     },
   }
 }

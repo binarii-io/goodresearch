@@ -130,17 +130,43 @@ msgstr "Tous les types"
 msgid "An inventory is already running for this study."
 msgstr "Un inventaire est déjà en cours pour cette étude."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Analysis"
+msgstr "Analyse"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "API key"
 msgstr "Clé d'API"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Applied"
+msgstr "Appliquée"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Apply"
+msgstr "Appliquer"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Ask {ownerName} to share the folder with your Google account in Drive. Access is checked again when you come back to this page."
 msgstr "Demandez à {ownerName} de partager le dossier avec votre compte Google dans Drive. L'accès est vérifié à nouveau quand vous revenez sur cette page."
 
+#: src/features/assistant/panel.tsx
+msgid "Ask anything about your research. The assistant sees the page you are on and can propose changes, which you apply or dismiss."
+msgstr "Posez vos questions sur votre recherche. L'assistant voit la page ouverte et peut proposer des modifications, que vous appliquez ou ignorez."
+
+#: src/features/assistant/panel.tsx
+msgid "Ask the assistant…"
+msgstr "Demander à l'assistant…"
+
 #: src/features/ai/labels.ts
 msgid "Ask the owner of the account or project to give you access to the model."
 msgstr "Demandez au propriétaire du compte ou du projet de vous donner accès au modèle."
+
+#: src/features/assistant/assistant-button.tsx
+#: src/features/assistant/panel.tsx
+#: src/routes/_authenticated.tsx
+msgid "Assistant"
+msgstr "Assistant"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Attach folder"
@@ -174,6 +200,7 @@ msgstr "Des études mieux conçues, des réponses dignes de confiance."
 msgid "by {actor}"
 msgstr "par {actor}"
 
+#: src/features/assistant/panel.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/routes/_authenticated/ai-provider.tsx
 #: src/routes/_authenticated/members/$memberId.tsx
@@ -186,6 +213,10 @@ msgstr "Annuler"
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Change provider"
 msgstr "Changer de fournisseur"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Change the research goal"
+msgstr "Changer l'objectif de recherche"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Check and save"
@@ -233,6 +264,10 @@ msgstr "Modèles Claude avec une clé d'API de votre compte Anthropic."
 msgid "Close"
 msgstr "Fermer"
 
+#: src/features/assistant/panel.tsx
+msgid "Close the assistant"
+msgstr "Fermer l'assistant"
+
 #: src/routes/_authenticated.tsx
 msgid "Close the menu"
 msgstr "Fermer le menu"
@@ -270,9 +305,33 @@ msgstr "Continuer vers Google"
 msgid "Continue with Google"
 msgstr "Continuer avec Google"
 
+#: src/features/assistant/panel.tsx
+msgid "Conversation"
+msgstr "Conversation"
+
+#: src/features/assistant/panel.tsx
+msgid "Conversation title"
+msgstr "Titre de la conversation"
+
+#: src/features/assistant/panel.tsx
+msgid "Conversations"
+msgstr "Conversations"
+
+#: src/features/assistant/cost.tsx
+msgid "Cost of this conversation: {total}. Last message: {last}."
+msgstr "Coût de cette conversation : {total}. Dernier message : {last}."
+
 #: src/features/ai/provider-forms.tsx
 msgid "Could not be verified"
 msgstr "Non vérifiable"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Create a project"
+msgstr "Créer un projet"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Create an interview study"
+msgstr "Créer une étude par entretiens"
 
 #: src/features/research/create-project-dialog.tsx
 msgid "Create project"
@@ -294,6 +353,10 @@ msgstr "Créé le {created} · Modifié le {updated}"
 msgid "Ctrl+Enter to save, Escape to cancel"
 msgstr "Ctrl+Entrée pour enregistrer, Échap pour annuler"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Current name"
+msgstr "Nom actuel"
+
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Deactivate"
 msgstr "Désactiver"
@@ -302,6 +365,7 @@ msgstr "Désactiver"
 msgid "Deactivated"
 msgstr "Désactivé"
 
+#: src/features/assistant/panel.tsx
 #: src/routes/_authenticated/studies/$studyId.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "Delete"
@@ -310,6 +374,10 @@ msgstr "Supprimer"
 #: src/routes/_authenticated/teams.tsx
 msgid "Delete {teamName}?"
 msgstr "Supprimer {teamName} ?"
+
+#: src/features/assistant/panel.tsx
+msgid "Delete {title}"
+msgstr "Supprimer {title}"
 
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Delete account"
@@ -326,6 +394,10 @@ msgstr "Supprimer l'équipe"
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Delete this account?"
 msgstr "Supprimer ce compte ?"
+
+#: src/features/assistant/panel.tsx
+msgid "Delete this conversation?"
+msgstr "Supprimer cette conversation ?"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Delete this study"
@@ -375,6 +447,14 @@ msgstr "Déconnecter"
 msgid "Disconnect Google Drive?"
 msgstr "Déconnecter Google Drive ?"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Dismiss"
+msgstr "Ignorer"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Dismissed"
+msgstr "Ignorée"
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "Email"
 msgstr "E-mail"
@@ -392,6 +472,7 @@ msgstr "se terminant par"
 msgid "Enter a name."
 msgstr "Saisissez un nom."
 
+#: src/features/assistant/panel.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 #: src/routes/_authenticated/studies/$studyId.tsx
 #: src/routes/_authenticated/teams.tsx
@@ -413,6 +494,10 @@ msgstr "Déplier le volet"
 #: src/features/ai/provider-forms.tsx
 msgid "Failed"
 msgstr "Échec"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Fieldwork"
+msgstr "Terrain"
 
 #: src/features/research/study-list.tsx
 msgid "Folder attached"
@@ -535,6 +620,10 @@ msgstr "il s'est arrêté avant la fin ; actualisez pour le relancer"
 msgid "Its members lose access to this team. This cannot be undone."
 msgstr "Ses membres perdent l'accès à cette équipe. Cette action est irréversible."
 
+#: src/features/assistant/panel.tsx
+msgid "Its messages are deleted. Changes already applied stay."
+msgstr "Ses messages sont supprimés. Les modifications déjà appliquées restent."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "its owner"
 msgstr "son propriétaire"
@@ -551,6 +640,10 @@ msgstr "Langue"
 msgid "Last inventory {when} by {who}."
 msgstr "Dernier inventaire le {when} par {who}."
 
+#: src/features/assistant/cost.tsx
+msgid "Last message: {last}"
+msgstr "Dernier message : {last}"
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "Last sign-in"
 msgstr "Dernière connexion"
@@ -562,6 +655,18 @@ msgstr "Dernière vérification réussie"
 #: src/features/ingestion/source-panel.tsx
 msgid "Link of the Drive folder"
 msgstr "Lien du dossier Drive"
+
+#: src/features/assistant/panel.tsx
+msgid "Looking at: project {name}"
+msgstr "Je regarde : le projet {name}"
+
+#: src/features/assistant/panel.tsx
+msgid "Looking at: study {name}"
+msgstr "Je regarde : l'étude {name}"
+
+#: src/features/assistant/panel.tsx
+msgid "Looking at: this page"
+msgstr "Je regarde : cette page"
 
 #: src/features/workspace/app-sidebar.tsx
 msgid "Main"
@@ -583,6 +688,10 @@ msgstr "Membre"
 msgid "Members"
 msgstr "Membres"
 
+#: src/features/assistant/panel.tsx
+msgid "Message to the assistant"
+msgstr "Message à l'assistant"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Model"
 msgstr "Modèle"
@@ -591,6 +700,7 @@ msgstr "Modèle"
 msgid "Modified"
 msgstr "Modifié"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
@@ -611,10 +721,22 @@ msgstr "Navigation"
 msgid "Needs attention"
 msgstr "À vérifier"
 
+#: src/features/assistant/panel.tsx
+msgid "New conversation"
+msgstr "Nouvelle conversation"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "New name"
+msgstr "Nouveau nom"
+
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/index.tsx
 msgid "New project"
 msgstr "Nouveau projet"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "New research goal"
+msgstr "Nouvel objectif de recherche"
 
 #: src/features/workspace/app-sidebar.tsx
 msgid "New research project"
@@ -627,6 +749,10 @@ msgstr "Nouvelle étude"
 #: src/routes/_authenticated/index.tsx
 msgid "No access yet"
 msgstr "Pas encore d'accès"
+
+#: src/features/assistant/panel.tsx
+msgid "No conversation yet."
+msgstr "Aucune conversation pour l'instant."
 
 #: src/features/research/study-list.tsx
 msgid "No folder yet"
@@ -643,6 +769,10 @@ msgstr "Aucune équipe"
 #: src/routes/_authenticated/teams.tsx
 msgid "Nobody yet."
 msgstr "Personne pour l'instant."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Not applied"
+msgstr "Non appliquée"
 
 #: src/routes/_authenticated/sources.tsx
 msgid "Not connected. You will be asked to connect when you attach a folder to a study."
@@ -664,9 +794,25 @@ msgstr "Rien n'est jamais créé, modifié ou supprimé dans votre Drive. Vous p
 msgid "Only admins can do this."
 msgstr "Seuls les admins peuvent faire cela."
 
+#: src/features/assistant/panel.tsx
+msgid "Open · {when}"
+msgstr "Ouvrir · {when}"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Open a project"
+msgstr "Ouvrir un projet"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Open a study"
+msgstr "Ouvrir une étude"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Open Google account permissions"
 msgstr "Ouvrir les autorisations du compte Google"
+
+#: src/features/assistant/panel.tsx
+msgid "Open the AI provider page"
+msgstr "Ouvrir la page Fournisseur IA"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Open the folder in Google Drive and copy the address from your browser."
@@ -676,9 +822,25 @@ msgstr "Ouvrez le dossier dans Google Drive et copiez l'adresse affichée par vo
 msgid "Open the menu"
 msgstr "Ouvrir le menu"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Open the project"
+msgstr "Ouvrir le projet"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Open the study"
+msgstr "Ouvrir l'étude"
+
 #: src/features/ai/provider-forms.tsx
 msgid "Open the Vertex AI API page of this project"
 msgstr "Ouvrir la page de l'API Vertex AI de ce projet"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Opened the project"
+msgstr "Projet ouvert :"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Opened the study"
+msgstr "Étude ouverte :"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Other"
@@ -699,6 +861,14 @@ msgstr "Les personnes arrivent en se connectant avec un e-mail autorisé. Donnez
 #: src/features/ai/provider-forms.tsx
 msgid "Permission to call models"
 msgstr "Droit d'appeler les modèles"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Preparation"
+msgstr "Préparation"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Project"
+msgstr "Projet"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Project ID format"
@@ -751,6 +921,14 @@ msgstr "Retirer votre fournisseur IA ?"
 msgid "Removing the provider deletes it from goodresearch. To also withdraw goodresearch's access at Google, use your Google account permissions."
 msgstr "Retirer le fournisseur le supprime de goodresearch. Pour retirer aussi l'accès de goodresearch chez Google, passez par les autorisations de votre compte Google."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Rename the project"
+msgstr "Renommer le projet"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Rename the study"
+msgstr "Renommer l'étude"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Replace folder"
 msgstr "Remplacer le dossier"
@@ -794,6 +972,10 @@ msgstr "Vérifications en cours…"
 msgid "Search by name or email"
 msgstr "Rechercher par nom ou e-mail"
 
+#: src/features/assistant/panel.tsx
+msgid "Send"
+msgstr "Envoyer"
+
 #: src/routes/sign-in.tsx
 msgid "Sign in with {provider}"
 msgstr "Se connecter avec {provider}"
@@ -835,6 +1017,14 @@ msgstr "Sources que goodresearch lit avec votre propre autorisation. Elles sont 
 msgid "Status"
 msgstr "Statut"
 
+#: src/features/assistant/panel.tsx
+msgid "Stop"
+msgstr "Arrêter"
+
+#: src/features/assistant/panel.tsx
+msgid "Stopped"
+msgstr "Arrêtée"
+
 #: src/features/research/study-list.tsx
 msgid "Studies"
 msgstr "Études"
@@ -851,6 +1041,7 @@ msgstr "Phases de l'étude"
 msgid "Survey"
 msgstr "Questionnaire"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Team"
@@ -964,9 +1155,21 @@ msgstr "L'API Vertex AI n'est pas activée dans ce projet."
 msgid "The workspace needs at least one active admin."
 msgstr "L'espace de travail doit garder au moins un admin actif."
 
+#: src/features/assistant/panel.tsx
+msgid "Thinking…"
+msgstr "Réflexion…"
+
 #: src/features/workspace/errors.ts
 msgid "This account was deleted."
 msgstr "Ce compte a été supprimé."
+
+#: src/features/workspace/errors.ts
+msgid "This conversation does not exist any more."
+msgstr "Cette conversation n'existe plus."
+
+#: src/features/assistant/cost.tsx
+msgid "This conversation: {total}"
+msgstr "Cette conversation : {total}"
 
 #: src/features/workspace/errors.ts
 msgid "This folder does not exist or your Google account cannot open it."
@@ -993,6 +1196,14 @@ msgid "This project does not exist or you do not have access to it."
 msgstr "Ce projet n'existe pas ou vous n'y avez pas accès."
 
 #: src/features/workspace/errors.ts
+msgid "This proposal does not exist any more."
+msgstr "Cette proposition n'existe plus."
+
+#: src/features/workspace/errors.ts
+msgid "This proposal was already applied or dismissed."
+msgstr "Cette proposition a déjà été appliquée ou ignorée."
+
+#: src/features/workspace/errors.ts
 msgid "This study does not exist or you do not have access to it."
 msgstr "Cette étude n'existe pas ou vous n'y avez pas accès."
 
@@ -1007,6 +1218,10 @@ msgstr "Cette équipe a encore {projects}. Déplacez-les d'abord vers une autre 
 #: src/features/workspace/errors.ts
 msgid "This team still has projects. Move them to another team first."
 msgstr "Cette équipe a encore des projets. Déplacez-les d'abord vers une autre équipe."
+
+#: src/features/assistant/panel.tsx
+msgid "Title saved"
+msgstr "Titre enregistré"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Transcript"
@@ -1027,6 +1242,10 @@ msgstr "Type"
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Type {email} to confirm"
 msgstr "Saisissez {email} pour confirmer"
+
+#: src/features/assistant/cost.tsx
+msgid "unknown"
+msgstr "inconnu"
 
 #: src/features/research/study-list.tsx
 msgid "Updated {updated}"

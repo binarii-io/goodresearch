@@ -62,6 +62,8 @@ export const inMemoryAiStore = () => {
     appendUsage: async (e) => {
       usage.push(e)
     },
+    usageByRefs: async (id, refs) =>
+      usage.filter((e) => e.accountId === id && e.ref !== null && refs.includes(e.ref)),
     usageSummary: async (id) => {
       const mine = usage.filter((e) => e.accountId === id)
       return {
@@ -99,23 +101,23 @@ export const fakeRunner = () => {
       return { object: request.schema.parse({ answer: 'yes' }), usage }
     },
     // Like the AI SDK: `done` settles only once the stream has been read to its end.
-    streamText: (credential) => {
+    stream: (credential) => {
       let settle: { resolve: (u: typeof usage) => void; reject: (e: unknown) => void } | undefined
       const done = new Promise<typeof usage>((resolve, reject) => {
         settle = { resolve, reject }
       })
-      async function* textStream() {
+      async function* streamParts() {
         try {
           outcome(credential)
         } catch (error) {
           settle?.reject(error)
           throw error
         }
-        yield 'O'
-        yield 'K'
+        yield { type: 'text' as const, delta: 'O' }
+        yield { type: 'text' as const, delta: 'K' }
         settle?.resolve(usage)
       }
-      return { textStream: textStream(), done }
+      return { parts: streamParts(), done }
     },
   }
   return {
@@ -169,6 +171,7 @@ export const aiWorld = (options: { offered?: ProviderKind[] } = {}) => {
       offered: options.offered ?? ['vertex', 'anthropic', 'openai'],
       models: { vertex: 'v-model', anthropic: 'a-model', openai: 'o-model', fake: 'f' },
       timeoutMs: 1000,
+      prices: [],
     },
     clock,
     newId,

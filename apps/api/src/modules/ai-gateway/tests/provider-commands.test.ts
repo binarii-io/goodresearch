@@ -270,11 +270,11 @@ describe('US4 — gateway and ledger', () => {
   it('records a streamed answer when the stream ends', async () => {
     await world.commands.connectApiKey({ actor: ada, provider: 'openai', apiKey: 'sk-ada-1234' })
     world.usage.length = 0
-    const { textStream, done } = await world.gateway.streamText('ada', 'guide-assistant', {
+    const { parts, done } = await world.gateway.stream('ada', 'guide-assistant', {
       messages: [{ role: 'user', content: 'hello' }],
     })
     let text = ''
-    for await (const chunk of textStream) text += chunk
+    for await (const part of parts) if (part.type === 'text') text += part.delta
     await done
     expect(text).toBe('OK')
     expect(world.usage).toEqual([expect.objectContaining({ outcome: 'success', outputTokens: 2 })])
@@ -283,8 +283,8 @@ describe('US4 — gateway and ledger', () => {
   it('records a stream the caller stopped reading as cancelled, once', async () => {
     await world.commands.connectApiKey({ actor: ada, provider: 'openai', apiKey: 'sk-ada-1234' })
     world.usage.length = 0
-    const { textStream, done } = await world.gateway.streamText('ada', 't', { prompt: 'x' })
-    for await (const _chunk of textStream) break
+    const { parts, done } = await world.gateway.stream('ada', 't', { prompt: 'x' })
+    for await (const _part of parts) break
     expect(world.usage.map((e) => e.outcome)).toEqual(['cancelled'])
     void done
   })
@@ -296,10 +296,10 @@ describe('US4 — gateway and ledger', () => {
     const unhandled: unknown[] = []
     const listener = (reason: unknown) => unhandled.push(reason)
     process.on('unhandledRejection', listener)
-    const { textStream } = await world.gateway.streamText('ada', 't', { prompt: 'x' })
+    const { parts } = await world.gateway.stream('ada', 't', { prompt: 'x' })
     await expect(
       (async () => {
-        for await (const _chunk of textStream) {
+        for await (const _part of parts) {
           // reading only the text
         }
       })(),

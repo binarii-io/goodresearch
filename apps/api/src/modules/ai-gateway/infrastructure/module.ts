@@ -7,8 +7,10 @@ import { makeProviderCommands } from '../application/commands/provider-commands.
 import { makeGateway } from '../application/gateway.ts'
 import type { AiDeps, GoogleCloudApi, ModelRunner } from '../application/ports.ts'
 import { makeProviderQueries } from '../application/queries/provider-queries.ts'
+import { makeUsageCosts, priceCatalog } from '../application/queries/usage-costs.ts'
 import { createAiStore } from './ai.drizzle-store.ts'
 import { createAiSdkRunner } from './ai-sdk.model-runner.ts'
+import { DEFAULT_PRICES } from './default-prices.ts'
 import { createGoogleCloudApi } from './google-cloud.fetch-api.ts'
 import type { AiHandlers } from './http.routes.ts'
 
@@ -58,7 +60,7 @@ export const createAiGatewayModule = (deps: {
     runner: deps.runner ?? createAiSdkRunner({ google: config.google }),
     google,
     cipher: createTokenCipher(config.authSecret, CIPHER_PURPOSES.aiProviderCredentials),
-    config: config.ai,
+    config: { ...config.ai, prices: priceCatalog(DEFAULT_PRICES, config.ai.prices) },
     clock: deps.clock,
     newId,
     log,
@@ -66,11 +68,14 @@ export const createAiGatewayModule = (deps: {
   const gateway = makeGateway(ai)
   const commands = makeProviderCommands(ai, gateway)
   const queries = makeProviderQueries(ai)
+  const usageCosts = makeUsageCosts(ai)
   const handlers: AiHandlers = { commands, queries }
   return {
     handlers,
     /** For other modules: every AI call of a person goes through it (constitution IV). */
     gateway,
+    /** Cost in USD of the calls made for each ref (assistant messages). */
+    usageCosts,
     /** For `Me` (workspace): is the provider step needed? */
     providerGate: queries.gate,
     /** Account deletion (spec 001 anonymisation, FR-013). */
