@@ -12,9 +12,17 @@ msgstr ""
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# projet} other {# projets}}"
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "{calls} calls · {tokens} tokens"
+msgstr "{calls} appels · {tokens} jetons"
+
 #: src/routes/_authenticated/index.tsx
 msgid "{count, plural, one {# project} other {# projects}}"
 msgstr "{count, plural, one {# projet} other {# projets}}"
+
+#: src/features/ai/provider-forms.tsx
+msgid "{name} API key"
+msgstr "Clé d'API {name}"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "{transcript} transcripts · {media} media · {other} other files"
@@ -64,6 +72,10 @@ msgstr "Accès à {teamName} accordé"
 msgid "Access to {teamName} removed"
 msgstr "Accès à {teamName} retiré"
 
+#: src/features/ai/provider-forms.tsx
+msgid "Access to the project and Vertex AI API enabled"
+msgstr "Accès au projet et API Vertex AI activée"
+
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Account created at first sign-in"
 msgstr "Compte créé à la première connexion"
@@ -84,6 +96,10 @@ msgstr "Compte réactivé"
 msgid "Active"
 msgstr "Actif"
 
+#: src/features/ai/labels.ts
+msgid "Add credit or raise the quota in the provider's console, then try again."
+msgstr "Ajoutez du crédit ou augmentez le quota dans la console du fournisseur, puis réessayez."
+
 #: src/routes/_authenticated/teams.tsx
 msgid "Add team"
 msgstr "Ajouter l'équipe"
@@ -92,6 +108,15 @@ msgstr "Ajouter l'équipe"
 #: src/features/workspace/member-labels.ts
 msgid "Admin"
 msgstr "Admin"
+
+#: src/routes/setup.ai-provider.tsx
+msgid "AI is not configured on this instance."
+msgstr "L'IA n'est pas configurée sur cette instance."
+
+#: src/features/workspace/account-menu.tsx
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "AI provider"
+msgstr "Fournisseur IA"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "All groups"
@@ -105,13 +130,25 @@ msgstr "Tous les types"
 msgid "An inventory is already running for this study."
 msgstr "Un inventaire est déjà en cours pour cette étude."
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "API key"
+msgstr "Clé d'API"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Ask {ownerName} to share the folder with your Google account in Drive. Access is checked again when you come back to this page."
 msgstr "Demandez à {ownerName} de partager le dossier avec votre compte Google dans Drive. L'accès est vérifié à nouveau quand vous revenez sur cette page."
 
+#: src/features/ai/labels.ts
+msgid "Ask the owner of the account or project to give you access to the model."
+msgstr "Demandez au propriétaire du compte ou du projet de vous donner accès au modèle."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Attach folder"
 msgstr "Rattacher le dossier"
+
+#: src/routes/setup.ai-provider.tsx
+msgid "Back to goodresearch"
+msgstr "Revenir à goodresearch"
 
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Back to members"
@@ -138,12 +175,37 @@ msgid "by {actor}"
 msgstr "par {actor}"
 
 #: src/features/ingestion/source-panel.tsx
+#: src/routes/_authenticated/ai-provider.tsx
 #: src/routes/_authenticated/members/$memberId.tsx
 #: src/routes/_authenticated/sources.tsx
 #: src/routes/_authenticated/studies/$studyId.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "Cancel"
 msgstr "Annuler"
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Change provider"
+msgstr "Changer de fournisseur"
+
+#: src/features/ai/provider-forms.tsx
+msgid "Check and save"
+msgstr "Vérifier et enregistrer"
+
+#: src/features/ai/labels.ts
+msgid "Check that you copied the whole key, or create a new one, then try again."
+msgstr "Vérifiez que vous avez copié la clé entière, ou créez-en une nouvelle, puis réessayez."
+
+#: src/features/ai/labels.ts
+msgid "Check the project ID in the Google Cloud console."
+msgstr "Vérifiez l'ID du projet dans la console Google Cloud."
+
+#: src/features/ai/provider-forms.tsx
+msgid "Checking the key…"
+msgstr "Vérification de la clé…"
+
+#: src/features/ai/provider-forms.tsx
+msgid "Checks"
+msgstr "Vérifications"
 
 #: src/features/research/create-project-dialog.tsx
 msgid "Choose a team"
@@ -152,6 +214,19 @@ msgstr "Choisir une équipe"
 #: src/features/research/create-project-dialog.tsx
 msgid "Choose a team."
 msgstr "Choisissez une équipe."
+
+#: src/features/ai/labels.ts
+msgid "Choose another region, or ask the person who deployed goodresearch which model is used."
+msgstr "Choisissez une autre région, ou demandez à la personne qui a déployé goodresearch quel modèle est utilisé."
+
+#: src/routes/_authenticated/ai-provider.tsx
+#: src/routes/setup.ai-provider.tsx
+msgid "Choose your AI provider"
+msgstr "Choisissez votre fournisseur IA"
+
+#: src/features/ai/labels.ts
+msgid "Claude models with an API key from your Anthropic account."
+msgstr "Modèles Claude avec une clé d'API de votre compte Anthropic."
 
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
@@ -190,6 +265,14 @@ msgstr "Sources connectées"
 #: src/features/ingestion/source-panel.tsx
 msgid "Continue to Google"
 msgstr "Continuer vers Google"
+
+#: src/features/ai/provider-forms.tsx
+msgid "Continue with Google"
+msgstr "Continuer avec Google"
+
+#: src/features/ai/provider-forms.tsx
+msgid "Could not be verified"
+msgstr "Non vérifiable"
 
 #: src/features/research/create-project-dialog.tsx
 msgid "Create project"
@@ -280,6 +363,10 @@ msgstr "Détacher le dossier"
 msgid "Detach this folder?"
 msgstr "Détacher ce dossier ?"
 
+#: src/features/ai/labels.ts
+msgid "Development only: keys starting with \"test-ok\" work."
+msgstr "Développement uniquement : les clés commençant par \"test-ok\" fonctionnent."
+
 #: src/routes/_authenticated/sources.tsx
 msgid "Disconnect"
 msgstr "Déconnecter"
@@ -291,6 +378,14 @@ msgstr "Déconnecter Google Drive ?"
 #: src/routes/_authenticated/members/index.tsx
 msgid "Email"
 msgstr "E-mail"
+
+#: src/features/ai/labels.ts
+msgid "Enable the Vertex AI API in the Google Cloud console, then run the checks again."
+msgstr "Activez l'API Vertex AI dans la console Google Cloud, puis relancez les vérifications."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "ending with"
+msgstr "se terminant par"
 
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
@@ -315,6 +410,10 @@ msgstr "Chaque projet appartient à une équipe ; ses membres travaillent sur le
 msgid "Expand the sidebar"
 msgstr "Déplier le volet"
 
+#: src/features/ai/provider-forms.tsx
+msgid "Failed"
+msgstr "Échec"
+
 #: src/features/research/study-list.tsx
 msgid "Folder attached"
 msgstr "Dossier rattaché"
@@ -322,6 +421,14 @@ msgstr "Dossier rattaché"
 #: src/features/ingestion/source-panel.tsx
 msgid "For now it only reads the names, types, dates and sizes of the files in the folders you attach; file content will be read when transcripts are imported."
 msgstr "Pour l'instant, il ne lit que les noms, types, dates et tailles des fichiers des dossiers que vous rattachez ; le contenu des fichiers sera lu lors de l'import des transcriptions."
+
+#: src/features/ai/labels.ts
+msgid "Gemini models in your own Google Cloud project, with your Google account."
+msgstr "Modèles Gemini dans votre propre projet Google Cloud, avec votre compte Google."
+
+#: src/features/ai/provider-forms.tsx
+msgid "Get a key from {name}"
+msgstr "Obtenir une clé chez {name}"
 
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Goal saved"
@@ -334,6 +441,34 @@ msgstr "goodresearch"
 #: src/features/ingestion/source-panel.tsx
 msgid "goodresearch asks Google for read-only access to your Drive, separate from signing in."
 msgstr "goodresearch demande à Google un accès en lecture seule à votre Drive, distinct de la connexion."
+
+#: src/features/ai/provider-forms.tsx
+msgid "goodresearch will ask Google for access to Google Cloud on your behalf. This access is separate from signing in and from Google Drive, and you can remove it at any time."
+msgstr "goodresearch va demander à Google un accès à Google Cloud en votre nom. Cet accès est distinct de la connexion et de Google Drive, et vous pouvez le retirer à tout moment."
+
+#: src/routes/setup.ai-provider.tsx
+msgid "goodresearch's assistants run on your own provider account: the costs and the processing of what you send to the AI are yours. Your key or Google access is stored encrypted, used only for your own actions, and you can remove it at any time."
+msgstr "Les assistants de goodresearch fonctionnent sur votre propre compte de fournisseur : les coûts et le traitement de ce que vous envoyez à l'IA sont les vôtres. Votre clé ou votre accès Google est stocké chiffré, utilisé uniquement pour vos propres actions, et vous pouvez le retirer à tout moment."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "goodresearch's assistants use your own provider account. Costs and data processing are yours."
+msgstr "Les assistants de goodresearch utilisent votre propre compte de fournisseur. Les coûts et le traitement des données sont les vôtres."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Google account"
+msgstr "Compte Google"
+
+#: src/routes/setup.ai-provider.tsx
+msgid "Google Cloud access was not granted. You can try again."
+msgstr "L'accès à Google Cloud n'a pas été accordé. Vous pouvez réessayer."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Google Cloud project"
+msgstr "Projet Google Cloud"
+
+#: src/features/ai/provider-forms.tsx
+msgid "Google Cloud project ID"
+msgstr "ID du projet Google Cloud"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Google Drive connected"
@@ -367,6 +502,10 @@ msgstr "Google Drive a renvoyé une liste incomplète ; réessayez plus tard"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Google Drive was not connected. You can try again."
 msgstr "Google Drive n'a pas été connecté. Vous pouvez réessayer."
+
+#: src/features/ai/labels.ts
+msgid "GPT models with an API key from your OpenAI account."
+msgstr "Modèles GPT avec une clé d'API de votre compte OpenAI."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Group"
@@ -416,6 +555,10 @@ msgstr "Dernier inventaire le {when} par {who}."
 msgid "Last sign-in"
 msgstr "Dernière connexion"
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Last successful check"
+msgstr "Dernière vérification réussie"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Link of the Drive folder"
 msgstr "Lien du dossier Drive"
@@ -440,6 +583,10 @@ msgstr "Membre"
 msgid "Members"
 msgstr "Membres"
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Model"
+msgstr "Modèle"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Modified"
 msgstr "Modifié"
@@ -459,6 +606,10 @@ msgstr "Nom enregistré"
 #: src/routes/_authenticated.tsx
 msgid "Navigation"
 msgstr "Navigation"
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Needs attention"
+msgstr "À vérifier"
 
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/index.tsx
@@ -501,6 +652,10 @@ msgstr "Non connecté. La connexion vous sera demandée quand vous rattacherez u
 msgid "Not found"
 msgstr "Introuvable"
 
+#: src/features/ai/provider-forms.tsx
+msgid "Not run"
+msgstr "Non lancée"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Nothing is ever created, changed or deleted in your Drive. You can disconnect at any time from Connected sources."
 msgstr "Rien n'est jamais créé, modifié ou supprimé dans votre Drive. Vous pouvez vous déconnecter à tout moment depuis Sources connectées."
@@ -508,6 +663,10 @@ msgstr "Rien n'est jamais créé, modifié ou supprimé dans votre Drive. Vous p
 #: src/features/workspace/errors.ts
 msgid "Only admins can do this."
 msgstr "Seuls les admins peuvent faire cela."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Open Google account permissions"
+msgstr "Ouvrir les autorisations du compte Google"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Open the folder in Google Drive and copy the address from your browser."
@@ -517,6 +676,10 @@ msgstr "Ouvrez le dossier dans Google Drive et copiez l'adresse affichée par vo
 msgid "Open the menu"
 msgstr "Ouvrir le menu"
 
+#: src/features/ai/provider-forms.tsx
+msgid "Open the Vertex AI API page of this project"
+msgstr "Ouvrir la page de l'API Vertex AI de ce projet"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Other"
 msgstr "Autre"
@@ -525,9 +688,21 @@ msgstr "Autre"
 msgid "Owner: {owner}"
 msgstr "Propriétaire : {owner}"
 
+#: src/features/ai/provider-forms.tsx
+msgid "Passed"
+msgstr "Réussie"
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "People join by signing in with an allowed email. Give them access to one or more teams to let them work on those teams' projects."
 msgstr "Les personnes arrivent en se connectant avec un e-mail autorisé. Donnez-leur accès à une ou plusieurs équipes pour qu'elles travaillent sur les projets de ces équipes."
+
+#: src/features/ai/provider-forms.tsx
+msgid "Permission to call models"
+msgstr "Droit d'appeler les modèles"
+
+#: src/features/ai/provider-forms.tsx
+msgid "Project ID format"
+msgstr "Format de l'ID du projet"
 
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Project name"
@@ -540,6 +715,7 @@ msgid "Projects"
 msgstr "Projets"
 
 #: src/routes/_authenticated/members/index.tsx
+#: src/routes/setup.ai-provider.tsx
 msgid "Provider"
 msgstr "Fournisseur"
 
@@ -555,9 +731,25 @@ msgstr "Réactiver"
 msgid "Refresh"
 msgstr "Rafraîchir"
 
+#: src/features/ai/provider-forms.tsx
+msgid "Region"
+msgstr "Région"
+
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Reload"
 msgstr "Recharger"
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Remove"
+msgstr "Retirer"
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Remove your AI provider?"
+msgstr "Retirer votre fournisseur IA ?"
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Removing the provider deletes it from goodresearch. To also withdraw goodresearch's access at Google, use your Google account permissions."
+msgstr "Retirer le fournisseur le supprime de goodresearch. Pour retirer aussi l'accès de goodresearch chez Google, passez par les autorisations de votre compte Google."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Replace folder"
@@ -586,9 +778,17 @@ msgstr "Rôle modifié"
 msgid "Role changed to {to}"
 msgstr "Rôle changé en {to}"
 
+#: src/features/ai/provider-forms.tsx
+msgid "Run the checks"
+msgstr "Lancer les vérifications"
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Run the interviews; recordings and transcripts land in the study's Drive folder."
 msgstr "Mener les entretiens ; les enregistrements et transcriptions arrivent dans le dossier Drive de l'étude."
+
+#: src/features/ai/provider-forms.tsx
+msgid "Running the checks…"
+msgstr "Vérifications en cours…"
 
 #: src/routes/_authenticated/members/index.tsx
 msgid "Search by name or email"
@@ -599,6 +799,7 @@ msgid "Sign in with {provider}"
 msgstr "Se connecter avec {provider}"
 
 #: src/features/workspace/account-menu.tsx
+#: src/routes/setup.ai-provider.tsx
 msgid "Sign out"
 msgstr "Se déconnecter"
 
@@ -675,6 +876,26 @@ msgstr "Équipe renommée"
 msgid "Teams"
 msgstr "Équipes"
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Test again"
+msgstr "Tester à nouveau"
+
+#: src/features/ai/provider-forms.tsx
+msgid "Test call to the model"
+msgstr "Appel de test au modèle"
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Testing…"
+msgstr "Test en cours…"
+
+#: src/features/ai/labels.ts
+msgid "The account has no credit or quota left."
+msgstr "Le compte n'a plus de crédit ou de quota."
+
+#: src/features/ai/labels.ts
+msgid "The check did not work for an unexpected reason."
+msgstr "La vérification n'a pas fonctionné pour une raison inattendue."
+
 #: src/features/workspace/errors.ts
 msgid "The email you typed does not match."
 msgstr "L'e-mail saisi ne correspond pas."
@@ -695,9 +916,17 @@ msgstr "L'inventaire a échoué ({reason})."
 msgid "The inventory is removed from goodresearch. Nothing changes in Drive."
 msgstr "L'inventaire est retiré de goodresearch. Rien ne change dans Drive."
 
+#: src/features/ai/labels.ts
+msgid "The key or the Google access was refused."
+msgstr "La clé ou l'accès Google a été refusé."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "The last refresh failed ({reason}). The list below is from {when}."
 msgstr "Le dernier rafraîchissement a échoué ({reason}). La liste ci-dessous date du {when}."
+
+#: src/features/ai/labels.ts
+msgid "The model is not available for this account or region."
+msgstr "Le modèle n'est pas disponible pour ce compte ou cette région."
 
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "The name and email are erased for good and the person can no longer sign in. Projects and history stay, shown as \"Deleted account\". This cannot be undone."
@@ -711,9 +940,25 @@ msgstr "L'autorisation est révoquée chez Google. Il faudra vous reconnecter po
 msgid "The permission no longer works (revoked or expired). Open a study to connect again."
 msgstr "L'autorisation ne fonctionne plus (révoquée ou expirée). Ouvrez une étude pour vous reconnecter."
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "The provider answered."
+msgstr "Le fournisseur a répondu."
+
+#: src/features/ai/labels.ts
+msgid "The provider did not answer."
+msgstr "Le fournisseur n'a pas répondu."
+
+#: src/features/ai/labels.ts
+msgid "The provider is limiting requests right now."
+msgstr "Le fournisseur limite les requêtes en ce moment."
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study and its inventory are removed from goodresearch. Nothing changes in Drive."
 msgstr "L'étude et son inventaire sont retirés de goodresearch. Rien ne change dans Drive."
+
+#: src/features/ai/labels.ts
+msgid "The Vertex AI API is not enabled in this project."
+msgstr "L'API Vertex AI n'est pas activée dans ce projet."
 
 #: src/features/workspace/errors.ts
 msgid "The workspace needs at least one active admin."
@@ -726,6 +971,10 @@ msgstr "Ce compte a été supprimé."
 #: src/features/workspace/errors.ts
 msgid "This folder does not exist or your Google account cannot open it."
 msgstr "Ce dossier n'existe pas ou votre compte Google ne peut pas l'ouvrir."
+
+#: src/features/ai/labels.ts
+msgid "This Google Cloud project does not exist or your account cannot open it."
+msgstr "Ce projet Google Cloud n'existe pas ou votre compte ne peut pas l'ouvrir."
 
 #: src/features/workspace/errors.ts
 msgid "This is not the link of a Google Drive folder."
@@ -763,6 +1012,14 @@ msgstr "Cette équipe a encore des projets. Déplacez-les d'abord vers une autre
 msgid "Transcript"
 msgstr "Transcription"
 
+#: src/features/ai/labels.ts
+msgid "Try again in a moment."
+msgstr "Réessayez dans un instant."
+
+#: src/features/ai/labels.ts
+msgid "Try again; if it keeps failing, contact the person who deployed goodresearch."
+msgstr "Réessayez ; si cela échoue encore, contactez la personne qui a déployé goodresearch."
+
 #: src/features/research/study-list.tsx
 msgid "Type"
 msgstr "Type"
@@ -779,9 +1036,29 @@ msgstr "Modifié le {updated}"
 msgid "Usability test"
 msgstr "Test utilisateur"
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Usage"
+msgstr "Consommation"
+
+#: src/features/ai/provider-forms.tsx
+msgid "Use another Google account"
+msgstr "Utiliser un autre compte Google"
+
+#: src/features/ai/provider-forms.tsx
+msgid "Use the project ID, not its name: lower-case letters, digits and hyphens, 6 to 30 characters."
+msgstr "Utilisez l'ID du projet, pas son nom : lettres minuscules, chiffres et tirets, 6 à 30 caractères."
+
+#: src/features/ai/labels.ts
+msgid "Wait a minute and try again."
+msgstr "Attendez une minute et réessayez."
+
 #: src/routes/_authenticated/welcome.tsx
 msgid "Welcome to goodresearch"
 msgstr "Bienvenue dans goodresearch"
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Working"
+msgstr "Fonctionne"
 
 #: src/routes/_authenticated/teams.tsx
 msgid "You are not in any team yet."
@@ -798,3 +1075,15 @@ msgstr "Vous n'avez pas accès au dossier de cette étude"
 #: src/features/workspace/errors.ts
 msgid "You need access to this study's Drive folder to do this."
 msgstr "Il vous faut l'accès au dossier Drive de cette étude pour faire cela."
+
+#: src/features/ai/labels.ts
+msgid "Your account is not allowed to use this model."
+msgstr "Votre compte n'est pas autorisé à utiliser ce modèle."
+
+#: src/routes/setup.ai-provider.tsx
+msgid "Your AI provider needs your attention."
+msgstr "Votre fournisseur IA demande votre attention."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Your key or Google access is deleted from goodresearch. You will be asked to choose a provider again before using the app."
+msgstr "Votre clé ou votre accès Google est supprimé de goodresearch. Il vous sera demandé de choisir à nouveau un fournisseur avant d'utiliser l'app."

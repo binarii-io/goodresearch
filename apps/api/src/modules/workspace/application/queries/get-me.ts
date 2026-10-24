@@ -11,8 +11,13 @@ const httpsUrl = (value: string | null): string | null => {
 }
 
 /** The signed-in account and the teams it can work in (admins: all teams). */
+/** Whether the person must set up an AI provider first (AI Gateway port, spec 004). */
+export type AiProviderGate = (
+  accountId: string,
+) => Promise<{ required: boolean; status: 'none' | 'working' | 'needs-attention' }>
+
 export const makeGetMe =
-  (db: Db) =>
+  (db: Db, aiProvider: AiProviderGate) =>
   async (accountId: string): Promise<Me | null> => {
     const [account] = await db.select().from(auth_users).where(eq(auth_users.id, accountId))
     if (!account) return null
@@ -37,5 +42,6 @@ export const makeGetMe =
       role,
       language: account.language === 'fr' ? 'fr' : 'en',
       teams,
+      aiProvider: await aiProvider(account.id),
     }
   }

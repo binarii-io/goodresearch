@@ -80,6 +80,12 @@ export function AccountMenu({ me }: { me: Me }) {
               void navigate({ to: '/sources' })
             }}
           >{t`Connected sources`}</DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              close()
+              void navigate({ to: '/ai-provider' })
+            }}
+          >{t`AI provider`}</DropdownMenuItem>
           <DropdownMenuItem onClick={() => void leave()}>{t`Sign out`}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

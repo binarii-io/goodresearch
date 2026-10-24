@@ -6,16 +6,27 @@ export type TokenCipher = {
   decrypt(stored: string, owner: string): string
 }
 
-const INFO = 'goodresearch/source-connections/v2'
 const TAG_BYTES = 16
 
+/** Key purposes: one derived key per kind of secret, so a value cannot be moved between them. */
+export const CIPHER_PURPOSES = {
+  /** Google Drive refresh tokens (spec 002); unchanged since, existing values still decrypt. */
+  sourceConnections: 'goodresearch/source-connections/v2',
+  /** AI provider API keys and Google Cloud refresh tokens (spec 004). */
+  aiProviderCredentials: 'goodresearch/ai-provider-credentials/v1',
+} as const
+
 /**
- * Encrypts source tokens at rest (FR-010): AES-256-GCM, key derived from AUTH_SECRET, the account id
- * as additional authenticated data, full 16-byte tags only. Format `v2:<iv>:<tag>:<ciphertext>`.
- * Anything else (older format, other key, other account) fails: the connection is treated as lost.
+ * Encrypts credentials at rest (spec 002 FR-010, spec 004 FR-006): AES-256-GCM, key derived from
+ * AUTH_SECRET and the purpose, the account id as additional authenticated data, full 16-byte tags
+ * only. Format `v2:<iv>:<tag>:<ciphertext>`. Anything else (older format, other key, other purpose,
+ * other account) fails: the credential is treated as lost.
  */
-export const createTokenCipher = (secret: string): TokenCipher => {
-  const key = Buffer.from(hkdfSync('sha256', secret, 'goodresearch', INFO, 32))
+export const createTokenCipher = (
+  secret: string,
+  purpose: (typeof CIPHER_PURPOSES)[keyof typeof CIPHER_PURPOSES],
+): TokenCipher => {
+  const key = Buffer.from(hkdfSync('sha256', secret, 'goodresearch', purpose, 32))
   return {
     encrypt: (clear, owner) => {
       const iv = randomBytes(12)

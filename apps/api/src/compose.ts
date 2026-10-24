@@ -1,6 +1,7 @@
 import type { AppConfig } from '@goodresearch/config'
 import { type Clock, systemClock } from '@goodresearch/shared'
 import type { FastifyInstance } from 'fastify'
+import { createAiGatewayModule, registerAiRoutes } from './modules/ai-gateway/index.ts'
 import { createIngestionModule, registerIngestionRoutes } from './modules/ingestion/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
 import { createWorkspaceModule, registerWorkspaceRoutes } from './modules/workspace/index.ts'
@@ -20,6 +21,11 @@ export type Infrastructure = {
   readonly jobs?: JobQueue
   /** Replaces the Google Drive adapters (tests). */
   readonly drive?: Parameters<typeof createIngestionModule>[0]['drive']
+  /** Replaces the model runner and Google Cloud API of the AI Gateway (tests). */
+  readonly ai?: Pick<
+    Parameters<typeof createAiGatewayModule>[0],
+    'runner' | 'googleCloud' | 'googleFetch'
+  >
 }
 
 const noJobs: JobQueue = { send: async () => false }
@@ -31,6 +37,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
   // Modules reference each other through ports; late binding breaks the construction cycle.
   let research: ReturnType<typeof createResearchModule> | undefined
   let ingestion: ReturnType<typeof createIngestionModule> | undefined
+  let ai: ReturnType<typeof createAiGatewayModule> | undefined
   const bound = <T>(module: T | undefined): T => {
     if (!module) throw new Error('module not composed yet')
     return module
@@ -44,6 +51,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       countByTeam: bound(research).countProjectsByTeam,
       countByTeams: bound(research).countProjectsByTeams,
     }),
+    aiProvider: () => bound(ai).providerGate,
+    onAccountDeleted: () => bound(ai).forgetAccount,
   })
   research = createResearchModule({
     db: infra.db,
@@ -60,7 +69,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
     ...(infra.drive !== undefined ? { drive: infra.drive } : {}),
   })
-  return { clock, workspace, research, ingestion }
+  ai = createAiGatewayModule({ db: infra.db, clock, config, ...(infra.ai ?? {}) })
+  return { clock, workspace, research, ingestion, ai }
 }
 
 /** Composition root of the HTTP server: modules, auth and routes. */
@@ -70,7 +80,7 @@ export const composeApp = async (
   options: { logger?: boolean; rateLimit?: boolean } = {},
 ) => {
   const modules = composeModules(config, infra)
-  const { clock, workspace, research, ingestion } = modules
+  const { clock, workspace, research, ingestion, ai } = modules
   const auth = createAuth({
     config,
     db: infra.db,
@@ -88,6 +98,7 @@ export const composeApp = async (
       registerWorkspaceRoutes(instance, { guard, handlers: workspace.handlers })
       registerResearchRoutes(instance, { guard, handlers: research.handlers })
       registerIngestionRoutes(instance, { guard, handlers: ingestion.handlers })
+      registerAiRoutes(instance, { guard, handlers: ai.handlers })
     },
   })
   return { app, auth, modules }

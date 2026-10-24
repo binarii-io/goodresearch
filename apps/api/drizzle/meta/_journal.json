@@ -36,6 +36,20 @@
       "when": 1792869419019,
       "tag": "0004_inventory_run_id",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792874480421,
+      "tag": "0005_ai_provider_connections",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792874480966,
+      "tag": "0006_ai_rules",
+      "breakpoints": true
     }
   ]
 }

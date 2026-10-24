@@ -9,7 +9,12 @@ export type AccountCommandError = AccountError | 'MEMBER_NOT_FOUND' | 'TEAM_NOT_
  * Admin commands on accounts (FR-013, FR-014). Members get MEMBER_NOT_FOUND, as if the members area
  * did not exist. Each command changes one account and appends its access events in one transaction.
  */
-export const makeAccountCommands = (deps: { uow: WorkspaceUnitOfWork; clock: Clock }) => {
+export const makeAccountCommands = (deps: {
+  uow: WorkspaceUnitOfWork
+  clock: Clock
+  /** After an account is deleted: other modules forget its credentials (spec 004 FR-013). */
+  onAccountDeleted?: (accountId: string) => Promise<unknown>
+}) => {
   const run = (
     actor: Actor,
     accountId: string,
@@ -62,15 +67,18 @@ export const makeAccountCommands = (deps: { uow: WorkspaceUnitOfWork; clock: Clo
         account.reactivate(c.actor.id, now),
       ),
 
-    deleteAccount: (c: { actor: Actor; accountId: string; confirmation: string }) =>
-      run(c.actor, c.accountId, async (account, repositories, now) =>
+    deleteAccount: async (c: { actor: Actor; accountId: string; confirmation: string }) => {
+      const deleted = await run(c.actor, c.accountId, async (account, repositories, now) =>
         account.delete(
           c.confirmation,
           c.actor.id,
           now,
           await repositories.accounts.lockActiveAdmins(),
         ),
-      ),
+      )
+      if (deleted.ok) await deps.onAccountDeleted?.(c.accountId)
+      return deleted
+    },
   }
 }
 

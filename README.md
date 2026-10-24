@@ -42,7 +42,7 @@ Interview studies read their recordings and transcripts from a Google Drive fold
 1. In the Google Cloud project of your OAuth client, enable the **Google Drive API**.
 2. On the OAuth consent screen, add the scope `https://www.googleapis.com/auth/drive.readonly`.
 3. On the OAuth client, add the redirect URI `https://<your host>/api/sources/google-drive/callback`.
-4. Set `GOOGLE_DRIVE_CLIENT_ID` and `GOOGLE_DRIVE_CLIENT_SECRET` (the sign-in client's values work) and restart.
+4. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (the sign-in client's values work; the former names `GOOGLE_DRIVE_CLIENT_ID` / `_SECRET` are still read) and restart.
 
 Google classifies `drive.readonly` as a *restricted* scope:
 
@@ -50,6 +50,21 @@ Google classifies `drive.readonly` as a *restricted* scope:
 - with an **External** consent screen, people see an "unverified app" warning and at most 100 people can connect until Google verifies your app (restricted-scope verification and a yearly security assessment).
 
 goodresearch only reads the attached folders and, for now, only file metadata; it never writes to Drive. Disconnecting Drive (Connected sources) revokes the permission at Google. If sign-in and Drive use the same Google Cloud project, the revocation also removes the sign-in consent: the next Google sign-in shows the consent screen again (sessions are not affected). Stored Drive permissions are encrypted with a key derived from `AUTH_SECRET`; changing it means everyone reconnects Drive.
+
+### AI providers
+
+Every person connects their own AI provider at their first sign-in: the costs and the processing of what they send to the AI stay with their own account. goodresearch stores the credential encrypted and uses it only for that person's actions.
+
+- `AI_PROVIDERS`: providers offered, among `vertex`, `anthropic`, `openai` (default: all three; empty disables AI).
+- `AI_MODEL_VERTEX`, `AI_MODEL_ANTHROPIC`, `AI_MODEL_OPENAI`: model used for each provider (defaults in `packages/config/src/env.ts`).
+- **Anthropic, OpenAI**: nothing to set up; people paste their own API key, checked by a real call.
+- **Google Vertex AI** (offered only with a Google client, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, which Drive uses too): people grant access to Google Cloud with their own Google account, then give their project ID and region; goodresearch checks that the Vertex AI API is enabled, that they may call models, and makes a real call.
+  1. On the OAuth consent screen, add the scope `https://www.googleapis.com/auth/cloud-platform` (a *sensitive* scope: an External consent screen needs Google verification; an Internal one does not).
+  2. On the OAuth client, add the redirect URI `https://<your host>/api/ai-provider/google/callback`.
+  3. Each person's own Google Cloud project needs the Vertex AI API enabled and billing.
+  4. Do not set `GOOGLE_VERTEX_API_KEY` (refused at start): it would bill every call to the deployer.
+
+  Google withdraws access per app and person: disconnecting Google Drive also withdraws Vertex AI access (the AI provider then asks for a new consent). Removing the AI provider only deletes it from goodresearch; people withdraw Google access from their Google account permissions.
 
 ## Develop
 

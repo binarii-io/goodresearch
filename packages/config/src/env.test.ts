@@ -98,18 +98,48 @@ describe('loadConfig', () => {
     expect(message).toContain('local test provider')
   })
 
-  it('enables the Google Drive connector only with both client values', () => {
-    expect(loadConfig(valid).drive).toBeNull()
+  it('enables the Google client only with both values, under the new or the old names', () => {
+    expect(loadConfig(valid).google).toBeNull()
     expect(
-      loadConfig({ ...valid, GOOGLE_DRIVE_CLIENT_ID: '', GOOGLE_DRIVE_CLIENT_SECRET: '' }).drive,
+      loadConfig({ ...valid, GOOGLE_CLIENT_ID: 'new', GOOGLE_CLIENT_SECRET: 'n' }).google,
+    ).toEqual({ clientId: 'new', clientSecret: 'n' })
+    expect(
+      loadConfig({ ...valid, GOOGLE_DRIVE_CLIENT_ID: '', GOOGLE_DRIVE_CLIENT_SECRET: '' }).google,
     ).toBeNull()
     expect(
-      loadConfig({ ...valid, GOOGLE_DRIVE_CLIENT_ID: 'id', GOOGLE_DRIVE_CLIENT_SECRET: 's' }).drive,
+      loadConfig({ ...valid, GOOGLE_DRIVE_CLIENT_ID: 'id', GOOGLE_DRIVE_CLIENT_SECRET: 's' })
+        .google,
     ).toEqual({
       clientId: 'id',
       clientSecret: 's',
     })
     expect(errorOf({ ...valid, GOOGLE_DRIVE_CLIENT_ID: 'id' })).toContain('set both or none')
+  })
+
+  it('offers the three AI providers by default, Vertex AI only with a Google client', () => {
+    expect(loadConfig(valid).ai.offered).toEqual(['anthropic', 'openai'])
+    const withGoogle = loadConfig({ ...valid, GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 's' })
+    expect(withGoogle.ai.offered).toEqual(['vertex', 'anthropic', 'openai'])
+    expect(loadConfig({ ...valid, AI_PROVIDERS: 'openai' }).ai.offered).toEqual(['openai'])
+    expect(loadConfig({ ...valid, AI_PROVIDERS: '' }).ai.offered).toEqual([])
+    expect(errorOf({ ...valid, AI_PROVIDERS: 'mistral' })).toContain('AI_PROVIDERS')
+  })
+
+  it('lets the deployer change the model of each provider', () => {
+    const config = loadConfig({ ...valid, AI_MODEL_ANTHROPIC: 'a-model' })
+    expect(config.ai.models.anthropic).toBe('a-model')
+    expect(config.ai.models.openai).toBeTruthy()
+  })
+
+  it('refuses a server-wide Vertex AI key', () => {
+    expect(errorOf({ ...valid, GOOGLE_VERTEX_API_KEY: 'k' })).toContain('GOOGLE_VERTEX_API_KEY')
+  })
+
+  it('allows the test AI provider only without https', () => {
+    expect(loadConfig({ ...valid, AI_FAKE_PROVIDER: 'true' }).ai.offered).toContain('fake')
+    expect(
+      errorOf({ ...valid, APP_URL: 'https://research.example.org', AI_FAKE_PROVIDER: 'true' }),
+    ).toContain('AI_FAKE_PROVIDER')
   })
 
   it('reads secrets from *_FILE variables', () => {

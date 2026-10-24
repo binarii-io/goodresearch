@@ -30,9 +30,13 @@ x-dev-env: &dev-env
   LOG_LEVEL: info
   # End-to-end tests sign in many times from one IP.
   AUTH_SIGN_IN_RATE_LIMIT: "1000"
-  # Independent of any local .env: no real Google Drive in the dev stack.
+  # Independent of any local .env: no real Google client (Drive, Vertex AI) in the dev stack.
+  GOOGLE_CLIENT_ID: ""
+  GOOGLE_CLIENT_SECRET: ""
   GOOGLE_DRIVE_CLIENT_ID: ""
   GOOGLE_DRIVE_CLIENT_SECRET: ""
+  # Test AI provider (spec 004): keys starting with "test-ok" work, no real provider is called.
+  AI_FAKE_PROVIDER: "true"
 
 services:
   mock-oidc:

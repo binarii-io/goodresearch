@@ -12,6 +12,17 @@ export type AuthProvider = {
   readonly trusted: boolean
 }
 
+export const AI_PROVIDER_KINDS = ['vertex', 'anthropic', 'openai', 'fake'] as const
+export type AiProviderKind = (typeof AI_PROVIDER_KINDS)[number]
+
+/** Defaults suited to conversational assistants; deployers can change them (specs/004 research R7). */
+const DEFAULT_MODELS: Record<AiProviderKind, string> = {
+  vertex: 'gemini-3.8-flash',
+  anthropic: 'claude-sonnet-5-5',
+  openai: 'gpt-5.5',
+  fake: 'fake-model',
+}
+
 export type AccessRules = {
   /** Lower-cased emails that become admin at their first sign-in. */
   readonly adminEmails: readonly string[]
@@ -39,8 +50,14 @@ export type AppConfig = {
   readonly trustedProxies: readonly string[]
   /** Sign-in attempts allowed per client IP and minute. */
   readonly signInRateLimit: number
-  /** Google Drive connector (spec 002); `null` when not configured. */
-  readonly drive: { readonly clientId: string; readonly clientSecret: string } | null
+  /** Google OAuth client shared by the Drive connector (spec 002) and Vertex AI (spec 004); `null` when not configured. */
+  readonly google: { readonly clientId: string; readonly clientSecret: string } | null
+  /** AI providers offered to people (spec 004); each person uses their own credentials. */
+  readonly ai: {
+    readonly offered: readonly AiProviderKind[]
+    readonly models: Readonly<Record<AiProviderKind, string>>
+    readonly timeoutMs: number
+  }
   readonly logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
   readonly port: number
 }
@@ -95,8 +112,17 @@ const baseSchema = z.object({
   ACCESS_ALLOWLIST: z.string().default(''),
   TRUSTED_PROXIES: z.string().default(''),
   AUTH_SIGN_IN_RATE_LIMIT: z.coerce.number().int().positive().default(20),
+  GOOGLE_CLIENT_ID: optionalText,
+  GOOGLE_CLIENT_SECRET: optionalText,
+  // Before spec 004 the Google client was Drive-only; the old names are still read.
   GOOGLE_DRIVE_CLIENT_ID: optionalText,
   GOOGLE_DRIVE_CLIENT_SECRET: optionalText,
+  AI_PROVIDERS: z.string().default('vertex,anthropic,openai'),
+  AI_MODEL_VERTEX: optionalText,
+  AI_MODEL_ANTHROPIC: optionalText,
+  AI_MODEL_OPENAI: optionalText,
+  AI_CALL_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
+  AI_FAKE_PROVIDER: bool,
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   PORT: z.coerce.number().int().positive().default(3000),
 })
@@ -180,8 +206,29 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     else issues.push(`ACCESS_ALLOWLIST: "${entry}" is not a domain`)
   }
 
-  if (Boolean(values.GOOGLE_DRIVE_CLIENT_ID) !== Boolean(values.GOOGLE_DRIVE_CLIENT_SECRET)) {
-    issues.push('GOOGLE_DRIVE_CLIENT_ID and GOOGLE_DRIVE_CLIENT_SECRET: set both or none')
+  const googleId = values.GOOGLE_CLIENT_ID ?? values.GOOGLE_DRIVE_CLIENT_ID
+  const googleSecret = values.GOOGLE_CLIENT_SECRET ?? values.GOOGLE_DRIVE_CLIENT_SECRET
+  if (Boolean(googleId) !== Boolean(googleSecret)) {
+    issues.push('GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET: set both or none')
+  }
+
+  const offered: AiProviderKind[] = []
+  for (const entry of list(values.AI_PROVIDERS)) {
+    if (entry === 'fake' || !(AI_PROVIDER_KINDS as readonly string[]).includes(entry))
+      issues.push(`AI_PROVIDERS: "${entry}" is not one of vertex, anthropic, openai`)
+    // Vertex AI uses the person's Google account: it needs the Google client.
+    else if (entry !== 'vertex' || googleId) offered.push(entry as AiProviderKind)
+  }
+  // The Vertex AI library would use this server-wide key instead of each person's own Google
+  // account, billing every call to the deployer (spec 004 FR-012).
+  if (env.GOOGLE_VERTEX_API_KEY)
+    issues.push(
+      'GOOGLE_VERTEX_API_KEY: must not be set, Vertex AI uses each person’s own Google account',
+    )
+  if (values.AI_FAKE_PROVIDER) {
+    if (appUrl.protocol === 'https:')
+      issues.push('AI_FAKE_PROVIDER: the test AI provider cannot be used with an https APP_URL')
+    else offered.push('fake')
   }
 
   if (issues.length > 0) return fail(issues)
@@ -203,13 +250,17 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     access: { adminEmails, allowedEmails, allowedDomains },
     trustedProxies: list(values.TRUSTED_PROXIES),
     signInRateLimit: values.AUTH_SIGN_IN_RATE_LIMIT,
-    drive:
-      values.GOOGLE_DRIVE_CLIENT_ID && values.GOOGLE_DRIVE_CLIENT_SECRET
-        ? {
-            clientId: values.GOOGLE_DRIVE_CLIENT_ID,
-            clientSecret: values.GOOGLE_DRIVE_CLIENT_SECRET,
-          }
-        : null,
+    google: googleId && googleSecret ? { clientId: googleId, clientSecret: googleSecret } : null,
+    ai: {
+      offered,
+      models: {
+        ...DEFAULT_MODELS,
+        ...(values.AI_MODEL_VERTEX ? { vertex: values.AI_MODEL_VERTEX } : {}),
+        ...(values.AI_MODEL_ANTHROPIC ? { anthropic: values.AI_MODEL_ANTHROPIC } : {}),
+        ...(values.AI_MODEL_OPENAI ? { openai: values.AI_MODEL_OPENAI } : {}),
+      },
+      timeoutMs: values.AI_CALL_TIMEOUT_MS,
+    },
     logLevel: values.LOG_LEVEL,
     port: values.PORT,
   }

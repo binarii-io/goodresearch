@@ -1,3 +1,4 @@
+// Shared by the Google consents of the Drive connector (spec 002) and Vertex AI (spec 004).
 const BASE = 'http://local.invalid'
 
 /**

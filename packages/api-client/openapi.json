@@ -35,6 +35,299 @@
           "id"
         ]
       },
+      "AiProviderInput": {
+        "type": "string",
+        "enum": [
+          "vertex",
+          "anthropic",
+          "openai",
+          "fake"
+        ]
+      },
+      "AiFailureInput": {
+        "type": "string",
+        "enum": [
+          "INVALID_CREDENTIAL",
+          "PERMISSION_DENIED",
+          "NO_CREDIT_OR_QUOTA",
+          "RATE_LIMITED",
+          "MODEL_UNAVAILABLE",
+          "API_DISABLED",
+          "PROJECT_NOT_FOUND",
+          "UNREACHABLE",
+          "UNKNOWN"
+        ]
+      },
+      "AiProviderViewInput": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/AiProviderInput"
+          },
+          "model": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "working",
+              "needs-attention"
+            ]
+          },
+          "credentialHint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "googleAccount": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "project": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastCheckedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "lastFailure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiFailureInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "status",
+          "credentialHint",
+          "googleAccount",
+          "project",
+          "region",
+          "lastCheckedAt",
+          "lastFailure"
+        ]
+      },
+      "AiProviderPageInput": {
+        "type": "object",
+        "properties": {
+          "offered": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiProviderInput"
+            }
+          },
+          "regions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "googleGranted": {
+            "type": "boolean"
+          },
+          "connection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiProviderViewInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "calls": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "inputTokens": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "outputTokens": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "calls",
+              "inputTokens",
+              "outputTokens"
+            ]
+          }
+        },
+        "required": [
+          "offered",
+          "regions",
+          "googleGranted",
+          "connection",
+          "usage"
+        ]
+      },
+      "ConnectApiKeyInput": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "anthropic",
+              "openai",
+              "fake"
+            ]
+          },
+          "apiKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "provider",
+          "apiKey"
+        ]
+      },
+      "StartGoogleGrantInput": {
+        "type": "object",
+        "properties": {
+          "returnTo": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "returnTo"
+        ]
+      },
+      "VertexCheckRequestInput": {
+        "type": "object",
+        "properties": {
+          "project": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "project",
+          "region"
+        ]
+      },
+      "VertexCheckInput": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": [
+              "format",
+              "api",
+              "permission",
+              "call"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error",
+              "skipped",
+              "unknown"
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiFailureInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "status",
+          "failure"
+        ]
+      },
+      "VertexCheckResultInput": {
+        "type": "object",
+        "properties": {
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VertexCheckInput"
+            }
+          },
+          "saved": {
+            "type": "boolean"
+          },
+          "connection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiProviderViewInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "checks",
+          "saved",
+          "connection"
+        ]
+      },
+      "ProviderTestResultInput": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiFailureInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "failure"
+        ]
+      },
       "ProblemInput": {
         "type": "object",
         "properties": {
@@ -73,7 +366,12 @@
               "DRIVE_NOT_CONNECTED",
               "DRIVE_NOT_CONFIGURED",
               "INVENTORY_RUNNING",
-              "DRIVE_UNAVAILABLE"
+              "DRIVE_UNAVAILABLE",
+              "AI_PROVIDER_NOT_OFFERED",
+              "AI_CHECK_FAILED",
+              "AI_PROVIDER_REQUIRED",
+              "GOOGLE_NOT_CONFIGURED",
+              "GOOGLE_GRANT_REQUIRED"
             ]
           },
           "detail": {
@@ -554,6 +852,26 @@
             "items": {
               "$ref": "#/components/schemas/TeamRefInput"
             }
+          },
+          "aiProvider": {
+            "type": "object",
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "working",
+                  "needs-attention"
+                ]
+              }
+            },
+            "required": [
+              "required",
+              "status"
+            ]
           }
         },
         "required": [
@@ -563,7 +881,8 @@
           "picture",
           "role",
           "language",
-          "teams"
+          "teams",
+          "aiProvider"
         ]
       },
       "UpdateLanguageInput": {
@@ -1176,6 +1495,308 @@
         ],
         "additionalProperties": false
       },
+      "AiProvider": {
+        "type": "string",
+        "enum": [
+          "vertex",
+          "anthropic",
+          "openai",
+          "fake"
+        ]
+      },
+      "AiFailure": {
+        "type": "string",
+        "enum": [
+          "INVALID_CREDENTIAL",
+          "PERMISSION_DENIED",
+          "NO_CREDIT_OR_QUOTA",
+          "RATE_LIMITED",
+          "MODEL_UNAVAILABLE",
+          "API_DISABLED",
+          "PROJECT_NOT_FOUND",
+          "UNREACHABLE",
+          "UNKNOWN"
+        ]
+      },
+      "AiProviderView": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/AiProvider"
+          },
+          "model": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "working",
+              "needs-attention"
+            ]
+          },
+          "credentialHint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "googleAccount": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "project": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastCheckedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "lastFailure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiFailure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "status",
+          "credentialHint",
+          "googleAccount",
+          "project",
+          "region",
+          "lastCheckedAt",
+          "lastFailure"
+        ],
+        "additionalProperties": false
+      },
+      "AiProviderPage": {
+        "type": "object",
+        "properties": {
+          "offered": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiProvider"
+            }
+          },
+          "regions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "googleGranted": {
+            "type": "boolean"
+          },
+          "connection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiProviderView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "calls": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "inputTokens": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "outputTokens": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "calls",
+              "inputTokens",
+              "outputTokens"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "offered",
+          "regions",
+          "googleGranted",
+          "connection",
+          "usage"
+        ],
+        "additionalProperties": false
+      },
+      "ConnectApiKey": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "anthropic",
+              "openai",
+              "fake"
+            ]
+          },
+          "apiKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "provider",
+          "apiKey"
+        ],
+        "additionalProperties": false
+      },
+      "StartGoogleGrant": {
+        "type": "object",
+        "properties": {
+          "returnTo": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "returnTo"
+        ],
+        "additionalProperties": false
+      },
+      "VertexCheckRequest": {
+        "type": "object",
+        "properties": {
+          "project": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "project",
+          "region"
+        ],
+        "additionalProperties": false
+      },
+      "VertexCheck": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": [
+              "format",
+              "api",
+              "permission",
+              "call"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error",
+              "skipped",
+              "unknown"
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiFailure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "status",
+          "failure"
+        ],
+        "additionalProperties": false
+      },
+      "VertexCheckResult": {
+        "type": "object",
+        "properties": {
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VertexCheck"
+            }
+          },
+          "saved": {
+            "type": "boolean"
+          },
+          "connection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiProviderView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "checks",
+          "saved",
+          "connection"
+        ],
+        "additionalProperties": false
+      },
+      "ProviderTestResult": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiFailure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "failure"
+        ],
+        "additionalProperties": false
+      },
       "Problem": {
         "type": "object",
         "properties": {
@@ -1214,7 +1835,12 @@
               "DRIVE_NOT_CONNECTED",
               "DRIVE_NOT_CONFIGURED",
               "INVENTORY_RUNNING",
-              "DRIVE_UNAVAILABLE"
+              "DRIVE_UNAVAILABLE",
+              "AI_PROVIDER_NOT_OFFERED",
+              "AI_CHECK_FAILED",
+              "AI_PROVIDER_REQUIRED",
+              "GOOGLE_NOT_CONFIGURED",
+              "GOOGLE_GRANT_REQUIRED"
             ]
           },
           "detail": {
@@ -1710,6 +2336,27 @@
             "items": {
               "$ref": "#/components/schemas/TeamRef"
             }
+          },
+          "aiProvider": {
+            "type": "object",
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "working",
+                  "needs-attention"
+                ]
+              }
+            },
+            "required": [
+              "required",
+              "status"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -1719,7 +2366,8 @@
           "picture",
           "role",
           "language",
-          "teams"
+          "teams",
+          "aiProvider"
         ],
         "additionalProperties": false
       },
@@ -3352,6 +4000,156 @@
         "responses": {
           "200": {
             "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/ai-provider": {
+      "get": {
+        "operationId": "getAiProvider",
+        "tags": [
+          "ai-provider"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeAiProvider",
+        "tags": [
+          "ai-provider"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/ai-provider/api-key": {
+      "put": {
+        "operationId": "connectAiApiKey",
+        "tags": [
+          "ai-provider"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectApiKeyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-provider/google/start": {
+      "post": {
+        "operationId": "startAiGoogleGrant",
+        "tags": [
+          "ai-provider"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartGoogleGrantInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-provider/vertex/check": {
+      "post": {
+        "operationId": "checkVertexProject",
+        "tags": [
+          "ai-provider"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VertexCheckRequestInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VertexCheckResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-provider/test": {
+      "post": {
+        "operationId": "testAiProvider",
+        "tags": [
+          "ai-provider"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderTestResult"
+                }
+              }
+            }
           }
         }
       }

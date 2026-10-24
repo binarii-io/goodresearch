@@ -20,7 +20,7 @@ goodresearch is open source; each organisation deploys it where it wants and plu
 | Concern | Port | Default implementation |
 |---|---|---|
 | Identity | Login | **Better Auth**, sessions in PostgreSQL, any OpenID Connect provider via the `generic-oauth` plugin (see update below) |
-| LLM | One port per AI task, behind the AI Gateway | **Vercel AI SDK** (`ai` 7): any supported provider, including local models; provider, model and credentials configured per workspace |
+| LLM | One port per AI task, behind the AI Gateway | **Vercel AI SDK** (`ai` 7): any supported provider, including local models; credentials per person, offered providers and models per instance (update below, spec 004) |
 | Object storage | `BlobStore` | **S3 API** (AWS, GCS interoperability, R2, Scaleway, Garage, SeaweedFS…); **SeaweedFS** in the dev/compose stack (MinIO community edition is archived) |
 | File sources | `SourceConnector` | Upload first; Google Drive, SharePoint, S3 folders… as adapters |
 | Transcript formats | `TranscriptParser` | VTT, SRT, plain `Speaker: text`; meeting-notes formats as adapters |
@@ -74,3 +74,23 @@ Studies read their files from an external source chosen by each user, Google Dri
 
 - Good: any identity provider can be combined with any source; least privilege at sign-in.
 - Bad: users go through a second consent screen the first time they connect a source.
+
+## Update 2026-10-24 — AI providers are per person (spec 004)
+
+### Context
+
+The interview guide assistant (spec 005) is the first AI feature. Organisations already pay for an AI provider, and the people using goodresearch often have their own access (a Google Cloud project with Vertex AI, an Anthropic or OpenAI key). A single key per instance would make the deployer pay for everyone and hide who uses what.
+
+### Decision
+
+- **Each person connects their own AI provider** at their first sign-in (mandatory when the instance offers at least one): Vertex AI through their own Google account (a separate, revocable consent with the `cloud-platform` scope, plus their Google Cloud project and region), or an Anthropic or OpenAI API key. Credentials are checked by a real minimal call before being saved, encrypted at rest (own key purpose, account id as AAD) and used only for that person's own actions.
+- **The deployer chooses** which providers are offered (`AI_PROVIDERS`) and the model of each (`AI_MODEL_*`); there is no shared instance key.
+- **Every call goes through the AI Gateway**, which resolves the caller's connection, classifies failures into a closed set and appends one usage entry per call (no prompt or answer text).
+- Google OAuth and the token cipher move to `platform/`: Drive (spec 002) and Vertex AI share one Google client (`GOOGLE_CLIENT_ID`, `GOOGLE_DRIVE_*` still read) with separate tokens. Google revokes per app and person, so revoking one token withdraws both: the AI provider is removed from goodresearch without revoking at Google (the page links to the person's Google account permissions). Disconnecting Drive still revokes; the Vertex AI connection then needs attention and asks for a new consent.
+- `GOOGLE_VERTEX_API_KEY` must not be set: the Vertex AI library would use it instead of each person's account.
+
+### Consequences
+
+- Good: costs and data processing stay with each person's own provider account; providers can be added as adapters.
+- Bad: every person has to set up a provider before using the app; `cloud-platform` is a broad, sensitive Google scope (an External consent screen needs Google verification).
+

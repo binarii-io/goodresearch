@@ -31,7 +31,7 @@ Every AI-produced object follows the same lifecycle and the same protections. Th
 | 6 | **Evidence** | Core | Domain model | Participant, Fact |
 | 7 | **Synthesis** | Core | Domain model + policies | Insight, Recommendation, KeyTakeaways |
 | 8 | **Reporting** | Supporting | Read models only (no aggregates) | — (deck, graph, evidence chain, exports) |
-| 9 | **AI Gateway** | Generic | Adapters + ledger | UsageEntry (append-only), PricingCatalog |
+| 9 | **AI Gateway** | Generic | Adapters + ledger | AI provider connection, UsageEntry (append-only), PricingCatalog |
 
 Background jobs (`Job`, per-item progress, stop, retry) are **shared infrastructure** used by contexts 3–7, not a context of their own.
 
@@ -137,9 +137,10 @@ Deck (debrief presentation), project graph, evidence chain (recommendation → i
 
 ### 9. AI Gateway
 
-- **LlmProvider** port — structured output (schema-constrained), usage metadata, transient-error classification. Adapters per provider (via Vercel AI SDK).
+- **AI provider connection** (spec 004) — one per person: Vertex AI with the person's own Google account (project and region), or an Anthropic or OpenAI API key. Checked by a real call before saving, encrypted, used only for that person's own actions. The deployer chooses which providers are offered and the model of each.
+- **Gateway** (`runTask`: structured output validated by a schema, or streamed text) — resolves the caller's connection, runs the call, classifies failures into a closed set (invalid credential, permission, no credit or quota, rate limit, model unavailable, API disabled, unreachable). Adapters per provider via the Vercel AI SDK.
 - Concurrency cap per provider credential, retries with backoff on transient errors.
-- **UsageEntry** — **single append-only ledger**: workspace, project/study/session refs, `feature`, model, tokens (input/output/reasoning), job run ref. Cost computed at read time from a dated **PricingCatalog**.
+- **UsageEntry** — **single append-only ledger**: person, task, provider, model, tokens in and out, duration, outcome; never prompt or answer text (spec 004). Later: project/study/session refs, job run ref, cost computed at read time from a dated **PricingCatalog**.
 
 ## Bilingual glossary
 
@@ -203,6 +204,7 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Proposed / Validated / Rejected | Proposé / Validé / Rejeté | |
 | Job | Traitement | Background job |
 | Usage ledger | Journal de consommation | |
+| AI provider | Fournisseur IA | Each person's own Vertex AI, Anthropic or OpenAI account |
 
 ## Domain events (initial list)
 

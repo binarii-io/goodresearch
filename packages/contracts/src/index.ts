@@ -1,3 +1,16 @@
+export {
+  AiFailure,
+  AiProvider,
+  AiProviderPage,
+  AiProviderStatus,
+  AiProviderView,
+  ConnectApiKey,
+  ProviderTestResult,
+  StartGoogleGrant,
+  VertexCheck,
+  VertexCheckRequest,
+  VertexCheckResult,
+} from './ai.ts'
 export { Created, Id, Language, Timestamp, Version, VersionAck } from './common.ts'
 export { ERROR_CODES, type ErrorCode, HTTP_STATUS, Problem } from './errors.ts'
 export {

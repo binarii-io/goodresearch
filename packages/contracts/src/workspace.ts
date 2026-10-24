@@ -15,6 +15,11 @@ export const Me = z
     role: Role,
     language: Language,
     teams: z.array(TeamRef),
+    /** Spec 004: the provider step is mandatory when `required` and the status is not `working`. */
+    aiProvider: z.object({
+      required: z.boolean(),
+      status: z.enum(['none', 'working', 'needs-attention']),
+    }),
   })
   .meta({ id: 'Me' })
 export type Me = z.infer<typeof Me>

@@ -1,6 +1,7 @@
 import type { AppConfig } from '@goodresearch/config'
 import type { Clock } from '@goodresearch/shared'
 import { z } from 'zod'
+import { CIPHER_PURPOSES, createTokenCipher } from '#platform/crypto/token-cipher.ts'
 import type { Db } from '#platform/db.ts'
 import type { JobHandler } from '#platform/jobs.ts'
 import { QUEUES } from '#platform/jobs.ts'
@@ -13,7 +14,6 @@ import { createDriveFetchGateway } from './drive.fetch-gateway.ts'
 import { createGoogleDriveAuthorization } from './google-oauth.ts'
 import type { IngestionHandlers } from './http.routes.ts'
 import { createIngestionStore } from './ingestion.drizzle-store.ts'
-import { createTokenCipher } from './token-cipher.ts'
 
 const InventoryJobPayload = z.object({
   studyId: z.string().min(1),
@@ -26,7 +26,7 @@ const InventoryJobPayload = z.object({
 export const createIngestionModule = (deps: {
   db: Db
   clock: Clock
-  config: Pick<AppConfig, 'appUrl' | 'authSecret' | 'drive'>
+  config: Pick<AppConfig, 'appUrl' | 'authSecret' | 'google'>
   studies: StudyDirectory
   enqueue: (queue: string, data: object, options: { singletonKey: string }) => Promise<boolean>
   drive?: { gateway: DriveGateway; authorization: DriveAuthorization } | null
@@ -39,11 +39,11 @@ export const createIngestionModule = (deps: {
   const drive =
     deps.drive !== undefined
       ? deps.drive
-      : config.drive
+      : config.google
         ? {
-            gateway: createDriveFetchGateway(config.drive),
+            gateway: createDriveFetchGateway(config.google),
             authorization: createGoogleDriveAuthorization({
-              ...config.drive,
+              ...config.google,
               appUrl: config.appUrl,
             }),
           }
@@ -52,7 +52,7 @@ export const createIngestionModule = (deps: {
     store: createIngestionStore(deps.db),
     studies: deps.studies,
     drive,
-    cipher: createTokenCipher(config.authSecret),
+    cipher: createTokenCipher(config.authSecret, CIPHER_PURPOSES.sourceConnections),
     // One job per run: an invalidated run still in flight never blocks the next one.
     enqueueInventory: (job) => deps.enqueue(QUEUES.inventory, job, { singletonKey: job.runId }),
     clock: deps.clock,

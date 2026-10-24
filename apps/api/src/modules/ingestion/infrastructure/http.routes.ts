@@ -8,6 +8,7 @@ import {
   StudyParams,
   StudySourceView,
 } from '@goodresearch/contracts'
+import { withQuery } from '@goodresearch/shared'
 import type { FastifyInstance, preHandlerAsyncHookHandler } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
@@ -15,7 +16,6 @@ import { sendError } from '#platform/http/errors.ts'
 import { reply } from '#platform/http/result.ts'
 import type { SourceCommands } from '../application/commands/source-commands.ts'
 import type { SourceQueries } from '../application/queries/source-queries.ts'
-import { withQuery } from '../domain/return-path.ts'
 
 export type IngestionHandlers = {
   readonly commands: SourceCommands

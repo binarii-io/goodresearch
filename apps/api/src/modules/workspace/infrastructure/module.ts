@@ -9,7 +9,7 @@ import { makeRenameTeam } from '../application/commands/rename-team.ts'
 import { makeSetLanguage } from '../application/commands/set-language.ts'
 import type { ProjectCounter, WorkspaceUnitOfWork } from '../application/ports.ts'
 import { makeGetAccessContext } from '../application/queries/get-access-context.ts'
-import { makeGetMe } from '../application/queries/get-me.ts'
+import { type AiProviderGate, makeGetMe } from '../application/queries/get-me.ts'
 import {
   makeMemberQueries,
   type ProjectCountsByTeam,
@@ -28,6 +28,10 @@ export const createWorkspaceModule = (deps: {
   rules: SignInRules
   /** Lazily bound: the research module is built after this one. */
   projects: () => { countByTeam: ProjectCounter['countByTeam']; countByTeams: ProjectCountsByTeam }
+  /** Lazily bound: the AI Gateway module is built after this one. */
+  aiProvider: () => AiProviderGate
+  /** Lazily bound: modules holding credentials of the account forget them (spec 004 FR-013). */
+  onAccountDeleted: () => (accountId: string) => Promise<unknown>
 }) => {
   const { db, clock } = deps
   const uow: WorkspaceUnitOfWork = (work) =>
@@ -50,8 +54,12 @@ export const createWorkspaceModule = (deps: {
         },
       },
     }),
-    accounts: makeAccountCommands({ uow, clock }),
-    getMe: makeGetMe(db),
+    accounts: makeAccountCommands({
+      uow,
+      clock,
+      onAccountDeleted: (accountId) => deps.onAccountDeleted()(accountId),
+    }),
+    getMe: makeGetMe(db, (accountId) => deps.aiProvider()(accountId)),
     queries: makeMemberQueries({ db, projectCounts: (ids) => deps.projects().countByTeams(ids) }),
   }
 

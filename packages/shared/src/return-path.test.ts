@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { safeReturnPath, withQuery } from '../domain/return-path.ts'
+import { safeReturnPath, withQuery } from './return-path.ts'
 
 describe('safeReturnPath (no open redirect)', () => {
   it.each([

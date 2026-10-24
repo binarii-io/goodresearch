@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { createTokenCipher } from '../infrastructure/token-cipher.ts'
+import { CIPHER_PURPOSES, createTokenCipher } from './token-cipher.ts'
 
-const cipher = createTokenCipher('a-secret-of-at-least-32-characters-long')
+const cipher = createTokenCipher(
+  'a-secret-of-at-least-32-characters-long',
+  CIPHER_PURPOSES.sourceConnections,
+)
 
 describe('token cipher', () => {
   it('round-trips a token in a versioned format, different each time', () => {
@@ -17,7 +20,10 @@ describe('token cipher', () => {
     const tampered = `${value.slice(0, -2)}${value.endsWith('A') ? 'B' : 'A'}A`
     expect(() => cipher.decrypt(tampered, 'alice')).toThrow()
     expect(() =>
-      createTokenCipher('another-secret-of-at-least-32-chars!').decrypt(value, 'alice'),
+      createTokenCipher(
+        'another-secret-of-at-least-32-chars!',
+        CIPHER_PURPOSES.sourceConnections,
+      ).decrypt(value, 'alice'),
     ).toThrow()
   })
 
@@ -30,5 +36,15 @@ describe('token cipher', () => {
     expect(() => cipher.decrypt(value, 'bob')).toThrow()
     const [version, iv, tag, data] = value.split(':')
     expect(() => cipher.decrypt([version, iv, tag?.slice(0, 8), data].join(':'), 'alice')).toThrow()
+  })
+
+  it('cannot decrypt a value encrypted for another purpose', () => {
+    const value = cipher.encrypt('token', 'alice')
+    expect(() =>
+      createTokenCipher(
+        'a-secret-of-at-least-32-characters-long',
+        CIPHER_PURPOSES.aiProviderCredentials,
+      ).decrypt(value, 'alice'),
+    ).toThrow()
   })
 })

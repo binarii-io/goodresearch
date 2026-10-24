@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedAiProviderRouteImport } from './routes/_authenticated/ai-provider'
 import { Route as AuthenticatedSourcesRouteImport } from './routes/_authenticated/sources'
 import { Route as AuthenticatedTeamsRouteImport } from './routes/_authenticated/teams'
 import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
+import { Route as SetupAiProviderRouteImport } from './routes/setup.ai-provider'
 import { Route as AuthenticatedMembersIndexRouteImport } from './routes/_authenticated/members/index'
 import { Route as AuthenticatedMembersMemberIdRouteImport } from './routes/_authenticated/members/$memberId'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects/$projectId'
@@ -34,6 +36,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAiProviderRoute = AuthenticatedAiProviderRouteImport.update({
+  id: '/ai-provider',
+  path: '/ai-provider',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSourcesRoute = AuthenticatedSourcesRouteImport.update({
   id: '/sources',
   path: '/sources',
@@ -48,6 +55,11 @@ const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const SetupAiProviderRoute = SetupAiProviderRouteImport.update({
+  id: '/setup/ai-provider',
+  path: '/setup/ai-provider',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedMembersIndexRoute =
   AuthenticatedMembersIndexRouteImport.update({
@@ -77,9 +89,11 @@ const AuthenticatedStudiesStudyIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/sign-in': typeof SignInRoute
+  '/ai-provider': typeof AuthenticatedAiProviderRoute
   '/sources': typeof AuthenticatedSourcesRoute
   '/teams': typeof AuthenticatedTeamsRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/setup/ai-provider': typeof SetupAiProviderRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/studies/$studyId': typeof AuthenticatedStudiesStudyIdRoute
@@ -87,9 +101,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
+  '/ai-provider': typeof AuthenticatedAiProviderRoute
   '/sources': typeof AuthenticatedSourcesRoute
   '/teams': typeof AuthenticatedTeamsRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/setup/ai-provider': typeof SetupAiProviderRoute
   '/': typeof AuthenticatedIndexRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
@@ -100,9 +116,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/sign-in': typeof SignInRoute
+  '/_authenticated/ai-provider': typeof AuthenticatedAiProviderRoute
   '/_authenticated/sources': typeof AuthenticatedSourcesRoute
   '/_authenticated/teams': typeof AuthenticatedTeamsRoute
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
+  '/setup/ai-provider': typeof SetupAiProviderRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
@@ -114,9 +132,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/sign-in'
+    | '/ai-provider'
     | '/sources'
     | '/teams'
     | '/welcome'
+    | '/setup/ai-provider'
     | '/members/$memberId'
     | '/projects/$projectId'
     | '/studies/$studyId'
@@ -124,9 +144,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sign-in'
+    | '/ai-provider'
     | '/sources'
     | '/teams'
     | '/welcome'
+    | '/setup/ai-provider'
     | '/'
     | '/members/$memberId'
     | '/projects/$projectId'
@@ -136,9 +158,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/sign-in'
+    | '/_authenticated/ai-provider'
     | '/_authenticated/sources'
     | '/_authenticated/teams'
     | '/_authenticated/welcome'
+    | '/setup/ai-provider'
     | '/_authenticated/'
     | '/_authenticated/members/$memberId'
     | '/_authenticated/projects/$projectId'
@@ -149,6 +173,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   SignInRoute: typeof SignInRoute
+  SetupAiProviderRoute: typeof SetupAiProviderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -174,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/ai-provider': {
+      id: '/_authenticated/ai-provider'
+      path: '/ai-provider'
+      fullPath: '/ai-provider'
+      preLoaderRoute: typeof AuthenticatedAiProviderRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/sources': {
       id: '/_authenticated/sources'
       path: '/sources'
@@ -194,6 +226,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/welcome'
       preLoaderRoute: typeof AuthenticatedWelcomeRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/setup/ai-provider': {
+      id: '/setup/ai-provider'
+      path: '/setup/ai-provider'
+      fullPath: '/setup/ai-provider'
+      preLoaderRoute: typeof SetupAiProviderRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/members/': {
       id: '/_authenticated/members/'
@@ -227,6 +266,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAiProviderRoute: typeof AuthenticatedAiProviderRoute
   AuthenticatedSourcesRoute: typeof AuthenticatedSourcesRoute
   AuthenticatedTeamsRoute: typeof AuthenticatedTeamsRoute
   AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
@@ -238,6 +278,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAiProviderRoute: AuthenticatedAiProviderRoute,
   AuthenticatedSourcesRoute: AuthenticatedSourcesRoute,
   AuthenticatedTeamsRoute: AuthenticatedTeamsRoute,
   AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
@@ -255,6 +296,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   SignInRoute: SignInRoute,
+  SetupAiProviderRoute: SetupAiProviderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

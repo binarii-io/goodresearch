@@ -26,6 +26,11 @@ catalog:
   knip: 6.42.1
   lefthook: 2.2.2
   zod: 4.6.7
+  ai: 7.0.145
+  "@ai-sdk/anthropic": 4.0.83
+  "@ai-sdk/openai": 4.0.97
+  "@ai-sdk/google-vertex": 5.0.117
+  google-auth-library: 10.9.1
   fastify: 5.12.7
   fastify-type-provider-zod: 7.0.0
   "@fastify/swagger": 9.9.2

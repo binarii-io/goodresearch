@@ -1,5 +1,7 @@
 export {
   type AccessRules,
+  AI_PROVIDER_KINDS,
+  type AiProviderKind,
   type AppConfig,
   type AuthProvider,
   ConfigError,

@@ -15,17 +15,34 @@ export const signIn = async (page: Page, email: string, claims: Record<string, u
   await page.locator('input[type=submit]').click()
 }
 
+/** Spec 004: a new account first chooses an AI provider; the dev stack's test provider is used. */
+export const passAiProviderStep = async (page: Page) => {
+  const step = page.getByRole('heading', {
+    level: 1,
+    name: /Choose your AI provider|Choisissez votre fournisseur IA/,
+  })
+  // The shell, visible at any width (on a phone the navigation sits in the drawer).
+  const app = page.locator('[data-slot=app-shell]')
+  await expect(step.or(app)).toBeVisible()
+  if (!(await step.isVisible())) return
+  await page.getByRole('radio', { name: /Test provider/ }).click()
+  await page.getByRole('textbox', { name: /API key|Clé d'API/ }).fill('test-ok-e2e-key')
+  await page.getByRole('button', { name: /Check and save|Vérifier et enregistrer/ }).click()
+}
+
 /** A signed-in page in its own browser context. */
 export const signedInPage = async (browser: Browser, email: string, locale = 'en-US') => {
   const context = await browser.newContext({ locale })
   const page = await context.newPage()
   await signIn(page, email)
+  await passAiProviderStep(page)
   await expect(page.getByRole('navigation', { name: /Main|Principale/ })).toBeVisible()
   return page
 }
 
 /** Creates the first team when the instance is fresh, so the admin lands on the home page. */
 export const ensureHome = async (page: Page) => {
+  await passAiProviderStep(page)
   const welcome = page.getByRole('heading', { level: 1, name: 'Welcome to goodresearch' })
   const home = page.getByRole('heading', { level: 1, name: 'Projects' })
   await expect(welcome.or(home)).toBeVisible()

@@ -1,5 +1,6 @@
 import type { Clock } from '@goodresearch/shared'
 import { fixedClock, newId } from '@goodresearch/shared'
+import { CIPHER_PURPOSES, createTokenCipher } from '#platform/crypto/token-cipher.ts'
 import { makeRunInventory } from '../../application/commands/run-inventory.ts'
 import { makeSourceCommands } from '../../application/commands/source-commands.ts'
 import type {
@@ -15,7 +16,6 @@ import { makeSourceQueries, makeStudyActionGate } from '../../application/querie
 import type { FolderAccessResult } from '../../domain/folder-access.ts'
 import { type InventoryRun, isActiveRun } from '../../domain/inventory-run.ts'
 import type { InventoryFile } from '../../domain/inventory-walk.ts'
-import { createTokenCipher } from '../../infrastructure/token-cipher.ts'
 import { InMemoryDrive } from './in-memory-drive.ts'
 
 /** Same rules as the Drizzle store, including run-scoped writes. */
@@ -212,7 +212,10 @@ export class InMemoryIngestion {
       },
       drive:
         options.configured === false ? null : { gateway: this.drive, authorization: this.drive },
-      cipher: createTokenCipher('test-secret-of-at-least-thirty-two-chars'),
+      cipher: createTokenCipher(
+        'test-secret-of-at-least-thirty-two-chars',
+        CIPHER_PURPOSES.sourceConnections,
+      ),
       enqueueInventory: async (job) => {
         if (this.refuseJobs) return false
         this.jobs.push(job)
