@@ -1,4 +1,5 @@
 import type { StartedTestContainer } from 'testcontainers'
+import type { InMemoryDrive } from '../../src/modules/ingestion/tests/fakes/in-memory-drive.ts'
 import { workspaceTeamMemberships } from '../../src/modules/workspace/infrastructure/schema.ts'
 import type { Db } from '../../src/platform/db.ts'
 import { signIn, startTestApp, testConfig } from './app.ts'
@@ -7,10 +8,18 @@ import { insertTeams } from './fixtures.ts'
 import { startMockOidc } from './oidc.ts'
 
 /** A running app with its own database and identity provider, plus helpers to arrange data. */
-export const startWorld = async () => {
+export const startWorld = async (
+  options: { drive?: InMemoryDrive; config?: Record<string, string> } = {},
+) => {
   const oidc: { issuer: string; container: StartedTestContainer } = await startMockOidc()
   const database = await createTestDatabase()
-  const { app, clock } = await startTestApp(testConfig(oidc.issuer), database.db)
+  const { app, clock, runJobs } = await startTestApp(
+    testConfig(oidc.issuer, options.config),
+    database.db,
+    {
+      ...(options.drive ? { drive: options.drive } : {}),
+    },
+  )
   const db: Db = database.db
 
   const session = async (email: string) => {
@@ -42,7 +51,7 @@ export const startWorld = async () => {
     await oidc.container.stop()
   }
 
-  return { app, db, clock, session, team, addMember, close }
+  return { app, db, clock, runJobs, session, team, addMember, close }
 }
 
 export type World = Awaited<ReturnType<typeof startWorld>>

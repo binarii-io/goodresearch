@@ -39,6 +39,9 @@ export function AccountMenu({ me }: { me: Me }) {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => void navigate({ to: '/sources' })}
+        >{t`Connected sources`}</DropdownMenuItem>
         <DropdownMenuItem onClick={() => void leave()}>{t`Sign out`}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

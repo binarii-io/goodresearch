@@ -17,3 +17,20 @@ export const researchProjects = pgTable(
   },
   (t) => [index('research_projects_team_updated_idx').on(t.teamId, t.updatedAt)],
 )
+
+export const researchStudies = pgTable(
+  'research_studies',
+  {
+    id: text('id').primaryKey(),
+    projectId: text('project_id')
+      .notNull()
+      .references(() => researchProjects.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    type: text('type').notNull(),
+    createdBy: text('created_by').references(() => auth_users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+    version: integer('version').notNull().default(0),
+  },
+  (t) => [index('research_studies_project_updated_idx').on(t.projectId, t.updatedAt)],
+)

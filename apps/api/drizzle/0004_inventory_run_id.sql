@@ -1,0 +1,1 @@
+ALTER TABLE "ingestion_study_sources" ADD COLUMN "inventory_run_id" text;

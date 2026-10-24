@@ -1,7 +1,18 @@
 export { Created, Id, Language, Timestamp, Version, VersionAck } from './common.ts'
 export { ERROR_CODES, type ErrorCode, HTTP_STATUS, Problem } from './errors.ts'
 export {
+  AttachFolder,
+  CallbackQuery,
+  ConnectQuery,
+  FileKind,
+  InventoryFile,
+  InventoryFilesQuery,
+  MySource,
+  StudySourceView,
+} from './ingestion.ts'
+export {
   CreateProject,
+  CreateStudy,
   ListProjectsQuery,
   MoveProject,
   ProjectDetail,
@@ -10,6 +21,12 @@ export {
   ProjectParams,
   ProjectSummary,
   RenameProject,
+  RenameStudy,
+  StudyDetail,
+  StudyName,
+  StudyParams,
+  StudySummary,
+  StudyType,
   UpdateProjectGoal,
 } from './research.ts'
 export {

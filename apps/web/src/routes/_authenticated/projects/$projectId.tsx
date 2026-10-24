@@ -21,6 +21,7 @@ import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useId, useState } from 'react'
+import { StudyList } from '../../../features/research/study-list.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useFormatDate } from '../../../features/workspace/format.ts'
 import { useMe } from '../../../features/workspace/me.ts'
@@ -146,6 +147,8 @@ function ProjectOverview() {
           </SelectContent>
         </Select>
       </section>
+
+      <StudyList projectId={projectId} />
     </article>
   )
 }

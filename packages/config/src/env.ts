@@ -39,6 +39,8 @@ export type AppConfig = {
   readonly trustedProxies: readonly string[]
   /** Sign-in attempts allowed per client IP and minute. */
   readonly signInRateLimit: number
+  /** Google Drive connector (spec 002); `null` when not configured. */
+  readonly drive: { readonly clientId: string; readonly clientSecret: string } | null
   readonly logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
   readonly port: number
 }
@@ -58,6 +60,9 @@ const bool = z
   .enum(['true', 'false'])
   .default('false')
   .transform((v) => v === 'true')
+
+/** An empty value (as left in .env.example) means "not set". */
+const optionalText = z.preprocess((v) => (v === '' ? undefined : v), z.string().min(1).optional())
 
 const email = z.email()
 const domain = z.string().regex(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/, 'invalid domain')
@@ -90,6 +95,8 @@ const baseSchema = z.object({
   ACCESS_ALLOWLIST: z.string().default(''),
   TRUSTED_PROXIES: z.string().default(''),
   AUTH_SIGN_IN_RATE_LIMIT: z.coerce.number().int().positive().default(20),
+  GOOGLE_DRIVE_CLIENT_ID: optionalText,
+  GOOGLE_DRIVE_CLIENT_SECRET: optionalText,
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   PORT: z.coerce.number().int().positive().default(3000),
 })
@@ -173,6 +180,10 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     else issues.push(`ACCESS_ALLOWLIST: "${entry}" is not a domain`)
   }
 
+  if (Boolean(values.GOOGLE_DRIVE_CLIENT_ID) !== Boolean(values.GOOGLE_DRIVE_CLIENT_SECRET)) {
+    issues.push('GOOGLE_DRIVE_CLIENT_ID and GOOGLE_DRIVE_CLIENT_SECRET: set both or none')
+  }
+
   if (issues.length > 0) return fail(issues)
 
   return {
@@ -192,6 +203,13 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     access: { adminEmails, allowedEmails, allowedDomains },
     trustedProxies: list(values.TRUSTED_PROXIES),
     signInRateLimit: values.AUTH_SIGN_IN_RATE_LIMIT,
+    drive:
+      values.GOOGLE_DRIVE_CLIENT_ID && values.GOOGLE_DRIVE_CLIENT_SECRET
+        ? {
+            clientId: values.GOOGLE_DRIVE_CLIENT_ID,
+            clientSecret: values.GOOGLE_DRIVE_CLIENT_SECRET,
+          }
+        : null,
     logLevel: values.LOG_LEVEL,
     port: values.PORT,
   }

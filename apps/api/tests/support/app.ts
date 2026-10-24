@@ -2,6 +2,7 @@ import { type AppConfig, loadConfig } from '@goodresearch/config'
 import { fixedClock } from '@goodresearch/shared'
 import type { FastifyInstance, LightMyRequestResponse } from 'fastify'
 import { composeApp } from '../../src/compose.ts'
+import type { InMemoryDrive } from '../../src/modules/ingestion/tests/fakes/in-memory-drive.ts'
 import type { Db } from '../../src/platform/db.ts'
 
 export const testConfig = (issuer: string, overrides: Record<string, string> = {}): AppConfig =>
@@ -27,16 +28,38 @@ export const testConfig = (issuer: string, overrides: Record<string, string> = {
 export const startTestApp = async (
   config: AppConfig,
   db: Db,
-  options: { rateLimit?: boolean } = {},
+  options: { rateLimit?: boolean; drive?: InMemoryDrive } = {},
 ) => {
   const clock = fixedClock(new Date())
-  const { app } = await composeApp(
+  const queued: object[] = []
+  const { app, modules } = await composeApp(
     config,
-    { db, isReady: async () => true, clock },
+    {
+      db,
+      isReady: async () => true,
+      clock,
+      jobs: {
+        send: async (_queue, data) => {
+          queued.push(data)
+          return true
+        },
+      },
+      ...(options.drive ? { drive: { gateway: options.drive, authorization: options.drive } } : {}),
+    },
     { logger: false, rateLimit: options.rateLimit ?? false },
   )
   await app.ready()
-  return { app, clock }
+  /** Runs queued jobs as the worker would. */
+  const runJobs = async () => {
+    while (queued.length > 0) {
+      const job = queued.shift()
+      if (job)
+        await modules.ingestion.runInventory(
+          job as Parameters<typeof modules.ingestion.runInventory>[0],
+        )
+    }
+  }
+  return { app, clock, runJobs }
 }
 
 const cookiesOf = (response: { headers: Record<string, unknown> }): string[] => {

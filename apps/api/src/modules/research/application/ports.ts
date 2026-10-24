@@ -23,3 +23,11 @@ export type ResearchCommandDeps = {
   readonly clock: Clock
   readonly teams: TeamDirectory
 }
+
+/**
+ * Whether a person may act on a study beyond seeing it: implemented by the ingestion module, which
+ * checks the person's own access to the study's source folder (spec 002 FR-010a).
+ */
+export type StudyActionGate = {
+  canAct(accountId: string, studyId: string): Promise<boolean>
+}

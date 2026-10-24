@@ -35,6 +35,22 @@ goodresearch never stores passwords. Any other OpenID Connect provider works the
 
 Health endpoints: `/health` (process up), `/ready` (database and storage reachable).
 
+### Google Drive (optional)
+
+Interview studies read their recordings and transcripts from a Google Drive folder that people attach by pasting its link. Each person connects their own Drive (read-only, separate from sign-in) and only sees folders that Drive shares with them.
+
+1. In the Google Cloud project of your OAuth client, enable the **Google Drive API**.
+2. On the OAuth consent screen, add the scope `https://www.googleapis.com/auth/drive.readonly`.
+3. On the OAuth client, add the redirect URI `https://<your host>/api/sources/google-drive/callback`.
+4. Set `GOOGLE_DRIVE_CLIENT_ID` and `GOOGLE_DRIVE_CLIENT_SECRET` (the sign-in client's values work) and restart.
+
+Google classifies `drive.readonly` as a *restricted* scope:
+
+- with an **Internal** consent screen (Google Workspace organisation), no verification is needed and there is no user limit;
+- with an **External** consent screen, people see an "unverified app" warning and at most 100 people can connect until Google verifies your app (restricted-scope verification and a yearly security assessment).
+
+goodresearch only reads the attached folders and, for now, only file metadata; it never writes to Drive. Disconnecting Drive (Connected sources) revokes the permission at Google. If sign-in and Drive use the same Google Cloud project, the revocation also removes the sign-in consent: the next Google sign-in shows the consent screen again (sessions are not affected). Stored Drive permissions are encrypted with a key derived from `AUTH_SECRET`; changing it means everyone reconnects Drive.
+
 ## Develop
 
 Requirements: Node 24+, pnpm 12 (`npm i -g pnpm@12`), Docker.

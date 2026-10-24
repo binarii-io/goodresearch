@@ -63,8 +63,12 @@ Studies read their files from an external source chosen by each user, Google Dri
 ### Decision
 
 - **Sign-in only asks `openid email profile`.** Its provider tokens are encrypted at rest (`encryptOAuthTokens`) and never used to access data.
-- **Sources are "connected sources" per user**, behind the `SourceConnector` port: each connector has its own OAuth consent, requested only when the user picks a folder, with its own encrypted, revocable tokens. Google Drive is the first adapter; others (upload, SharePoint, Dropbox, S3 folders) follow the same contract.
-- **Google scopes** are decided in the Ingestion spec. Note for deployers: `drive.readonly` is a *restricted* scope (Google verification and security assessment for external OAuth apps; not needed for an *Internal* Google Workspace app). The alternative is `drive.file` with the Google Picker (user-selected files and folders only, non-restricted); folder-content access through the Picker must be verified before choosing it.
+- **Sources are "connected sources" per user**, behind connector ports (`DriveGateway` and `DriveAuthorization` for Google Drive, spec 002): each connector has its own OAuth consent, requested only when the user picks a folder, with its own encrypted, revocable tokens. Google Drive is the first adapter; others (upload, SharePoint, Dropbox, S3 folders) follow the same contract.
+- **Google scopes** (decided in spec 002): **`drive.readonly`**, requested once by the Drive connector, and a folder is attached by **pasting its Drive link**.
+  - `drive.file` with the Google Picker was rejected: picking a folder grants access to the folder item only, not to its files (verified 2026-10-24), so no inventory is possible. The Picker also fails in Safari and private windows.
+  - `drive.metadata.readonly` would be enough for the inventory but is restricted too; importing transcripts (next feature) needs content, and two consents for the same verification class would be worse.
+  - What the app reads is limited by the app itself (attached folder only, metadata only until transcripts are imported), not by Google.
+  - Deployers: no Google verification for an *Internal* app (Google Workspace organisation); an *External* app shows a warning and is capped at 100 users until Google verifies it (restricted-scope verification and yearly security assessment).
 
 ### Consequences
 

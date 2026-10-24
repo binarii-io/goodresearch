@@ -14,6 +14,14 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   TEAM_NOT_FOUND: msg`This team does not exist or you do not have access to it.`,
   MEMBER_NOT_FOUND: msg`This person does not exist.`,
   FORBIDDEN: msg`Only admins can do this.`,
+  STUDY_NOT_FOUND: msg`This study does not exist or you do not have access to it.`,
+  FOLDER_ACCESS_REQUIRED: msg`You need access to this study's Drive folder to do this.`,
+  NOT_A_DRIVE_FOLDER_LINK: msg`This is not the link of a Google Drive folder.`,
+  FOLDER_NOT_FOUND: msg`This folder does not exist or your Google account cannot open it.`,
+  DRIVE_NOT_CONNECTED: msg`Connect your Google Drive first.`,
+  DRIVE_NOT_CONFIGURED: msg`Google Drive is not configured on this instance.`,
+  INVENTORY_RUNNING: msg`An inventory is already running for this study.`,
+  DRIVE_UNAVAILABLE: msg`Google Drive did not answer. Try again in a moment.`,
 }
 
 /** One translated sentence for any error (never technical details). */

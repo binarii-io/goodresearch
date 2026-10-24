@@ -98,6 +98,20 @@ describe('loadConfig', () => {
     expect(message).toContain('local test provider')
   })
 
+  it('enables the Google Drive connector only with both client values', () => {
+    expect(loadConfig(valid).drive).toBeNull()
+    expect(
+      loadConfig({ ...valid, GOOGLE_DRIVE_CLIENT_ID: '', GOOGLE_DRIVE_CLIENT_SECRET: '' }).drive,
+    ).toBeNull()
+    expect(
+      loadConfig({ ...valid, GOOGLE_DRIVE_CLIENT_ID: 'id', GOOGLE_DRIVE_CLIENT_SECRET: 's' }).drive,
+    ).toEqual({
+      clientId: 'id',
+      clientSecret: 's',
+    })
+    expect(errorOf({ ...valid, GOOGLE_DRIVE_CLIENT_ID: 'id' })).toContain('set both or none')
+  })
+
   it('reads secrets from *_FILE variables', () => {
     const dir = mkdtempSync(join(tmpdir(), 'cfg-'))
     const file = join(dir, 'secret')

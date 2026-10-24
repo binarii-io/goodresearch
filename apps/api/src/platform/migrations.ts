@@ -5,6 +5,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { PgBoss } from 'pg-boss'
 import { workspaceWorkspaces } from '../modules/workspace/infrastructure/schema.ts'
 import { createDb } from './db.ts'
+import { createQueues } from './jobs.ts'
 
 const MIGRATIONS = fileURLToPath(new URL('../../drizzle', import.meta.url))
 /** Arbitrary constant identifying the migration lock. */
@@ -19,6 +20,7 @@ export const runMigrations = async (databaseUrl: string): Promise<void> => {
     await migrate(db, { migrationsFolder: MIGRATIONS })
     const boss = new PgBoss({ connectionString: databaseUrl })
     await boss.start()
+    await createQueues(boss)
     await boss.stop({ graceful: false })
     await db.execute(sql`
       INSERT INTO ${workspaceWorkspaces} (id)

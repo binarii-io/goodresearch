@@ -78,7 +78,9 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 
 ### 3. Ingestion
 
-- **Source** — where a study's files live (`Connector`: local upload, Google Drive, S3, …). Holds the last **inventory** of files with `kind` (`transcript | media | generated | other`) and `group` (first-level folder).
+- **Source** — where a study's files live (`Connector`: Google Drive first; upload, other drives later). Holds the last **inventory** of files with `kind` (`transcript | media | other`) and `group` (first-level folder).
+- **Source connection** — a person's own grant to read a connector (e.g. Drive), separate from sign-in, encrypted, revocable; never used for someone else's request.
+- **Folder access** — a study with a source folder has a second access barrier: on top of the project's team, a person must have access to the folder at the source. Without it they see only the study's name and type. Admins can always detach the folder or delete the study.
 - **Session** — one interview occurrence: at most one transcript file + 0..n ordered media files. `status` `proposed | validated | excluded`, `matchConfidence` `high | medium | low` with a reason, optional custom title.
 - **Roster** — the people of a session, owned by the Session: **Interviewers** (the people conducting it, optionally linked to a workspace Member) and **Interviewees** (the people interviewed). Suggested from metadata, validated by the user. Other contexts reference roster entries by ID.
 - **Matching policy** — proposes sessions from file metadata. Rules (initial heuristic): only within a group; identical timestamp → high; same day ≤15 min or shared rare word → medium; shared rare word without date → low; different days → incompatible. A rare word appears in ≤3 files of the group.
@@ -163,6 +165,9 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Guide question | Question du guide | |
 | Guide assistant | Assistant de guide | |
 | Source | Source | |
+| Source folder | Dossier source | |
+| Inventory | Inventaire | |
+| Connected sources | Sources connectées | |
 | Session | Session | UI label is "Interview / Entretien" for interview studies |
 | Transcript | Transcription | |
 | Segment | Tour de parole | One speaker turn |

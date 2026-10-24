@@ -36,3 +36,40 @@ export const UpdateProjectGoal = z
   .meta({ id: 'UpdateProjectGoal' })
 export const MoveProject = z.object({ teamId: Id, version: Version }).meta({ id: 'MoveProject' })
 export const ProjectParams = z.object({ projectId: Id })
+
+export const StudyName = z.string().trim().min(1).max(120)
+export const StudyType = z.enum(['interviews', 'survey', 'usability-test'])
+
+export const StudySummary = z
+  .object({
+    id: Id,
+    name: z.string(),
+    type: StudyType,
+    hasFolder: z.boolean(),
+    /** Only for people whose access to the folder was confirmed (spec 002 FR-010a). */
+    folderName: z.string().nullable(),
+    updatedAt: Timestamp,
+  })
+  .meta({ id: 'StudySummary' })
+export type StudySummary = z.infer<typeof StudySummary>
+
+export const StudyDetail = z
+  .object({
+    id: Id,
+    name: z.string(),
+    type: StudyType,
+    project: z.object({ id: Id, name: z.string() }),
+    createdAt: Timestamp,
+    updatedAt: Timestamp,
+    version: Version,
+  })
+  .meta({ id: 'StudyDetail' })
+export type StudyDetail = z.infer<typeof StudyDetail>
+
+export const CreateStudy = z
+  .object({ name: StudyName, type: StudyType })
+  .meta({ id: 'CreateStudy' })
+export const RenameStudy = z
+  .object({ name: StudyName, version: Version })
+  .meta({ id: 'RenameStudy' })
+export const StudyParams = z.object({ studyId: Id })

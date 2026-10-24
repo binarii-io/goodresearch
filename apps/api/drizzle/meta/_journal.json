@@ -15,6 +15,27 @@
       "when": 1792860589016,
       "tag": "0001_access_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792866299235,
+      "tag": "0002_studies_and_sources",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792866299777,
+      "tag": "0003_sources_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792869419019,
+      "tag": "0004_inventory_run_id",
+      "breakpoints": true
     }
   ]
 }

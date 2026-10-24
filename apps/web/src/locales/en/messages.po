@@ -12,6 +12,26 @@ msgstr ""
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# project} other {# projects}}"
 
+#: src/features/ingestion/source-panel.tsx
+msgid "{transcript} transcripts · {media} media · {other} other files"
+msgstr "{transcript} transcripts · {media} media · {other} other files"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "1. Preparation"
+msgstr "1. Preparation"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "2. Fieldwork"
+msgstr "2. Fieldwork"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "3. Analysis"
+msgstr "3. Analysis"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "A folder is attached to this study: connect your Drive to see it."
+msgstr "A folder is attached to this study: connect your Drive to see it."
+
 #: src/features/research/create-project-dialog.tsx
 msgid "A project holds one research question and belongs to a team."
 msgstr "A project holds one research question and belongs to a team."
@@ -19,6 +39,10 @@ msgstr "A project holds one research question and belongs to a team."
 #: src/routes/_authenticated/index.tsx
 msgid "A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it."
 msgstr "A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it."
+
+#: src/features/research/study-list.tsx
+msgid "A study is one way of collecting evidence for the project's research question."
+msgstr "A study is one way of collecting evidence for the project's research question."
 
 #: src/features/workspace/errors.ts
 msgid "A team with this name already exists."
@@ -65,9 +89,29 @@ msgstr "Add team"
 msgid "Admin"
 msgstr "Admin"
 
+#: src/features/ingestion/source-panel.tsx
+msgid "All groups"
+msgstr "All groups"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "All kinds"
+msgstr "All kinds"
+
 #: src/routes/_authenticated/index.tsx
 msgid "All teams"
 msgstr "All teams"
+
+#: src/features/workspace/errors.ts
+msgid "An inventory is already running for this study."
+msgstr "An inventory is already running for this study."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Ask {ownerName} to share the folder with your Google account in Drive. Access is checked again when you come back to this page."
+msgstr "Ask {ownerName} to share the folder with your Google account in Drive. Access is checked again when you come back to this page."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Attach folder"
+msgstr "Attach folder"
 
 #: src/features/workspace/not-found.tsx
 msgid "Back to projects"
@@ -81,7 +125,10 @@ msgstr "Better-designed studies, answers you can trust."
 msgid "by {actor}"
 msgstr "by {actor}"
 
+#: src/features/ingestion/source-panel.tsx
 #: src/routes/_authenticated/members/$memberId.tsx
+#: src/routes/_authenticated/sources.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "Cancel"
 msgstr "Cancel"
@@ -94,9 +141,38 @@ msgstr "Choose a team"
 msgid "Choose a team."
 msgstr "Choose a team."
 
+#: src/features/research/study-list.tsx
+msgid "coming later"
+msgstr "coming later"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Connect your Google Drive"
+msgstr "Connect your Google Drive"
+
+#: src/features/workspace/errors.ts
+msgid "Connect your Google Drive first."
+msgstr "Connect your Google Drive first."
+
+#: src/routes/_authenticated/sources.tsx
+msgid "Connected as {account} since {since}. Read-only."
+msgstr "Connected as {account} since {since}. Read-only."
+
+#: src/features/workspace/account-menu.tsx
+#: src/routes/_authenticated/sources.tsx
+msgid "Connected sources"
+msgstr "Connected sources"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Continue to Google"
+msgstr "Continue to Google"
+
 #: src/features/research/create-project-dialog.tsx
 msgid "Create project"
 msgstr "Create project"
+
+#: src/features/research/study-list.tsx
+msgid "Create study"
+msgstr "Create study"
 
 #: src/routes/_authenticated/welcome.tsx
 msgid "Create team"
@@ -118,6 +194,7 @@ msgstr "Deactivate"
 msgid "Deactivated"
 msgstr "Deactivated"
 
+#: src/routes/_authenticated/studies/$studyId.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "Delete"
 msgstr "Delete"
@@ -130,6 +207,10 @@ msgstr "Delete {teamName}?"
 msgid "Delete account"
 msgstr "Delete account"
 
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Delete study"
+msgstr "Delete study"
+
 #: src/routes/_authenticated/teams.tsx
 msgid "Delete team"
 msgstr "Delete team"
@@ -137,6 +218,10 @@ msgstr "Delete team"
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Delete this account?"
 msgstr "Delete this account?"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Delete this study?"
+msgstr "Delete this study?"
 
 #: src/features/workspace/member-labels.ts
 msgid "Deleted"
@@ -150,15 +235,41 @@ msgstr "Deleted account"
 msgid "Describe the research question, objectives and hypotheses."
 msgstr "Describe the research question, objectives and hypotheses."
 
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Design the interview guide and plan the sessions. Coming in a next version."
+msgstr "Design the interview guide and plan the sessions. Coming in a next version."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Detach"
+msgstr "Detach"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Detach folder"
+msgstr "Detach folder"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Detach this folder?"
+msgstr "Detach this folder?"
+
+#: src/routes/_authenticated/sources.tsx
+msgid "Disconnect"
+msgstr "Disconnect"
+
+#: src/routes/_authenticated/sources.tsx
+msgid "Disconnect Google Drive?"
+msgstr "Disconnect Google Drive?"
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "Email"
 msgstr "Email"
 
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/study-list.tsx
 msgid "Enter a name."
 msgstr "Enter a name."
 
 #: src/routes/_authenticated/projects/$projectId.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "Enter to save, Escape to cancel"
 msgstr "Enter to save, Escape to cancel"
@@ -166,6 +277,18 @@ msgstr "Enter to save, Escape to cancel"
 #: src/routes/_authenticated/welcome.tsx
 msgid "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
 msgstr "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
+
+#: src/features/research/study-list.tsx
+msgid "Folder attached"
+msgstr "Folder attached"
+
+#: src/features/research/study-list.tsx
+msgid "Folder: {folder}"
+msgstr "Folder: {folder}"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "For now it only reads the names, types, dates and sizes of the files in the folders you attach; file content will be read when transcripts are imported."
+msgstr "For now it only reads the names, types, dates and sizes of the files in the folders you attach; file content will be read when transcripts are imported."
 
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Goal saved"
@@ -175,21 +298,103 @@ msgstr "Goal saved"
 msgid "goodresearch"
 msgstr "goodresearch"
 
+#: src/features/ingestion/source-panel.tsx
+msgid "goodresearch asks Google for read-only access to your Drive, separate from signing in."
+msgstr "goodresearch asks Google for read-only access to your Drive, separate from signing in."
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Google Drive connected"
+msgstr "Google Drive connected"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Google Drive did not answer, so access to this study's folder could not be checked. Try again in a moment."
+msgstr "Google Drive did not answer, so access to this study's folder could not be checked. Try again in a moment."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Google Drive did not answer; try again later"
+msgstr "Google Drive did not answer; try again later"
+
+#: src/features/workspace/errors.ts
+msgid "Google Drive did not answer. Try again in a moment."
+msgstr "Google Drive did not answer. Try again in a moment."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Google Drive is not configured on this instance, so no folder can be attached yet."
+msgstr "Google Drive is not configured on this instance, so no folder can be attached yet."
+
+#: src/features/workspace/errors.ts
+#: src/routes/_authenticated/sources.tsx
+msgid "Google Drive is not configured on this instance."
+msgstr "Google Drive is not configured on this instance."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Google Drive returned an incomplete listing; try again later"
+msgstr "Google Drive returned an incomplete listing; try again later"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Google Drive was not connected. You can try again."
+msgstr "Google Drive was not connected. You can try again."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Group"
+msgstr "Group"
+
+#: src/features/research/study-list.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Interviews"
+msgstr "Interviews"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Inventory"
+msgstr "Inventory"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Inventory in progress: {files} files in {folders} sub-folders so far…"
+msgstr "Inventory in progress: {files} files in {folders} sub-folders so far…"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "it could not be started; try again in a moment"
+msgstr "it could not be started; try again in a moment"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "it stopped before the end; refresh to run it again"
+msgstr "it stopped before the end; refresh to run it again"
+
 #: src/routes/_authenticated/teams.tsx
 msgid "Its members lose access to this team. This cannot be undone."
 msgstr "Its members lose access to this team. This cannot be undone."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "its owner"
+msgstr "its owner"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Kind"
+msgstr "Kind"
 
 #: src/features/workspace/language-switch.tsx
 msgid "Language"
 msgstr "Language"
 
+#: src/features/ingestion/source-panel.tsx
+msgid "Last inventory {when} by {who}."
+msgstr "Last inventory {when} by {who}."
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "Last sign-in"
 msgstr "Last sign-in"
 
+#: src/features/ingestion/source-panel.tsx
+msgid "Link of the Drive folder"
+msgstr "Link of the Drive folder"
+
 #: src/routes/_authenticated.tsx
 msgid "Main"
 msgstr "Main"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Media"
+msgstr "Media"
 
 #: src/features/workspace/account-menu.tsx
 #: src/features/workspace/member-labels.ts
@@ -202,12 +407,19 @@ msgstr "Member"
 msgid "Members"
 msgstr "Members"
 
+#: src/features/ingestion/source-panel.tsx
+msgid "Modified"
+msgstr "Modified"
+
+#: src/features/ingestion/source-panel.tsx
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/study-list.tsx
 #: src/routes/_authenticated/members/index.tsx
 msgid "Name"
 msgstr "Name"
 
 #: src/routes/_authenticated/projects/$projectId.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Name saved"
 msgstr "Name saved"
 
@@ -215,13 +427,25 @@ msgstr "Name saved"
 msgid "New project"
 msgstr "New project"
 
+#: src/features/research/study-list.tsx
+msgid "New study"
+msgstr "New study"
+
 #: src/routes/_authenticated/index.tsx
 msgid "No access yet"
 msgstr "No access yet"
 
+#: src/features/research/study-list.tsx
+msgid "No folder yet"
+msgstr "No folder yet"
+
 #: src/routes/_authenticated/index.tsx
 msgid "No project yet"
 msgstr "No project yet"
+
+#: src/features/research/study-list.tsx
+msgid "No study yet. A study collects evidence for this project, for example a series of interviews."
+msgstr "No study yet. A study collects evidence for this project, for example a series of interviews."
 
 #: src/routes/_authenticated/members/index.tsx
 msgid "No team yet"
@@ -231,13 +455,33 @@ msgstr "No team yet"
 msgid "Nobody yet."
 msgstr "Nobody yet."
 
+#: src/routes/_authenticated/sources.tsx
+msgid "Not connected. You will be asked to connect when you attach a folder to a study."
+msgstr "Not connected. You will be asked to connect when you attach a folder to a study."
+
 #: src/features/workspace/not-found.tsx
 msgid "Not found"
 msgstr "Not found"
 
+#: src/features/ingestion/source-panel.tsx
+msgid "Nothing is ever created, changed or deleted in your Drive. You can disconnect at any time from Connected sources."
+msgstr "Nothing is ever created, changed or deleted in your Drive. You can disconnect at any time from Connected sources."
+
 #: src/features/workspace/errors.ts
 msgid "Only admins can do this."
 msgstr "Only admins can do this."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Open the folder in Google Drive and copy the address from your browser."
+msgstr "Open the folder in Google Drive and copy the address from your browser."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Other"
+msgstr "Other"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Owner: {owner}"
+msgstr "Owner: {owner}"
 
 #: src/routes/_authenticated/members/index.tsx
 msgid "People join by signing in with an allowed email. Give them access to one or more teams to let them work on those teams' projects."
@@ -246,6 +490,10 @@ msgstr "People join by signing in with an allowed email. Give them access to one
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Project name"
 msgstr "Project name"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Project: {projectName}"
+msgstr "Project: {projectName}"
 
 #: src/routes/_authenticated.tsx
 #: src/routes/_authenticated/index.tsx
@@ -264,9 +512,17 @@ msgstr "Question, objectives, hypotheses"
 msgid "Reactivate"
 msgstr "Reactivate"
 
+#: src/features/ingestion/source-panel.tsx
+msgid "Refresh"
+msgstr "Refresh"
+
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Reload"
 msgstr "Reload"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Replace folder"
+msgstr "Replace folder"
 
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
@@ -285,6 +541,10 @@ msgstr "Role changed"
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Role changed to {to}"
 msgstr "Role changed to {to}"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Run the interviews; recordings and transcripts land in the study's Drive folder."
+msgstr "Run the interviews; recordings and transcripts land in the study's Drive folder."
 
 #: src/routes/_authenticated/members/index.tsx
 msgid "Search by name or email"
@@ -322,9 +582,25 @@ msgstr "Someone changed this in the meantime. Reload to see the latest version."
 msgid "Something went wrong. Please try again."
 msgstr "Something went wrong. Please try again."
 
+#: src/routes/_authenticated/sources.tsx
+msgid "Sources goodresearch reads with your own permission. They are separate from signing in."
+msgstr "Sources goodresearch reads with your own permission. They are separate from signing in."
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "Status"
 msgstr "Status"
+
+#: src/features/research/study-list.tsx
+msgid "Studies"
+msgstr "Studies"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Study name"
+msgstr "Study name"
+
+#: src/features/research/study-list.tsx
+msgid "Survey"
+msgstr "Survey"
 
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/index.tsx
@@ -355,9 +631,41 @@ msgstr "Teams"
 msgid "The email you typed does not match."
 msgstr "The email you typed does not match."
 
+#: src/features/ingestion/source-panel.tsx
+msgid "the folder no longer exists or is no longer shared with the person who refreshed"
+msgstr "the folder no longer exists or is no longer shared with the person who refreshed"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "the Google Drive permission was revoked; reconnect from Connected sources"
+msgstr "the Google Drive permission was revoked; reconnect from Connected sources"
+
+#: src/features/ingestion/source-panel.tsx
+msgid "The inventory failed ({reason})."
+msgstr "The inventory failed ({reason})."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "The inventory is removed from goodresearch. Nothing changes in Drive."
+msgstr "The inventory is removed from goodresearch. Nothing changes in Drive."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "The last refresh failed ({reason}). The list below is from {when}."
+msgstr "The last refresh failed ({reason}). The list below is from {when}."
+
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "The name and email are erased for good and the person can no longer sign in. Projects and history stay, shown as \"Deleted account\". This cannot be undone."
 msgstr "The name and email are erased for good and the person can no longer sign in. Projects and history stay, shown as \"Deleted account\". This cannot be undone."
+
+#: src/routes/_authenticated/sources.tsx
+msgid "The permission is revoked at Google. You will need to connect again to see or refresh study folders."
+msgstr "The permission is revoked at Google. You will need to connect again to see or refresh study folders."
+
+#: src/routes/_authenticated/sources.tsx
+msgid "The permission no longer works (revoked or expired). Open a study to connect again."
+msgstr "The permission no longer works (revoked or expired). Open a study to connect again."
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "The study and its inventory are removed from goodresearch. Nothing changes in Drive."
+msgstr "The study and its inventory are removed from goodresearch. Nothing changes in Drive."
 
 #: src/features/workspace/errors.ts
 msgid "The workspace needs at least one active admin."
@@ -366,6 +674,14 @@ msgstr "The workspace needs at least one active admin."
 #: src/features/workspace/errors.ts
 msgid "This account was deleted."
 msgstr "This account was deleted."
+
+#: src/features/workspace/errors.ts
+msgid "This folder does not exist or your Google account cannot open it."
+msgstr "This folder does not exist or your Google account cannot open it."
+
+#: src/features/workspace/errors.ts
+msgid "This is not the link of a Google Drive folder."
+msgstr "This is not the link of a Google Drive folder."
 
 #: src/features/workspace/not-found.tsx
 msgid "This page does not exist or you do not have access to it."
@@ -380,6 +696,10 @@ msgid "This project does not exist or you do not have access to it."
 msgstr "This project does not exist or you do not have access to it."
 
 #: src/features/workspace/errors.ts
+msgid "This study does not exist or you do not have access to it."
+msgstr "This study does not exist or you do not have access to it."
+
+#: src/features/workspace/errors.ts
 msgid "This team does not exist or you do not have access to it."
 msgstr "This team does not exist or you do not have access to it."
 
@@ -391,13 +711,26 @@ msgstr "This team still has {projects}. Move them to another team first."
 msgid "This team still has projects. Move them to another team first."
 msgstr "This team still has projects. Move them to another team first."
 
+#: src/features/ingestion/source-panel.tsx
+msgid "Transcript"
+msgstr "Transcript"
+
+#: src/features/research/study-list.tsx
+msgid "Type"
+msgstr "Type"
+
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Type {email} to confirm"
 msgstr "Type {email} to confirm"
 
+#: src/features/research/study-list.tsx
 #: src/routes/_authenticated/index.tsx
 msgid "Updated {updated}"
 msgstr "Updated {updated}"
+
+#: src/features/research/study-list.tsx
+msgid "Usability test"
+msgstr "Usability test"
 
 #: src/routes/_authenticated/welcome.tsx
 msgid "Welcome to goodresearch"
@@ -410,3 +743,11 @@ msgstr "You are not in any team yet."
 #: src/routes/_authenticated/index.tsx
 msgid "You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects."
 msgstr "You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "You do not have access to this study's folder"
+msgstr "You do not have access to this study's folder"
+
+#: src/features/workspace/errors.ts
+msgid "You need access to this study's Drive folder to do this."
+msgstr "You need access to this study's Drive folder to do this."

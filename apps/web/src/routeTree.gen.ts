@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSourcesRouteImport } from './routes/_authenticated/sources'
 import { Route as AuthenticatedTeamsRouteImport } from './routes/_authenticated/teams'
 import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
 import { Route as AuthenticatedMembersIndexRouteImport } from './routes/_authenticated/members/index'
 import { Route as AuthenticatedMembersMemberIdRouteImport } from './routes/_authenticated/members/$memberId'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects/$projectId'
+import { Route as AuthenticatedStudiesStudyIdRouteImport } from './routes/_authenticated/studies/$studyId'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -30,6 +32,11 @@ const SignInRoute = SignInRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSourcesRoute = AuthenticatedSourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedTeamsRoute = AuthenticatedTeamsRouteImport.update({
@@ -60,34 +67,46 @@ const AuthenticatedProjectsProjectIdRoute =
     path: '/projects/$projectId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedStudiesStudyIdRoute =
+  AuthenticatedStudiesStudyIdRouteImport.update({
+    id: '/studies/$studyId',
+    path: '/studies/$studyId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/sign-in': typeof SignInRoute
+  '/sources': typeof AuthenticatedSourcesRoute
   '/teams': typeof AuthenticatedTeamsRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/studies/$studyId': typeof AuthenticatedStudiesStudyIdRoute
   '/members/': typeof AuthenticatedMembersIndexRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
+  '/sources': typeof AuthenticatedSourcesRoute
   '/teams': typeof AuthenticatedTeamsRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/': typeof AuthenticatedIndexRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/studies/$studyId': typeof AuthenticatedStudiesStudyIdRoute
   '/members': typeof AuthenticatedMembersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/sign-in': typeof SignInRoute
+  '/_authenticated/sources': typeof AuthenticatedSourcesRoute
   '/_authenticated/teams': typeof AuthenticatedTeamsRoute
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/_authenticated/studies/$studyId': typeof AuthenticatedStudiesStudyIdRoute
   '/_authenticated/members/': typeof AuthenticatedMembersIndexRoute
 }
 export interface FileRouteTypes {
@@ -95,29 +114,35 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/sign-in'
+    | '/sources'
     | '/teams'
     | '/welcome'
     | '/members/$memberId'
     | '/projects/$projectId'
+    | '/studies/$studyId'
     | '/members/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sign-in'
+    | '/sources'
     | '/teams'
     | '/welcome'
     | '/'
     | '/members/$memberId'
     | '/projects/$projectId'
+    | '/studies/$studyId'
     | '/members'
   id:
     | '__root__'
     | '/_authenticated'
     | '/sign-in'
+    | '/_authenticated/sources'
     | '/_authenticated/teams'
     | '/_authenticated/welcome'
     | '/_authenticated/'
     | '/_authenticated/members/$memberId'
     | '/_authenticated/projects/$projectId'
+    | '/_authenticated/studies/$studyId'
     | '/_authenticated/members/'
   fileRoutesById: FileRoutesById
 }
@@ -147,6 +172,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/sources': {
+      id: '/_authenticated/sources'
+      path: '/sources'
+      fullPath: '/sources'
+      preLoaderRoute: typeof AuthenticatedSourcesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/teams': {
@@ -184,24 +216,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/studies/$studyId': {
+      id: '/_authenticated/studies/$studyId'
+      path: '/studies/$studyId'
+      fullPath: '/studies/$studyId'
+      preLoaderRoute: typeof AuthenticatedStudiesStudyIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedSourcesRoute: typeof AuthenticatedSourcesRoute
   AuthenticatedTeamsRoute: typeof AuthenticatedTeamsRoute
   AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedMembersMemberIdRoute: typeof AuthenticatedMembersMemberIdRoute
   AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
+  AuthenticatedStudiesStudyIdRoute: typeof AuthenticatedStudiesStudyIdRoute
   AuthenticatedMembersIndexRoute: typeof AuthenticatedMembersIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedSourcesRoute: AuthenticatedSourcesRoute,
   AuthenticatedTeamsRoute: AuthenticatedTeamsRoute,
   AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedMembersMemberIdRoute: AuthenticatedMembersMemberIdRoute,
   AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
+  AuthenticatedStudiesStudyIdRoute: AuthenticatedStudiesStudyIdRoute,
   AuthenticatedMembersIndexRoute: AuthenticatedMembersIndexRoute,
 }
 
