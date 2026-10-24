@@ -4,6 +4,12 @@ import { auth_users } from '#platform/auth/auth-schema.ts'
 import type { Db } from '#platform/db.ts'
 import { workspaceTeamMemberships, workspaceTeams } from '../../infrastructure/schema.ts'
 
+/** Shown in the browser: only a valid https address from the provider (same rule as `Me.picture`). */
+const httpsUrl = (value: string | null): string | null => {
+  if (!value || !URL.canParse(value)) return null
+  return new URL(value).protocol === 'https:' ? value : null
+}
+
 /** The signed-in account and the teams it can work in (admins: all teams). */
 export const makeGetMe =
   (db: Db) =>
@@ -27,6 +33,7 @@ export const makeGetMe =
       id: account.id,
       name: account.name,
       email: account.email,
+      picture: httpsUrl(account.image),
       role,
       language: account.language === 'fr' ? 'fr' : 'en',
       teams,

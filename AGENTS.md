@@ -36,7 +36,7 @@ Guide for contributors and coding agents. Read before changing anything.
 | `pnpm check` | Biome (format + lint), `tsc` on every package, dependency-cruiser boundaries, knip |
 | `pnpm test` | All Vitest projects: `api:unit`, `api:int` (Docker needed), `shared`, `config`, `contracts`, `ui` (browser + axe) |
 | `pnpm exec vitest run --project api:unit` | Fast domain and use-case tests only |
-| `pnpm e2e` | Playwright + axe; needs `docker compose -f compose.yaml -f compose.dev.yaml up --build` running |
+| `pnpm e2e` | Playwright + axe; needs `docker compose -f compose.yaml -f compose.dev.yaml up --build` running (project `goodresearch-dev`, its own database; stop the `compose.yaml` stack first, both use port 3000) |
 | `pnpm generate` | OpenAPI export and API client generation (CI fails if outdated) |
 | `pnpm --filter @goodresearch/web i18n:extract` | Update translation catalogs after changing UI strings (CI fails if outdated) |
 | `pnpm --filter @goodresearch/api db:generate` | New migration from the Drizzle schemas |

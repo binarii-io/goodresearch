@@ -6,7 +6,7 @@ export function NotFound() {
   const { t } = useLingui()
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-semibold">{t`Not found`}</h1>
+      <h1 className="text-[1.75rem] leading-tight">{t`Not found`}</h1>
       <p>{t`This page does not exist or you do not have access to it.`}</p>
       <Link to="/" className="underline">
         {t`Back to projects`}

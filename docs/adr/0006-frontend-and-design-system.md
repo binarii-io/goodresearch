@@ -33,3 +33,25 @@ The UI is rich (review screens, inline transcript editing, graphs, a presentatio
 
 - Good: consistent UI, accessible primitives, translations as a contributor-friendly workflow.
 - Bad: owned shadcn components must be updated by hand — accepted, it is the point of owning them.
+
+## Update 2026-10-24 — product identity and app shell (spec 003)
+
+### Context
+
+Specs 001 and 002 used the neutral shadcn look. The product already had an identity, validated on the prototype: an ink, a highlighter and paper colours, the Schibsted Grotesk typeface, a wordmark and an icon, a sidebar shell and folder- and card-based home.
+
+### Decision
+
+- The identity becomes the design system's tokens (light and dark): see [specs/003-brand-and-app-shell/contracts/ui-tokens.md](../../specs/003-brand-and-app-shell/contracts/ui-tokens.md).
+- **The highlighter is a fill only** (active marks, highlights, soft tags), never a text colour and never the only focus indicator: it is 1.8:1 on white. Focus is a 2 px ink outline (paper in dark mode) with a highlighter halo.
+- The typeface is bundled (`@fontsource-variable/schibsted-grotesk`, SIL OFL); brand marks are inline SVG components (`Wordmark`, `BrandIcon`) that follow the theme. No third-party asset or font service.
+- The signed-in shell is an `AppShell` component in `packages/ui`: sidebar (collapsible to an icon rail, remembered in `localStorage`), drawer below 768 px, sticky top bar. Apps pass links through `render` props, so the design system stays free of the router.
+- Page patterns from the prototype: `PageBar` for detail pages (back button, breadcrumb title, controls on the right), `PageTitle` for list pages, team folders, project cards and study rows with a generated visual.
+- The account shows the provider's profile photo when it is an https address (`Me.picture`): the only image loaded from a third party, the person's own.
+- Icons come from `@goodresearch/ui/components/icons` (lucide re-exports), so apps take every UI piece from the design system.
+- Stories run in both themes (two Vitest browser instances, `colorScheme` light and dark).
+
+### Consequences
+
+- Good: one recognisable identity, AA contrast verified per token pair, no external requests.
+- Bad: shell parts of features not built yet (search, recent projects…) are left out and must be added with their features.

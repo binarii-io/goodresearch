@@ -49,7 +49,10 @@ test.describe('US2 — research projects', () => {
     await expect(
       page.getByRole('button', { name: new RegExp(`Onboarding v2 ${runId}`) }),
     ).toBeVisible()
-    await page.getByRole('link', { name: 'Projects' }).click()
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Projects' })
+      .click()
     await expect(page.getByRole('link', { name: `Onboarding v2 ${runId}` })).toBeVisible()
   })
 
@@ -77,8 +80,42 @@ test.describe('US2 — research projects', () => {
   test('the team filter is kept in the address', async ({ browser }) => {
     const page = await signedInPage(browser, ADMIN)
     await ensureHome(page)
-    await page.getByRole('combobox', { name: 'Team' }).click()
-    await page.getByRole('option').nth(1).click()
+    // Spec 003: team folders filter the projects; choosing the same folder again clears it.
+    const folder = page.locator('[data-slot=team-folder]').first()
+    await folder.click()
     await expect(page).toHaveURL(/\?team=/)
+    await expect(folder).toHaveAttribute('aria-pressed', 'true')
+    await expectAccessible(page)
+    await folder.click()
+    await expect(page).not.toHaveURL(/team=/)
+  })
+
+  test('the sidebar can be collapsed, and the choice survives a reload', async ({ browser }) => {
+    const page = await signedInPage(browser, ADMIN)
+    await ensureHome(page)
+    await page.getByRole('button', { name: 'Collapse the sidebar' }).click()
+    await page.reload()
+    const expand = page.getByRole('button', { name: 'Expand the sidebar' })
+    await expect(expand).toBeVisible()
+    // Entries keep their names in the icon rail.
+    await expect(
+      page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Teams' }),
+    ).toBeVisible()
+    await expectAccessible(page)
+    await expand.click()
+  })
+
+  test('on a phone, the menu opens the navigation and nothing scrolls sideways', async ({
+    browser,
+  }) => {
+    const page = await signedInPage(browser, ADMIN)
+    await page.setViewportSize({ width: 360, height: 740 })
+    await ensureHome(page)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
+    await page.getByRole('button', { name: 'Open the menu' }).click()
+    await page.getByRole('dialog').getByRole('link', { name: 'Teams' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'Teams' })).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)
   })
 })

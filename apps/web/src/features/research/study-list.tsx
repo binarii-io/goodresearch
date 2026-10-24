@@ -1,6 +1,7 @@
 import { getListStudiesQueryKey, useCreateStudy, useListStudies } from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
+import { SectionTitle } from '@goodresearch/ui/components/count'
 import {
   Dialog,
   DialogContent,
@@ -10,10 +11,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@goodresearch/ui/components/dialog'
+import { ArrowRightIcon, FolderOpenIcon } from '@goodresearch/ui/components/icons'
 import { Input } from '@goodresearch/ui/components/input'
 import { Label } from '@goodresearch/ui/components/label'
 import { RadioGroup, RadioGroupItem } from '@goodresearch/ui/components/radio-group'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
+import { sky } from '@goodresearch/ui/lib/sky'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
@@ -30,9 +33,9 @@ export function StudyList({ projectId }: { projectId: string }) {
   return (
     <section className="grid gap-3" aria-labelledby="studies-heading">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="studies-heading" className="text-lg font-medium">
+        <SectionTitle id="studies-heading" count={studies.data?.length} className="mt-4">
           {t`Studies`}
-        </h2>
+        </SectionTitle>
         <CreateStudyDialog projectId={projectId} />
       </div>
       {studies.isPending ? (
@@ -45,24 +48,36 @@ export function StudyList({ projectId }: { projectId: string }) {
             return (
               <li
                 key={study.id}
-                className="flex flex-wrap items-center gap-3 rounded-md border p-3"
+                className="relative grid grid-cols-[52px_minmax(0,1fr)] items-start gap-4 rounded-lg border bg-card px-[18px] py-4 transition-shadow hover:border-input hover:shadow-card has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-ring has-[a:focus-visible]:outline-solid"
               >
-                <Link
-                  to="/studies/$studyId"
-                  params={{ studyId: study.id }}
-                  className="font-medium hover:underline"
-                >
-                  {study.name}
-                </Link>
-                <Badge variant="secondary">{t`Interviews`}</Badge>
-                <span className="text-muted-foreground text-sm">
-                  {folder
-                    ? t`Folder: ${folder}`
-                    : study.hasFolder
-                      ? t`Folder attached`
-                      : t`No folder yet`}{' '}
-                  · {t`Updated ${updated}`}
-                </span>
+                <div
+                  aria-hidden
+                  className="size-[52px] rounded-[12px]"
+                  style={{ background: sky(study.id) }}
+                />
+                <div className="grid min-w-0 gap-2.5">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <Badge variant="secondary">{t`Interviews`}</Badge>
+                    <Link
+                      to="/studies/$studyId"
+                      params={{ studyId: study.id }}
+                      className="truncate text-[1.05rem] font-semibold outline-none focus-visible:shadow-none after:absolute after:inset-0 after:rounded-lg"
+                    >
+                      {study.name}
+                    </Link>
+                    <ArrowRightIcon
+                      aria-hidden
+                      className="ml-auto size-4 shrink-0 text-muted-foreground"
+                    />
+                  </div>
+                  <p className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-sm">
+                    <span className="inline-flex items-center gap-1.5">
+                      <FolderOpenIcon aria-hidden className="size-3.5" />
+                      {folder ? folder : study.hasFolder ? t`Folder attached` : t`No folder yet`}
+                    </span>
+                    <span>{t`Updated ${updated}`}</span>
+                  </p>
+                </div>
               </li>
             )
           })}
@@ -104,7 +119,7 @@ function CreateStudyDialog({ projectId }: { projectId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" />}>{t`New study`}</DialogTrigger>
-      <DialogContent>
+      <DialogContent closeLabel={t`Close`}>
         <form
           onSubmit={(e) => void submit(e).catch(() => undefined)}
           className="grid gap-4"

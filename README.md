@@ -60,6 +60,7 @@ pnpm install
 pnpm check     # format, lint, typecheck, dependency boundaries, unused code
 pnpm test      # unit, use-case, integration (Testcontainers) and Storybook accessibility tests
 pnpm e2e       # Playwright + axe against the dev stack started with compose.dev.yaml
+                # (its own project, goodresearch-dev, with its own database; both stacks use port 3000)
 ```
 
 See [AGENTS.md](AGENTS.md) for all commands and the rules every change follows.

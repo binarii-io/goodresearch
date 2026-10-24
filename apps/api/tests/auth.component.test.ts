@@ -64,7 +64,28 @@ describe('sign-in through an OpenID Connect provider', () => {
       role: 'admin',
       language: 'fr',
       teams: [],
+      picture: null,
     })
+    // Spec 003: the provider's photo is shown only when it is an https address.
+    const meWith = async (image: string) => {
+      await db
+        .update(auth_users)
+        .set({ image })
+        .where(eq(auth_users.id, account?.id ?? ''))
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/me',
+        headers: { cookie: result.cookie },
+      })
+      return response.json().picture
+    }
+    expect(await meWith('https://photos.example.org/ada.png')).toBe(
+      'https://photos.example.org/ada.png',
+    )
+    expect(await meWith('javascript:alert(1)')).toBeNull()
+    // Never a 500 for the whole app because of a malformed photo address.
+    expect(await meWith('https://')).toBeNull()
+    expect(await meWith('https://bad host/x.png')).toBeNull()
   })
 
   it('creates a member for an allow-listed email, named after the email when the provider sends no name', async () => {

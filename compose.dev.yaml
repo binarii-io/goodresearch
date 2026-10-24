@@ -5,6 +5,11 @@
 # The browser and the server must reach the provider at the same URL: oidc.localtest.me resolves
 # to 127.0.0.1 for the browser and is routed to the host inside containers. Offline, add
 # "127.0.0.1 oidc.localtest.me" to /etc/hosts.
+#
+# Own project name, so its own database and storage volumes: test data never reaches the stack
+# started with compose.yaml alone. Both use port 3000: stop one before starting the other.
+
+name: goodresearch-dev
 
 x-dev-env: &dev-env
   APP_URL: http://localhost:3000

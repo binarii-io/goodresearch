@@ -17,9 +17,12 @@ import {
   AlertDialogTrigger,
 } from '@goodresearch/ui/components/alert-dialog'
 import { Button } from '@goodresearch/ui/components/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@goodresearch/ui/components/card'
+import { Card, CardContent } from '@goodresearch/ui/components/card'
+import { SectionTitle } from '@goodresearch/ui/components/count'
 import { InlineEdit } from '@goodresearch/ui/components/inline-edit'
+import { PageTitle } from '@goodresearch/ui/components/page-header'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
+import { Folder } from '@goodresearch/ui/components/team-folder'
 import { plural } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -38,16 +41,29 @@ function Teams() {
   const admin = me.role === 'admin'
 
   return (
-    <div className="grid gap-6">
-      <h1 className="text-2xl font-semibold">{t`Teams`}</h1>
-      {admin ? <CreateTeamForm submitLabel={t`Add team`} /> : null}
+    <div className="grid gap-8">
+      <PageTitle
+        title={t`Teams`}
+        description={t`Every project belongs to one team; its members work on the team's projects.`}
+      />
+      {admin ? (
+        <Card className="max-w-xl">
+          <CardContent>
+            <CreateTeamForm submitLabel={t`Add team`} />
+          </CardContent>
+        </Card>
+      ) : null}
+      <SectionTitle count={teams.data?.length}>{t`Teams`}</SectionTitle>
       {teams.isPending ? (
         <Skeleton className="h-24 w-full" />
       ) : teams.data?.length ? (
-        <ul className="grid gap-3 md:grid-cols-2" aria-label={t`Teams`}>
-          {teams.data.map((team) => (
-            <li key={team.id}>
-              <TeamCard team={team} admin={admin} />
+        <ul
+          className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[18px]"
+          aria-label={t`Teams`}
+        >
+          {teams.data.map((team, index) => (
+            <li key={team.id} className="grid">
+              <TeamCard team={team} admin={admin} tint={index} />
             </li>
           ))}
         </ul>
@@ -58,7 +74,7 @@ function Teams() {
   )
 }
 
-function TeamCard({ team, admin }: { team: TeamDetail; admin: boolean }) {
+function TeamCard({ team, admin, tint }: { team: TeamDetail; admin: boolean; tint: number }) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const rename = useRenameTeam()
@@ -69,56 +85,58 @@ function TeamCard({ team, admin }: { team: TeamDetail; admin: boolean }) {
   const projects = plural(team.projectCount, { one: '# project', other: '# projects' })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <h2>
-            {admin ? (
-              <InlineEdit
-                label={t`Team name`}
-                value={team.name}
-                maxLength={80}
-                savedMessage={t`Team renamed`}
-                editHint={t`Enter to save, Escape to cancel`}
-                error={error ? errorMessage(i18n, error) : undefined}
-                onSave={async (name) => {
-                  setError(null)
-                  try {
-                    await rename.mutateAsync({
-                      teamId: team.id,
-                      data: { name, version: team.version },
-                    })
-                    await refresh()
-                  } catch (failure) {
-                    setError(failure)
-                    throw failure
-                  }
-                }}
-              />
-            ) : (
-              team.name
-            )}
-          </h2>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-3">
-        <p className="text-muted-foreground text-sm">{projects}</p>
-        <div>
-          <h3 className="text-sm font-medium">{t`Members`}</h3>
-          {team.members.length ? (
-            <ul className="text-sm">
-              {team.members.map((member) => (
-                <li key={member.id}>{member.name}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-muted-foreground text-sm">{t`Nobody yet.`}</p>
-          )}
-        </div>
+    <Folder tint={tint}>
+      <h3 className="text-base font-bold tracking-tight">
+        {admin ? (
+          <InlineEdit
+            label={t`Team name`}
+            value={team.name}
+            maxLength={80}
+            savedMessage={t`Team renamed`}
+            editHint={t`Enter to save, Escape to cancel`}
+            error={error ? errorMessage(i18n, error) : undefined}
+            onSave={async (name) => {
+              setError(null)
+              try {
+                await rename.mutateAsync({
+                  teamId: team.id,
+                  data: { name, version: team.version },
+                })
+                await refresh()
+              } catch (failure) {
+                setError(failure)
+                throw failure
+              }
+            }}
+          />
+        ) : (
+          team.name
+        )}
+      </h3>
+      <div>
+        <h4 className="text-sm font-medium">{t`Members`}</h4>
+        {team.members.length ? (
+          <ul className="text-sm">
+            {team.members.map((member) => (
+              <li key={member.id}>{member.name}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted-foreground text-sm">{t`Nobody yet.`}</p>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-foreground/10 pt-3 text-sm">
+        <span className="text-muted-foreground">{projects}</span>
         {admin ? (
           <AlertDialog>
             <AlertDialogTrigger
-              render={<Button variant="destructive" size="sm" className="justify-self-start" />}
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                />
+              }
             >
               {t`Delete team`}
             </AlertDialogTrigger>
@@ -149,7 +167,7 @@ function TeamCard({ team, admin }: { team: TeamDetail; admin: boolean }) {
             </AlertDialogContent>
           </AlertDialog>
         ) : null}
-      </CardContent>
-    </Card>
+      </div>
+    </Folder>
   )
 }

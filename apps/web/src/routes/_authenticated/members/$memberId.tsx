@@ -26,6 +26,7 @@ import { Button } from '@goodresearch/ui/components/button'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
 import { Input } from '@goodresearch/ui/components/input'
 import { Label } from '@goodresearch/ui/components/label'
+import { PageBar, Pill } from '@goodresearch/ui/components/page-header'
 import {
   Select,
   SelectContent,
@@ -37,7 +38,7 @@ import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import type { I18n } from '@lingui/core'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { type FormEvent, useId, useState } from 'react'
 import { toast } from 'sonner'
 import { errorMessage } from '../../../features/workspace/errors.ts'
@@ -84,11 +85,14 @@ function MemberDetail() {
   }
 
   return (
-    <div className="grid max-w-3xl gap-8">
-      <header className="grid gap-1">
-        <h1 className="text-2xl font-semibold">{member.name ?? i18n._(DELETED_ACCOUNT)}</h1>
-        {member.email ? <p className="text-muted-foreground">{member.email}</p> : null}
-      </header>
+    <div className="grid gap-8 [&>*:not([data-slot=page-bar])]:max-w-3xl">
+      <PageBar
+        back={<Link to="/members" />}
+        backLabel={t`Back to members`}
+        crumbs={[<Link key="members" to="/members">{t`Members`}</Link>]}
+        title={member.name ?? i18n._(DELETED_ACCOUNT)}
+        right={member.email ? <Pill>{member.email}</Pill> : undefined}
+      />
 
       {deleted ? null : (
         <>

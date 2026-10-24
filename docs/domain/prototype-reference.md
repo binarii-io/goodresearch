@@ -19,7 +19,7 @@
 
 ## Screens
 
-- **Shell**: collapsible sidebar (Projects, Studies, Teams, Lexicon, Recommendations, recent projects, account), top bar with search (`/` shortcut) and live AI status (calls in flight, rate-limit count), language switch, review-policy switch, provider configuration with a validation checklist.
+- **Shell** (identity, sidebar, account, language switch and home folders/cards built in spec 003; the rest comes with its features): collapsible sidebar (Projects, Studies, Teams, Lexicon, Recommendations, recent projects, account), top bar with search (`/` shortcut) and live AI status (calls in flight, rate-limit count), language switch, review-policy switch, provider configuration with a validation checklist.
 - **Home**: team filters, project cards (generated visual, last activity, counts, interviewers), sort by activity/name/session count.
 - **Project**: tabs *Overview | Insights | Recommendations | Debrief*, plus a network graph.
   - Overview: goal editable in place, team selector, 5-step journey (Sessions → Facts → Insights → Recommendations → Debrief) with validated-share progress and a highlighted next step, study cards with costs, attach/detach studies, danger zone.

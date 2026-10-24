@@ -148,6 +148,9 @@ apps/web/src/
 - Tokens: primitive → semantic (`--color-surface`, `--color-text-muted`…) as CSS variables, exposed to Tailwind v4 via `@theme`. Light and dark themes. Token files follow the W3C DTCG shape so a build pipeline can be added later.
 - Every component has a Storybook story with the a11y addon; stories run as Vitest browser tests.
 - No component without keyboard support and visible focus.
+- Product identity (spec 003, ADR-0006 update): ink, paper and highlighter tokens; **the highlighter is a fill only**, never text and never the only focus indicator; focus is the base `:focus-visible` rule (ink outline + highlighter halo), so components do not remove outlines.
+- Apps never hard-code colours, radii or fonts: tokens and components only. Links inside design-system components come from the app through `render` props.
+- Stories run in light and dark (`ui` project, two browser instances); plain functions are tested in `ui:unit`.
 
 ## 4. Testing
 

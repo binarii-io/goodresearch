@@ -17,10 +17,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@goodresearch/ui/components/alert-dialog'
-import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
+import { DangerZone } from '@goodresearch/ui/components/danger-zone'
+import { FolderIcon } from '@goodresearch/ui/components/icons'
 import { InlineEdit } from '@goodresearch/ui/components/inline-edit'
+import { PageBar, Pill } from '@goodresearch/ui/components/page-header'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -35,14 +38,18 @@ import { NotFound } from '../../../features/workspace/not-found.tsx'
 
 export const Route = createFileRoute('/_authenticated/studies/$studyId')({
   // Set by the Drive consent callback.
-  validateSearch: z.object({ drive: z.enum(['connected', 'error']).optional().catch(undefined) }),
+  validateSearch: z.object({
+    drive: z.enum(['connected', 'error']).optional().catch(undefined),
+    // Opens on Analysis, the only phase with something to do in this version (spec 003, FR-013).
+    phase: z.enum(['preparation', 'fieldwork', 'analysis']).optional().catch(undefined),
+  }),
   component: StudyPage,
 })
 
 function StudyPage() {
   const { t, i18n } = useLingui()
   const { studyId } = Route.useParams()
-  const { drive } = Route.useSearch()
+  const { drive, phase = 'analysis' } = Route.useSearch()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const me = useMe()
@@ -79,18 +86,33 @@ function StudyPage() {
   const canAct = source.data?.access === 'full'
   const canDelete = canAct || me.role === 'admin'
 
+  const folderName = source.data?.source?.folderName
+
   return (
-    <article className="grid max-w-4xl gap-8">
-      <header className="grid gap-2">
-        <Link
-          to="/projects/$projectId"
-          params={{ projectId: s.project.id }}
-          className="text-muted-foreground text-sm hover:underline"
-        >
-          {t`Project: ${projectName}`}
-        </Link>
-        <h1 className="text-2xl font-semibold">
-          {canAct ? (
+    <Tabs
+      value={phase}
+      onValueChange={(value) =>
+        void navigate({
+          to: '.',
+          search: (previous) => ({ ...previous, phase: value }),
+          replace: true,
+        })
+      }
+      className="gap-4"
+    >
+      <PageBar
+        back={<Link to="/projects/$projectId" params={{ projectId: s.project.id }} />}
+        backLabel={t`Back to the project`}
+        crumbs={[
+          <Link key="projects" to="/">
+            {t`Projects`}
+          </Link>,
+          <Link key="project" to="/projects/$projectId" params={{ projectId: s.project.id }}>
+            {projectName}
+          </Link>,
+        ]}
+        title={
+          canAct ? (
             <InlineEdit
               label={t`Study name`}
               value={s.name}
@@ -114,66 +136,79 @@ function StudyPage() {
             />
           ) : (
             s.name
-          )}
-        </h1>
-        <div>
-          <Badge variant="secondary">{t`Interviews`}</Badge>
-        </div>
-      </header>
-
-      <section className="grid gap-2" aria-labelledby="phase-preparation">
-        <h2 id="phase-preparation" className="text-lg font-medium">
-          {t`1. Preparation`}
-        </h2>
-        <p className="text-muted-foreground">{t`Design the interview guide and plan the sessions. Coming in a next version.`}</p>
-      </section>
-      <section className="grid gap-2" aria-labelledby="phase-fieldwork">
-        <h2 id="phase-fieldwork" className="text-lg font-medium">
-          {t`2. Fieldwork`}
-        </h2>
-        <p className="text-muted-foreground">{t`Run the interviews; recordings and transcripts land in the study's Drive folder.`}</p>
-      </section>
-      <section className="grid gap-3" aria-labelledby="phase-analysis">
-        <h2 id="phase-analysis" className="text-lg font-medium">
-          {t`3. Analysis`}
-        </h2>
+          )
+        }
+        right={
+          <>
+            {folderName ? (
+              <Pill className="max-w-56">
+                <FolderIcon aria-hidden />
+                <span className="truncate">{folderName}</span>
+              </Pill>
+            ) : null}
+            <TabsList aria-label={t`Study phases`}>
+              <TabsTrigger value="preparation">{t`1 · Preparation`}</TabsTrigger>
+              <TabsTrigger value="fieldwork">{t`2 · Fieldwork`}</TabsTrigger>
+              <TabsTrigger value="analysis">{t`3 · Analysis`}</TabsTrigger>
+            </TabsList>
+          </>
+        }
+      />
+      <TabsContent value="preparation">
+        <p className="text-muted-foreground text-base">{t`Design the interview guide and plan the sessions. Coming in a next version.`}</p>
+      </TabsContent>
+      <TabsContent value="fieldwork">
+        <p className="text-muted-foreground text-base">{t`Run the interviews; recordings and transcripts land in the study's Drive folder.`}</p>
+      </TabsContent>
+      <TabsContent value="analysis" className="grid gap-3">
         <SourcePanel studyId={studyId} isAdmin={me.role === 'admin'} />
-      </section>
+      </TabsContent>
 
       {canDelete ? (
-        <AlertDialog>
-          <AlertDialogTrigger
-            render={<Button variant="destructive" className="justify-self-start" />}
-          >{t`Delete study`}</AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t`Delete this study?`}</AlertDialogTitle>
-              <AlertDialogDescription>{t`The study and its inventory are removed from goodresearch. Nothing changes in Drive.`}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() =>
-                  void remove
-                    .mutateAsync({ studyId })
-                    .then(async () => {
-                      await queryClient.invalidateQueries({
-                        queryKey: getListStudiesQueryKey(s.project.id),
-                      })
-                      await navigate({
-                        to: '/projects/$projectId',
-                        params: { projectId: s.project.id },
-                      })
-                    })
-                    .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
-                }
-              >
-                {t`Delete`}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <details className="group mt-10">
+          <summary className="w-fit cursor-pointer text-muted-foreground text-sm hover:text-destructive">
+            {t`Delete this study`}
+          </summary>
+          <DangerZone
+            className="mt-2.5"
+            title={t`Delete this study`}
+            description={t`The study and its inventory are removed from goodresearch. Nothing changes in Drive.`}
+          >
+            <AlertDialog>
+              <AlertDialogTrigger render={<Button variant="destructive" />}>
+                {t`Delete study`}
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t`Delete this study?`}</AlertDialogTitle>
+                  <AlertDialogDescription>{t`The study and its inventory are removed from goodresearch. Nothing changes in Drive.`}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() =>
+                      void remove
+                        .mutateAsync({ studyId })
+                        .then(async () => {
+                          await queryClient.invalidateQueries({
+                            queryKey: getListStudiesQueryKey(s.project.id),
+                          })
+                          await navigate({
+                            to: '/projects/$projectId',
+                            params: { projectId: s.project.id },
+                          })
+                        })
+                        .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
+                    }
+                  >
+                    {t`Delete`}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </DangerZone>
+        </details>
       ) : null}
-    </article>
+    </Tabs>
   )
 }

@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
-    "@fontsource-variable/geist": "catalog:",
+    "@fontsource-variable/schibsted-grotesk": "catalog:",
     "class-variance-authority": "catalog:",
     "cn": "catalog:",
     "lucide-react": "catalog:",

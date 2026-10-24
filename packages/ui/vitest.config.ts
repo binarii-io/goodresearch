@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
-// Every story runs as a browser test with axe checks.
+// Every story runs as a browser test with axe checks, in the light and the dark theme.
 export default defineConfig({
   plugins: [
     react(),
@@ -18,7 +18,15 @@ export default defineConfig({
       enabled: true,
       headless: true,
       provider: playwright(),
-      instances: [{ browser: 'chromium' }],
+      // Both themes (spec 003, SC-001): the dark theme follows the colour scheme of the browser.
+      instances: [
+        { browser: 'chromium', name: 'ui (light)' },
+        {
+          browser: 'chromium',
+          name: 'ui (dark)',
+          provider: playwright({ contextOptions: { colorScheme: 'dark' } }),
+        },
+      ],
     },
   },
 })

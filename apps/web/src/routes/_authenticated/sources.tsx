@@ -16,6 +16,7 @@ import {
 } from '@goodresearch/ui/components/alert-dialog'
 import { Button } from '@goodresearch/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@goodresearch/ui/components/card'
+import { PageTitle } from '@goodresearch/ui/components/page-header'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -39,8 +40,10 @@ function Sources() {
 
   return (
     <div className="grid max-w-2xl gap-6">
-      <h1 className="text-2xl font-semibold">{t`Connected sources`}</h1>
-      <p className="text-muted-foreground">{t`Sources goodresearch reads with your own permission. They are separate from signing in.`}</p>
+      <PageTitle
+        title={t`Connected sources`}
+        description={t`Sources goodresearch reads with your own permission. They are separate from signing in.`}
+      />
       <Card>
         <CardHeader>
           <CardTitle>

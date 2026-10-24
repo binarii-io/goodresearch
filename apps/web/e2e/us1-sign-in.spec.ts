@@ -12,7 +12,7 @@ test.describe('US1 — sign in as admin', () => {
     await signIn(page, ADMIN)
     await ensureHome(page)
     await expectAccessible(page)
-    await page.getByRole('button', { name: 'admin', exact: true }).click()
+    await page.getByRole('button', { name: /^admin / }).click()
     await page.getByRole('menuitem', { name: 'Sign out' }).click()
     await expect(page).toHaveURL(/\/sign-in/)
     await page.goto('/teams')

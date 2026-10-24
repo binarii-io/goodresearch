@@ -12,21 +12,25 @@ msgstr ""
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# projet} other {# projets}}"
 
+#: src/routes/_authenticated/index.tsx
+msgid "{count, plural, one {# project} other {# projects}}"
+msgstr "{count, plural, one {# projet} other {# projets}}"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "{transcript} transcripts · {media} media · {other} other files"
 msgstr "{transcript} transcriptions · {media} médias · {other} autres fichiers"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
-msgid "1. Preparation"
-msgstr "1. Préparation"
+msgid "1 · Preparation"
+msgstr "1 · Préparation"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
-msgid "2. Fieldwork"
-msgstr "2. Terrain"
+msgid "2 · Fieldwork"
+msgstr "2 · Terrain"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
-msgid "3. Analysis"
-msgstr "3. Analyse"
+msgid "3 · Analysis"
+msgstr "3 · Analyse"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "A folder is attached to this study: connect your Drive to see it."
@@ -97,10 +101,6 @@ msgstr "Tous les groupes"
 msgid "All kinds"
 msgstr "Tous les types"
 
-#: src/routes/_authenticated/index.tsx
-msgid "All teams"
-msgstr "Toutes les équipes"
-
 #: src/features/workspace/errors.ts
 msgid "An inventory is already running for this study."
 msgstr "Un inventaire est déjà en cours pour cette étude."
@@ -113,9 +113,21 @@ msgstr "Demandez à {ownerName} de partager le dossier avec votre compte Google 
 msgid "Attach folder"
 msgstr "Rattacher le dossier"
 
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Back to members"
+msgstr "Retour aux membres"
+
 #: src/features/workspace/not-found.tsx
 msgid "Back to projects"
 msgstr "Retour aux projets"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Back to research projects"
+msgstr "Retour aux projets de recherche"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Back to the project"
+msgstr "Retour au projet"
 
 #: src/routes/sign-in.tsx
 msgid "Better-designed studies, answers you can trust."
@@ -140,6 +152,19 @@ msgstr "Choisir une équipe"
 #: src/features/research/create-project-dialog.tsx
 msgid "Choose a team."
 msgstr "Choisissez une équipe."
+
+#: src/features/research/create-project-dialog.tsx
+#: src/features/research/study-list.tsx
+msgid "Close"
+msgstr "Fermer"
+
+#: src/routes/_authenticated.tsx
+msgid "Close the menu"
+msgstr "Fermer le menu"
+
+#: src/features/workspace/app-sidebar.tsx
+msgid "Collapse the sidebar"
+msgstr "Replier le volet"
 
 #: src/features/research/study-list.tsx
 msgid "coming later"
@@ -220,6 +245,10 @@ msgid "Delete this account?"
 msgstr "Supprimer ce compte ?"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Delete this study"
+msgstr "Supprimer cette étude"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Delete this study?"
 msgstr "Supprimer cette étude ?"
 
@@ -278,13 +307,17 @@ msgstr "Entrée pour enregistrer, Échap pour annuler"
 msgid "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
 msgstr "Chaque projet appartient à une équipe, et l'accès aux projets passe par les équipes. Créez une première équipe pour commencer."
 
+#: src/routes/_authenticated/teams.tsx
+msgid "Every project belongs to one team; its members work on the team's projects."
+msgstr "Chaque projet appartient à une équipe ; ses membres travaillent sur les projets de l'équipe."
+
+#: src/features/workspace/app-sidebar.tsx
+msgid "Expand the sidebar"
+msgstr "Déplier le volet"
+
 #: src/features/research/study-list.tsx
 msgid "Folder attached"
 msgstr "Dossier rattaché"
-
-#: src/features/research/study-list.tsx
-msgid "Folder: {folder}"
-msgstr "Dossier : {folder}"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "For now it only reads the names, types, dates and sizes of the files in the folders you attach; file content will be read when transcripts are imported."
@@ -340,7 +373,6 @@ msgid "Group"
 msgstr "Groupe"
 
 #: src/features/research/study-list.tsx
-#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Interviews"
 msgstr "Entretiens"
 
@@ -388,7 +420,7 @@ msgstr "Dernière connexion"
 msgid "Link of the Drive folder"
 msgstr "Lien du dossier Drive"
 
-#: src/routes/_authenticated.tsx
+#: src/features/workspace/app-sidebar.tsx
 msgid "Main"
 msgstr "Principale"
 
@@ -401,7 +433,8 @@ msgstr "Média"
 msgid "Member"
 msgstr "Membre"
 
-#: src/routes/_authenticated.tsx
+#: src/features/workspace/app-sidebar.tsx
+#: src/routes/_authenticated/members/$memberId.tsx
 #: src/routes/_authenticated/members/index.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "Members"
@@ -423,9 +456,18 @@ msgstr "Nom"
 msgid "Name saved"
 msgstr "Nom enregistré"
 
+#: src/routes/_authenticated.tsx
+msgid "Navigation"
+msgstr "Navigation"
+
 #: src/features/research/create-project-dialog.tsx
+#: src/routes/_authenticated/index.tsx
 msgid "New project"
 msgstr "Nouveau projet"
+
+#: src/features/workspace/app-sidebar.tsx
+msgid "New research project"
+msgstr "Nouveau projet de recherche"
 
 #: src/features/research/study-list.tsx
 msgid "New study"
@@ -438,10 +480,6 @@ msgstr "Pas encore d'accès"
 #: src/features/research/study-list.tsx
 msgid "No folder yet"
 msgstr "Pas encore de dossier"
-
-#: src/routes/_authenticated/index.tsx
-msgid "No project yet"
-msgstr "Aucun projet pour l'instant"
 
 #: src/features/research/study-list.tsx
 msgid "No study yet. A study collects evidence for this project, for example a series of interviews."
@@ -475,6 +513,10 @@ msgstr "Seuls les admins peuvent faire cela."
 msgid "Open the folder in Google Drive and copy the address from your browser."
 msgstr "Ouvrez le dossier dans Google Drive et copiez l'adresse affichée par votre navigateur."
 
+#: src/routes/_authenticated.tsx
+msgid "Open the menu"
+msgstr "Ouvrir le menu"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Other"
 msgstr "Autre"
@@ -491,12 +533,9 @@ msgstr "Les personnes arrivent en se connectant avec un e-mail autorisé. Donnez
 msgid "Project name"
 msgstr "Nom du projet"
 
-#: src/routes/_authenticated/studies/$studyId.tsx
-msgid "Project: {projectName}"
-msgstr "Projet : {projectName}"
-
-#: src/routes/_authenticated.tsx
 #: src/routes/_authenticated/index.tsx
+#: src/routes/_authenticated/projects/$projectId.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Projects"
 msgstr "Projets"
 
@@ -528,6 +567,11 @@ msgstr "Remplacer le dossier"
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Research goal"
 msgstr "Objectif de recherche"
+
+#: src/features/workspace/app-sidebar.tsx
+#: src/routes/_authenticated/index.tsx
+msgid "Research projects"
+msgstr "Projets de recherche"
 
 #: src/routes/_authenticated/members/$memberId.tsx
 #: src/routes/_authenticated/members/index.tsx
@@ -598,12 +642,15 @@ msgstr "Études"
 msgid "Study name"
 msgstr "Nom de l'étude"
 
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Study phases"
+msgstr "Phases de l'étude"
+
 #: src/features/research/study-list.tsx
 msgid "Survey"
 msgstr "Questionnaire"
 
 #: src/features/research/create-project-dialog.tsx
-#: src/routes/_authenticated/index.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Team"
 msgstr "Équipe"
@@ -621,7 +668,8 @@ msgstr "Nom de l'équipe"
 msgid "Team renamed"
 msgstr "Équipe renommée"
 
-#: src/routes/_authenticated.tsx
+#: src/features/workspace/app-sidebar.tsx
+#: src/routes/_authenticated/index.tsx
 #: src/routes/_authenticated/members/index.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "Teams"
@@ -724,7 +772,6 @@ msgid "Type {email} to confirm"
 msgstr "Saisissez {email} pour confirmer"
 
 #: src/features/research/study-list.tsx
-#: src/routes/_authenticated/index.tsx
 msgid "Updated {updated}"
 msgstr "Modifié le {updated}"
 

@@ -1,24 +1,15 @@
 import { useListProjects } from '@goodresearch/api-client'
-import { Badge } from '@goodresearch/ui/components/badge'
-import { Card, CardDescription, CardHeader, CardTitle } from '@goodresearch/ui/components/card'
-import { Label } from '@goodresearch/ui/components/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@goodresearch/ui/components/select'
+import { SectionTitle } from '@goodresearch/ui/components/count'
+import { NewCard, ProjectCard } from '@goodresearch/ui/components/project-card'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
+import { TeamFolder } from '@goodresearch/ui/components/team-folder'
+import { plural } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router'
-import { useId } from 'react'
 import { z } from 'zod'
 import { CreateProjectDialog } from '../../features/research/create-project-dialog.tsx'
-import { useFormatDate } from '../../features/workspace/format.ts'
+import { useFormatRelative } from '../../features/workspace/format.ts'
 import { useMe } from '../../features/workspace/me.ts'
-
-const ALL = 'all'
 
 export const Route = createFileRoute('/_authenticated/')({
   // The team filter lives in the address so the view can be shared (FR-017).
@@ -35,90 +26,91 @@ function Home() {
   const { team } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
   const me = useMe()
-  const projects = useListProjects(team ? { team } : undefined)
-  const formatDate = useFormatDate()
-  const filterId = useId()
+  // One list for the folders' counts and the cards; the folder filters it (spec 003, US3).
+  const projects = useListProjects()
+  const formatRelative = useFormatRelative()
 
   if (me.role === 'member' && me.teams.length === 0) {
     return (
       <div className="grid max-w-xl gap-4">
-        <h1 className="text-2xl font-semibold">{t`No access yet`}</h1>
+        <h1 className="text-[1.75rem] leading-tight">{t`No access yet`}</h1>
         <p>{t`You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects.`}</p>
       </div>
     )
   }
 
-  return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{t`Projects`}</h1>
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="grid gap-1">
-            <Label id={filterId}>{t`Team`}</Label>
-            <Select
-              value={team ?? ALL}
-              onValueChange={(value) =>
-                void navigate({ search: value && value !== ALL ? { team: value } : {} })
-              }
-            >
-              <SelectTrigger aria-labelledby={filterId} className="min-w-44">
-                <SelectValue>
-                  {(value: string) =>
-                    value === ALL ? t`All teams` : me.teams.find((x) => x.id === value)?.name
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>{t`All teams`}</SelectItem>
-                {me.teams.map((x) => (
-                  <SelectItem key={x.id} value={x.id}>
-                    {x.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <CreateProjectDialog teams={me.teams} defaultTeamId={team} />
-        </div>
-      </div>
+  const all = projects.data ?? []
+  const shown = team ? all.filter((project) => project.team.id === team) : all
 
-      {projects.isPending ? (
-        <Skeleton className="h-24 w-full" />
-      ) : projects.data && projects.data.length > 0 ? (
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label={t`Projects`}>
-          {projects.data.map((project) => {
-            const updated = formatDate(project.updatedAt)
+  return (
+    <div className="grid gap-10">
+      <h1 className="text-[1.75rem] leading-tight">{t`Research projects`}</h1>
+
+      <section aria-labelledby="home-teams" className="grid gap-4">
+        <SectionTitle id="home-teams" count={me.teams.length}>{t`Teams`}</SectionTitle>
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-[18px]">
+          {me.teams.map((x, index) => {
+            const count = all.filter((project) => project.team.id === x.id).length
             return (
-              <li key={project.id}>
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle>
-                      <Link
-                        to="/projects/$projectId"
-                        params={{ projectId: project.id }}
-                        className="hover:underline"
-                      >
-                        {project.name}
-                      </Link>
-                    </CardTitle>
-                    <CardDescription className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary">{project.team.name}</Badge>
-                      <span>{t`Updated ${updated}`}</span>
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
+              <li key={x.id} className="grid">
+                <TeamFolder
+                  name={x.name}
+                  tint={index}
+                  aria-pressed={team === x.id}
+                  onClick={() => void navigate({ search: team === x.id ? {} : { team: x.id } })}
+                  footer={<span>{plural(count, { one: '# project', other: '# projects' })}</span>}
+                />
               </li>
             )
           })}
         </ul>
-      ) : (
-        <div className="grid max-w-xl gap-2 rounded-lg border border-dashed p-6">
-          <h2 className="text-lg font-medium">{t`No project yet`}</h2>
-          <p className="text-muted-foreground">
-            {t`A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it.`}
-          </p>
-        </div>
-      )}
+      </section>
+
+      <section aria-labelledby="home-projects" className="grid gap-4">
+        <SectionTitle id="home-projects" count={projects.isPending ? undefined : shown.length}>
+          {t`Projects`}
+        </SectionTitle>
+        {projects.isPending ? (
+          <Skeleton className="h-56 w-full" />
+        ) : (
+          <>
+            {shown.length === 0 ? (
+              <p className="max-w-xl text-muted-foreground">
+                {t`A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it.`}
+              </p>
+            ) : null}
+            <ul
+              className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-[22px]"
+              aria-label={t`Projects`}
+            >
+              {shown.map((project) => {
+                const updated = formatRelative(project.updatedAt)
+                return (
+                  <li key={project.id} className="grid">
+                    <ProjectCard
+                      id={project.id}
+                      title={project.name}
+                      link={<Link to="/projects/$projectId" params={{ projectId: project.id }} />}
+                      meta={
+                        <>
+                          <span>{updated}</span>
+                          <span aria-hidden>•</span>
+                          <span className="truncate">{project.team.name}</span>
+                        </>
+                      }
+                    />
+                  </li>
+                )
+              })}
+              <li className="grid">
+                <CreateProjectDialog teams={me.teams} defaultTeamId={team} trigger={<NewCard />}>
+                  {t`New project`}
+                </CreateProjectDialog>
+              </li>
+            </ul>
+          </>
+        )}
+      </section>
     </div>
   )
 }

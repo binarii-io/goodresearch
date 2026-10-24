@@ -12,8 +12,10 @@ test.describe('US5 — language and keyboard', () => {
     ).toBeVisible()
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
     await expectAccessible(page)
-    await page.getByRole('combobox', { name: 'Langue' }).click()
-    await page.getByRole('option', { name: 'English' }).click()
+    await page
+      .getByRole('group', { name: 'Langue' })
+      .getByRole('button', { name: 'English' })
+      .click()
     await expect(page.getByRole('button', { name: 'Sign in with Test provider' })).toBeVisible()
   })
 

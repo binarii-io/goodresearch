@@ -1,12 +1,7 @@
 import { useGetPublicConfig } from '@goodresearch/api-client'
+import { Wordmark } from '@goodresearch/ui/components/brand'
 import { Button } from '@goodresearch/ui/components/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@goodresearch/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@goodresearch/ui/components/card'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -43,14 +38,14 @@ function SignIn() {
         <LanguageSwitch signedIn={false} />
       </header>
       <main id="main" className="flex flex-1 items-center justify-center p-4">
-        <Card className="w-full max-w-sm">
-          <CardHeader>
-            <CardTitle>
-              <h1 className="text-xl font-semibold">goodresearch</h1>
-            </CardTitle>
-            <CardDescription>{t`Better-designed studies, answers you can trust.`}</CardDescription>
+        <Card className="w-full max-w-sm gap-6 py-8 shadow-card">
+          <CardHeader className="gap-3 px-8">
+            <h1>
+              <Wordmark className="h-7" />
+            </h1>
+            <CardDescription className="text-base">{t`Better-designed studies, answers you can trust.`}</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4">
+          <CardContent className="grid gap-4 px-8">
             {search.error || failed ? (
               // FR-008: one generic message, whatever the reason.
               <p role="alert" className="text-destructive text-sm">

@@ -10,7 +10,7 @@ function Welcome() {
   const navigate = useNavigate()
   return (
     <div className="grid max-w-xl gap-6">
-      <h1 className="text-2xl font-semibold">{t`Welcome to goodresearch`}</h1>
+      <h1 className="text-[1.75rem] leading-tight">{t`Welcome to goodresearch`}</h1>
       <p>{t`Every project belongs to a team, and people get access to projects through their teams. Create a first team to start.`}</p>
       <CreateTeamForm submitLabel={t`Create team`} onCreated={() => void navigate({ to: '/' })} />
     </div>

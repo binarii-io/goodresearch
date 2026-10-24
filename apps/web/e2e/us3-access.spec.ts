@@ -18,12 +18,18 @@ test.describe('US3 — access through teams', () => {
 
     const admin = await signedInPage(browser, ADMIN)
     await ensureHome(admin)
-    await admin.getByRole('link', { name: 'Teams' }).click()
+    await admin
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Teams' })
+      .click()
     await admin.getByRole('textbox', { name: 'Team name' }).fill(`Access ${runId}`)
     await admin.getByRole('button', { name: 'Add team' }).click()
     await expect(admin.getByRole('heading', { name: new RegExp(`Access ${runId}`) })).toBeVisible()
 
-    await admin.getByRole('link', { name: 'Members' }).click()
+    await admin
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Members' })
+      .click()
     await expectAccessible(admin)
     const row = admin.getByRole('row').filter({ hasText: email })
     await expect(row.getByText('No team yet')).toBeVisible()
@@ -46,7 +52,10 @@ test.describe('US3 — access through teams', () => {
     const dee = await signedInPage(browser, email)
     const admin = await signedInPage(browser, ADMIN)
     await ensureHome(admin)
-    await admin.getByRole('link', { name: 'Members' }).click()
+    await admin
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Members' })
+      .click()
     await admin.getByRole('row').filter({ hasText: email }).getByRole('link').click()
 
     await admin.getByRole('button', { name: 'Deactivate' }).click()
@@ -60,13 +69,18 @@ test.describe('US3 — access through teams', () => {
     await dialog.getByRole('button', { name: 'Delete account' }).click()
     await expect(admin.getByRole('heading', { level: 1, name: 'Deleted account' })).toBeVisible()
     await expect(admin.getByText('Account deleted').first()).toBeVisible()
-    await admin.getByRole('link', { name: 'Members' }).click()
+    await admin
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Members' })
+      .click()
     await expect(admin.getByText(email)).toHaveCount(0)
   })
 
   test('members cannot open the members area', async ({ browser }) => {
     const page = await signedInPage(browser, member('reader'))
-    await expect(page.getByRole('link', { name: 'Members' })).toHaveCount(0)
+    await expect(
+      page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Members' }),
+    ).toHaveCount(0)
     await page.goto('/members')
     await expect(page.getByRole('heading', { name: 'Not found' })).toBeVisible()
   })

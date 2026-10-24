@@ -13,6 +13,7 @@ export interface MeInput {
   id: string;
   name: string;
   email: string;
+  picture: string | null;
   role: MeInputRole;
   language: MeInputLanguage;
   teams: TeamRefInput[];

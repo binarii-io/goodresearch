@@ -17,7 +17,7 @@ export default meta
 export const OpenDialog: StoryObj = {
   render: () => (
     <Dialog defaultOpen>
-      <DialogContent>
+      <DialogContent closeLabel="Close">
         <DialogHeader>
           <DialogTitle>New project</DialogTitle>
           <DialogDescription>A project holds one research question.</DialogDescription>

@@ -1,8 +1,10 @@
 import { ApiError, setLanguage } from '@goodresearch/api-client'
+import { AppShell } from '@goodresearch/ui/components/app-shell'
+import { Wordmark } from '@goodresearch/ui/components/brand'
 import { useLingui } from '@lingui/react/macro'
-import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, redirect, useRouterState } from '@tanstack/react-router'
 import { activate, takePendingLanguage } from '../app/i18n.ts'
-import { AccountMenu } from '../features/workspace/account-menu.tsx'
+import { AppSidebar } from '../features/workspace/app-sidebar.tsx'
 import { LanguageSwitch } from '../features/workspace/language-switch.tsx'
 import { meQueryOptions, useMe } from '../features/workspace/me.ts'
 
@@ -31,36 +33,20 @@ export const Route = createFileRoute('/_authenticated')({
 function Layout() {
   const { t } = useLingui()
   const me = useMe()
-  const link =
-    'rounded-md px-3 py-2 text-sm font-medium hover:bg-muted data-[status=active]:bg-muted'
-
+  const pathname = useRouterState({ select: (state) => state.location.pathname })
   return (
-    <div className="min-h-svh">
-      <header className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
-          <Link to="/" className="font-semibold">
-            goodresearch
-          </Link>
-          <nav aria-label={t`Main`} className="flex flex-1 gap-1">
-            <Link to="/" className={link} activeOptions={{ exact: true }}>
-              {t`Projects`}
-            </Link>
-            <Link to="/teams" className={link}>
-              {t`Teams`}
-            </Link>
-            {me.role === 'admin' ? (
-              <Link to="/members" className={link}>
-                {t`Members`}
-              </Link>
-            ) : null}
-          </nav>
-          <LanguageSwitch signedIn />
-          <AccountMenu me={me} />
-        </div>
-      </header>
-      <main id="main" className="mx-auto max-w-6xl px-4 py-8">
-        <Outlet />
-      </main>
-    </div>
+    <AppShell
+      sidebar={<AppSidebar me={me} />}
+      topbar={<LanguageSwitch signedIn />}
+      mobileBrand={
+        <Link to="/" className="rounded-md">
+          <Wordmark className="h-[18px]" />
+        </Link>
+      }
+      labels={{ openMenu: t`Open the menu`, menu: t`Navigation`, closeMenu: t`Close the menu` }}
+      location={pathname}
+    >
+      <Outlet />
+    </AppShell>
   )
 }

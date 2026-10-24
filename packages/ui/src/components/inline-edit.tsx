@@ -94,7 +94,7 @@ export function InlineEdit({
   }
 
   const fieldClass =
-    'w-full rounded-md border border-input bg-background px-3 py-2 text-base outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive'
+    'w-full rounded-md border border-input bg-background px-3 py-2 text-base outline-none focus-visible:ring-3 focus-visible:ring-highlight/50 aria-invalid:border-destructive'
 
   return (
     <div className={cn('grid gap-1', className)}>
@@ -138,7 +138,7 @@ export function InlineEdit({
           ref={buttonRef}
           type="button"
           aria-label={`${label}: ${value || placeholder || ''}`}
-          className="-mx-2 rounded-md px-2 py-1 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="-mx-2 rounded-md px-2 py-1 text-left hover:bg-muted"
           onClick={() => setEditing(true)}
         >
           {value ? (

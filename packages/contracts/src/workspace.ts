@@ -10,6 +10,8 @@ export const Me = z
     id: Id,
     name: z.string(),
     email: z.string(),
+    /** Profile photo from the identity provider (https only), or null. */
+    picture: z.url({ protocol: /^https$/ }).nullable(),
     role: Role,
     language: Language,
     teams: z.array(TeamRef),

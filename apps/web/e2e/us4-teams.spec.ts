@@ -14,7 +14,10 @@ test.describe('US4 — manage teams', () => {
   }) => {
     const page = await signedInPage(browser, ADMIN)
     await ensureHome(page)
-    await page.getByRole('link', { name: 'Teams' }).click()
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Teams' })
+      .click()
     await page.getByRole('textbox', { name: 'Team name' }).fill(`Growth ${runId}`)
     await page.getByRole('button', { name: 'Add team' }).click()
     await expect(page.getByRole('heading', { name: new RegExp(`Growth ${runId}`) })).toBeVisible()

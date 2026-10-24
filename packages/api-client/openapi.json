@@ -524,6 +524,17 @@
           "email": {
             "type": "string"
           },
+          "picture": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "role": {
             "type": "string",
             "enum": [
@@ -549,6 +560,7 @@
           "id",
           "name",
           "email",
+          "picture",
           "role",
           "language",
           "teams"
@@ -1668,6 +1680,17 @@
           "email": {
             "type": "string"
           },
+          "picture": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "role": {
             "type": "string",
             "enum": [
@@ -1693,6 +1716,7 @@
           "id",
           "name",
           "email",
+          "picture",
           "role",
           "language",
           "teams"

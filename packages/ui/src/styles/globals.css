@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/schibsted-grotesk";
 
 /* Dark theme follows the operating system setting (spec 001 assumption). */
 @custom-variant dark (@media (prefers-color-scheme: dark));
@@ -33,6 +33,7 @@
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
@@ -41,96 +42,175 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-soft);
+  --color-highlight-soft-foreground: var(--highlight-soft-foreground);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.72);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-xl: calc(var(--radius) * 1.3);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-3xl: calc(var(--radius) * 2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --font-sans: "Geist Variable", sans-serif;
+  --font-sans: "Schibsted Grotesk Variable", "Helvetica Neue", Arial, sans-serif;
+  --shadow-card: 0 1px 2px rgb(28 34 48 / 0.04), 0 6px 18px rgb(28 34 48 / 0.06);
+  --shadow-card-hover: 0 2px 4px rgb(28 34 48 / 0.05), 0 12px 28px rgb(28 34 48 / 0.1);
+  --shadow-dialog: 0 20px 60px rgb(28 34 48 / 0.25);
 }
 
+/*
+ * Product identity "highlighted bounce": one ink, one highlighter, the paper.
+ * The highlighter is a fill only (active marks, highlights, soft tags), never a text colour and
+ * never the only focus indicator: it is 1.8:1 on white (see specs/003-brand-and-app-shell/research.md).
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(
-    0.52 0 0
-  ); /* darker than the shadcn default: >= 4.5:1 on muted (hover) backgrounds */
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(
-    0.505 0.213 27.518
-  ); /* darker than the shadcn default: 4.5:1 on its tinted background (WCAG AA) */
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --ink: #1c2230;
+  --paper: #f3f4f6;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-hover: #2e3647;
+  --primary-foreground: #ffffff;
+  --secondary: var(--paper);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper);
+  --muted-foreground: #5f6675; /* 5.8:1 on white, 5.2:1 on paper */
+  --accent: var(--paper);
+  --accent-foreground: var(--ink);
+  --highlight: #f5b82e;
+  --highlight-soft: #fdf0cf;
+  --highlight-soft-foreground: var(--ink);
+  --destructive: #b3261e; /* 6.5:1 on white */
+  --border: #e3e5ea;
+  --input: #d9dde5;
+  --ring: var(--ink);
+  --chart-1: #f5b82e;
+  --chart-2: #1c2230;
+  --chart-3: #5f6675;
+  --chart-4: #f9d98c;
+  --chart-5: #d9dde5;
+  --radius: 0.875rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--paper);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: #e3e5ea;
+  --sidebar-ring: var(--ink);
+  /* Team folders: [sheet, tab] tints (mist, warm paper, cool, pale highlighter). */
+  --folder-1: #f3f4f6;
+  --folder-1-tab: #e3e5ea;
+  --folder-2: #fbf3df;
+  --folder-2-tab: #f3e2b6;
+  --folder-3: #eef0f4;
+  --folder-3-tab: #d9dde5;
+  --folder-4: #fdf0cf;
+  --folder-4-tab: #f5d98f;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --background: #151a25;
+    --foreground: var(--paper);
+    --card: var(--ink);
+    --card-foreground: var(--paper);
+    --popover: var(--ink);
+    --popover-foreground: var(--paper);
+    --primary: var(--paper);
+    --primary-hover: #d9dde5;
+    --primary-foreground: var(--ink);
+    --secondary: #232b3d;
+    --secondary-foreground: var(--paper);
+    --muted: #232b3d;
+    --muted-foreground: #a3a9b6; /* 6.7:1 on ink, 6.0:1 on #232b3d */
+    --accent: #232b3d;
+    --accent-foreground: var(--paper);
+    --highlight-soft: #3b3420;
+    --highlight-soft-foreground: var(--paper);
+    --destructive: #f2b8b5;
+    --border: #2e3647;
+    --input: #3a4256;
+    --ring: var(--paper);
+    --chart-2: #f3f4f6;
+    --chart-3: #a3a9b6;
+    --chart-5: #3a4256;
+    --sidebar: var(--ink);
+    --sidebar-foreground: var(--paper);
+    --sidebar-primary: var(--paper);
+    --sidebar-primary-foreground: var(--ink);
+    --sidebar-accent: #232b3d;
+    --sidebar-accent-foreground: var(--paper);
+    --sidebar-border: #2e3647;
+    --sidebar-ring: var(--paper);
+    --folder-1: #232b3d;
+    --folder-1-tab: #2e3647;
+    --folder-2: #2e2a20;
+    --folder-2-tab: #4a3f22;
+    --folder-3: #262e40;
+    --folder-3-tab: #3a4256;
+    --folder-4: #3b3420;
+    --folder-4-tab: #5c4a1c;
   }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-sans text-foreground;
   }
+  h1 {
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  h2,
+  h3 {
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  table,
+  [data-slot="count"] {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Focus: an ink (paper in dark) outline carries the 3:1 contrast, the highlighter halo the identity. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--highlight) 45%, transparent);
+  }
+  ::selection {
+    background: var(--highlight-soft);
+    color: var(--highlight-soft-foreground);
+  }
+  /* Important: utilities sit in a later layer and would otherwise win (spec 003, FR-015). */
+  /* biome-ignore-start lint/complexity/noImportantStyles: see above */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  /* biome-ignore-end lint/complexity/noImportantStyles: see above */
+}
+
+@utility eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
 }

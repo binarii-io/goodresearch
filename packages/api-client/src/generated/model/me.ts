@@ -13,6 +13,7 @@ export interface Me {
   id: string;
   name: string;
   email: string;
+  picture: string | null;
   role: MeRole;
   language: MeLanguage;
   teams: TeamRef[];

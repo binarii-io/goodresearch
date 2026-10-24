@@ -22,15 +22,20 @@ import { Textarea } from '@goodresearch/ui/components/textarea'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { type FormEvent, useId, useState } from 'react'
+import { type FormEvent, type ReactElement, type ReactNode, useId, useState } from 'react'
 import { errorMessage } from '../workspace/errors.ts'
 
+/** `trigger` replaces the default button (sidebar shortcut, "New project" card); `children` is its content. */
 export function CreateProjectDialog({
   teams,
   defaultTeamId,
+  trigger = <Button />,
+  children,
 }: {
   teams: TeamRef[]
   defaultTeamId?: string | undefined
+  trigger?: ReactElement
+  children?: ReactNode
 }) {
   const { t, i18n } = useLingui()
   const navigate = useNavigate()
@@ -66,8 +71,8 @@ export function CreateProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>{t`New project`}</DialogTrigger>
-      <DialogContent>
+      <DialogTrigger render={trigger}>{children ?? t`New project`}</DialogTrigger>
+      <DialogContent closeLabel={t`Close`}>
         <form
           onSubmit={(e) => void submit(e).catch(() => undefined)}
           className="grid gap-4"
