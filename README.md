@@ -4,13 +4,49 @@
 
 goodresearch is an open-source, self-hostable app for user research teams. It helps you prepare interview guides, collect and clean transcripts, check interview conduct, extract evidence and turn it into insights and recommendations — with AI proposing and humans deciding at every step.
 
-**Status:** bootstrapping. Standards and domain model are defined; no feature is implemented yet.
+**Status:** early. Sign-in through your identity provider, team-based access, teams and research projects work ([spec 001](specs/001-walking-skeleton/spec.md)); studies, transcripts and AI features come next.
 
 ## Principles
 
 - **AI proposes, humans decide.** Every AI output is a proposal until validated; human decisions are never overwritten.
 - **Provider-agnostic.** Bring your own identity provider (OIDC), LLM provider and S3-compatible storage. Runs anywhere with Docker.
 - **Privacy by design.** Pseudonymised exports and AI synthesis inputs.
+
+## Try it locally
+
+Requirements: Docker with Compose v2.
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml up --build
+```
+
+Open <http://localhost:3000> and click **Sign in with Test provider**. On the test provider's page, type any user name and, in *claims*, `{"email": "admin@example.org"}`: you become the admin. Other `@example.com` emails get member accounts. The test provider accepts anything: never use `compose.dev.yaml` in production. If you are offline, add `127.0.0.1 oidc.localtest.me` to `/etc/hosts`.
+
+## Deploy
+
+goodresearch ships as one image with three commands (`server`, `worker`, `migrate`) and needs PostgreSQL, an S3-compatible store and an OpenID Connect identity provider. `compose.yaml` runs all of it except the identity provider.
+
+1. **Create a sign-in client at your provider.** For Google: Google Cloud console → *APIs & Services* → *Credentials* → *Create credentials* → *OAuth client ID* → type *Web application*, authorised redirect URI `https://<your host>/api/auth/callback/google`. goodresearch only asks for `openid email profile`.
+2. **Configure.** Copy `.env.example` to `.env` and fill it: `APP_URL`, `AUTH_SECRET` (`openssl rand -base64 48`), S3 credentials, `AUTH_PROVIDERS=google` with `AUTH_GOOGLE_*`, your email in `ADMIN_EMAILS`, and the emails or domains of your colleagues in `ACCESS_ALLOWLIST`. Every variable is described in [the configuration contract](specs/001-walking-skeleton/contracts/configuration.md); invalid values stop the app at start with the variable's name.
+3. **Start.** `docker compose up -d --build`. `migrate` applies the database migrations, then `server` (port 3000) and `worker` start. Put a TLS reverse proxy in front and set `TRUSTED_PROXIES` to its address.
+4. **Sign in** with the admin email, create a first team, and give colleagues access to teams from **Members** once they have signed in.
+
+goodresearch never stores passwords. Any other OpenID Connect provider works the same way (`AUTH_<KEY>_*` variables); set `AUTH_<KEY>_TRUSTED=true` only for a provider you trust to send verified emails without the `email_verified` claim.
+
+Health endpoints: `/health` (process up), `/ready` (database and storage reachable).
+
+## Develop
+
+Requirements: Node 24+, pnpm 12 (`npm i -g pnpm@12`), Docker.
+
+```bash
+pnpm install
+pnpm check     # format, lint, typecheck, dependency boundaries, unused code
+pnpm test      # unit, use-case, integration (Testcontainers) and Storybook accessibility tests
+pnpm e2e       # Playwright + axe against the dev stack started with compose.dev.yaml
+```
+
+See [AGENTS.md](AGENTS.md) for all commands and the rules every change follows.
 
 ## Documentation
 

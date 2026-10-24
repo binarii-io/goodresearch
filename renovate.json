@@ -1,0 +1,14 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests", ":semanticCommits"],
+  "minimumReleaseAge": "3 days",
+  "rangeStrategy": "pin",
+  "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    { "matchPackageNames": ["@typescript/native", "typescript"], "groupName": "typescript" }
+  ]
+}

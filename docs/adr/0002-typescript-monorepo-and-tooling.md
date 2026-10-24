@@ -35,3 +35,10 @@ The product is an open-source web app (React front, API, background workers) mai
 
 - Good: one toolchain, fast checks, types shared end-to-end.
 - Bad: TS 7 is recent; some tools may lag. Mitigation: every tool's version is pinned in the catalog and upgraded by Renovate.
+
+## Update 2026-10-24 — TypeScript 6 API alias and native type stripping (spec 001)
+
+- **TS 6 API alias.** TypeScript 7.0 ships no stable programmatic API (expected in 7.1), and dependency-cruiser requires it. The pnpm catalog maps `@typescript/native` to `typescript@7` (provides `tsc`) and `typescript` to `@typescript/typescript6` (API for tools). Remove the alias once TS 7.1 and dependency-cruiser support it.
+- **No build step for Node code.** The API runs on Node 24 LTS with native type stripping (`node src/server.ts`). TypeScript code therefore uses **erasable syntax only** (`erasableSyntaxOnly`): no enums, no parameter properties, no runtime namespaces; explicit `.ts` import extensions; `import type` for types. tsdown stays the fallback if a dependency ever requires transpilation.
+- **Vitest 5** projects: one config per package; integration tests in a separate project with the Testcontainers global setup.
+- **Biome**: `nursery.noFloatingPromises` set to `error` explicitly.

@@ -1,0 +1,412 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-24 19:10+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+
+#. placeholder {0}: team.projectCount
+#: src/routes/_authenticated/teams.tsx
+msgid "{0, plural, one {# project} other {# projects}}"
+msgstr "{0, plural, one {# projet} other {# projets}}"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "A project holds one research question and belongs to a team."
+msgstr "Un projet porte une question de recherche et appartient à une équipe."
+
+#: src/routes/_authenticated/index.tsx
+msgid "A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it."
+msgstr "Un projet porte une question de recherche : ce que vous voulez apprendre, pourquoi, et vos hypothèses. Les études et leurs preuves s'y rattacheront."
+
+#: src/features/workspace/errors.ts
+msgid "A team with this name already exists."
+msgstr "Une équipe porte déjà ce nom."
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Access history"
+msgstr "Historique des accès"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Access to {teamName} granted"
+msgstr "Accès à {teamName} accordé"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Access to {teamName} removed"
+msgstr "Accès à {teamName} retiré"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Account created at first sign-in"
+msgstr "Compte créé à la première connexion"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Account deactivated"
+msgstr "Compte désactivé"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Account deleted"
+msgstr "Compte supprimé"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Account reactivated"
+msgstr "Compte réactivé"
+
+#: src/features/workspace/member-labels.ts
+msgid "Active"
+msgstr "Actif"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Add team"
+msgstr "Ajouter l'équipe"
+
+#: src/features/workspace/account-menu.tsx
+#: src/features/workspace/member-labels.ts
+msgid "Admin"
+msgstr "Admin"
+
+#: src/routes/_authenticated/index.tsx
+msgid "All teams"
+msgstr "Toutes les équipes"
+
+#: src/features/workspace/not-found.tsx
+msgid "Back to projects"
+msgstr "Retour aux projets"
+
+#: src/routes/sign-in.tsx
+msgid "Better-designed studies, answers you can trust."
+msgstr "Des études mieux conçues, des réponses dignes de confiance."
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "by {actor}"
+msgstr "par {actor}"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Choose a team"
+msgstr "Choisir une équipe"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Choose a team."
+msgstr "Choisissez une équipe."
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Create project"
+msgstr "Créer le projet"
+
+#: src/routes/_authenticated/welcome.tsx
+msgid "Create team"
+msgstr "Créer l'équipe"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Created {created} · Updated {updated}"
+msgstr "Créé le {created} · Modifié le {updated}"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Ctrl+Enter to save, Escape to cancel"
+msgstr "Ctrl+Entrée pour enregistrer, Échap pour annuler"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Deactivate"
+msgstr "Désactiver"
+
+#: src/features/workspace/member-labels.ts
+msgid "Deactivated"
+msgstr "Désactivé"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Delete"
+msgstr "Supprimer"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Delete {teamName}?"
+msgstr "Supprimer {teamName} ?"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Delete account"
+msgstr "Supprimer le compte"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Delete team"
+msgstr "Supprimer l'équipe"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Delete this account?"
+msgstr "Supprimer ce compte ?"
+
+#: src/features/workspace/member-labels.ts
+msgid "Deleted"
+msgstr "Supprimé"
+
+#: src/features/workspace/member-labels.ts
+msgid "Deleted account"
+msgstr "Compte supprimé"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Describe the research question, objectives and hypotheses."
+msgstr "Décrivez la question de recherche, les objectifs et les hypothèses."
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Email"
+msgstr "E-mail"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Enter a name."
+msgstr "Saisissez un nom."
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Enter to save, Escape to cancel"
+msgstr "Entrée pour enregistrer, Échap pour annuler"
+
+#: src/routes/_authenticated/welcome.tsx
+msgid "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
+msgstr "Chaque projet appartient à une équipe, et l'accès aux projets passe par les équipes. Créez une première équipe pour commencer."
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Goal saved"
+msgstr "Objectif enregistré"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "goodresearch"
+msgstr "goodresearch"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Its members lose access to this team. This cannot be undone."
+msgstr "Ses membres perdent l'accès à cette équipe. Cette action est irréversible."
+
+#: src/features/workspace/language-switch.tsx
+msgid "Language"
+msgstr "Langue"
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Last sign-in"
+msgstr "Dernière connexion"
+
+#: src/routes/_authenticated.tsx
+msgid "Main"
+msgstr "Principale"
+
+#: src/features/workspace/account-menu.tsx
+#: src/features/workspace/member-labels.ts
+msgid "Member"
+msgstr "Membre"
+
+#: src/routes/_authenticated.tsx
+#: src/routes/_authenticated/members/index.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Members"
+msgstr "Membres"
+
+#: src/features/research/create-project-dialog.tsx
+#: src/routes/_authenticated/members/index.tsx
+msgid "Name"
+msgstr "Nom"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Name saved"
+msgstr "Nom enregistré"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "New project"
+msgstr "Nouveau projet"
+
+#: src/routes/_authenticated/index.tsx
+msgid "No access yet"
+msgstr "Pas encore d'accès"
+
+#: src/routes/_authenticated/index.tsx
+msgid "No project yet"
+msgstr "Aucun projet pour l'instant"
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "No team yet"
+msgstr "Aucune équipe"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Nobody yet."
+msgstr "Personne pour l'instant."
+
+#: src/features/workspace/not-found.tsx
+msgid "Not found"
+msgstr "Introuvable"
+
+#: src/features/workspace/errors.ts
+msgid "Only admins can do this."
+msgstr "Seuls les admins peuvent faire cela."
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "People join by signing in with an allowed email. Give them access to one or more teams to let them work on those teams' projects."
+msgstr "Les personnes arrivent en se connectant avec un e-mail autorisé. Donnez-leur accès à une ou plusieurs équipes pour qu'elles travaillent sur les projets de ces équipes."
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Project name"
+msgstr "Nom du projet"
+
+#: src/routes/_authenticated.tsx
+#: src/routes/_authenticated/index.tsx
+msgid "Projects"
+msgstr "Projets"
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Provider"
+msgstr "Fournisseur"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Question, objectives, hypotheses"
+msgstr "Question, objectifs, hypothèses"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Reactivate"
+msgstr "Réactiver"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Reload"
+msgstr "Recharger"
+
+#: src/features/research/create-project-dialog.tsx
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Research goal"
+msgstr "Objectif de recherche"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+#: src/routes/_authenticated/members/index.tsx
+msgid "Role"
+msgstr "Rôle"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Role changed"
+msgstr "Rôle modifié"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Role changed to {to}"
+msgstr "Rôle changé en {to}"
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Search by name or email"
+msgstr "Rechercher par nom ou e-mail"
+
+#: src/routes/sign-in.tsx
+msgid "Sign in with {provider}"
+msgstr "Se connecter avec {provider}"
+
+#: src/features/workspace/account-menu.tsx
+msgid "Sign out"
+msgstr "Se déconnecter"
+
+#: src/routes/sign-in.tsx
+msgid "Sign-in did not work. Try again, or contact your administrator if it keeps failing."
+msgstr "La connexion n'a pas abouti. Réessayez, ou contactez votre administrateur si le problème persiste."
+
+#: src/routes/sign-in.tsx
+msgid "Sign-in is not configured yet. The person deploying goodresearch must set up an identity provider, see the <0>deployment guide</0>."
+msgstr "La connexion n'est pas encore configurée. La personne qui installe goodresearch doit paramétrer un fournisseur d'identité, voir le <0>guide de déploiement</0>."
+
+#: src/routes/__root.tsx
+msgid "Skip to content"
+msgstr "Aller au contenu"
+
+#: src/features/workspace/errors.ts
+msgid "Some fields are not valid."
+msgstr "Certains champs ne sont pas valides."
+
+#: src/features/workspace/errors.ts
+msgid "Someone changed this in the meantime. Reload to see the latest version."
+msgstr "Quelqu'un a modifié cet élément entre-temps. Rechargez pour voir la dernière version."
+
+#: src/features/workspace/errors.ts
+msgid "Something went wrong. Please try again."
+msgstr "Une erreur est survenue. Veuillez réessayer."
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Status"
+msgstr "Statut"
+
+#: src/features/research/create-project-dialog.tsx
+#: src/routes/_authenticated/index.tsx
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Team"
+msgstr "Équipe"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Team access"
+msgstr "Accès aux équipes"
+
+#: src/features/workspace/first-team.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Team name"
+msgstr "Nom de l'équipe"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Team renamed"
+msgstr "Équipe renommée"
+
+#: src/routes/_authenticated.tsx
+#: src/routes/_authenticated/members/index.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Teams"
+msgstr "Équipes"
+
+#: src/features/workspace/errors.ts
+msgid "The email you typed does not match."
+msgstr "L'e-mail saisi ne correspond pas."
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "The name and email are erased for good and the person can no longer sign in. Projects and history stay, shown as \"Deleted account\". This cannot be undone."
+msgstr "Le nom et l'e-mail sont effacés définitivement et la personne ne peut plus se connecter. Les projets et l'historique restent, affichés comme « Compte supprimé ». Cette action est irréversible."
+
+#: src/features/workspace/errors.ts
+msgid "The workspace needs at least one active admin."
+msgstr "L'espace de travail doit garder au moins un admin actif."
+
+#: src/features/workspace/errors.ts
+msgid "This account was deleted."
+msgstr "Ce compte a été supprimé."
+
+#: src/features/workspace/not-found.tsx
+msgid "This page does not exist or you do not have access to it."
+msgstr "Cette page n'existe pas ou vous n'y avez pas accès."
+
+#: src/features/workspace/errors.ts
+msgid "This person does not exist."
+msgstr "Cette personne n'existe pas."
+
+#: src/features/workspace/errors.ts
+msgid "This project does not exist or you do not have access to it."
+msgstr "Ce projet n'existe pas ou vous n'y avez pas accès."
+
+#: src/features/workspace/errors.ts
+msgid "This team does not exist or you do not have access to it."
+msgstr "Cette équipe n'existe pas ou vous n'y avez pas accès."
+
+#: src/routes/_authenticated/teams.tsx
+msgid "This team still has {projects}. Move them to another team first."
+msgstr "Cette équipe a encore {projects}. Déplacez-les d'abord vers une autre équipe."
+
+#: src/features/workspace/errors.ts
+msgid "This team still has projects. Move them to another team first."
+msgstr "Cette équipe a encore des projets. Déplacez-les d'abord vers une autre équipe."
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Type {email} to confirm"
+msgstr "Saisissez {email} pour confirmer"
+
+#: src/routes/_authenticated/index.tsx
+msgid "Updated {updated}"
+msgstr "Modifié le {updated}"
+
+#: src/routes/_authenticated/welcome.tsx
+msgid "Welcome to goodresearch"
+msgstr "Bienvenue dans goodresearch"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "You are not in any team yet."
+msgstr "Vous ne faites partie d'aucune équipe pour l'instant."
+
+#: src/routes/_authenticated/index.tsx
+msgid "You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects."
+msgstr "Vous êtes connecté·e, mais vous ne faites partie d'aucune équipe. Demandez à un admin de vous ajouter à une équipe pour voir ses projets."

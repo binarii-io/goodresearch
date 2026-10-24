@@ -1,0 +1,45 @@
+# Local evaluation and end-to-end tests: adds a test identity provider and sample access rules.
+# Usage: docker compose -f compose.yaml -f compose.dev.yaml up --build
+# Never use this file in production. The test provider accepts any email typed on its login page.
+#
+# The browser and the server must reach the provider at the same URL: oidc.localtest.me resolves
+# to 127.0.0.1 for the browser and is routed to the host inside containers. Offline, add
+# "127.0.0.1 oidc.localtest.me" to /etc/hosts.
+
+x-dev-env: &dev-env
+  APP_URL: http://localhost:3000
+  AUTH_SECRET: dev-only-secret-change-me-0123456789abcdef
+  S3_REGION: us-east-1
+  S3_BUCKET: goodresearch
+  S3_ACCESS_KEY_ID: goodresearch
+  S3_SECRET_ACCESS_KEY: goodresearch-secret
+  S3_FORCE_PATH_STYLE: "true"
+  S3_CREATE_BUCKET: "true"
+  AUTH_PROVIDERS: mock
+  AUTH_MOCK_DISPLAY_NAME: Test provider
+  AUTH_MOCK_ISSUER: http://oidc.localtest.me:8080/default
+  AUTH_MOCK_CLIENT_ID: goodresearch
+  AUTH_MOCK_CLIENT_SECRET: goodresearch
+  ADMIN_EMAILS: admin@example.org
+  ACCESS_ALLOWLIST: example.com
+  LOG_LEVEL: info
+  # End-to-end tests sign in many times from one IP.
+  AUTH_SIGN_IN_RATE_LIMIT: "1000"
+
+services:
+  mock-oidc:
+    image: ghcr.io/navikt/mock-oauth2-server:6.1.1
+    ports: ["8080:8080"]
+    environment:
+      JSON_CONFIG_PATH: /config/mock-oidc.json
+    volumes: [./docker/mock-oidc.json:/config/mock-oidc.json:ro]
+
+  migrate:
+    environment: *dev-env
+  server:
+    environment: *dev-env
+    extra_hosts: ["oidc.localtest.me:host-gateway"]
+    depends_on:
+      mock-oidc: { condition: service_started }
+  worker:
+    environment: *dev-env

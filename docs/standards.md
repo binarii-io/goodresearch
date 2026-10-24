@@ -62,12 +62,13 @@ apps/api/src/
 | From ↓ may import → | domain | application | infrastructure | other module | platform |
 |---|---|---|---|---|---|
 | domain | ✅ | ❌ | ❌ | ❌ | ❌ (only `@goodresearch/shared`) |
-| application | ✅ | ✅ | ❌ | `index.ts` only | ports only |
+| application — commands, ports | ✅ | ✅ | ❌ | `index.ts` only | ❌ |
+| application — queries | ✅ | ✅ | own `schema.ts` only (SQL reads) | `index.ts` only | `db` types only |
 | infrastructure | ✅ | ✅ | ✅ | `index.ts` only | ✅ |
 
 ### Aggregates
 
-- Plain classes, private state, no public setters. `create(...)` validates invariants and returns `Result`; `fromPersistence(...)` rehydrates without checks.
+- Plain classes, private state (`#field`), no public setters, no parameter properties (erasable syntax only, ADR-0002). `create(...)` validates invariants and returns `Result`; `fromPersistence(...)` rehydrates without checks.
 - Behaviour methods return `Result<void, ErrorCode>` and record domain events; `pullEvents()` drains them.
 - Small aggregates. Reference other aggregates by **branded ID** (`type FactId = Brand<string, 'FactId'>`).
 - Optimistic concurrency: `version` column, `UPDATE … WHERE id = ? AND version = ?`; 0 rows → throws `ConcurrencyError` (infrastructure failure, mapped to HTTP 409; the client retries).
@@ -139,7 +140,7 @@ apps/web/src/
 - Client state: URL first (search params), then component state. No global store until needed.
 - Components from `@goodresearch/ui`. Feature components compose them; they do not restyle them.
 - Every string through Lingui (`t` macro / `<Trans>`); messages in `.po` files.
-- Forms: Zod schema from `packages/contracts` + a form library chosen in the first form feature's plan.
+- Forms: small forms use controlled inputs and show the API's validation errors (spec 001). When forms grow, adopt a form library with the Zod schemas of `packages/contracts`, decided in that feature's plan.
 
 ### Design system (`packages/ui`)
 
@@ -169,6 +170,7 @@ apps/web/src/
 - **Biome** formats and lints everything (one config at the root). **`tsc --noEmit`** (TypeScript 7) type-checks (ADR-0002).
 - Files and folders `kebab-case`; types and classes `PascalCase`; functions and variables `camelCase`; constants `SCREAMING_SNAKE_CASE` only for true constants.
 - Named exports only. No default exports (except where a tool requires them).
+- Erasable TypeScript only (`erasableSyntaxOnly`): explicit `.ts` extensions in relative imports, `import type` for types.
 - No `any`, no non-null `!` without a comment, no `enum` (use string-literal unions + `as const`).
 - Comments explain **why**, not what. Public module APIs get a short TSDoc.
 - Dates are ISO 8601 UTC in APIs and the database (`timestamptz`); time comes from an injected `Clock`.

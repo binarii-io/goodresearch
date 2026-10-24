@@ -1,0 +1,44 @@
+{
+  "name": "@goodresearch/api",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "imports": {
+    "#platform/*": "./src/platform/*"
+  },
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=../../.env src/server.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "generate": "node src/export-openapi.ts",
+    "db:generate": "drizzle-kit generate",
+    "auth:schema": "auth generate --config src/platform/auth/cli-config.ts --output src/platform/auth/auth-schema.ts --adapter drizzle --dialect postgresql -y"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "catalog:",
+    "@fastify/static": "catalog:",
+    "@fastify/swagger": "catalog:",
+    "@goodresearch/config": "workspace:*",
+    "@goodresearch/contracts": "workspace:*",
+    "@goodresearch/shared": "workspace:*",
+    "better-auth": "catalog:",
+    "drizzle-orm": "catalog:",
+    "fastify": "catalog:",
+    "fastify-type-provider-zod": "catalog:",
+    "pg": "catalog:",
+    "pg-boss": "catalog:",
+    "pino": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@goodresearch/tsconfig": "workspace:*",
+    "@testcontainers/postgresql": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "auth": "catalog:",
+    "drizzle-kit": "catalog:",
+    "pino-pretty": "catalog:",
+    "testcontainers": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "interactiveLogin": true,
+  "tokenCallbacks": [
+    {
+      "issuerId": "default",
+      "requestMappings": [
+        {
+          "requestParam": "grant_type",
+          "match": "authorization_code",
+          "claims": { "email_verified": true }
+        }
+      ]
+    }
+  ]
+}

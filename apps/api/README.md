@@ -1,0 +1,47 @@
+# @goodresearch/api
+
+Fastify API and background worker of goodresearch: a modular monolith with one module per bounded context ([context map](../../docs/domain/context-map.md), [standards](../../docs/standards.md)).
+
+## Layout
+
+| Path | Content |
+|---|---|
+| `src/server.ts`, `src/worker.ts`, `src/migrate.ts` | Entrypoints (one image, three commands) |
+| `src/compose.ts` | Composition root: builds adapters, modules and routes |
+| `src/platform/` | Cross-cutting infrastructure: database, auth library wiring, HTTP errors, logger, storage |
+| `src/modules/<context>/` | `domain/`, `application/{commands,queries}/`, `infrastructure/`, `tests/`, public `index.ts` |
+| `drizzle/` | Versioned SQL migrations (generated, plus hand-written constraints in `0001_access_rules.sql`) |
+| `tests/` | API component and integration tests (real PostgreSQL) |
+
+## Run
+
+Node 24+ runs the TypeScript sources directly (no build step, erasable syntax only).
+
+```bash
+pnpm --filter @goodresearch/api dev        # needs a .env at the repo root and a running PostgreSQL
+node apps/api/src/migrate.ts               # apply migrations
+```
+
+## Test
+
+```bash
+pnpm exec vitest run --project api:unit    # domain and use cases, no I/O
+pnpm exec vitest run --project api:int     # PostgreSQL and a test identity provider via Testcontainers
+```
+
+Integration tests need Docker. With Colima, point Testcontainers to its socket:
+
+```bash
+export DOCKER_HOST=unix://$HOME/.colima/default/docker.sock
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+```
+
+## Generate
+
+| Command | Output |
+|---|---|
+| `pnpm --filter @goodresearch/api generate` | `packages/api-client/openapi.json` (no database needed) |
+| `pnpm --filter @goodresearch/api db:generate` | a new migration from the Drizzle schemas |
+| `pnpm --filter @goodresearch/api auth:schema` | `src/platform/auth/auth-schema.ts` from the auth library configuration |
+
+Generated files are never edited by hand; CI fails if they are out of date.

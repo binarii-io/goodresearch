@@ -23,7 +23,7 @@ Every AI-produced object follows the same lifecycle and the same protections. Th
 
 | # | Context | Subdomain type | Modelling style | Main aggregates |
 |---|---|---|---|---|
-| 1 | **Workspace** | Generic | CRUD + auth library | Workspace, Member, Team, UserPreferences |
+| 1 | **Workspace** | Generic | CRUD + auth library | Workspace, Account, Member, Team (with memberships), UserPreferences |
 | 2 | **Research** | Core | Domain model | Project, Study, InterviewGuide |
 | 3 | **Ingestion** | Supporting | Domain model (matching rules) | Source, Session (with its roster) |
 | 4 | **Transcripts** | Supporting | Domain model | Transcript, LexiconTerm, CorrectionRun |
@@ -59,14 +59,18 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 
 ### 1. Workspace
 
-- **Workspace** — the tenant. Holds members, teams, provider configuration (LLM, sources) and organisation context given to the AI (replaces any hard-coded company context).
-- **Member** — a user in a workspace, with a role (`owner`, `editor`, `viewer`).
-- **Team** — organisational owner of projects. Unique name per workspace (case/space-insensitive). Deleting a team detaches its projects.
+- **Workspace** — the tenant (one per instance for now). Holds members, teams, provider configuration (LLM, sources) and organisation context given to the AI (replaces any hard-coded company context).
+- **Account** — a person who can sign in, only through an external identity provider (no passwords), active, deactivated or deleted. New accounts come from a provider sign-in, filtered by the deployer's **initial admin emails** and **access allow-list** (emails and email domains).
+- **Member** — an account in the workspace, with a role: `admin` (manages teams, members and access; sees everything) or `member`. The last active admin cannot be demoted or deactivated.
+- **Team** — the unit of access and ownership. Unique name per workspace (case/space-insensitive). A team with projects cannot be deleted.
+- **TeamMembership** — links an account to a team (an account can be in several teams). A member sees and edits exactly the projects of their teams; a new member starts with none.
+- **AccessEvent** — immutable record of an access change (who, on whom, what, when); admins consult it per account.
+- Account lifecycle: `active ⇄ deactivated → deleted`. Deletion anonymises the account (name and email erased) so references and history stay consistent. Provider sign-in requires a verified email unless the deployer trusts the provider; a verified (or trusted) email matching an active account attaches to it.
 - **UserPreferences** — interface language (`fr`, `en`).
 
 ### 2. Research
 
-- **Project** — a research question. `name`, `goal` (question, objectives, hypotheses — given to the AI everywhere), `reviewPolicy` (`auto | manual`), team ref. Linked to 0..n studies (many-to-many). Its key takeaways are owned by the Synthesis context.
+- **Project** — a research question. `name`, `goal` (question, objectives, hypotheses — given to the AI everywhere), `reviewPolicy` (`auto | manual`), **exactly one team** (required; access follows the team). Linked to 0..n studies (many-to-many). Its key takeaways are owned by the Synthesis context.
 - **Study** — one source of evidence that can feed several projects. `type` (`interviews` first; `survey`, `usability-test`, `documents`, `analytics` later), phases **Preparation → Fieldwork → Analysis**.
 - **InterviewGuide** — the protocol of a study: ordered **GuideQuestions** (`id`, `section`, `text`) plus protocol markdown. Built by the **guide assistant** (chat) or imported from a document. It is the hub: it feeds evaluation coverage, insight themes and the deck.
 - **GuideConversation** — messages with the guide assistant and a **completeness checklist** (objectives 15, hypotheses 10, audience 15, format 10, intro 10, themes 25, follow-ups 10, bias review 5 = 100). The assistant signals `readyToWrite`; the app computes the percentage.
@@ -142,7 +146,13 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | English (code & UI) | French (UI) | Notes |
 |---|---|---|
 | Workspace | Espace de travail | |
+| Account | Compte | |
 | Member | Membre | |
+| Admin / Member (roles) | Admin / Membre | |
+| Team membership | Appartenance à une équipe | |
+| Access allow-list | Liste d'accès autorisés | |
+| Access history | Historique des accès | |
+| Deactivate / Delete account | Désactiver / Supprimer le compte | Delete = anonymise |
 | Team | Équipe | |
 | Project | Projet | The research question |
 | Research goal | Objectif de recherche | |

@@ -1,0 +1,1 @@
+{ "extends": "@goodresearch/tsconfig/bundler.json", "include": ["src", "orval.config.ts"] }

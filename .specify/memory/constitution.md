@@ -1,6 +1,7 @@
 <!--
 Sync Impact Report
-- Version: 0.0.0 → 1.0.0 (initial ratification)
+- Version: 1.0.0 → 1.1.0 (principle III: sign-in only through external OpenID Connect providers; no passwords)
+- Previous: 0.0.0 → 1.0.0 (initial ratification)
 - Principles added: I–IX
 - Templates: plan-template.md "Constitution Check" applies these principles as gates (no template change needed)
 - License: AGPL-3.0-only + CLA (ADR-0007)
@@ -31,8 +32,9 @@ Every feature goes through Spec Kit: `/speckit-specify` → (`/speckit-clarify`)
 
 ### III. Provider-Agnostic & Self-Hostable
 
-- Nothing in the code ties the product to a cloud, a vendor or a company. External services sit behind **ports** with swappable **adapters**: LLM, file sources, object storage (S3 API), identity (OIDC), document publishing.
-- The only hard runtime dependencies are **PostgreSQL** and an **S3-compatible store**. Everything runs with `docker compose up`, including login (built-in accounts; OIDC optional).
+- Nothing in the code ties the product to a cloud, a vendor or a company. External services sit behind **ports** with swappable **adapters**: LLM, file sources, object storage (S3 API), identity (OpenID Connect), document publishing.
+- The only hard runtime dependencies are **PostgreSQL**, an **S3-compatible store** and at least one **OpenID Connect identity provider** chosen by the deployer. Everything else runs with `docker compose up`; the development setup ships a local test identity provider.
+- **goodresearch never stores or manages passwords.** People sign in only through an external identity provider.
 - Configuration is environment-only (12-factor), validated at boot with a readable error.
 - No company or customer context and no real person's data in code, tests, fixtures, prompts or docs. Naming adapter targets, libraries and cited authors in docs is fine.
 
@@ -93,4 +95,4 @@ Every feature goes through Spec Kit: `/speckit-specify` → (`/speckit-clarify`)
 - Amendments go through a PR that updates this file, bumps its version (MAJOR: principle removed or redefined; MINOR: principle added or materially extended; PATCH: wording), and updates impacted templates, standards and ADRs.
 - Runtime guidance for contributors and coding agents lives in [AGENTS.md](../../AGENTS.md).
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-24
+**Version**: 1.1.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-24

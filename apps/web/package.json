@@ -1,0 +1,45 @@
+{
+  "name": "@goodresearch/web",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "lingui compile --strict --typescript && vite build",
+    "typecheck": "tsc -p tsconfig.json",
+    "i18n:extract": "lingui extract --clean",
+    "i18n:compile": "lingui compile --strict --typescript",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@goodresearch/api-client": "workspace:*",
+    "@goodresearch/ui": "workspace:*",
+    "@lingui/core": "catalog:",
+    "@lingui/detect-locale": "catalog:",
+    "@lingui/react": "catalog:",
+    "@tanstack/react-query": "catalog:",
+    "@tanstack/react-router": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "sonner": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "catalog:",
+    "@goodresearch/tsconfig": "workspace:*",
+    "@lingui/cli": "catalog:",
+    "@lingui/conf": "catalog:",
+    "@lingui/format-po": "catalog:",
+    "@lingui/vite-plugin": "catalog:",
+    "@playwright/test": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@tanstack/router-plugin": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "tailwindcss": "catalog:",
+    "vite": "catalog:"
+  }
+}

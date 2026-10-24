@@ -1,0 +1,27 @@
+{
+  "name": "@goodresearch/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "pnpm --filter @goodresearch/api generate && orval --config orval.config.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@goodresearch/tsconfig": "workspace:*",
+    "@types/react": "catalog:",
+    "orval": "catalog:",
+    "react": "catalog:",
+    "vite": "catalog:"
+  }
+}

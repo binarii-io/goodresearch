@@ -1,0 +1,1 @@
+{ "extends": "@goodresearch/tsconfig/node.json", "include": ["src", "tests", "*.config.ts"] }

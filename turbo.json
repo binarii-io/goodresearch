@@ -1,0 +1,9 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "typecheck": { "dependsOn": ["^generate"] },
+    "generate": { "outputs": ["src/generated/**", "openapi.json", "src/routeTree.gen.ts"] },
+    "build": { "dependsOn": ["^build", "generate"], "outputs": ["dist/**"] },
+    "dev": { "cache": false, "persistent": true }
+  }
+}

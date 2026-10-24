@@ -1,0 +1,412 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-24 19:10+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+#. placeholder {0}: team.projectCount
+#: src/routes/_authenticated/teams.tsx
+msgid "{0, plural, one {# project} other {# projects}}"
+msgstr "{0, plural, one {# project} other {# projects}}"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "A project holds one research question and belongs to a team."
+msgstr "A project holds one research question and belongs to a team."
+
+#: src/routes/_authenticated/index.tsx
+msgid "A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it."
+msgstr "A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it."
+
+#: src/features/workspace/errors.ts
+msgid "A team with this name already exists."
+msgstr "A team with this name already exists."
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Access history"
+msgstr "Access history"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Access to {teamName} granted"
+msgstr "Access to {teamName} granted"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Access to {teamName} removed"
+msgstr "Access to {teamName} removed"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Account created at first sign-in"
+msgstr "Account created at first sign-in"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Account deactivated"
+msgstr "Account deactivated"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Account deleted"
+msgstr "Account deleted"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Account reactivated"
+msgstr "Account reactivated"
+
+#: src/features/workspace/member-labels.ts
+msgid "Active"
+msgstr "Active"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Add team"
+msgstr "Add team"
+
+#: src/features/workspace/account-menu.tsx
+#: src/features/workspace/member-labels.ts
+msgid "Admin"
+msgstr "Admin"
+
+#: src/routes/_authenticated/index.tsx
+msgid "All teams"
+msgstr "All teams"
+
+#: src/features/workspace/not-found.tsx
+msgid "Back to projects"
+msgstr "Back to projects"
+
+#: src/routes/sign-in.tsx
+msgid "Better-designed studies, answers you can trust."
+msgstr "Better-designed studies, answers you can trust."
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "by {actor}"
+msgstr "by {actor}"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Cancel"
+msgstr "Cancel"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Choose a team"
+msgstr "Choose a team"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Choose a team."
+msgstr "Choose a team."
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Create project"
+msgstr "Create project"
+
+#: src/routes/_authenticated/welcome.tsx
+msgid "Create team"
+msgstr "Create team"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Created {created} · Updated {updated}"
+msgstr "Created {created} · Updated {updated}"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Ctrl+Enter to save, Escape to cancel"
+msgstr "Ctrl+Enter to save, Escape to cancel"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Deactivate"
+msgstr "Deactivate"
+
+#: src/features/workspace/member-labels.ts
+msgid "Deactivated"
+msgstr "Deactivated"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Delete"
+msgstr "Delete"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Delete {teamName}?"
+msgstr "Delete {teamName}?"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Delete account"
+msgstr "Delete account"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Delete team"
+msgstr "Delete team"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Delete this account?"
+msgstr "Delete this account?"
+
+#: src/features/workspace/member-labels.ts
+msgid "Deleted"
+msgstr "Deleted"
+
+#: src/features/workspace/member-labels.ts
+msgid "Deleted account"
+msgstr "Deleted account"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Describe the research question, objectives and hypotheses."
+msgstr "Describe the research question, objectives and hypotheses."
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Email"
+msgstr "Email"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Enter a name."
+msgstr "Enter a name."
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Enter to save, Escape to cancel"
+msgstr "Enter to save, Escape to cancel"
+
+#: src/routes/_authenticated/welcome.tsx
+msgid "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
+msgstr "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Goal saved"
+msgstr "Goal saved"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "goodresearch"
+msgstr "goodresearch"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Its members lose access to this team. This cannot be undone."
+msgstr "Its members lose access to this team. This cannot be undone."
+
+#: src/features/workspace/language-switch.tsx
+msgid "Language"
+msgstr "Language"
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Last sign-in"
+msgstr "Last sign-in"
+
+#: src/routes/_authenticated.tsx
+msgid "Main"
+msgstr "Main"
+
+#: src/features/workspace/account-menu.tsx
+#: src/features/workspace/member-labels.ts
+msgid "Member"
+msgstr "Member"
+
+#: src/routes/_authenticated.tsx
+#: src/routes/_authenticated/members/index.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Members"
+msgstr "Members"
+
+#: src/features/research/create-project-dialog.tsx
+#: src/routes/_authenticated/members/index.tsx
+msgid "Name"
+msgstr "Name"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Name saved"
+msgstr "Name saved"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "New project"
+msgstr "New project"
+
+#: src/routes/_authenticated/index.tsx
+msgid "No access yet"
+msgstr "No access yet"
+
+#: src/routes/_authenticated/index.tsx
+msgid "No project yet"
+msgstr "No project yet"
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "No team yet"
+msgstr "No team yet"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Nobody yet."
+msgstr "Nobody yet."
+
+#: src/features/workspace/not-found.tsx
+msgid "Not found"
+msgstr "Not found"
+
+#: src/features/workspace/errors.ts
+msgid "Only admins can do this."
+msgstr "Only admins can do this."
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "People join by signing in with an allowed email. Give them access to one or more teams to let them work on those teams' projects."
+msgstr "People join by signing in with an allowed email. Give them access to one or more teams to let them work on those teams' projects."
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Project name"
+msgstr "Project name"
+
+#: src/routes/_authenticated.tsx
+#: src/routes/_authenticated/index.tsx
+msgid "Projects"
+msgstr "Projects"
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Provider"
+msgstr "Provider"
+
+#: src/features/research/create-project-dialog.tsx
+msgid "Question, objectives, hypotheses"
+msgstr "Question, objectives, hypotheses"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Reactivate"
+msgstr "Reactivate"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Reload"
+msgstr "Reload"
+
+#: src/features/research/create-project-dialog.tsx
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Research goal"
+msgstr "Research goal"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+#: src/routes/_authenticated/members/index.tsx
+msgid "Role"
+msgstr "Role"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Role changed"
+msgstr "Role changed"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Role changed to {to}"
+msgstr "Role changed to {to}"
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Search by name or email"
+msgstr "Search by name or email"
+
+#: src/routes/sign-in.tsx
+msgid "Sign in with {provider}"
+msgstr "Sign in with {provider}"
+
+#: src/features/workspace/account-menu.tsx
+msgid "Sign out"
+msgstr "Sign out"
+
+#: src/routes/sign-in.tsx
+msgid "Sign-in did not work. Try again, or contact your administrator if it keeps failing."
+msgstr "Sign-in did not work. Try again, or contact your administrator if it keeps failing."
+
+#: src/routes/sign-in.tsx
+msgid "Sign-in is not configured yet. The person deploying goodresearch must set up an identity provider, see the <0>deployment guide</0>."
+msgstr "Sign-in is not configured yet. The person deploying goodresearch must set up an identity provider, see the <0>deployment guide</0>."
+
+#: src/routes/__root.tsx
+msgid "Skip to content"
+msgstr "Skip to content"
+
+#: src/features/workspace/errors.ts
+msgid "Some fields are not valid."
+msgstr "Some fields are not valid."
+
+#: src/features/workspace/errors.ts
+msgid "Someone changed this in the meantime. Reload to see the latest version."
+msgstr "Someone changed this in the meantime. Reload to see the latest version."
+
+#: src/features/workspace/errors.ts
+msgid "Something went wrong. Please try again."
+msgstr "Something went wrong. Please try again."
+
+#: src/routes/_authenticated/members/index.tsx
+msgid "Status"
+msgstr "Status"
+
+#: src/features/research/create-project-dialog.tsx
+#: src/routes/_authenticated/index.tsx
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Team"
+msgstr "Team"
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Team access"
+msgstr "Team access"
+
+#: src/features/workspace/first-team.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Team name"
+msgstr "Team name"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "Team renamed"
+msgstr "Team renamed"
+
+#: src/routes/_authenticated.tsx
+#: src/routes/_authenticated/members/index.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Teams"
+msgstr "Teams"
+
+#: src/features/workspace/errors.ts
+msgid "The email you typed does not match."
+msgstr "The email you typed does not match."
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "The name and email are erased for good and the person can no longer sign in. Projects and history stay, shown as \"Deleted account\". This cannot be undone."
+msgstr "The name and email are erased for good and the person can no longer sign in. Projects and history stay, shown as \"Deleted account\". This cannot be undone."
+
+#: src/features/workspace/errors.ts
+msgid "The workspace needs at least one active admin."
+msgstr "The workspace needs at least one active admin."
+
+#: src/features/workspace/errors.ts
+msgid "This account was deleted."
+msgstr "This account was deleted."
+
+#: src/features/workspace/not-found.tsx
+msgid "This page does not exist or you do not have access to it."
+msgstr "This page does not exist or you do not have access to it."
+
+#: src/features/workspace/errors.ts
+msgid "This person does not exist."
+msgstr "This person does not exist."
+
+#: src/features/workspace/errors.ts
+msgid "This project does not exist or you do not have access to it."
+msgstr "This project does not exist or you do not have access to it."
+
+#: src/features/workspace/errors.ts
+msgid "This team does not exist or you do not have access to it."
+msgstr "This team does not exist or you do not have access to it."
+
+#: src/routes/_authenticated/teams.tsx
+msgid "This team still has {projects}. Move them to another team first."
+msgstr "This team still has {projects}. Move them to another team first."
+
+#: src/features/workspace/errors.ts
+msgid "This team still has projects. Move them to another team first."
+msgstr "This team still has projects. Move them to another team first."
+
+#: src/routes/_authenticated/members/$memberId.tsx
+msgid "Type {email} to confirm"
+msgstr "Type {email} to confirm"
+
+#: src/routes/_authenticated/index.tsx
+msgid "Updated {updated}"
+msgstr "Updated {updated}"
+
+#: src/routes/_authenticated/welcome.tsx
+msgid "Welcome to goodresearch"
+msgstr "Welcome to goodresearch"
+
+#: src/routes/_authenticated/teams.tsx
+msgid "You are not in any team yet."
+msgstr "You are not in any team yet."
+
+#: src/routes/_authenticated/index.tsx
+msgid "You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects."
+msgstr "You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects."

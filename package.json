@@ -1,0 +1,31 @@
+{
+  "name": "goodresearch",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=24.22"
+  },
+  "scripts": {
+    "check": "biome check . && turbo run typecheck && pnpm depcruise && knip",
+    "depcruise": "depcruise apps packages --config .dependency-cruiser.cjs",
+    "format": "biome check --write .",
+    "test": "vitest run",
+    "test:unit": "vitest run --project api:unit --project shared --project config --project contracts",
+    "e2e": "pnpm --filter @goodresearch/web e2e",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "generate": "turbo run generate"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@typescript/native": "catalog:",
+    "dependency-cruiser": "catalog:",
+    "knip": "catalog:",
+    "lefthook": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

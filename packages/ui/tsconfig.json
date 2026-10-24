@@ -1,0 +1,4 @@
+{
+  "extends": "@goodresearch/tsconfig/bundler.json",
+  "include": ["src", ".storybook", "*.config.ts"]
+}

@@ -30,4 +30,19 @@ Guide for contributors and coding agents. Read before changing anything.
 
 ## Commands
 
-To be filled when the monorepo is scaffolded (install, dev, test, lint, typecheck, build).
+| Command | What it does |
+|---|---|
+| `pnpm install` | Install everything (pnpm 12, versions pinned in the `pnpm-workspace.yaml` catalog) |
+| `pnpm check` | Biome (format + lint), `tsc` on every package, dependency-cruiser boundaries, knip |
+| `pnpm test` | All Vitest projects: `api:unit`, `api:int` (Docker needed), `shared`, `config`, `contracts`, `ui` (browser + axe) |
+| `pnpm exec vitest run --project api:unit` | Fast domain and use-case tests only |
+| `pnpm e2e` | Playwright + axe; needs `docker compose -f compose.yaml -f compose.dev.yaml up --build` running |
+| `pnpm generate` | OpenAPI export and API client generation (CI fails if outdated) |
+| `pnpm --filter @goodresearch/web i18n:extract` | Update translation catalogs after changing UI strings (CI fails if outdated) |
+| `pnpm --filter @goodresearch/api db:generate` | New migration from the Drizzle schemas |
+| `pnpm --filter @goodresearch/ui storybook` | Design system workbench |
+| `pnpm build` | Build the web app |
+
+With Colima, export `DOCKER_HOST=unix://$HOME/.colima/default/docker.sock` and `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock` before running integration tests.
+
+Maintainers merge pull requests locally (squash, then fast-forward `main`) rather than with the GitHub merge button, so commit metadata stays under their control.

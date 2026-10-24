@@ -13,3 +13,4 @@ test-results/
 .DS_Store
 *.log
 .claude/settings.local.json
+apps/web/src/locales/*/messages.ts

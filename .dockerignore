@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+**/.turbo
+**/coverage
+**/playwright-report
+**/test-results
+**/storybook-static
+.git
+.env
+.env.*
+!.env.example

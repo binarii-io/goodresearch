@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreExportsUsedInFile": true,
+  "workspaces": {
+    ".": {},
+    "apps/api": {
+      "entry": [
+        "src/{server,worker,migrate,export-openapi}.ts",
+        "src/platform/auth/cli-config.ts",
+        "tests/**/*.ts"
+      ],
+      "ignoreDependencies": ["pino-pretty"]
+    },
+    "apps/web": {
+      "entry": ["src/routes/**/*.tsx", "e2e/**/*.ts", "lingui.config.ts"],
+      "ignoreDependencies": ["tailwindcss"]
+    }
+  }
+}

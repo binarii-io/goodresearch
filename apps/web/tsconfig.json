@@ -1,0 +1,5 @@
+{
+  "extends": "@goodresearch/tsconfig/bundler.json",
+  "compilerOptions": { "types": ["vite/client", "node"] },
+  "include": ["src", "e2e", "*.config.ts"]
+}
