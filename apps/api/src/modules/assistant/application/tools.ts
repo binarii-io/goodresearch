@@ -1,6 +1,11 @@
+import { GuideDraft } from '@goodresearch/contracts'
 import { z } from 'zod'
+import { GUIDE_CHECKLIST, GUIDE_POINT_STATES } from '../domain/guide-progress.ts'
 import type { ProposalKind } from '../domain/proposal.ts'
+import { checkQuestion } from '../domain/question-checks.ts'
+import type { GuideStudy } from './context.ts'
 import type { Actor, ProposalPreview, ResearchReads, ToolSpec } from './ports.ts'
+import { SKILL_NAMES } from './skills.ts'
 
 const Name = z.string().trim().min(1).max(120)
 const Goal = z.string().trim().max(10_000)
@@ -17,7 +22,18 @@ const INPUTS = {
     studyId: Id,
     phase: z.enum(['preparation', 'fieldwork', 'analysis']).optional(),
   }),
+  propose_interview_guide: z.object({ studyId: Id, guide: GuideDraft }),
+  report_guide_progress: z.object({
+    studyId: Id,
+    ...Object.fromEntries(GUIDE_CHECKLIST.map(([key]) => [key, z.enum(GUIDE_POINT_STATES)])),
+  }) as z.ZodType<{ studyId: string } & Record<string, (typeof GUIDE_POINT_STATES)[number]>>,
+  load_skill: z.object({ name: z.enum(SKILL_NAMES as [string, ...string[]]) }),
+  check_guide_questions: z.object({
+    questions: z.array(z.string().trim().min(1).max(600)).min(1).max(60),
+  }),
 } satisfies Record<ProposalKind, z.ZodType>
+
+export const TOOL_INPUTS = INPUTS
 
 /**
  * The tools the model may call (spec 005 US3). They have no execution: a call becomes a proposal
@@ -66,6 +82,42 @@ export const TOOLS: readonly ToolSpec[] = [
   },
 ]
 
+/**
+ * Tools of the interview guide design (spec 006), offered on the page of an interview study the
+ * person can act on. The use case adds the `run` of `load_skill` and `check_guide_questions` (it
+ * needs the answer); `report_guide_progress` is recorded when called and ends the answer.
+ */
+export const GUIDE_TOOLS: readonly ToolSpec[] = [
+  {
+    name: 'load_skill',
+    description:
+      'Load the instructions of a skill listed in the context, before doing what it covers (for example before designing or changing an interview guide). Returns the instructions.',
+    inputSchema: INPUTS.load_skill,
+  },
+  {
+    name: 'check_guide_questions',
+    description:
+      "Check interview questions against the app's writing rules (closed, leading, hypothetical, about the future, asking for a solution, double, too long). Returns what to review for each question. Call it before proposing a guide.",
+    inputSchema: INPUTS.check_guide_questions,
+  },
+  {
+    name: 'report_guide_progress',
+    description:
+      'Record how far the design of the study interview guide is: for each of the eight points, missing, partial or done. Call it last, after your text, at the end of each answer while designing a guide: it ends the answer. Changes nothing else.',
+    inputSchema: INPUTS.report_guide_progress,
+  },
+  {
+    name: 'propose_interview_guide',
+    description:
+      'Propose the complete interview guide of the study (use the Study id from the context): framing and sections in order (introduction, warm-up, one theme section per research theme, wrap-up), main questions with follow-ups. The person reviews and applies it; it replaces the current guide only then.',
+    inputSchema: INPUTS.propose_interview_guide,
+  },
+]
+
+/** What the writing rules flag in each question; empty lists are kept out. */
+export const checksOf = (questions: readonly string[]) =>
+  questions.map((question) => ({ question, issues: checkQuestion(question) }))
+
 export type PreparedProposal = {
   kind: ProposalKind
   targetId: string | null
@@ -82,6 +134,8 @@ export const prepareProposal = async (
   research: ResearchReads,
   actor: Actor,
   call: { name: string; input: unknown },
+  /** The interview study of the page, the only one a guide may be proposed for (FR-006). */
+  guideStudy: GuideStudy | null = null,
 ): Promise<PreparedProposal | null> => {
   switch (call.name) {
     case 'create_project': {
@@ -183,6 +237,26 @@ export const prepareProposal = async (
           projectName: study.project.name,
           name: study.name,
           ...(input.data.phase ? { phase: input.data.phase } : {}),
+        },
+      }
+    }
+    case 'propose_interview_guide': {
+      const input = INPUTS.propose_interview_guide.safeParse(call.input)
+      // The page's study, as the context just loaded it with the person's access: no new lookups.
+      if (!input.success || !guideStudy || input.data.studyId !== guideStudy.id) return null
+      const guide = input.data.guide
+      return {
+        kind: 'propose_interview_guide',
+        targetId: guideStudy.id,
+        targetVersion: guideStudy.guideVersion,
+        values: { guide },
+        preview: {
+          studyName: guideStudy.name,
+          guide,
+          replacesGuide: guideStudy.guideVersion !== null,
+          checks: checksOf(guide.sections.flatMap((s) => s.questions.map((q) => q.text))).filter(
+            (c) => c.issues.length > 0,
+          ),
         },
       }
     }

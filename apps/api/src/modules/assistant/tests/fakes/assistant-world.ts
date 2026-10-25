@@ -94,6 +94,9 @@ export const fakeResearch = () => {
   }
   const actionsLog: { action: string; input: unknown }[] = []
   let nextError: string | null = null
+  const preparation: { guide: Awaited<ReturnType<ResearchReads['preparation']>> } = {
+    guide: { guide: null, schedule: { scheduled: 2, 'to-contact': 1 } },
+  }
   const reads: ResearchReads = {
     getProject: async (accountId, id) => (accountId === 'ada' && id === 'p1' ? project : null),
     listStudies: async (accountId, id) =>
@@ -104,6 +107,8 @@ export const fakeResearch = () => {
     teamsOf: async (accountId) => (accountId === 'ada' ? [{ id: 't1', name: 'Growth' }] : []),
     listProjects: async (accountId) =>
       accountId === 'ada' ? [{ id: 'p1', name: 'Onboarding', team: { name: 'Growth' } }] : [],
+    preparation: async (accountId, id) =>
+      accountId === 'ada' && id === 's1' ? preparation.guide : null,
   }
   const result = <T extends object>(action: string, input: unknown, value: T) => {
     actionsLog.push({ action, input })
@@ -120,9 +125,11 @@ export const fakeResearch = () => {
     renameProject: async (c) => result('renameProject', c, {}),
     createStudy: async (c) => result('createStudy', c, { id: 's-new' }),
     renameStudy: async (c) => result('renameStudy', c, {}),
+    saveGuide: async (c) => result('saveGuide', c, {}),
   }
   return {
     reads,
+    preparation,
     actions,
     actionsLog,
     failNext: (error: string) => {
@@ -134,6 +141,7 @@ export const fakeResearch = () => {
 /** A gateway that streams the next scripted parts and records what it was asked. */
 export const scriptedGateway = () => {
   const requests: ModelRequestLike[] = []
+  const outputs: string[] = []
   let script: StreamPart[] = [{ type: 'text', delta: 'Hello' }]
   let failure: Error | null = null
   const gateway: AssistantDeps['gateway'] = {
@@ -142,8 +150,15 @@ export const scriptedGateway = () => {
       const parts = script
       const fail = failure
       failure = null
+      // Like the AI SDK: tools the app runs are run when called, their output kept for the test.
       async function* generate(): AsyncGenerator<StreamPart> {
-        for (const part of parts) yield part
+        for (const part of parts) {
+          yield part
+          const tool =
+            part.type === 'tool-call' ? request.tools?.find((t) => t.name === part.call.name) : null
+          if (part.type === 'tool-call' && tool?.run)
+            outputs.push(await tool.run(part.call.input, part.call))
+        }
         if (fail) throw fail
       }
       const done = Promise.resolve({ inputTokens: 1, outputTokens: 1 })
@@ -153,6 +168,7 @@ export const scriptedGateway = () => {
   return {
     gateway,
     requests,
+    outputs,
     answer: (parts: StreamPart[]) => {
       script = parts
     },

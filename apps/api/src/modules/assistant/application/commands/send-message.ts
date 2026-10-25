@@ -1,19 +1,29 @@
 import { err, ok, type Result } from '@goodresearch/shared'
 import { AiProviderRequired, failureOf } from '../../../ai-gateway/index.ts'
+import { completeness, type GuidePoint } from '../../domain/guide-progress.ts'
 import { selectHistory } from '../../domain/history.ts'
-import { isNavigation, isProposalKind } from '../../domain/proposal.ts'
+import {
+  isNavigation,
+  isProposalKind,
+  isRecordedAtOnce,
+  isRunDuringAnswer,
+  type ProposalKind,
+} from '../../domain/proposal.ts'
 import { titleFrom } from '../../domain/title.ts'
-import { buildContext } from '../context.ts'
+import { buildContext, type GuideStudy } from '../context.ts'
 import type {
   Actor,
   AiFailure,
   AssistantDeps,
   ChatMessage,
   PageRef,
+  ProposalPreview,
   StoredMessage,
   StoredProposal,
+  ToolSpec,
 } from '../ports.ts'
-import { prepareProposal, TOOLS } from '../tools.ts'
+import { SKILLS } from '../skills.ts'
+import { checksOf, GUIDE_TOOLS, prepareProposal, TOOL_INPUTS, TOOLS } from '../tools.ts'
 import { proposalView } from '../views.ts'
 
 const BUDGET = { maxMessages: 30, maxCharacters: 40_000 }
@@ -25,8 +35,23 @@ export type StreamEvent =
   | { type: 'done'; status: 'complete' | 'stopped' | 'failed' }
   | { type: 'error'; failure: AiFailure }
 
-/** What the model is told about a proposal in the next turns (research R2). */
+/** What the writing rules found, as the model reads it (spec 006). */
+const checksText = (checks: ProposalPreview['checks'] = []): string =>
+  checks
+    .map(
+      (c, i) =>
+        `${i + 1}. ${c.issues.length ? `to review (${c.issues.join(', ')})` : 'ok'}: ${c.question}`,
+    )
+    .join('\n') || 'Nothing to check.'
+
+/** What the model is told about a tool call in the next turns (research R2). */
 const outcomeOf = (p: StoredProposal): string => {
+  if (p.state === 'applied' && p.kind === 'load_skill')
+    return 'Loaded: its instructions are in your context.'
+  if (p.state === 'applied' && p.kind === 'check_guide_questions')
+    return checksText(p.preview.checks)
+  if (p.state === 'applied' && p.kind === 'report_guide_progress')
+    return `Recorded: ${p.preview.progress?.percent ?? 0} % covered.`
   switch (p.state) {
     case 'applied':
       return isNavigation(p.kind)
@@ -46,7 +71,10 @@ const outcomeOf = (p: StoredProposal): string => {
 /** The arguments of the original tool call, as the model sent them. */
 const callInput = (p: StoredProposal): Record<string, unknown> => {
   if (p.state === 'invalid' || !p.targetId) return { ...p.values }
-  const key = p.kind === 'rename_study' ? 'studyId' : 'projectId'
+  const key =
+    p.kind === 'rename_study' || p.kind === 'open_study' || p.kind === 'propose_interview_guide'
+      ? 'studyId'
+      : 'projectId'
   return { ...p.values, [key]: p.targetId }
 }
 
@@ -150,22 +178,111 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       await deps.store.updateConversation(c.conversationId, { lastActivityAt: deps.clock.now() })
     }
 
+    // Tool calls the app runs during the answer: recorded, then shown once the stream yields.
+    const pending: StreamEvent[] = []
+    const record = async (
+      callId: string,
+      kind: ProposalKind,
+      values: Record<string, unknown>,
+      preview: ProposalPreview | null,
+    ) => {
+      const proposal: StoredProposal = {
+        id: deps.newId(),
+        callId,
+        messageId: answer.id,
+        kind,
+        targetId: null,
+        targetVersion: null,
+        values,
+        preview: preview ?? {},
+        state: preview ? 'applied' : 'invalid',
+        resultKind: null,
+        resultId: null,
+        error: null,
+        decidedAt: deps.clock.now(),
+      }
+      await deps.store.saveProposal(proposal)
+      if (preview) pending.push({ type: 'proposal', proposal: proposalView(proposal) })
+    }
+
+    /** The guide design tools that run at once (spec 006): skill, writing checks, progress. */
+    const runFor =
+      (guideStudy: GuideStudy) =>
+      async (name: string, input: unknown, callId: string): Promise<string> => {
+        const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
+        if (name === 'load_skill') {
+          const parsed = TOOL_INPUTS.load_skill.safeParse(input)
+          if (!parsed.success) {
+            await record(callId, 'load_skill', raw, null)
+            return 'Unknown skill: use a name listed in the context.'
+          }
+          const skill = parsed.data.name as keyof typeof SKILLS
+          await record(callId, 'load_skill', parsed.data, { skill })
+          return SKILLS[skill].instructions
+        }
+        if (name === 'check_guide_questions') {
+          const parsed = TOOL_INPUTS.check_guide_questions.safeParse(input)
+          if (!parsed.success) {
+            await record(callId, 'check_guide_questions', raw, null)
+            return 'Invalid: send 1 to 60 questions of at most 600 characters.'
+          }
+          const checks = checksOf(parsed.data.questions)
+          await record(callId, 'check_guide_questions', parsed.data, { checks })
+          return checksText(checks)
+        }
+        const parsed = TOOL_INPUTS.report_guide_progress.safeParse(input)
+        if (!parsed.success || parsed.data.studyId !== guideStudy.id) {
+          await record(callId, 'report_guide_progress', raw, null)
+          return 'Invalid: use the Study id of the context, and missing, partial or done for every point.'
+        }
+        const progress = completeness(parsed.data as Partial<Record<GuidePoint, string>>)
+        await record(callId, 'report_guide_progress', parsed.data, {
+          studyName: guideStudy.name,
+          progress,
+        })
+        return `Recorded: ${progress.percent} % covered.`
+      }
+
     try {
       const proposals = await deps.store.listProposals(c.conversationId)
-      const { system } = await buildContext(deps.research, c.actor, c.page, c.language)
+      const loadedSkills = proposals
+        .filter((p) => p.kind === 'load_skill' && p.state === 'applied')
+        .map((p) => String(p.values.name))
+      const { system, guideStudy } = await buildContext(
+        deps.research,
+        c.actor,
+        c.page,
+        c.language,
+        loadedSkills,
+      )
+      const run = guideStudy ? runFor(guideStudy) : null
+      const tools: ToolSpec[] = [
+        ...TOOLS,
+        ...(run
+          ? GUIDE_TOOLS.map((t) =>
+              isRunDuringAnswer(t.name as ProposalKind)
+                ? {
+                    ...t,
+                    run: (input: unknown, call: { id: string }) => run(t.name, input, call.id),
+                  }
+                : t,
+            )
+          : []),
+      ]
       const { parts, done } = await deps.gateway.stream(
         c.actor.id,
         'assistant',
         {
           system,
           messages: historyOf([...previous, person], proposals),
-          tools: TOOLS,
+          tools,
           maxOutputTokens: 4000,
         },
         // The calls of this answer, to show the conversation's cost (US6).
         { ref: answer.id },
       )
       for await (const part of parts) {
+        yield* pending.splice(0)
         if (part.type === 'text') {
           text += part.delta
           yield { type: 'text', delta: part.delta }
@@ -173,7 +290,14 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         }
         // A tool the app does not know is ignored (the model only sees its own tools).
         if (!isProposalKind(part.call.name)) continue
-        const prepared = await prepareProposal(deps.research, c.actor, part.call)
+        // Run (and recorded) by the app during the answer.
+        if (isRunDuringAnswer(part.call.name)) continue
+        if (isRecordedAtOnce(part.call.name)) {
+          await run?.(part.call.name, part.call.input, part.call.id)
+          yield* pending.splice(0)
+          continue
+        }
+        const prepared = await prepareProposal(deps.research, c.actor, part.call, guideStudy)
         const raw = typeof part.call.input === 'object' && part.call.input ? part.call.input : {}
         const proposal: StoredProposal = {
           id: deps.newId(),
@@ -205,6 +329,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         if (prepared) yield { type: 'proposal', proposal: proposalView(proposal) }
       }
       await done
+      yield* pending.splice(0)
       await finish('complete')
       yield { type: 'done', status: 'complete' }
     } catch (error) {

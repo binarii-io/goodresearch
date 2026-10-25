@@ -29,6 +29,12 @@ export const PROVIDERS: Record<
   },
 }
 
+/** Vertex AI refusing the person's Google access: a new consent is what fixes it. */
+export const VERTEX_ACCESS_REFUSED = {
+  reason: msg`Google no longer accepts goodresearch's access to Google Cloud.`,
+  action: msg`It was withdrawn or has expired; some organisations ask you to sign in to Google again regularly. Reconnect Google, then run the checks again.`,
+}
+
 /** What went wrong and what to do (FR-007): never the provider's raw error. */
 export const FAILURES: Record<AiFailure, { reason: MessageDescriptor; action: MessageDescriptor }> =
   {

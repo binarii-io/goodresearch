@@ -92,6 +92,20 @@
       "when": 1792879810063,
       "tag": "0012_proposal_call_id_snapshot",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792881527318,
+      "tag": "0013_preparation",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792881548139,
+      "tag": "0014_preparation_rules",
+      "breakpoints": true
     }
   ]
 }

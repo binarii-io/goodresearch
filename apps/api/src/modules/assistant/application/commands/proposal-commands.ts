@@ -1,6 +1,6 @@
 import { err, ok, type Result } from '@goodresearch/shared'
 import { decideProposal } from '../../domain/proposal.ts'
-import type { Actor, AssistantDeps, StoredProposal } from '../ports.ts'
+import type { Actor, AssistantDeps, GuideDraft, StoredProposal } from '../ports.ts'
 import { proposalView } from '../views.ts'
 
 export type ProposalError = 'PROPOSAL_NOT_FOUND' | 'PROPOSAL_DECIDED'
@@ -61,9 +61,23 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
         })
         return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: r.id } } : r
       }
-      // Never proposed: opened at once when the assistant calls them.
+      case 'propose_interview_guide': {
+        const r = await deps.actions.saveGuide({
+          actor,
+          studyId: p.targetId ?? '',
+          guide: v.guide as GuideDraft,
+          version: p.targetVersion,
+        })
+        return r.ok
+          ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
+          : r
+      }
+      // Never proposed: done at once when the assistant calls them.
       case 'open_project':
       case 'open_study':
+      case 'report_guide_progress':
+      case 'load_skill':
+      case 'check_guide_questions':
         return { ok: false as const, error: 'PROPOSAL_DECIDED' }
       case 'rename_study': {
         const r = await deps.actions.renameStudy({

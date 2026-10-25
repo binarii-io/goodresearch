@@ -32,6 +32,9 @@ export const ERROR_CODES = [
   'CONVERSATION_NOT_FOUND',
   'PROPOSAL_NOT_FOUND',
   'PROPOSAL_DECIDED',
+  'PLANNED_INTERVIEW_NOT_FOUND',
+  'SCHEDULE_FULL',
+  'NOT_AN_INTERVIEW_STUDY',
 ] as const
 
 export type ErrorCode = (typeof ERROR_CODES)[number]
@@ -67,6 +70,9 @@ export const HTTP_STATUS: Readonly<Record<ErrorCode, number>> = {
   CONVERSATION_NOT_FOUND: 404,
   PROPOSAL_NOT_FOUND: 404,
   PROPOSAL_DECIDED: 409,
+  PLANNED_INTERVIEW_NOT_FOUND: 404,
+  SCHEDULE_FULL: 409,
+  NOT_AN_INTERVIEW_STUDY: 422,
 }
 
 /** RFC 9457 problem details with a stable `code`. */

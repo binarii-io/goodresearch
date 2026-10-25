@@ -88,7 +88,7 @@ function Setup() {
           {connection?.status === 'needs-attention' && connection.lastFailure ? (
             <div className="grid gap-2">
               <p className="font-medium">{t`Your AI provider needs your attention.`}</p>
-              <FailureNotice failure={connection.lastFailure} />
+              <FailureNotice failure={connection.lastFailure} provider={connection.provider} />
             </div>
           ) : null}
 

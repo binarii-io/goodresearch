@@ -2,6 +2,7 @@ export * from './ai-provider/ai-provider.ts';
 export * from './assistant/assistant.ts';
 export * from './me/me.ts';
 export * from './members/members.ts';
+export * from './preparation/preparation.ts';
 export * from './projects/projects.ts';
 export * from './public/public.ts';
 export * from './sources/sources.ts';

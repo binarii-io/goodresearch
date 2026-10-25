@@ -24,7 +24,7 @@ Every AI-produced object follows the same lifecycle and the same protections. Th
 | # | Context | Subdomain type | Modelling style | Main aggregates |
 |---|---|---|---|---|
 | 1 | **Workspace** | Generic | CRUD + auth library | Workspace, Account, Member, Team (with memberships), UserPreferences |
-| 2 | **Research** | Core | Domain model | Project, Study, InterviewGuide |
+| 2 | **Research** | Core | Domain model | Project, Study, InterviewGuide, PlannedInterview |
 | 3 | **Ingestion** | Supporting | Domain model (matching rules) | Source, Session (with its roster) |
 | 4 | **Transcripts** | Supporting | Domain model | Transcript, LexiconTerm, CorrectionRun |
 | 5 | **Interview Quality** | Core | Domain model + policies | Evaluation |
@@ -73,9 +73,9 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 
 - **Project** — a research question. `name`, `goal` (question, objectives, hypotheses — given to the AI everywhere), `reviewPolicy` (`auto | manual`), **exactly one team** (required; access follows the team). Linked to 0..n studies (many-to-many). Its key takeaways are owned by the Synthesis context.
 - **Study** — one source of evidence that can feed several projects. `type` (`interviews` first; `survey`, `usability-test`, `documents`, `analytics` later), phases **Preparation → Fieldwork → Analysis**.
-- **InterviewGuide** — the protocol of a study: ordered **GuideQuestions** (`id`, `section`, `text`) plus protocol markdown. Built by the **guide assistant** (chat) or imported from a document. It is the hub: it feeds evaluation coverage, insight themes and the deck.
-- **GuideConversation** — messages with the guide assistant and a **completeness checklist** (objectives 15, hypotheses 10, audience 15, format 10, intro 10, themes 25, follow-ups 10, bias review 5 = 100). The assistant signals `readyToWrite`; the app computes the percentage.
-- **PublishedDocument** — an export of something the app owns (guide, best-practices, schedule) to an external tool. The app stays the source of truth.
+- **InterviewGuide** (spec 006) — the protocol of an interview study, at most one per study: a **framing** (objectives with the research themes, hypotheses, audience, format) and ordered **sections** of kind `introduction | warm-up | theme | wrap-up`, each with a title, a duration and ordered main **GuideQuestions** (app `id`, `text`, follow-ups). Versioned, with its origin (`assistant` when an assistant proposal was applied, `person` when edited by hand). Question ids are kept when a new version has the same question (same id sent back, or same text). Limits: 12 sections, 60 main questions, 8 follow-ups each. It is the hub: it feeds evaluation coverage, insight themes and the deck.
+- **PlannedInterview** (spec 006) — one row of a study's **interview schedule**: the person to interview, role, interviewers, date and time, status (`to-contact | invited | scheduled | done | postponed | cancelled`), notes. Holds names of real people: never sent to an AI provider (the assistant only gets counts per status).
+- **PublishedDocument** — an export of something the app owns (guide, best-practices, schedule) to an external tool. The app stays the source of truth. Until a publishing adapter exists, the guide and the best practices download as Markdown and the schedule as CSV.
 
 ### 3. Ingestion
 
@@ -141,7 +141,10 @@ Deck (debrief presentation), project graph, evidence chain (recommendation → i
 - **Conversation** — a person's chat with the assistant, private to them: messages (person / assistant, with status complete, stopped or failed) and the page each message was sent from.
 - **Page context** — built on the server with the person's own permissions at each message (project, goal, studies; study, phase, folder name only with folder access); never file names or contents.
 - **Page opening** — the assistant can also open a project or study page the person can access (a tool too, run at once: it changes no data).
-- **Action proposal** — an action the assistant proposes through a tool (create a project or study, rename them, write the research goal). It changes nothing until the person applies it; applying runs the Research commands with the person's permissions and the version seen at proposal time; it is decided once (applied, dismissed or failed), and the outcome is given back to the assistant.
+- **Action proposal** — an action the assistant proposes through a tool (create a project or study, rename them, write the research goal, write the whole interview guide). It changes nothing until the person applies it; applying runs the Research commands with the person's permissions and the version seen at proposal time; it is decided once (applied, dismissed or failed), and the outcome is given back to the assistant.
+- **Skill** (spec 006) — instructions for a task (interview guide design) that the assistant loads with a tool when the task comes up; the context lists the available skills, and a loaded skill stays in the context for the rest of the conversation.
+- **Tools run during the answer** (spec 006) — loading a skill and **checking questions** (the app's fixed writing rules: closed, leading, hypothetical, about the future, asking for a solution, double, too long): run by the app, their result goes back to the assistant, which goes on in the same answer. **Reporting the guide design progress** is recorded when called and ends the answer.
+- **Guide design progress** (spec 006) — the latest progress report of a conversation: for each of the eight points (objectives and themes 15, hypotheses 10, audience 15, format 10, introduction and warm-up 10, thematic questions 25, follow-ups 10, bias review 5) whether it is missing, partial or covered; the app computes the percentage.
 
 ### 9. AI Gateway
 
@@ -172,7 +175,15 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Preparation / Fieldwork / Analysis | Préparation / Terrain / Analyse | Study phases |
 | Interview guide | Guide d'entretien | |
 | Guide question | Question du guide | |
-| Guide assistant | Assistant de guide | |
+| Framing | Cadrage | Objectives, hypotheses, audience, format of a guide |
+| Follow-up | Relance | |
+| Section kinds: introduction / warm-up / theme / wrap-up | Introduction / Questions introductives / Thématique / Conclusion | |
+| Guide design progress | Avancement de la conception du guide | |
+| Interview schedule | Planning des entretiens | |
+| Planned interview | Entretien planifié | Statuses: À contacter, Invité, Planifié, Réalisé, Reporté, Annulé |
+| Interview best practices | Bonnes pratiques d'entretien | |
+| Skill | Skill | Instructions the assistant loads for a task |
+| Writing check | Vérification des questions | |
 | Source | Source | |
 | Source folder | Dossier source | |
 | Inventory | Inventaire | |
@@ -240,4 +251,4 @@ Events are enqueued in the same transaction as the state change (pg-boss, see AD
 ## Open questions
 
 - Lexicon scope: workspace-wide (current) vs project-wide.
-- Where fieldwork scheduling lives (in-app vs published spreadsheet).
+- ~~Where fieldwork scheduling lives~~: in the app (PlannedInterview, spec 006); publishing to a spreadsheet would be a PublishedDocument adapter.

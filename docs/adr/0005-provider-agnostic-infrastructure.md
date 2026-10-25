@@ -94,3 +94,19 @@ The interview guide assistant (spec 005) is the first AI feature. Organisations 
 - Good: costs and data processing stay with each person's own provider account; providers can be added as adapters.
 - Bad: every person has to set up a provider before using the app; `cloud-platform` is a broad, sensitive Google scope (an External consent screen needs Google verification).
 
+## Update 2026-10-25 — tools the app runs, skills, preparation kept in the app (spec 006)
+
+### Context
+
+Designing an interview guide needs a long method the assistant should only read when it is relevant, and wording rules that must be applied the same way every time. The prototype also wrote the guide and a schedule as documents in the study's Drive folder.
+
+### Decision
+
+- **Tools the app runs during an answer**: a gateway tool may carry `run`; the adapter lets the model take several steps (at most 6) and feeds each result back. Tools without `run` still end the answer as proposals the person decides.
+- **Skills**: task instructions (interview guide design) are listed by name in the context and loaded by the assistant with a tool; once loaded they stay in the conversation's context. Writing rules for questions are an app-run tool with deterministic rules, not model judgement.
+- **Preparation stays in the app**: the guide, the best practices and the schedule are app data, downloadable as Markdown or CSV; Drive keeps its read-only grant. Publishing to documents or spreadsheets will be a `PublishedDocument` adapter behind a port, with its own write grant.
+
+### Consequences
+
+- Good: the context stays small until a task needs a skill; the rules are testable and the same for every provider; no write access to people's drives.
+- Bad: an answer may take several model calls (each recorded in the usage ledger as one streamed call with the summed usage); teams that want the guide in their drive download it until a publishing adapter exists.

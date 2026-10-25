@@ -7,6 +7,7 @@ import {
   type LanguageModel,
   type ModelMessage,
   Output,
+  stepCountIs,
   streamText,
   type ToolSet,
   tool,
@@ -17,9 +18,10 @@ import type {
   ModelRequest,
   ModelRunner,
   StreamPart,
+  ToolSpec,
   Usage,
 } from '../application/ports.ts'
-import { ProviderCallError } from '../application/ports.ts'
+import { MAX_STEPS, ProviderCallError } from '../application/ports.ts'
 import { classifyFailure, type ProviderErrorFacts } from '../domain/failure.ts'
 import type { Credential } from '../domain/provider.ts'
 import { createFakeRunner } from './fake.model-runner.ts'
@@ -99,18 +101,30 @@ const toModelMessage = (m: ChatMessage): ModelMessage => {
   }
 }
 
-/** Tools without `execute`: a call ends the step and is returned to the caller (spec 005 R2). */
+/**
+ * Tools without `execute` end the answer and are returned to the caller (spec 005 R2); tools the
+ * app runs (`run`) feed their output back to the model for the next step (spec 006).
+ */
 const toolsOf = (request: ModelRequest): { tools?: ToolSet } =>
   request.tools?.length
     ? {
         tools: Object.fromEntries(
           request.tools.map((t) => [
             t.name,
-            tool({ description: t.description, inputSchema: t.inputSchema }),
+            t.run
+              ? tool({
+                  description: t.description,
+                  inputSchema: t.inputSchema,
+                  execute: (input: unknown, { toolCallId }) => run(t, input, toolCallId),
+                })
+              : tool({ description: t.description, inputSchema: t.inputSchema }),
           ]),
         ),
       }
     : {}
+
+const run = (t: ToolSpec, input: unknown, id: string): Promise<string> =>
+  t.run ? t.run(input, { id }) : Promise.resolve('')
 
 const promptOf = (request: ModelRequest) => ({
   ...(request.system ? { system: request.system } : {}),
@@ -210,6 +224,7 @@ export const createAiSdkRunner = (options: {
         model: modelFor(credential, model),
         ...promptOf(request),
         ...toolsOf(request),
+        stopWhen: stepCountIs(MAX_STEPS),
         maxRetries: 0,
         // A long answer may stream for minutes: the limit applies to silences, not to the total.
         timeout: { firstChunkMs: timeoutMs, chunkMs: timeoutMs },
@@ -217,7 +232,8 @@ export const createAiSdkRunner = (options: {
           failure = error
         },
       })
-      const done = Promise.resolve(result.usage).then(
+      // Every step of the answer counts (tool runs make several).
+      const done = Promise.resolve(result.totalUsage).then(
         (usage) => {
           if (failure) throw toProviderError(failure)
           return usageOf(usage)
@@ -227,9 +243,20 @@ export const createAiSdkRunner = (options: {
         },
       )
       async function* parts(): AsyncGenerator<StreamPart> {
+        // Steps of one answer are separate paragraphs: their texts are not glued together.
+        let written = ''
+        let newStep = false
         for await (const part of result.fullStream) {
-          if (part.type === 'text-delta') yield { type: 'text', delta: part.text }
-          else if (part.type === 'tool-call')
+          if (part.type === 'start-step') newStep = written.length > 0
+          else if (part.type === 'text-delta') {
+            if (newStep && part.text && !written.endsWith('\n\n')) {
+              written += '\n\n'
+              yield { type: 'text', delta: '\n\n' }
+            }
+            if (part.text) newStep = false
+            written += part.text
+            yield { type: 'text', delta: part.text }
+          } else if (part.type === 'tool-call')
             yield {
               type: 'tool-call',
               call: { id: part.toolCallId, name: part.toolName, input: part.input },

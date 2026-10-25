@@ -66,6 +66,9 @@ export class Study {
   get projectId(): string {
     return this.#props.projectId
   }
+  get type(): StudyType {
+    return this.#props.type
+  }
   get name(): string {
     return this.#props.name
   }

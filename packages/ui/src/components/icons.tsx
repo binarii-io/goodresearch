@@ -1,13 +1,18 @@
 // The app's icon set (lucide), re-exported so apps take every UI piece from the design system.
 export {
+  ArrowDownIcon,
   ArrowRightIcon,
+  ArrowUpIcon,
+  BookOpenIcon,
   CheckIcon,
   CircleDashedIcon,
   CircleHelpIcon,
+  DownloadIcon,
   FolderIcon,
   FolderOpenIcon,
   HistoryIcon,
   LogOutIcon,
+  PencilIcon,
   PlusIcon,
   SendIcon,
   ShieldCheckIcon,

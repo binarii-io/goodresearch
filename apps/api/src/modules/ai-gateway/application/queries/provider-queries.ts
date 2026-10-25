@@ -26,7 +26,15 @@ export const makeProviderQueries = (deps: AiDeps) => ({
     return {
       offered: [...deps.config.offered],
       regions: [...VERTEX_REGIONS],
-      googleGranted: pending !== null || connection?.provider === 'vertex',
+      // A Google grant refused by Google (withdrawn, expired, or a re-authentication required by
+      // the person's organisation) is not reused: the person is asked for a new consent.
+      googleGranted:
+        pending !== null ||
+        (connection?.provider === 'vertex' &&
+          !(
+            connection.status === 'needs-attention' &&
+            connection.lastFailure === 'INVALID_CREDENTIAL'
+          )),
       connection: connection ? toView(connection, deps.config.models[connection.provider]) : null,
       usage: await deps.store.usageSummary(accountId),
     }

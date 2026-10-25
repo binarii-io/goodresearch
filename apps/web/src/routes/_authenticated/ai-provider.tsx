@@ -112,7 +112,7 @@ function AiProviderPage() {
               </p>
             ) : null}
             {connection.status !== 'working' && connection.lastFailure ? (
-              <FailureNotice failure={connection.lastFailure} />
+              <FailureNotice failure={connection.lastFailure} provider={connection.provider} />
             ) : null}
             {test.data ? (
               test.data.ok ? (
@@ -120,7 +120,7 @@ function AiProviderPage() {
                   {t`The provider answered.`}
                 </p>
               ) : test.data.failure ? (
-                <FailureNotice failure={test.data.failure} />
+                <FailureNotice failure={test.data.failure} provider={connection.provider} />
               ) : null
             ) : null}
             <div className="flex flex-wrap gap-2">
@@ -136,6 +136,13 @@ function AiProviderPage() {
               >
                 {test.isPending ? t`Testing…` : t`Test again`}
               </Button>
+              {connection.provider === 'vertex' &&
+              connection.status === 'needs-attention' &&
+              connection.lastFailure === 'INVALID_CREDENTIAL' ? (
+                <Button render={<Link to="/setup/ai-provider" search={{ provider: 'vertex' }} />}>
+                  {t`Reconnect Google`}
+                </Button>
+              ) : null}
               <Button variant="outline" render={<Link to="/setup/ai-provider" />}>
                 {t`Change provider`}
               </Button>

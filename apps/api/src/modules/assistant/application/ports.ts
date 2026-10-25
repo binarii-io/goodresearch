@@ -5,7 +5,9 @@ import type {
   StreamPart,
   ToolSpec,
 } from '../../ai-gateway/index.ts'
+import type { GuidePoint, GuidePointState } from '../domain/guide-progress.ts'
 import type { ProposalKind, ProposalState } from '../domain/proposal.ts'
+import type { QuestionIssue } from '../domain/question-checks.ts'
 
 export type { AiFailure, ChatMessage, StreamPart, ToolSpec }
 
@@ -48,6 +50,40 @@ export type ProposalPreview = {
   readonly previousName?: string
   readonly previousGoal?: string
   readonly phase?: 'preparation' | 'fieldwork' | 'analysis'
+  readonly studyName?: string
+  readonly guide?: GuideDraft
+  readonly replacesGuide?: boolean
+  readonly progress?: {
+    percent: number
+    items: { key: GuidePoint; weight: number; status: GuidePointState }[]
+  }
+  readonly checks?: { question: string; issues: QuestionIssue[] }[]
+  readonly skill?: string
+}
+
+/**
+ * An interview guide as the assistant reads and writes it: no ids (spec 006 research R4). Mutable
+ * arrays: the same shape as the contracts' `GuideDraft`.
+ */
+export type GuideDraft = {
+  framing: {
+    objectives: string
+    hypotheses: string[]
+    audience: string
+    format: string
+  }
+  sections: {
+    kind: 'introduction' | 'warm-up' | 'theme' | 'wrap-up'
+    title: string
+    minutes: number
+    questions: { text: string; followUps: string[] }[]
+  }[]
+}
+
+/** What the assistant may know of a study's preparation; never names from the schedule. */
+export type StudyPreparation = {
+  readonly guide: { readonly version: number; readonly content: GuideDraft } | null
+  readonly schedule: Readonly<Partial<Record<string, number>>>
 }
 
 export type StoredProposal = {
@@ -121,6 +157,8 @@ export interface ResearchReads {
   teamsOf(accountId: string): Promise<{ id: string; name: string }[]>
   /** Most recently updated first. */
   listProjects(accountId: string): Promise<{ id: string; name: string; team: { name: string } }[]>
+  /** `null` without access to the study (folder included) or for another type than interviews. */
+  preparation(accountId: string, studyId: string): Promise<StudyPreparation | null>
 }
 
 /** The research commands a proposal runs, with the person's permissions and validation. */
@@ -153,6 +191,13 @@ export interface ResearchActions {
     studyId: string
     name: string
     version: number
+  }): Promise<{ ok: true } | { ok: false; error: string }>
+  /** `version: null` when the study had no guide when it was proposed. */
+  saveGuide(c: {
+    actor: Actor
+    studyId: string
+    guide: GuideDraft
+    version: number | null
   }): Promise<{ ok: true } | { ok: false; error: string }>
 }
 

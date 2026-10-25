@@ -18,10 +18,12 @@ export {
   ConversationDetail,
   ConversationParams,
   ConversationSummary,
+  GuideProgress,
   Proposal,
   ProposalKind,
   ProposalParams,
   ProposalPreview,
+  QuestionIssue,
   RenameConversation,
   SendAssistantMessage,
 } from './assistant.ts'
@@ -37,6 +39,20 @@ export {
   MySource,
   StudySourceView,
 } from './ingestion.ts'
+export {
+  GUIDE_LIMITS,
+  GuideContent,
+  GuideContentInput,
+  GuideDraft,
+  InterviewGuide,
+  PlannedInterview,
+  PlannedInterviewInput,
+  PlannedInterviewParams,
+  PlannedInterviewStatus,
+  SaveInterviewGuide,
+  SectionKind,
+  UpdatePlannedInterview,
+} from './preparation.ts'
 export {
   CreateProject,
   CreateStudy,

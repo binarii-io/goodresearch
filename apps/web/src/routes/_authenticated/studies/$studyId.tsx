@@ -32,6 +32,7 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { SourcePanel } from '../../../features/ingestion/source-panel.tsx'
+import { PreparationTab } from '../../../features/preparation/preparation-tab.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useMe } from '../../../features/workspace/me.ts'
 import { NotFound } from '../../../features/workspace/not-found.tsx'
@@ -40,7 +41,7 @@ export const Route = createFileRoute('/_authenticated/studies/$studyId')({
   // Set by the Drive consent callback.
   validateSearch: z.object({
     drive: z.enum(['connected', 'error']).optional().catch(undefined),
-    // Opens on Analysis, the only phase with something to do in this version (spec 003, FR-013).
+    // Opens on Analysis, where the source folder is (spec 003, FR-013).
     phase: z.enum(['preparation', 'fieldwork', 'analysis']).optional().catch(undefined),
   }),
   component: StudyPage,
@@ -155,7 +156,15 @@ function StudyPage() {
         }
       />
       <TabsContent value="preparation">
-        <p className="text-muted-foreground text-base">{t`Design the interview guide and plan the sessions. Coming in a next version.`}</p>
+        {s.type !== 'interviews' ? (
+          <p className="text-muted-foreground text-base">{t`Preparation for this type of study is coming in a later version.`}</p>
+        ) : source.isPending ? (
+          <Skeleton className="h-40 w-full" />
+        ) : canAct ? (
+          <PreparationTab studyId={studyId} studyName={s.name} />
+        ) : (
+          <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see and change its preparation.`}</p>
+        )}
       </TabsContent>
       <TabsContent value="fieldwork">
         <p className="text-muted-foreground text-base">{t`Run the interviews; recordings and transcripts land in the study's Drive folder.`}</p>

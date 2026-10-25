@@ -31,12 +31,22 @@ import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { type FormEvent, useId, useState } from 'react'
 import { errorMessage } from '../workspace/errors.ts'
-import { FAILURES, PROVIDERS } from './labels.ts'
+import { FAILURES, PROVIDERS, VERTEX_ACCESS_REFUSED } from './labels.ts'
 
 /** The reason and the action for a failed check, in plain words (FR-007). */
-export function FailureNotice({ failure }: { failure: AiFailure }) {
+export function FailureNotice({
+  failure,
+  provider,
+}: {
+  failure: AiFailure
+  /** Vertex AI: a refused access is fixed by a new Google consent, not by a new key. */
+  provider?: string | undefined
+}) {
   const { i18n } = useLingui()
-  const text = FAILURES[failure]
+  const text =
+    provider === 'vertex' && failure === 'INVALID_CREDENTIAL'
+      ? VERTEX_ACCESS_REFUSED
+      : FAILURES[failure]
   return (
     <div
       role="alert"
@@ -176,7 +186,7 @@ export function VertexForm({ page, onSaved }: { page: AiProviderPage; onSaved: (
           disabled={start.isPending}
           onClick={() => void consent().catch(() => undefined)}
         >
-          {t`Continue with Google`}
+          {page.connection?.provider === 'vertex' ? t`Reconnect Google` : t`Continue with Google`}
         </Button>
       </div>
     )
@@ -233,7 +243,9 @@ export function VertexForm({ page, onSaved }: { page: AiProviderPage; onSaved: (
               {c.status === 'error' && c.key === 'format' ? (
                 <span>{t`Use the project ID, not its name: lower-case letters, digits and hyphens, 6 to 30 characters.`}</span>
               ) : null}
-              {c.status === 'error' && c.failure ? <FailureNotice failure={c.failure} /> : null}
+              {c.status === 'error' && c.failure ? (
+                <FailureNotice failure={c.failure} provider="vertex" />
+              ) : null}
               {c.failure === 'API_DISABLED' ? (
                 <a className="w-fit underline" href={enableUrl} target="_blank" rel="noreferrer">
                   {t`Open the Vertex AI API page of this project`}

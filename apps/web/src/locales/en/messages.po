@@ -12,6 +12,13 @@ msgstr ""
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# project} other {# projects}}"
 
+#. placeholder {0}: s.minutes
+#: src/features/assistant/proposal-card.tsx
+#: src/features/preparation/guide-markdown.ts
+#: src/features/preparation/guide-view.tsx
+msgid "{0} min"
+msgstr "{0} min"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "{calls} calls · {tokens} tokens"
 msgstr "{calls} calls · {tokens} tokens"
@@ -20,9 +27,21 @@ msgstr "{calls} calls · {tokens} tokens"
 msgid "{count, plural, one {# project} other {# projects}}"
 msgstr "{count, plural, one {# project} other {# projects}}"
 
+#: src/features/assistant/panel.tsx
+msgid "{count} points"
+msgstr "{count} points"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "{flaggedCount} questions to review"
+msgstr "{flaggedCount} questions to review"
+
 #: src/features/ai/provider-forms.tsx
 msgid "{name} API key"
 msgstr "{name} API key"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "{sectionCount} sections · {questions} main questions · {minutes} min"
+msgstr "{sectionCount} sections · {questions} main questions · {minutes} min"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "{transcript} transcripts · {media} media · {other} other files"
@@ -40,9 +59,21 @@ msgstr "2 · Fieldwork"
 msgid "3 · Analysis"
 msgstr "3 · Analysis"
 
+#: src/features/preparation/preparation-tab.tsx
+msgid "a deleted account"
+msgstr "a deleted account"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "A folder is attached to this study: connect your Drive to see it."
 msgstr "A folder is attached to this study: connect your Drive to see it."
+
+#: src/features/preparation/guide-editor.tsx
+msgid "A follow-up has more than 600 characters."
+msgstr "A follow-up has more than 600 characters."
+
+#: src/features/preparation/guide-editor.tsx
+msgid "A hypothesis has more than 600 characters."
+msgstr "A hypothesis has more than 600 characters."
 
 #: src/features/research/create-project-dialog.tsx
 msgid "A project holds one research question and belongs to a team."
@@ -59,6 +90,14 @@ msgstr "A study is one way of collecting evidence for the project's research que
 #: src/features/workspace/errors.ts
 msgid "A team with this name already exists."
 msgstr "A team with this name already exists."
+
+#: src/features/preparation/labels.ts
+msgid "about the future"
+msgstr "about the future"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "About you"
+msgstr "About you"
 
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Access history"
@@ -92,9 +131,21 @@ msgstr "Account deleted"
 msgid "Account reactivated"
 msgstr "Account reactivated"
 
+#: src/features/preparation/schedule.tsx
+msgid "Actions"
+msgstr "Actions"
+
 #: src/features/workspace/member-labels.ts
 msgid "Active"
 msgstr "Active"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Add a question"
+msgstr "Add a question"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Add a theme section"
+msgstr "Add a theme section"
 
 #: src/features/ai/labels.ts
 msgid "Add credit or raise the quota in the provider's console, then try again."
@@ -103,6 +154,10 @@ msgstr "Add credit or raise the quota in the provider's console, then try again.
 #: src/routes/_authenticated/teams.tsx
 msgid "Add team"
 msgstr "Add team"
+
+#: src/features/preparation/schedule.tsx
+msgid "Add to the schedule"
+msgstr "Add to the schedule"
 
 #: src/features/workspace/account-menu.tsx
 #: src/features/workspace/member-labels.ts
@@ -162,15 +217,41 @@ msgstr "Ask the assistant…"
 msgid "Ask the owner of the account or project to give you access to the model."
 msgstr "Ask the owner of the account or project to give you access to the model."
 
+#: src/features/preparation/labels.ts
+msgid "asks for a solution"
+msgstr "asks for a solution"
+
 #: src/features/assistant/assistant-button.tsx
 #: src/features/assistant/panel.tsx
 #: src/routes/_authenticated.tsx
 msgid "Assistant"
 msgstr "Assistant"
 
+#: src/features/preparation/guide-editor.tsx
+msgid "At most 15 hypotheses."
+msgstr "At most 15 hypotheses."
+
+#: src/features/preparation/guide-editor.tsx
+msgid "At most 60 main questions."
+msgstr "At most 60 main questions."
+
+#: src/features/preparation/guide-editor.tsx
+msgid "At most 8 follow-ups per question."
+msgstr "At most 8 follow-ups per question."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Attach folder"
 msgstr "Attach folder"
+
+#: src/features/preparation/guide-markdown.ts
+#: src/features/preparation/guide-view.tsx
+msgid "Audience"
+msgstr "Audience"
+
+#: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/labels.ts
+msgid "Audience and recruitment"
+msgstr "Audience and recruitment"
 
 #: src/routes/setup.ai-provider.tsx
 msgid "Back to goodresearch"
@@ -192,9 +273,17 @@ msgstr "Back to research projects"
 msgid "Back to the project"
 msgstr "Back to the project"
 
+#: src/features/preparation/preparation-tab.tsx
+msgid "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews."
+msgstr "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews."
+
 #: src/routes/sign-in.tsx
 msgid "Better-designed studies, answers you can trust."
 msgstr "Better-designed studies, answers you can trust."
+
+#: src/features/preparation/labels.ts
+msgid "Bias review"
+msgstr "Bias review"
 
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "by {actor}"
@@ -202,6 +291,8 @@ msgstr "by {actor}"
 
 #: src/features/assistant/panel.tsx
 #: src/features/ingestion/source-panel.tsx
+#: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/schedule.tsx
 #: src/routes/_authenticated/ai-provider.tsx
 #: src/routes/_authenticated/members/$memberId.tsx
 #: src/routes/_authenticated/sources.tsx
@@ -209,6 +300,10 @@ msgstr "by {actor}"
 #: src/routes/_authenticated/teams.tsx
 msgid "Cancel"
 msgstr "Cancel"
+
+#: src/features/preparation/labels.ts
+msgid "Cancelled"
+msgstr "Cancelled"
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Change provider"
@@ -229,6 +324,14 @@ msgstr "Check that you copied the whole key, or create a new one, then try again
 #: src/features/ai/labels.ts
 msgid "Check the project ID in the Google Cloud console."
 msgstr "Check the project ID in the Google Cloud console."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Checked {total} questions: {count} to review"
+msgstr "Checked {total} questions: {count} to review"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Checked {total} questions: nothing to review."
+msgstr "Checked {total} questions: nothing to review."
 
 #: src/features/ai/provider-forms.tsx
 msgid "Checking the key…"
@@ -259,6 +362,8 @@ msgstr "Choose your AI provider"
 msgid "Claude models with an API key from your Anthropic account."
 msgstr "Claude models with an API key from your Anthropic account."
 
+#: src/features/preparation/best-practices.tsx
+#: src/features/preparation/schedule.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
 msgid "Close"
@@ -271,6 +376,10 @@ msgstr "Close the assistant"
 #: src/routes/_authenticated.tsx
 msgid "Close the menu"
 msgstr "Close the menu"
+
+#: src/features/preparation/labels.ts
+msgid "closed (yes or no)"
+msgstr "closed (yes or no)"
 
 #: src/features/workspace/app-sidebar.tsx
 msgid "Collapse the sidebar"
@@ -305,6 +414,10 @@ msgstr "Continue to Google"
 msgid "Continue with Google"
 msgstr "Continue with Google"
 
+#: src/features/preparation/preparation-tab.tsx
+msgid "Continue with the assistant"
+msgstr "Continue with the assistant"
+
 #: src/features/assistant/panel.tsx
 msgid "Conversation"
 msgstr "Conversation"
@@ -324,6 +437,10 @@ msgstr "Cost of this conversation: {total}. Last message: {last}."
 #: src/features/ai/provider-forms.tsx
 msgid "Could not be verified"
 msgstr "Could not be verified"
+
+#: src/features/preparation/labels.ts
+msgid "covered"
+msgstr "covered"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Create a project"
@@ -357,6 +474,10 @@ msgstr "Ctrl+Enter to save, Escape to cancel"
 msgid "Current name"
 msgstr "Current name"
 
+#: src/features/preparation/schedule.tsx
+msgid "Date and time"
+msgstr "Date and time"
+
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Deactivate"
 msgstr "Deactivate"
@@ -370,6 +491,11 @@ msgstr "Deactivated"
 #: src/routes/_authenticated/teams.tsx
 msgid "Delete"
 msgstr "Delete"
+
+#. placeholder {0}: r.interviewee
+#: src/features/preparation/schedule.tsx
+msgid "Delete {0}"
+msgstr "Delete {0}"
 
 #: src/routes/_authenticated/teams.tsx
 msgid "Delete {teamName}?"
@@ -419,9 +545,9 @@ msgstr "Deleted account"
 msgid "Describe the research question, objectives and hypotheses."
 msgstr "Describe the research question, objectives and hypotheses."
 
-#: src/routes/_authenticated/studies/$studyId.tsx
-msgid "Design the interview guide and plan the sessions. Coming in a next version."
-msgstr "Design the interview guide and plan the sessions. Coming in a next version."
+#: src/features/preparation/preparation-tab.tsx
+msgid "Design with the assistant"
+msgstr "Design with the assistant"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Detach"
@@ -455,6 +581,40 @@ msgstr "Dismiss"
 msgid "Dismissed"
 msgstr "Dismissed"
 
+#: src/features/preparation/labels.ts
+msgid "Done"
+msgstr "Done"
+
+#: src/features/preparation/schedule.tsx
+msgid "Download (CSV)"
+msgstr "Download (CSV)"
+
+#: src/features/preparation/best-practices.tsx
+#: src/features/preparation/preparation-tab.tsx
+msgid "Download (Markdown)"
+msgstr "Download (Markdown)"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Durations are whole minutes from 1 to 180."
+msgstr "Durations are whole minutes from 1 to 180."
+
+#: src/features/preparation/preparation-tab.tsx
+msgid "Edit"
+msgstr "Edit"
+
+#. placeholder {0}: r.interviewee
+#: src/features/preparation/schedule.tsx
+msgid "Edit {0}"
+msgstr "Edit {0}"
+
+#: src/features/preparation/schedule.tsx
+msgid "Edit the interview"
+msgstr "Edit the interview"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Edit the interview guide"
+msgstr "Edit the interview guide"
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "Email"
 msgstr "Email"
@@ -479,6 +639,10 @@ msgstr "Enter a name."
 msgid "Enter to save, Escape to cancel"
 msgstr "Enter to save, Escape to cancel"
 
+#: src/features/preparation/schedule.tsx
+msgid "Enter who you will interview."
+msgstr "Enter who you will interview."
+
 #: src/routes/_authenticated/welcome.tsx
 msgid "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
 msgstr "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
@@ -486,6 +650,10 @@ msgstr "Every project belongs to a team, and people get access to projects throu
 #: src/routes/_authenticated/teams.tsx
 msgid "Every project belongs to one team; its members work on the team's projects."
 msgstr "Every project belongs to one team; its members work on the team's projects."
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Every section needs a title."
+msgstr "Every section needs a title."
 
 #: src/features/workspace/app-sidebar.tsx
 msgid "Expand the sidebar"
@@ -503,9 +671,33 @@ msgstr "Fieldwork"
 msgid "Folder attached"
 msgstr "Folder attached"
 
+#: src/features/preparation/guide-view.tsx
+#: src/features/preparation/labels.ts
+msgid "Follow-ups"
+msgstr "Follow-ups"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Follow-ups (one per line)"
+msgstr "Follow-ups (one per line)"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "For now it only reads the names, types, dates and sizes of the files in the folders you attach; file content will be read when transcripts are imported."
 msgstr "For now it only reads the names, types, dates and sizes of the files in the folders you attach; file content will be read when transcripts are imported."
+
+#: src/features/preparation/guide-markdown.ts
+#: src/features/preparation/guide-view.tsx
+msgid "Format"
+msgstr "Format"
+
+#: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/labels.ts
+msgid "Format and logistics"
+msgstr "Format and logistics"
+
+#: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/guide-markdown.ts
+msgid "Framing"
+msgstr "Framing"
 
 #: src/features/ai/labels.ts
 msgid "Gemini models in your own Google Cloud project, with your Google account."
@@ -589,6 +781,10 @@ msgid "Google Drive was not connected. You can try again."
 msgstr "Google Drive was not connected. You can try again."
 
 #: src/features/ai/labels.ts
+msgid "Google no longer accepts goodresearch's access to Google Cloud."
+msgstr "Google no longer accepts goodresearch's access to Google Cloud."
+
+#: src/features/ai/labels.ts
 msgid "GPT models with an API key from your OpenAI account."
 msgstr "GPT models with an API key from your OpenAI account."
 
@@ -596,9 +792,86 @@ msgstr "GPT models with an API key from your OpenAI account."
 msgid "Group"
 msgstr "Group"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Guide design progress"
+msgstr "Guide design progress"
+
+#: src/features/preparation/preparation-tab.tsx
+msgid "Help me design the interview guide for this study."
+msgstr "Help me design the interview guide for this study."
+
+#: src/features/preparation/preparation-tab.tsx
+msgid "Help me improve the interview guide of this study."
+msgstr "Help me improve the interview guide of this study."
+
+#: src/features/preparation/best-practices.tsx
+msgid "How to run a neutral interview: phases, questions, follow-ups, biases, what is measured."
+msgstr "How to run a neutral interview: phases, questions, follow-ups, biases, what is measured."
+
+#: src/features/preparation/guide-markdown.ts
+#: src/features/preparation/guide-view.tsx
+#: src/features/preparation/labels.ts
+msgid "Hypotheses"
+msgstr "Hypotheses"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Hypotheses (one per line)"
+msgstr "Hypotheses (one per line)"
+
+#: src/features/preparation/labels.ts
+msgid "hypothetical"
+msgstr "hypothetical"
+
+#: src/features/assistant/proposal-card.tsx
+#: src/features/preparation/guide-markdown.ts
+#: src/features/preparation/preparation-tab.tsx
+msgid "Interview guide"
+msgstr "Interview guide"
+
+#: src/features/assistant/panel.tsx
+msgid "Interview guide · {study}"
+msgstr "Interview guide · {study}"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Interview guide design"
+msgstr "Interview guide design"
+
+#: src/features/assistant/panel.tsx
+msgid "Interview guide design progress"
+msgstr "Interview guide design progress"
+
+#: src/features/preparation/schedule.tsx
+msgid "Interview schedule"
+msgstr "Interview schedule"
+
+#: src/features/preparation/best-practices.tsx
+msgid "interview-best-practices.md"
+msgstr "interview-best-practices.md"
+
+#: src/features/preparation/preparation-tab.tsx
+msgid "interview-guide"
+msgstr "interview-guide"
+
+#: src/features/preparation/schedule.tsx
+msgid "Interviewer(s)"
+msgstr "Interviewer(s)"
+
 #: src/features/research/study-list.tsx
 msgid "Interviews"
 msgstr "Interviews"
+
+#: src/features/preparation/schedule.tsx
+msgid "Interviews per status"
+msgstr "Interviews per status"
+
+#: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/labels.ts
+msgid "Introduction"
+msgstr "Introduction"
+
+#: src/features/preparation/labels.ts
+msgid "Introduction and warm-up"
+msgstr "Introduction and warm-up"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Inventory"
@@ -608,6 +881,10 @@ msgstr "Inventory"
 msgid "Inventory in progress: {files} files in {folders} sub-folders so far…"
 msgstr "Inventory in progress: {files} files in {folders} sub-folders so far…"
 
+#: src/features/preparation/labels.ts
+msgid "Invited"
+msgstr "Invited"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "it could not be started; try again in a moment"
 msgstr "it could not be started; try again in a moment"
@@ -615,6 +892,10 @@ msgstr "it could not be started; try again in a moment"
 #: src/features/ingestion/source-panel.tsx
 msgid "it stopped before the end; refresh to run it again"
 msgstr "it stopped before the end; refresh to run it again"
+
+#: src/features/ai/labels.ts
+msgid "It was withdrawn or has expired; some organisations ask you to sign in to Google again regularly. Reconnect Google, then run the checks again."
+msgstr "It was withdrawn or has expired; some organisations ask you to sign in to Google again regularly. Reconnect Google, then run the checks again."
 
 #: src/routes/_authenticated/teams.tsx
 msgid "Its members lose access to this team. This cannot be undone."
@@ -628,7 +909,12 @@ msgstr "Its messages are deleted. Changes already applied stay."
 msgid "its owner"
 msgstr "its owner"
 
+#: src/features/preparation/guide-editor.tsx
+msgid "Keep at least one section."
+msgstr "Keep at least one section."
+
 #: src/features/ingestion/source-panel.tsx
+#: src/features/preparation/guide-editor.tsx
 msgid "Kind"
 msgstr "Kind"
 
@@ -692,6 +978,14 @@ msgstr "Members"
 msgid "Message to the assistant"
 msgstr "Message to the assistant"
 
+#: src/features/preparation/guide-editor.tsx
+msgid "Minutes"
+msgstr "Minutes"
+
+#: src/features/preparation/labels.ts
+msgid "missing"
+msgstr "missing"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Model"
 msgstr "Model"
@@ -699,6 +993,24 @@ msgstr "Model"
 #: src/features/ingestion/source-panel.tsx
 msgid "Modified"
 msgstr "Modified"
+
+#. placeholder {0}: qi + 1
+#: src/features/preparation/guide-editor.tsx
+msgid "Move question {0} down"
+msgstr "Move question {0} down"
+
+#. placeholder {0}: qi + 1
+#: src/features/preparation/guide-editor.tsx
+msgid "Move question {0} up"
+msgstr "Move question {0} up"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Move section down"
+msgstr "Move section down"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Move section up"
+msgstr "Move section up"
 
 #: src/features/assistant/proposal-card.tsx
 #: src/features/ingestion/source-panel.tsx
@@ -746,6 +1058,10 @@ msgstr "New research project"
 msgid "New study"
 msgstr "New study"
 
+#: src/features/preparation/guide-editor.tsx
+msgid "New theme"
+msgstr "New theme"
+
 #: src/routes/_authenticated/index.tsx
 msgid "No access yet"
 msgstr "No access yet"
@@ -757,6 +1073,10 @@ msgstr "No conversation yet."
 #: src/features/research/study-list.tsx
 msgid "No folder yet"
 msgstr "No folder yet"
+
+#: src/features/preparation/schedule.tsx
+msgid "No interview planned yet."
+msgstr "No interview planned yet."
 
 #: src/features/research/study-list.tsx
 msgid "No study yet. A study collects evidence for this project, for example a series of interviews."
@@ -786,13 +1106,34 @@ msgstr "Not found"
 msgid "Not run"
 msgstr "Not run"
 
+#: src/features/preparation/schedule.tsx
+msgid "Notes"
+msgstr "Notes"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Nothing is ever created, changed or deleted in your Drive. You can disconnect at any time from Connected sources."
 msgstr "Nothing is ever created, changed or deleted in your Drive. You can disconnect at any time from Connected sources."
 
+#: src/features/preparation/guide-markdown.ts
+#: src/features/preparation/guide-view.tsx
+msgid "Objectives"
+msgstr "Objectives"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Objectives and research themes"
+msgstr "Objectives and research themes"
+
+#: src/features/preparation/labels.ts
+msgid "Objectives and themes"
+msgstr "Objectives and themes"
+
 #: src/features/workspace/errors.ts
 msgid "Only admins can do this."
 msgstr "Only admins can do this."
+
+#: src/features/workspace/errors.ts
+msgid "Only interview studies have a guide and a schedule."
+msgstr "Only interview studies have a guide and a schedule."
 
 #: src/features/assistant/panel.tsx
 msgid "Open · {when}"
@@ -850,6 +1191,10 @@ msgstr "Other"
 msgid "Owner: {owner}"
 msgstr "Owner: {owner}"
 
+#: src/features/preparation/labels.ts
+msgid "partial"
+msgstr "partial"
+
 #: src/features/ai/provider-forms.tsx
 msgid "Passed"
 msgstr "Passed"
@@ -862,9 +1207,25 @@ msgstr "People join by signing in with an allowed email. Give them access to one
 msgid "Permission to call models"
 msgstr "Permission to call models"
 
+#: src/features/preparation/schedule.tsx
+msgid "Person to interview"
+msgstr "Person to interview"
+
+#: src/features/preparation/schedule.tsx
+msgid "Plan an interview"
+msgstr "Plan an interview"
+
+#: src/features/preparation/labels.ts
+msgid "Postponed"
+msgstr "Postponed"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Preparation"
 msgstr "Preparation"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Preparation for this type of study is coming in a later version."
+msgstr "Preparation for this type of study is coming in a later version."
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Project"
@@ -889,6 +1250,19 @@ msgstr "Projects"
 msgid "Provider"
 msgstr "Provider"
 
+#: src/features/preparation/guide-view.tsx
+msgid "Q{n}"
+msgstr "Q{n}"
+
+#. placeholder {0}: qi + 1
+#: src/features/preparation/guide-editor.tsx
+msgid "Question {0}"
+msgstr "Question {0}"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Question check"
+msgstr "Question check"
+
 #: src/features/research/create-project-dialog.tsx
 msgid "Question, objectives, hypotheses"
 msgstr "Question, objectives, hypotheses"
@@ -896,6 +1270,19 @@ msgstr "Question, objectives, hypotheses"
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Reactivate"
 msgstr "Reactivate"
+
+#: src/features/preparation/best-practices.tsx
+msgid "Read the best practices"
+msgstr "Read the best practices"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Read the whole guide"
+msgstr "Read the whole guide"
+
+#: src/features/ai/provider-forms.tsx
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Reconnect Google"
+msgstr "Reconnect Google"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Refresh"
@@ -909,9 +1296,27 @@ msgstr "Region"
 msgid "Reload"
 msgstr "Reload"
 
+#: src/features/preparation/schedule.tsx
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Remove"
 msgstr "Remove"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Remove or fill in the empty questions."
+msgstr "Remove or fill in the empty questions."
+
+#. placeholder {0}: qi + 1
+#: src/features/preparation/guide-editor.tsx
+msgid "Remove question {0}"
+msgstr "Remove question {0}"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Remove section"
+msgstr "Remove section"
+
+#: src/features/preparation/schedule.tsx
+msgid "Remove this interview from the schedule?"
+msgstr "Remove this interview from the schedule?"
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Remove your AI provider?"
@@ -933,6 +1338,10 @@ msgstr "Rename the study"
 msgid "Replace folder"
 msgstr "Replace folder"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Replaces the current guide of the study."
+msgstr "Replaces the current guide of the study."
+
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Research goal"
@@ -943,6 +1352,7 @@ msgstr "Research goal"
 msgid "Research projects"
 msgstr "Research projects"
 
+#: src/features/preparation/schedule.tsx
 #: src/routes/_authenticated/members/$memberId.tsx
 #: src/routes/_authenticated/members/index.tsx
 msgid "Role"
@@ -968,9 +1378,34 @@ msgstr "Run the interviews; recordings and transcripts land in the study's Drive
 msgid "Running the checks…"
 msgstr "Running the checks…"
 
+#: src/features/preparation/schedule.tsx
+msgid "Save"
+msgstr "Save"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Save the guide"
+msgstr "Save the guide"
+
+#: src/features/preparation/schedule.tsx
+msgid "schedule"
+msgstr "schedule"
+
+#: src/features/preparation/labels.ts
+msgid "Scheduled"
+msgstr "Scheduled"
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "Search by name or email"
 msgstr "Search by name or email"
+
+#. placeholder {0}: si + 1
+#: src/features/preparation/guide-editor.tsx
+msgid "Section {0}"
+msgstr "Section {0}"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "See the guide"
+msgstr "See the guide"
 
 #: src/features/assistant/panel.tsx
 msgid "Send"
@@ -993,6 +1428,10 @@ msgstr "Sign-in did not work. Try again, or contact your administrator if it kee
 msgid "Sign-in is not configured yet. The person deploying goodresearch must set up an identity provider, see the <0>deployment guide</0>."
 msgstr "Sign-in is not configured yet. The person deploying goodresearch must set up an identity provider, see the <0>deployment guide</0>."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Skill"
+msgstr "Skill"
+
 #: src/routes/__root.tsx
 msgid "Skip to content"
 msgstr "Skip to content"
@@ -1013,6 +1452,7 @@ msgstr "Something went wrong. Please try again."
 msgid "Sources goodresearch reads with your own permission. They are separate from signing in."
 msgstr "Sources goodresearch reads with your own permission. They are separate from signing in."
 
+#: src/features/preparation/schedule.tsx
 #: src/routes/_authenticated/members/index.tsx
 msgid "Status"
 msgstr "Status"
@@ -1036,6 +1476,10 @@ msgstr "Study name"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Study phases"
 msgstr "Study phases"
+
+#: src/features/preparation/labels.ts
+msgid "suggests the answer"
+msgstr "suggests the answer"
 
 #: src/features/research/study-list.tsx
 msgid "Survey"
@@ -1083,6 +1527,10 @@ msgstr "Testing…"
 msgid "The account has no credit or quota left."
 msgstr "The account has no credit or quota left."
 
+#: src/features/preparation/preparation-tab.tsx
+msgid "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
+msgstr "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
+
 #: src/features/ai/labels.ts
 msgid "The check did not work for an unexpected reason."
 msgstr "The check did not work for an unexpected reason."
@@ -1098,6 +1546,10 @@ msgstr "the folder no longer exists or is no longer shared with the person who r
 #: src/features/ingestion/source-panel.tsx
 msgid "the Google Drive permission was revoked; reconnect from Connected sources"
 msgstr "the Google Drive permission was revoked; reconnect from Connected sources"
+
+#: src/features/preparation/preparation-tab.tsx
+msgid "The guide holds the framing (objectives, hypotheses, audience, format) and the questions of the four phases: introduction, warm-up, one section per research theme, wrap-up. It is used during the interviews, then to check their coverage and to group the findings by theme."
+msgstr "The guide holds the framing (objectives, hypotheses, audience, format) and the questions of the four phases: introduction, warm-up, one section per research theme, wrap-up. It is used during the interviews, then to check their coverage and to group the findings by theme."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "The inventory failed ({reason})."
@@ -1143,6 +1595,10 @@ msgstr "The provider did not answer."
 msgid "The provider is limiting requests right now."
 msgstr "The provider is limiting requests right now."
 
+#: src/features/workspace/errors.ts
+msgid "The schedule is full: at most 300 interviews per study."
+msgstr "The schedule is full: at most 300 interviews per study."
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study and its inventory are removed from goodresearch. Nothing changes in Drive."
 msgstr "The study and its inventory are removed from goodresearch. Nothing changes in Drive."
@@ -1154,6 +1610,18 @@ msgstr "The Vertex AI API is not enabled in this project."
 #: src/features/workspace/errors.ts
 msgid "The workspace needs at least one active admin."
 msgstr "The workspace needs at least one active admin."
+
+#: src/features/preparation/labels.ts
+msgid "Thematic questions"
+msgstr "Thematic questions"
+
+#: src/features/preparation/labels.ts
+msgid "Theme"
+msgstr "Theme"
+
+#: src/features/preparation/guide-editor.tsx
+msgid "Theme 1"
+msgstr "Theme 1"
 
 #: src/features/assistant/panel.tsx
 msgid "Thinking…"
@@ -1178,6 +1646,10 @@ msgstr "This folder does not exist or your Google account cannot open it."
 #: src/features/ai/labels.ts
 msgid "This Google Cloud project does not exist or your account cannot open it."
 msgstr "This Google Cloud project does not exist or your account cannot open it."
+
+#: src/features/workspace/errors.ts
+msgid "This interview is no longer in the schedule."
+msgstr "This interview is no longer in the schedule."
 
 #: src/features/workspace/errors.ts
 msgid "This is not the link of a Google Drive folder."
@@ -1219,9 +1691,26 @@ msgstr "This team still has {projects}. Move them to another team first."
 msgid "This team still has projects. Move them to another team first."
 msgstr "This team still has projects. Move them to another team first."
 
+#: src/features/preparation/guide-editor.tsx
+msgid "Title"
+msgstr "Title"
+
 #: src/features/assistant/panel.tsx
 msgid "Title saved"
 msgstr "Title saved"
+
+#: src/features/preparation/labels.ts
+msgid "To contact"
+msgstr "To contact"
+
+#: src/features/preparation/labels.ts
+msgid "too long"
+msgstr "too long"
+
+#: src/features/preparation/guide-markdown.ts
+#: src/features/preparation/guide-view.tsx
+msgid "Total duration: {total} min"
+msgstr "Total duration: {total} min"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Transcript"
@@ -1234,6 +1723,10 @@ msgstr "Try again in a moment."
 #: src/features/ai/labels.ts
 msgid "Try again; if it keeps failing, contact the person who deployed goodresearch."
 msgstr "Try again; if it keeps failing, contact the person who deployed goodresearch."
+
+#: src/features/preparation/labels.ts
+msgid "two questions in one"
+msgstr "two questions in one"
 
 #: src/features/research/study-list.tsx
 msgid "Type"
@@ -1267,17 +1760,48 @@ msgstr "Use another Google account"
 msgid "Use the project ID, not its name: lower-case letters, digits and hyphens, 6 to 30 characters."
 msgstr "Use the project ID, not its name: lower-case letters, digits and hyphens, 6 to 30 characters."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Using the skill: {name}"
+msgstr "Using the skill: {name}"
+
+#. placeholder {0}: g.version + 1
+#: src/features/preparation/preparation-tab.tsx
+msgid "Version {0} · edited by hand by {who} {when}"
+msgstr "Version {0} · edited by hand by {who} {when}"
+
+#. placeholder {0}: g.version + 1
+#: src/features/preparation/preparation-tab.tsx
+msgid "Version {0} · written with the assistant, applied by {who} {when}"
+msgstr "Version {0} · written with the assistant, applied by {who} {when}"
+
 #: src/features/ai/labels.ts
 msgid "Wait a minute and try again."
 msgstr "Wait a minute and try again."
+
+#: src/features/preparation/labels.ts
+msgid "Warm-up questions"
+msgstr "Warm-up questions"
 
 #: src/routes/_authenticated/welcome.tsx
 msgid "Welcome to goodresearch"
 msgstr "Welcome to goodresearch"
 
+#: src/features/preparation/schedule.tsx
+msgid "Who to interview, when and by whom. Shared with the people who can open this study; never sent to the assistant."
+msgstr "Who to interview, when and by whom. Shared with the people who can open this study; never sent to the assistant."
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Working"
 msgstr "Working"
+
+#: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/labels.ts
+msgid "Wrap-up"
+msgstr "Wrap-up"
+
+#: src/features/preparation/preparation-tab.tsx
+msgid "Write it myself"
+msgstr "Write it myself"
 
 #: src/routes/_authenticated/teams.tsx
 msgid "You are not in any team yet."
@@ -1294,6 +1818,10 @@ msgstr "You do not have access to this study's folder"
 #: src/features/workspace/errors.ts
 msgid "You need access to this study's Drive folder to do this."
 msgstr "You need access to this study's Drive folder to do this."
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "You need access to this study's Drive folder to see and change its preparation."
+msgstr "You need access to this study's Drive folder to see and change its preparation."
 
 #: src/features/ai/labels.ts
 msgid "Your account is not allowed to use this model."

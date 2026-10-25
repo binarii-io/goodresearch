@@ -2,16 +2,22 @@ import {
   Created,
   CreateProject,
   CreateStudy,
+  InterviewGuide,
   ListProjectsQuery,
   MoveProject,
+  PlannedInterview,
+  PlannedInterviewInput,
+  PlannedInterviewParams,
   ProjectDetail,
   ProjectParams,
   ProjectSummary,
   RenameProject,
   RenameStudy,
+  SaveInterviewGuide,
   StudyDetail,
   StudyParams,
   StudySummary,
+  UpdatePlannedInterview,
   UpdateProjectGoal,
   VersionAck,
 } from '@goodresearch/contracts'
@@ -22,9 +28,11 @@ import { sendError } from '#platform/http/errors.ts'
 import { reply } from '#platform/http/result.ts'
 import type { makeCreateProject } from '../application/commands/create-project.ts'
 import type { makeMoveProjectToTeam } from '../application/commands/move-project-to-team.ts'
+import type { PreparationCommands } from '../application/commands/preparation-commands.ts'
 import type { makeRenameProject } from '../application/commands/rename-project.ts'
 import type { StudyCommands } from '../application/commands/study-commands.ts'
 import type { makeUpdateProjectGoal } from '../application/commands/update-project-goal.ts'
+import type { PreparationQueries } from '../application/queries/preparation-queries.ts'
 import type { ProjectQueries } from '../application/queries/project-queries.ts'
 import type { StudyQueries } from '../application/queries/study-queries.ts'
 
@@ -36,7 +44,14 @@ export type ResearchHandlers = {
   readonly queries: ProjectQueries
   readonly studies: StudyCommands
   readonly studyQueries: StudyQueries
+  readonly preparation: PreparationCommands
+  readonly preparationQueries: PreparationQueries
 }
+
+const fieldsOf = (body: z.infer<typeof PlannedInterviewInput>) => ({
+  ...body,
+  scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,
+})
 
 export const registerResearchRoutes = (
   app: FastifyInstance,
@@ -256,6 +271,148 @@ export const registerResearchRoutes = (
       reply(
         res,
         await h.studies.deleteStudy({ actor: request.account, studyId: request.params.studyId }),
+        () => res.status(204).send(),
+      ),
+  )
+
+  // Preparation (spec 006)
+  const prepTags = ['preparation']
+
+  api.get(
+    '/api/studies/:studyId/guide',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getInterviewGuide',
+        tags: prepTags,
+        params: StudyParams,
+        response: { 200: InterviewGuide.nullable() },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.preparationQueries.getGuide(request.account.id, request.params.studyId),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.put(
+    '/api/studies/:studyId/guide',
+    {
+      ...secured,
+      schema: {
+        operationId: 'saveInterviewGuide',
+        tags: prepTags,
+        params: StudyParams,
+        body: SaveInterviewGuide,
+        response: { 200: VersionAck },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.preparation.saveGuide({
+          actor: request.account,
+          studyId: request.params.studyId,
+          content: request.body.content,
+          version: request.body.version,
+          origin: 'person',
+        }),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.get(
+    '/api/studies/:studyId/planned-interviews',
+    {
+      ...secured,
+      schema: {
+        operationId: 'listPlannedInterviews',
+        tags: prepTags,
+        params: StudyParams,
+        response: { 200: z.array(PlannedInterview) },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.preparationQueries.listPlannedInterviews(
+          request.account.id,
+          request.params.studyId,
+        ),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.post(
+    '/api/studies/:studyId/planned-interviews',
+    {
+      ...secured,
+      schema: {
+        operationId: 'addPlannedInterview',
+        tags: prepTags,
+        params: StudyParams,
+        body: PlannedInterviewInput,
+        response: { 201: Created },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.preparation.addPlannedInterview({
+          actor: request.account,
+          studyId: request.params.studyId,
+          fields: fieldsOf(request.body),
+        }),
+        (v) => res.status(201).send(v),
+      ),
+  )
+
+  api.put(
+    '/api/planned-interviews/:plannedInterviewId',
+    {
+      ...secured,
+      schema: {
+        operationId: 'updatePlannedInterview',
+        tags: prepTags,
+        params: PlannedInterviewParams,
+        body: UpdatePlannedInterview,
+        response: { 200: VersionAck },
+      },
+    },
+    async (request, res) => {
+      const { version, ...fields } = request.body
+      return reply(
+        res,
+        await h.preparation.updatePlannedInterview({
+          actor: request.account,
+          plannedInterviewId: request.params.plannedInterviewId,
+          fields: fieldsOf(fields),
+          version,
+        }),
+        (v) => res.send(v),
+      )
+    },
+  )
+
+  api.delete(
+    '/api/planned-interviews/:plannedInterviewId',
+    {
+      ...secured,
+      schema: {
+        operationId: 'deletePlannedInterview',
+        tags: prepTags,
+        params: PlannedInterviewParams,
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.preparation.deletePlannedInterview({
+          actor: request.account,
+          plannedInterviewId: request.params.plannedInterviewId,
+        }),
         () => res.status(204).send(),
       ),
   )

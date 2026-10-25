@@ -4,6 +4,9 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
+import type { GuideProgress } from './guideProgress.ts';
+import type { ProposalPreviewChecksItem } from './proposalPreviewChecksItem.ts';
+import type { ProposalPreviewGuide } from './proposalPreviewGuide.ts';
 import type { ProposalPreviewPhase } from './proposalPreviewPhase.ts';
 
 export interface ProposalPreview {
@@ -14,4 +17,10 @@ export interface ProposalPreview {
   previousName?: string;
   previousGoal?: string;
   phase?: ProposalPreviewPhase;
+  studyName?: string;
+  guide?: ProposalPreviewGuide;
+  replacesGuide?: boolean;
+  progress?: GuideProgress;
+  checks?: ProposalPreviewChecksItem[];
+  skill?: string;
 }

@@ -91,6 +91,16 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     renameProject: async (c) => outcome(await r.renameProject(c)),
     createStudy: async (c) => outcome(await r.studies.createStudy({ ...c, type: 'interviews' })),
     renameStudy: async (c) => outcome(await r.studies.renameStudy(c)),
+    saveGuide: async (c) =>
+      outcome(
+        await r.preparation.saveGuide({
+          actor: c.actor,
+          studyId: c.studyId,
+          content: c.guide,
+          version: c.version,
+          origin: 'assistant',
+        }),
+      ),
   }
   assistant = createAssistantModule({
     db: infra.db,
@@ -104,6 +114,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       getStudy: (accountId, id) => r.studyQueries.getStudy(accountId, id),
       teamsOf: async (accountId) => (await workspace.handlers.getMe(accountId))?.teams ?? [],
       listProjects: (accountId) => r.queries.listProjects(accountId, {}),
+      preparation: (accountId, studyId) =>
+        r.preparationQueries.preparationForAssistant(accountId, studyId),
     },
   })
   return { clock, workspace, research, ingestion, ai, assistant }

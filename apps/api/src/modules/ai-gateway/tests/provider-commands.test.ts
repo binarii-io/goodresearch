@@ -76,6 +76,21 @@ describe('US2 — Vertex AI with the person’s Google account', () => {
     return world.commands.completeGoogleGrant({ actor: ada, state, code: 'c1' })
   }
 
+  it('asks for a new consent when Google refuses the saved access (withdrawn, expired, re-authentication)', async () => {
+    await consent()
+    await world.commands.checkVertex({
+      actor: ada,
+      project: 'my-research-1',
+      region: 'europe-west1',
+    })
+    expect((await world.queries.page('ada')).googleGranted).toBe(true)
+    world.model.failNext('INVALID_CREDENTIAL')
+    await world.commands.testProvider({ actor: ada })
+    expect((await world.queries.page('ada')).googleGranted).toBe(false)
+    await consent()
+    expect((await world.queries.page('ada')).googleGranted).toBe(true)
+  })
+
   it('keeps the consent pending until the checklist passes, then saves the connection', async () => {
     expect(await consent()).toEqual({ ok: true, value: { returnTo: '/setup/ai-provider' } })
     expect(world.grants.get('ada')?.googleAccount).toBe('ada@example.org')

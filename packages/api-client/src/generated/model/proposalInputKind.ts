@@ -16,4 +16,8 @@ export const ProposalInputKind = {
   rename_study: 'rename_study',
   open_project: 'open_project',
   open_study: 'open_study',
+  propose_interview_guide: 'propose_interview_guide',
+  report_guide_progress: 'report_guide_progress',
+  load_skill: 'load_skill',
+  check_guide_questions: 'check_guide_questions',
 } as const;

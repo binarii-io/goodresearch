@@ -1,18 +1,64 @@
-import type { ModelRequest, ModelRunner, StreamPart } from '../application/ports.ts'
-import { ProviderCallError } from '../application/ports.ts'
+import type { ChatMessage, ModelRequest, ModelRunner, StreamPart } from '../application/ports.ts'
+import { MAX_STEPS, ProviderCallError } from '../application/ports.ts'
 import type { Credential } from '../domain/provider.ts'
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 let calls = 0
 
+/** A fixed interview guide, as the assistant writes it (spec 006 research R8). */
+const FAKE_GUIDE = {
+  framing: {
+    objectives: 'Understand how people plan their week.',
+    hypotheses: ['People plan on Sunday evening.'],
+    audience: 'Eight people who plan for a household.',
+    format: '45 minutes by video call, recorded with consent.',
+  },
+  sections: [
+    {
+      kind: 'introduction',
+      title: 'Introduction',
+      minutes: 5,
+      questions: [{ text: 'Could you introduce yourself in a few words?', followUps: [] }],
+    },
+    {
+      kind: 'warm-up',
+      title: 'About you',
+      minutes: 5,
+      questions: [{ text: 'How is a usual week organised for you?', followUps: ['For example?'] }],
+    },
+    {
+      kind: 'theme',
+      title: 'Planning the week',
+      minutes: 30,
+      questions: [
+        {
+          text: 'Tell me about the last time you planned your week.',
+          followUps: ['What happened next?', 'Why that way?'],
+        },
+        { text: 'How do you keep track of changes during the week?', followUps: [] },
+      ],
+    },
+    {
+      kind: 'wrap-up',
+      title: 'Wrap-up',
+      minutes: 5,
+      questions: [{ text: 'Is there anything you would like to add?', followUps: [] }],
+    },
+  ],
+}
+
 /**
- * Scripted conversation of the test provider (spec 005 research R7): "propose goal" and "propose
- * study" call the matching tool for the project named in the context, "long answer" streams slowly
- * (to test Stop), anything else echoes the message.
+ * Scripted conversation of the test provider (spec 005 research R7, spec 006 R8): "propose goal"
+ * and "propose study" call the matching tool for the project named in the context, "design the
+ * interview guide" loads the skill then reports progress, "write the guide" checks the questions
+ * then proposes a guide, "long answer" streams slowly (to test Stop), anything else echoes.
  */
 const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number } => {
-  const last = [...(request.messages ?? [])].reverse().find((m) => m.role === 'user')
+  const messages = request.messages ?? []
+  const lastMessage = messages.at(-1)
+  const ranTool = lastMessage?.role === 'tool' ? lastMessage.results[0]?.name : undefined
+  const last = [...messages].reverse().find((m) => m.role === 'user')
   // The assistant starts each message with where it was sent from (spec 005): not part of the text.
   const text = (last?.role === 'user' ? last.content : (request.prompt ?? '')).replace(
     /^\[[^\]]*\]\n/,
@@ -24,6 +70,46 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     calls += 1
     return { type: 'tool-call', call: { id: `fake-call-${Date.now()}-${calls}`, name, input } }
   }
+  const guideStudy = /Study id: (\S+?)[),;\s]/.exec(`${request.system ?? ''} `)?.[1]
+  if (ranTool === 'load_skill' && guideStudy)
+    return {
+      parts: [
+        { type: 'text', delta: 'Let us design the guide. What are the main research themes?' },
+        call('report_guide_progress', {
+          studyId: guideStudy,
+          objectives: 'partial',
+          hypotheses: 'missing',
+          audience: 'missing',
+          format: 'missing',
+          intro: 'missing',
+          themes: 'missing',
+          followUps: 'missing',
+          biasReview: 'missing',
+        }),
+      ],
+      delayMs: 0,
+    }
+  if (ranTool === 'check_guide_questions' && guideStudy)
+    return {
+      parts: [
+        { type: 'text', delta: 'Here is the interview guide.' },
+        call('propose_interview_guide', { studyId: guideStudy, guide: FAKE_GUIDE }),
+      ],
+      delayMs: 0,
+    }
+  // After any other tool run, the answer is over.
+  if (ranTool) return { parts: [], delayMs: 0 }
+  if (/design the interview guide/i.test(text) && offered('load_skill'))
+    return { parts: [call('load_skill', { name: 'interview-guide-design' })], delayMs: 0 }
+  if (/write the guide/i.test(text) && offered('check_guide_questions'))
+    return {
+      parts: [
+        call('check_guide_questions', {
+          questions: FAKE_GUIDE.sections.flatMap((s) => s.questions.map((q) => q.text)),
+        }),
+      ],
+      delayMs: 0,
+    }
   if (/propose goal/i.test(text) && projectId && offered('update_project_goal'))
     return {
       parts: [
@@ -113,10 +199,38 @@ export const createFakeRunner = (): ModelRunner => {
           settle?.reject(error)
           throw error
         }
-        const { parts: scripted, delayMs } = script(request)
-        for (const part of scripted) {
-          if (delayMs) await sleep(delayMs)
-          yield part
+        // Like the AI SDK's steps: tools the app runs feed the next step, until none ran.
+        let messages: ChatMessage[] = [...(request.messages ?? [])]
+        let written = ''
+        for (let step = 0; step < MAX_STEPS; step++) {
+          const { parts: scripted, delayMs } = script({ ...request, messages })
+          const ran: { id: string; name: string; output: string }[] = []
+          const calls: { id: string; name: string; input: unknown }[] = []
+          let text = ''
+          for (const part of scripted) {
+            if (delayMs) await sleep(delayMs)
+            // A new step's text is a new paragraph, as with the AI SDK runner.
+            if (part.type === 'text' && step > 0 && written && !text && !written.endsWith('\n\n')) {
+              written += '\n\n'
+              yield { type: 'text', delta: '\n\n' }
+            }
+            yield part
+            if (part.type === 'text') {
+              text += part.delta
+              written += part.delta
+            } else {
+              calls.push(part.call)
+              const tool = request.tools?.find((t) => t.name === part.call.name)
+              if (tool?.run)
+                ran.push({ ...part.call, output: await tool.run(part.call.input, part.call) })
+            }
+          }
+          if (ran.length === 0) break
+          messages = [
+            ...messages,
+            { role: 'assistant', content: text, toolCalls: calls },
+            { role: 'tool', results: ran },
+          ]
         }
         settle?.resolve(usage)
       }

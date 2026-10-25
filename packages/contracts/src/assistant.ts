@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { AiFailure } from './ai.ts'
 import { Id, Timestamp } from './common.ts'
+import { GuideDraft } from './preparation.ts'
 
 /** The page the assistant is looking at (spec 005 US2); the server builds its context. */
 export const AssistantPage = z
@@ -20,7 +21,45 @@ export const ProposalKind = z.enum([
   'rename_study',
   'open_project',
   'open_study',
+  'propose_interview_guide',
+  'report_guide_progress',
+  'load_skill',
+  'check_guide_questions',
 ])
+
+/** What the app's writing rules flag in a question (spec 006). */
+export const QuestionIssue = z.enum([
+  'closed',
+  'leading',
+  'hypothetical',
+  'future',
+  'solution',
+  'double',
+  'long',
+])
+
+/** The eight points of a guide design (spec 006 US1); the percentage is computed by the app. */
+export const GuideProgress = z
+  .object({
+    percent: z.number().int().min(0).max(100),
+    items: z.array(
+      z.object({
+        key: z.enum([
+          'objectives',
+          'hypotheses',
+          'audience',
+          'format',
+          'intro',
+          'themes',
+          'followUps',
+          'biasReview',
+        ]),
+        weight: z.number().int(),
+        status: z.enum(['missing', 'partial', 'done']),
+      }),
+    ),
+  })
+  .meta({ id: 'GuideProgress' })
 
 /** What a card shows: every value that will be written, and what it replaces. */
 export const ProposalPreview = z
@@ -33,6 +72,17 @@ export const ProposalPreview = z
     previousGoal: z.string().optional(),
     /** For an opened study: the tab to show. */
     phase: z.enum(['preparation', 'fieldwork', 'analysis']).optional(),
+    studyName: z.string().optional(),
+    /** A proposed interview guide (spec 006). */
+    guide: GuideDraft.optional(),
+    /** Whether the proposed guide replaces an existing one. */
+    replacesGuide: z.boolean().optional(),
+    /** A guide design progress report (spec 006). */
+    progress: GuideProgress.optional(),
+    /** Questions the writing rules flag (checked questions, or a proposed guide). */
+    checks: z.array(z.object({ question: z.string(), issues: z.array(QuestionIssue) })).optional(),
+    /** A loaded skill. */
+    skill: z.string().optional(),
   })
   .meta({ id: 'ProposalPreview' })
 

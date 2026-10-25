@@ -4,7 +4,7 @@
 
 goodresearch is an open-source, self-hostable app for user research teams. It helps you prepare interview guides, collect and clean transcripts, check interview conduct, extract evidence and turn it into insights and recommendations — with AI proposing and humans deciding at every step.
 
-**Status:** early. Sign-in through your identity provider, team-based access, teams and research projects work ([spec 001](specs/001-walking-skeleton/spec.md)); studies, transcripts and AI features come next.
+**Status:** early. Sign-in through your identity provider, team-based access, teams and research projects ([spec 001](specs/001-walking-skeleton/spec.md)), interview studies with a Google Drive folder ([002](specs/002-studies-drive-source/spec.md)), a per-person AI provider ([004](specs/004-ai-provider-connection/spec.md)), the assistant panel ([005](specs/005-assistant-panel/spec.md)) and study preparation — interview guide designed with the assistant or by hand, interview best practices, interview schedule ([006](specs/006-study-preparation/spec.md)) — work; transcripts and analysis come next.
 
 ## Principles
 
@@ -53,7 +53,7 @@ goodresearch only reads the attached folders and, for now, only file metadata; i
 
 ### AI providers
 
-The assistant (a chat panel on every page) and the AI features run on these providers.
+The assistant (a chat panel on every page) and the AI features run on these providers. On an interview study, the assistant loads an *interview guide design* skill, checks question wordings with the app's rules and proposes the whole guide, which people apply or dismiss; the interview schedule is never sent to the provider.
 
 
 Every person connects their own AI provider at their first sign-in: the costs and the processing of what they send to the AI stay with their own account. goodresearch stores the credential encrypted and uses it only for that person's actions.
@@ -67,6 +67,8 @@ Every person connects their own AI provider at their first sign-in: the costs an
   2. On the OAuth client, add the redirect URI `https://<your host>/api/ai-provider/google/callback`.
   3. Each person's own Google Cloud project needs the Vertex AI API enabled and billing.
   4. Do not set `GOOGLE_VERTEX_API_KEY` (refused at start): it would bill every call to the deployer.
+
+  Organisations that require signing in to Google again for Google Cloud access (Google Workspace *Google Cloud session control*) make the access expire after that time: people then see "Reconnect Google" on their AI provider page. Workspace admins can exempt trusted apps from this re-authentication.
 
   Google withdraws access per app and person: disconnecting Google Drive also withdraws Vertex AI access (the AI provider then asks for a new consent). Removing the AI provider only deletes it from goodresearch; people withdraw Google access from their Google account permissions.
 

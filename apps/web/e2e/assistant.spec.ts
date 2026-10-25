@@ -137,4 +137,40 @@ test.describe('spec 005 — assistant panel', () => {
     await panel.getByRole('button', { name: 'Close the assistant' }).click()
     await expect(panel).toBeHidden()
   })
+
+  test('follows the answer at the bottom, and stops following when the person scrolls up', async ({
+    browser,
+  }) => {
+    const page = await signedInPage(browser, ADMIN)
+    // A short window, so the answer overflows the conversation early.
+    await page.setViewportSize({ width: 1280, height: 480 })
+    await ensureHome(page)
+    const panel = page.getByRole('complementary', { name: 'Assistant' })
+    const toggle = page.getByRole('button', { name: 'Assistant', exact: true })
+    if ((await toggle.getAttribute('aria-pressed')) !== 'true') await toggle.click()
+    await panel.getByRole('button', { name: 'New conversation' }).click()
+    const log = panel.getByRole('log')
+    const fromBottom = () => log.evaluate((el) => el.scrollHeight - el.scrollTop - el.clientHeight)
+    const field = page.getByRole('textbox', { name: 'Message to the assistant' })
+
+    // "long answer" streams 300 words slowly (dev stack test provider).
+    await field.fill('long answer')
+    await page.keyboard.press('Enter')
+    await expect(log.getByText(/word150/)).toBeVisible()
+    expect(await log.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)
+    expect(await fromBottom()).toBeLessThan(48)
+
+    await log.evaluate((el) => {
+      el.scrollTop = 0
+    })
+    await expect(log.getByText(/word250/)).toBeVisible()
+    expect(await log.evaluate((el) => el.scrollTop)).toBeLessThan(48)
+
+    await panel.getByRole('button', { name: 'Stop' }).click()
+    await expect(panel.getByText('Stopped')).toBeVisible()
+    await field.fill('hello again')
+    await page.keyboard.press('Enter')
+    await expect(log.getByText('You said: hello again')).toBeVisible()
+    await expect.poll(fromBottom).toBeLessThan(48)
+  })
 })

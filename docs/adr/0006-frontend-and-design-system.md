@@ -61,3 +61,19 @@ Specs 001 and 002 used the neutral shadcn look. The product already had an ident
 - `AppShell` takes a `panel` on the right: on ≥ 768 px its width animates from 0 to 400 px and pushes the page; below, it covers the screen and slides in. Visibility is animated only when closing, so focus can move into the panel as soon as it opens; it is `inert` while closed; Escape closes it; reduced motion disables the animation.
 - The answer streams as server-sent events over `fetch`; events are validated with the shared Zod contract (`@goodresearch/contracts`, now a dependency of the web app). Model text is rendered from a Markdown subset as React elements, never as HTML.
 
+## Update 2026-10-25 — long-form content documents (spec 006)
+
+### Context
+
+The interview best practices are a document of about 160 lines per language. As Lingui messages they would become dozens of catalog entries split mid-paragraph, hard to translate and review.
+
+### Decision
+
+- Interface strings still go through Lingui, without exception.
+- **Long-form content documents** (today only the interview best practices) are written as one typed content module per language (`best-practices.en.ts`, `best-practices.fr.ts`), chosen with the active Lingui locale. A new language adds a module; reviewers read each language as a whole document.
+
+### Consequences
+
+- Good: documents read and translate as documents; the same content can be published as files (spec 007).
+- Bad: `i18n:extract` does not see these texts; a missing language must be caught in review (typed modules make a missing key a type error).
+

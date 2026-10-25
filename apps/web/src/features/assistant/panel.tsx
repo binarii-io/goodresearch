@@ -34,13 +34,15 @@ import {
   XIcon,
 } from '@goodresearch/ui/components/icons'
 import { InlineEdit } from '@goodresearch/ui/components/inline-edit'
+import { SegmentedProgress } from '@goodresearch/ui/components/segmented-progress'
 import { Textarea } from '@goodresearch/ui/components/textarea'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { normalise } from '../../app/i18n.ts'
 import { FailureNotice } from '../ai/provider-forms.tsx'
+import { GUIDE_POINTS, POINT_STATES } from '../preparation/labels.ts'
 import { errorMessage } from '../workspace/errors.ts'
 import { useFormatRelative } from '../workspace/format.ts'
 import { ConversationCostIndicator } from './cost.tsx'
@@ -220,10 +222,49 @@ function ConversationList({ onOpen }: { onOpen: (id: string | null) => void }) {
   )
 }
 
+/** The latest guide design progress of the conversation (spec 006 US1), as a segmented bar. */
+function GuideProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
+  const { t, i18n } = useLingui()
+  const latest = proposals.findLast((p) => p.kind === 'report_guide_progress' && p.preview.progress)
+  const progress = latest?.preview.progress
+  if (!progress) return null
+  const study = latest.preview.studyName ?? ''
+  const count = progress.items.length
+  return (
+    <div className="grid gap-1 border-b px-4 py-2.5">
+      <p className="truncate font-medium text-xs">{t`Interview guide · ${study}`}</p>
+      <SegmentedProgress
+        label={t`Interview guide design progress`}
+        percent={progress.percent}
+        listLabel={t`${count} points`}
+        segments={progress.items.map((item) => {
+          const point = GUIDE_POINTS[item.key]
+          return {
+            key: item.key,
+            label: point ? i18n._(point) : item.key,
+            weight: item.weight,
+            status: item.status,
+            statusLabel: i18n._(POINT_STATES[item.status]),
+          }
+        })}
+      />
+    </div>
+  )
+}
+
 /** The assistant panel (spec 005): conversation, list of conversations, composer. */
 export function AssistantPanel() {
   const { t, i18n } = useLingui()
-  const { open, close, conversationId, setConversationId } = useAssistant()
+  const {
+    open,
+    close,
+    conversationId,
+    setConversationId,
+    pending,
+    clearPending,
+    rememberThread,
+    setAnswering,
+  } = useAssistant()
   const queryClient = useQueryClient()
   const page = usePageRef()
   const navigate = useNavigate()
@@ -236,10 +277,13 @@ export function AssistantPanel() {
   const [live, setLive] = useState<Live | null>(null)
   // From Send until the stored answer is shown again (Stop included): one message at a time.
   const [busy, setBusy] = useState(false)
+  useEffect(() => setAnswering(busy), [busy, setAnswering])
   const [sendError, setSendError] = useState<unknown>(null)
   const abort = useRef<AbortController | null>(null)
   const field = useRef<HTMLTextAreaElement>(null)
-  const end = useRef<HTMLDivElement>(null)
+  const log = useRef<HTMLDivElement>(null)
+  /** Follows new words while the person is at the bottom; scrolling up stops it. */
+  const follow = useRef(true)
   const fieldId = useId()
   const streaming = live !== null && abort.current !== null && !abort.current.signal.aborted
 
@@ -252,15 +296,24 @@ export function AssistantPanel() {
     if (open && view === 'chat') field.current?.focus()
   }, [open, view])
 
-  // Keep the latest words in view while an answer is written.
+  // Keep the latest words in view while an answer is written, unless the person scrolled up to
+  // read: then the conversation stays where they are until they come back to the bottom.
   const messageCount = conversation.data?.messages.length ?? 0
   const liveLength = live?.text.length ?? 0
-  useEffect(() => {
-    if (messageCount || liveLength) end.current?.scrollIntoView({ block: 'end' })
-  }, [messageCount, liveLength])
+  const liveCards = live?.proposals.length ?? 0
+  const sending = live?.personText
+  useLayoutEffect(() => {
+    const el = log.current
+    if (el && follow.current) el.scrollTop = el.scrollHeight
+  }, [messageCount, liveLength, liveCards, sending, conversationId, view])
+  const onScroll = () => {
+    const el = log.current
+    if (el) follow.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
+  }
 
-  const submit = async () => {
-    const text = draft.trim()
+  /** `request`: a message sent for the person by a page action (spec 006 "Design with the assistant"). */
+  const submit = async (request?: { text: string; thread?: string | undefined }) => {
+    const text = (request?.text ?? draft).trim()
     if (!text || busy) return
     setBusy(true)
     setSendError(null)
@@ -268,8 +321,11 @@ export function AssistantPanel() {
     if (!id) {
       id = (await create.mutateAsync()).id
       setConversationId(id)
+      if (request?.thread) rememberThread(request.thread, id)
     }
-    setDraft('')
+    if (request === undefined) setDraft('')
+    // Sending brings the conversation back to its end.
+    follow.current = true
     const controller = new AbortController()
     abort.current = controller
     setLive({
@@ -313,7 +369,7 @@ export function AssistantPanel() {
       // message is given back so nothing typed is lost.
       if (!controller.signal.aborted) {
         setSendError(error)
-        setDraft(text)
+        if (request === undefined) setDraft(text)
       }
     } finally {
       abort.current = null
@@ -344,7 +400,23 @@ export function AssistantPanel() {
     }
   }
 
+  // A page asked the assistant something for the person: send it once, on a new conversation.
+  const submitRef = useRef(submit)
+  submitRef.current = submit
+  useEffect(() => {
+    if (!open || !pending || busy || conversationId) return
+    clearPending()
+    setView('chat')
+    void submitRef.current(pending)
+  }, [open, pending, busy, conversationId, clearPending])
+
+  const progressSources = [
+    ...(conversation.data?.messages.flatMap((m) => m.proposals) ?? []),
+    ...(live?.proposals ?? []),
+  ]
+
   const openConversation = (id: string | null) => {
+    follow.current = true
     setConversationId(id)
     setView('chat')
   }
@@ -383,7 +455,10 @@ export function AssistantPanel() {
         <ConversationList onOpen={openConversation} />
       ) : (
         <>
+          <GuideProgressBar proposals={progressSources} />
           <div
+            ref={log}
+            onScroll={onScroll}
             role="log"
             aria-label={t`Conversation`}
             aria-busy={streaming}
@@ -413,7 +488,6 @@ export function AssistantPanel() {
                 </div>
               </>
             ) : null}
-            <div ref={end} />
           </div>
 
           {sendError ? (

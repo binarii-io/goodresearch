@@ -25,6 +25,9 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   CONVERSATION_NOT_FOUND: msg`This conversation does not exist any more.`,
   PROPOSAL_DECIDED: msg`This proposal was already applied or dismissed.`,
   PROPOSAL_NOT_FOUND: msg`This proposal does not exist any more.`,
+  PLANNED_INTERVIEW_NOT_FOUND: msg`This interview is no longer in the schedule.`,
+  SCHEDULE_FULL: msg`The schedule is full: at most 300 interviews per study.`,
+  NOT_AN_INTERVIEW_STUDY: msg`Only interview studies have a guide and a schedule.`,
 }
 
 /** One translated sentence for an error code (never technical details). */

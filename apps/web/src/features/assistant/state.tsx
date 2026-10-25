@@ -26,7 +26,23 @@ type AssistantState = {
   close: () => void
   conversationId: string | null
   setConversationId: (id: string | null) => void
+  /**
+   * Opens the panel on a new conversation and sends `text` as the person's message (spec 006:
+   * "Design with the assistant"). With a `thread` (e.g. one study's guide), the conversation
+   * started for it last time is reopened instead, as it was. Never while an answer is written.
+   */
+  ask: (text: string, options?: { thread?: string }) => void
+  /** The message `ask` is waiting to send; the panel sends it once and clears it. */
+  pending: { text: string; thread?: string | undefined } | null
+  clearPending: () => void
+  /** Remembers the conversation started for a thread. */
+  rememberThread: (thread: string, conversationId: string) => void
+  /** An answer is being written: `ask` then only opens the panel. */
+  answering: boolean
+  setAnswering: (answering: boolean) => void
 }
+
+const threadKey = (thread: string) => `goodresearch.assistant.thread.${thread}`
 
 const AssistantContext = createContext<AssistantState | null>(null)
 
@@ -50,9 +66,54 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     write(CONVERSATION_KEY, id)
     setConversation(id)
   }, [])
+  const [pending, setPending] = useState<AssistantState['pending']>(null)
+  const [answering, setAnswering] = useState(false)
+  const ask = useCallback(
+    (text: string, options: { thread?: string } = {}) => {
+      write(OPEN_KEY, 'open')
+      setOpen(true)
+      if (answering) return
+      const known = options.thread ? read(threadKey(options.thread)) : null
+      if (known) {
+        setConversationId(known)
+        return
+      }
+      setConversationId(null)
+      setPending({ text, thread: options.thread })
+    },
+    [setConversationId, answering],
+  )
+  const clearPending = useCallback(() => setPending(null), [])
+  const rememberThread = useCallback(
+    (thread: string, id: string) => write(threadKey(thread), id),
+    [],
+  )
   const value = useMemo(
-    () => ({ open, toggle, close, conversationId, setConversationId }),
-    [open, toggle, close, conversationId, setConversationId],
+    () => ({
+      open,
+      toggle,
+      close,
+      conversationId,
+      setConversationId,
+      ask,
+      pending,
+      clearPending,
+      rememberThread,
+      answering,
+      setAnswering,
+    }),
+    [
+      open,
+      toggle,
+      close,
+      conversationId,
+      setConversationId,
+      ask,
+      pending,
+      clearPending,
+      rememberThread,
+      answering,
+    ],
   )
   return <AssistantContext value={value}>{children}</AssistantContext>
 }

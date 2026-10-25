@@ -33,7 +33,16 @@ export type ToolSpec = {
   readonly name: string
   readonly description: string
   readonly inputSchema: ZodType
+  /**
+   * Tools the app runs during the answer (reading instructions, checking texts): their output
+   * goes back to the model, which goes on in the same answer. Without `run`, a call ends the
+   * answer and is returned to the caller (a proposal).
+   */
+  readonly run?: (input: unknown, call: { readonly id: string }) => Promise<string>
 }
+
+/** Model steps of one answer at most (tool runs in between). */
+export const MAX_STEPS = 6
 
 /** What a task asks the model; the prompt and the answer are never stored by the gateway (FR-010). */
 export type ModelRequest = {

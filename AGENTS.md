@@ -23,7 +23,7 @@ Guide for contributors and coding agents. Read before changing anything.
 - Modules import each other only through `index.ts`; never another module's tables.
 - Validate every boundary input with Zod; never trust AI output (verify quotes and ids).
 - No company or customer context and no real person's data in code, tests, fixtures, prompts or docs. Vendors appear only in adapters and docs, never in domain or application code.
-- Every user-facing string goes through Lingui; every UI piece comes from `packages/ui`.
+- Every user-facing string goes through Lingui (long-form content documents: one typed module per language, ADR-0006); every UI piece comes from `packages/ui`.
 - Domain rules are written test-first; prefer fakes over mocks.
 - Code, comments, docs and commits in English. UI strings in English and French, using the [bilingual glossary](docs/domain/context-map.md#bilingual-glossary).
 - License AGPL-3.0-only (`"license": "AGPL-3.0-only"` in every `package.json`).

@@ -1,4 +1,4 @@
-import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 
 export const researchProjects = pgTable(
@@ -33,4 +33,39 @@ export const researchStudies = pgTable(
     version: integer('version').notNull().default(0),
   },
   (t) => [index('research_studies_project_updated_idx').on(t.projectId, t.updatedAt)],
+)
+
+/** One interview guide per study (spec 006); the content is checked by the domain. */
+export const researchInterviewGuides = pgTable('research_interview_guides', {
+  studyId: text('study_id')
+    .primaryKey()
+    .references(() => researchStudies.id, { onDelete: 'cascade' }),
+  content: jsonb('content').notNull(),
+  origin: text('origin').notNull(),
+  updatedBy: text('updated_by').references(() => auth_users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+  version: integer('version').notNull().default(0),
+})
+
+/** The interview schedule of a study (spec 006 US5). */
+export const researchPlannedInterviews = pgTable(
+  'research_planned_interviews',
+  {
+    id: text('id').primaryKey(),
+    studyId: text('study_id')
+      .notNull()
+      .references(() => researchStudies.id, { onDelete: 'cascade' }),
+    interviewee: text('interviewee').notNull(),
+    role: text('role').notNull().default(''),
+    interviewers: text('interviewers').notNull().default(''),
+    scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
+    status: text('status').notNull(),
+    notes: text('notes').notNull().default(''),
+    createdBy: text('created_by').references(() => auth_users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+    version: integer('version').notNull().default(0),
+  },
+  (t) => [index('research_planned_interviews_study_idx').on(t.studyId, t.scheduledAt)],
 )

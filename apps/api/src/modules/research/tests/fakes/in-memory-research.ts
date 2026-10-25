@@ -4,6 +4,12 @@ import type {
   StudyActionGate,
   TeamDirectory,
 } from '../../application/ports.ts'
+import { InterviewGuide } from '../../domain/interview-guide.ts'
+import { PlannedInterview } from '../../domain/planned-interview.ts'
+import type {
+  InterviewGuideRepository,
+  PlannedInterviewRepository,
+} from '../../domain/preparation.repository.ts'
 import type { ProjectRepository } from '../../domain/project.repository.ts'
 import { Project } from '../../domain/project.ts'
 import type { StudyRepository } from '../../domain/study.repository.ts'
@@ -57,6 +63,52 @@ export class InMemoryResearch {
     },
     delete: async (id) => {
       this.studies.delete(id)
+    },
+  }
+
+  readonly guides = new Map<string, InterviewGuide>()
+  readonly planned = new Map<string, PlannedInterview>()
+
+  readonly guideRepository: InterviewGuideRepository = {
+    findByStudy: async (studyId) => {
+      const guide = this.guides.get(studyId)
+      return guide ? InterviewGuide.fromPersistence(guide.snapshot()) : null
+    },
+    insert: async (guide) => {
+      if (this.guides.has(guide.studyId)) throw new ConcurrencyError()
+      this.guides.set(guide.studyId, InterviewGuide.fromPersistence(guide.snapshot()))
+    },
+    update: async (guide) => {
+      const stored = this.guides.get(guide.studyId)
+      if (!stored || stored.version !== guide.version) throw new ConcurrencyError()
+      this.guides.set(
+        guide.studyId,
+        InterviewGuide.fromPersistence({ ...guide.snapshot(), version: guide.version + 1 }),
+      )
+    },
+  }
+
+  readonly plannedRepository: PlannedInterviewRepository = {
+    findById: async (id) => {
+      const row = this.planned.get(id)
+      return row ? PlannedInterview.fromPersistence(row.snapshot()) : null
+    },
+    insertIfRoom: async (row, limit) => {
+      if ([...this.planned.values()].filter((r) => r.studyId === row.studyId).length >= limit)
+        return false
+      this.planned.set(row.id, PlannedInterview.fromPersistence({ ...row.snapshot(), version: 0 }))
+      return true
+    },
+    update: async (row) => {
+      const stored = this.planned.get(row.id)
+      if (!stored || stored.version !== row.version) throw new ConcurrencyError()
+      this.planned.set(
+        row.id,
+        PlannedInterview.fromPersistence({ ...row.snapshot(), version: row.version + 1 }),
+      )
+    },
+    delete: async (id) => {
+      this.planned.delete(id)
     },
   }
 
