@@ -284,6 +284,8 @@ export function AssistantPanel() {
   const log = useRef<HTMLDivElement>(null)
   /** Follows new words while the person is at the bottom; scrolling up stops it. */
   const follow = useRef(true)
+  /** Where the conversation was last left, to see a scroll up not handled yet. */
+  const lastTop = useRef(0)
   const fieldId = useId()
   const streaming = live !== null && abort.current !== null && !abort.current.signal.aborted
 
@@ -304,11 +306,19 @@ export function AssistantPanel() {
   const sending = live?.personText
   useLayoutEffect(() => {
     const el = log.current
-    if (el && follow.current) el.scrollTop = el.scrollHeight
+    if (!el) return
+    // The person scrolled up and the scroll event did not run yet: do not take them back down.
+    // (A shorter content clamps the position to the bottom: that is not a scroll up.)
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 2
+    if (el.scrollTop + 2 < lastTop.current && !atBottom) follow.current = false
+    if (follow.current) el.scrollTop = el.scrollHeight
+    lastTop.current = el.scrollTop
   }, [messageCount, liveLength, liveCards, sending, conversationId, view])
   const onScroll = () => {
     const el = log.current
-    if (el) follow.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
+    if (!el) return
+    follow.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
+    lastTop.current = el.scrollTop
   }
 
   /** `request`: a message sent for the person by a page action (spec 006 "Design with the assistant"). */

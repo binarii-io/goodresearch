@@ -2,9 +2,15 @@ import {
   AttachFolder,
   CallbackQuery,
   ConnectQuery,
+  DecideSession,
+  EditSession,
+  Fieldwork,
   InventoryFile,
   InventoryFilesQuery,
+  LinkSession,
   MySource,
+  Session,
+  SessionParams,
   StudyParams,
   StudySourceView,
 } from '@goodresearch/contracts'
@@ -14,13 +20,17 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { sendError } from '#platform/http/errors.ts'
 import { reply } from '#platform/http/result.ts'
+import type { SessionCommands } from '../application/commands/session-commands.ts'
 import type { SourceCommands } from '../application/commands/source-commands.ts'
+import type { SessionQueries } from '../application/queries/session-queries.ts'
 import type { SourceQueries } from '../application/queries/source-queries.ts'
 import type { DevDrive } from './dev-drive.ts'
 
 export type IngestionHandlers = {
   readonly commands: SourceCommands
   readonly queries: SourceQueries
+  readonly sessions: SessionCommands
+  readonly sessionQueries: SessionQueries
   /** Simulated Drive only (`DRIVE_FAKE`): what a person does in Drive, for end-to-end tests. */
   readonly devEdit?: DevDrive['edit']
 }
@@ -36,7 +46,7 @@ export const registerIngestionRoutes = (
   app: FastifyInstance,
   deps: { guard: preHandlerAsyncHookHandler; handlers: IngestionHandlers },
 ): void => {
-  const { commands, queries, devEdit } = deps.handlers
+  const { commands, queries, sessions, sessionQueries, devEdit } = deps.handlers
   const api = app.withTypeProvider<ZodTypeProvider>()
   const secured = { preHandler: deps.guard }
   const tags = ['sources']
@@ -119,6 +129,100 @@ export const registerIngestionRoutes = (
         await queries.listFiles(request.account, request.params.studyId, request.query),
         (files) => res.send(files),
       ),
+  )
+
+  // Spec 008: the interviews found in the folder (Fieldwork).
+  const fieldworkTags = ['fieldwork']
+  /** After a command, the session as the person now sees it. */
+  const sendSession =
+    (
+      request: { account: { id: string; role: 'admin' | 'member' } },
+      res: Parameters<typeof reply>[0],
+    ) =>
+    async (done: { id: string }) =>
+      reply(res, await sessionQueries.session(request.account, done.id), (view) => res.send(view))
+
+  api.get(
+    '/api/studies/:studyId/sessions',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getFieldwork',
+        tags: fieldworkTags,
+        params: StudyParams,
+        response: { 200: Fieldwork },
+      },
+    },
+    async (request, res) =>
+      reply(res, await sessionQueries.fieldwork(request.account, request.params.studyId), (v) =>
+        res.send(v),
+      ),
+  )
+
+  api.post(
+    '/api/sessions/:sessionId/link',
+    {
+      ...secured,
+      schema: {
+        operationId: 'linkSession',
+        tags: fieldworkTags,
+        params: SessionParams,
+        body: LinkSession,
+        response: { 200: Session },
+      },
+    },
+    async (request, res) => {
+      const done = await sessions.link({
+        actor: request.account,
+        sessionId: request.params.sessionId,
+        ...request.body,
+      })
+      return done.ok ? sendSession(request, res)(done.value) : reply(res, done, () => res)
+    },
+  )
+
+  api.patch(
+    '/api/sessions/:sessionId',
+    {
+      ...secured,
+      schema: {
+        operationId: 'editSession',
+        tags: fieldworkTags,
+        params: SessionParams,
+        body: EditSession,
+        response: { 200: Session },
+      },
+    },
+    async (request, res) => {
+      const done = await sessions.edit({
+        actor: request.account,
+        sessionId: request.params.sessionId,
+        ...request.body,
+      })
+      return done.ok ? sendSession(request, res)(done.value) : reply(res, done, () => res)
+    },
+  )
+
+  api.post(
+    '/api/sessions/:sessionId/decision',
+    {
+      ...secured,
+      schema: {
+        operationId: 'decideSession',
+        tags: fieldworkTags,
+        params: SessionParams,
+        body: DecideSession,
+        response: { 200: Session },
+      },
+    },
+    async (request, res) => {
+      const done = await sessions.decide({
+        actor: request.account,
+        sessionId: request.params.sessionId,
+        ...request.body,
+      })
+      return done.ok ? sendSession(request, res)(done.value) : reply(res, done, () => res)
+    },
   )
 
   api.get(

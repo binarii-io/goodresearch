@@ -1,16 +1,37 @@
 import { newId } from '@goodresearch/shared'
-import { and, asc, count, eq, inArray, lt, lte, or, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  eq,
+  inArray,
+  isNull,
+  lt,
+  lte,
+  ne,
+  or,
+  sql,
+  TransactionRollbackError,
+} from 'drizzle-orm'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 import type { Db } from '#platform/db.ts'
-import type { IngestionStore, InventoryState, StudySource } from '../application/ports.ts'
+import type {
+  IngestionStore,
+  InventoryState,
+  SessionWrite,
+  StudySource,
+} from '../application/ports.ts'
 import type { FileKind } from '../domain/classify.ts'
 import type { FolderAccessResult } from '../domain/folder-access.ts'
 import { type InventoryRun, STALE_RUN_MS } from '../domain/inventory-run.ts'
 import type { InventoryFile } from '../domain/inventory-walk.ts'
+import { reconcileSessions } from '../domain/reconcile-sessions.ts'
+import { givesUpRecordings, type Session, withoutRecordings } from '../domain/session.ts'
 import {
   ingestionFolderAccess,
   ingestionInventoryFiles,
   ingestionOauthStates,
+  ingestionSessions,
   ingestionSourceConnections,
   ingestionStudySources,
 } from './schema.ts'
@@ -18,6 +39,102 @@ import {
 const CONNECTOR = 'google-drive'
 
 type SourceRow = typeof ingestionStudySources.$inferSelect
+type SessionRow = typeof ingestionSessions.$inferSelect
+type Tx = Parameters<Parameters<Db['transaction']>[0]>[0]
+
+const toSession = (r: SessionRow): Session => ({
+  ...r,
+  state: r.state as Session['state'],
+  linkedBy: r.linkedBy as Session['linkedBy'],
+})
+
+const sessionValues = (s: Session) => ({
+  studyId: s.studyId,
+  transcriptFileId: s.transcriptFileId,
+  media: [...s.media],
+  mediaEdited: s.mediaEdited,
+  state: s.state,
+  excludedReason: s.excludedReason,
+  title: s.title,
+  plannedInterviewId: s.plannedInterviewId,
+  linkedBy: s.linkedBy,
+  roster: [...s.roster],
+  decidedBy: s.decidedBy,
+  decidedAt: s.decidedAt,
+  updatedAt: s.updatedAt,
+})
+
+/** Postgres unique violation: here, a planned interview already held by another session. */
+const isUniqueViolation = (error: unknown): boolean => {
+  for (let e: unknown = error; e instanceof Error; e = e.cause)
+    if ((e as { code?: string }).code === '23505') return true
+  return false
+}
+
+/** One writer of a study's sessions at a time: recordings stay in one session (FR-004). */
+const lockSessions = (tx: Tx, studyId: string) =>
+  tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`sessions:${studyId}`}))`)
+
+const writeSession = async (tx: Tx, s: Session, expected: number): Promise<SessionWrite> => {
+  if (s.media.length) {
+    const held = await tx
+      .select({ id: ingestionSessions.id, media: ingestionSessions.media })
+      .from(ingestionSessions)
+      .where(and(eq(ingestionSessions.studyId, s.studyId), ne(ingestionSessions.id, s.id)))
+    const mine = new Set(s.media.map((m) => m.fileId))
+    if (held.some((o) => o.media.some((m) => mine.has(m.fileId)))) return 'media-taken'
+  }
+  const rows = await tx
+    .update(ingestionSessions)
+    .set({ ...sessionValues(s), version: expected + 1 })
+    .where(and(eq(ingestionSessions.id, s.id), eq(ingestionSessions.version, expected)))
+    .returning({ id: ingestionSessions.id })
+  return rows.length ? 'saved' : 'stale'
+}
+
+/** Spec 008 FR-002: the sessions follow the files of the inventory, decided ones excepted. */
+const reconcile = async (tx: Tx, studyId: string, files: readonly InventoryFile[], now: Date) => {
+  await lockSessions(tx, studyId)
+  const sessions = (
+    await tx.select().from(ingestionSessions).where(eq(ingestionSessions.studyId, studyId))
+  ).map(toSession)
+  const r = reconcileSessions({ studyId, files, sessions, now, newId })
+  const seen = new Map(sessions.map((s) => [s.id, s.version]))
+  // Conditional on the version read: a person's change made meanwhile wins.
+  for (const id of r.removed)
+    await tx.delete(ingestionSessions).where(
+      and(
+        eq(ingestionSessions.id, id),
+        // Not decided by a person: proposed, or validated by the app (FR-002c).
+        isNull(ingestionSessions.decidedBy),
+        eq(ingestionSessions.version, seen.get(id) ?? -1),
+      ),
+    )
+  for (const m of r.media)
+    await tx
+      .update(ingestionSessions)
+      .set({ media: [...m.media], updatedAt: now, version: (seen.get(m.id) ?? 0) + 1 })
+      .where(
+        and(
+          eq(ingestionSessions.id, m.id),
+          // Not decided by a person: proposed, or validated by the app (FR-002c).
+          isNull(ingestionSessions.decidedBy),
+          eq(ingestionSessions.version, seen.get(m.id) ?? -1),
+        ),
+      )
+  for (let i = 0; i < r.created.length; i += 500)
+    await tx
+      .insert(ingestionSessions)
+      .values(
+        r.created.slice(i, i + 500).map((s) => ({
+          ...sessionValues(s),
+          id: s.id,
+          createdAt: s.createdAt,
+          version: s.version,
+        })),
+      )
+      .onConflictDoNothing()
+}
 
 /** Writes of a run apply only to the same study, the same folder, this run, still running. */
 const currentRun = (run: InventoryRun) =>
@@ -124,6 +241,7 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
   attachSource: async (s) => {
     await db.transaction(async (tx) => {
       await tx.delete(ingestionInventoryFiles).where(eq(ingestionInventoryFiles.studyId, s.studyId))
+      await tx.delete(ingestionSessions).where(eq(ingestionSessions.studyId, s.studyId))
       await tx.delete(ingestionFolderAccess).where(eq(ingestionFolderAccess.studyId, s.studyId))
       const values = {
         studyId: s.studyId,
@@ -154,6 +272,7 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
   deleteSource: async (studyId) => {
     await db.transaction(async (tx) => {
       await tx.delete(ingestionInventoryFiles).where(eq(ingestionInventoryFiles.studyId, studyId))
+      await tx.delete(ingestionSessions).where(eq(ingestionSessions.studyId, studyId))
       await tx.delete(ingestionFolderAccess).where(eq(ingestionFolderAccess.studyId, studyId))
       await tx.delete(ingestionStudySources).where(eq(ingestionStudySources.studyId, studyId))
     })
@@ -192,7 +311,7 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
       .where(currentRun(run))
   },
 
-  completeInventory: async (run, files, folder, now) =>
+  completeInventory: async (run, files, folder, now, options) =>
     db.transaction(async (tx) => {
       // Mark the run done first: if it is no longer current (folder replaced or detached), stop.
       const updated = await tx
@@ -227,6 +346,7 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
           })),
         )
       }
+      if (options?.sessions !== false) await reconcile(tx, run.studyId, files, now)
       return true
     }),
 
@@ -334,11 +454,108 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
     )
   },
 
+  accountNames: async (accountIds) => {
+    const ids = [...new Set(accountIds)]
+    if (ids.length === 0) return new Map()
+    const rows = await db
+      .select({ id: auth_users.id, name: auth_users.name, status: auth_users.status })
+      .from(auth_users)
+      .where(inArray(auth_users.id, ids))
+    return new Map(rows.filter((r) => r.status !== 'deleted').map((r) => [r.id, r.name]))
+  },
+
   accountName: async (accountId) => {
     const [row] = await db
       .select({ name: auth_users.name, status: auth_users.status })
       .from(auth_users)
       .where(eq(auth_users.id, accountId))
     return row && row.status !== 'deleted' ? row.name : null
+  },
+
+  listSessions: async (studyId) =>
+    (await db.select().from(ingestionSessions).where(eq(ingestionSessions.studyId, studyId))).map(
+      toSession,
+    ),
+
+  getSession: async (id) => {
+    const [row] = await db.select().from(ingestionSessions).where(eq(ingestionSessions.id, id))
+    return row ? toSession(row) : null
+  },
+
+  saveSession: async (s, expected, release = []) => {
+    let written: SessionWrite = 'stale'
+    try {
+      return await db.transaction(async (tx) => {
+        await lockSessions(tx, s.studyId)
+        if (release.length) {
+          const taken = new Set(s.media.map((m) => m.fileId))
+          const rows = await tx
+            .select()
+            .from(ingestionSessions)
+            .where(
+              and(
+                inArray(ingestionSessions.id, [...release]),
+                eq(ingestionSessions.studyId, s.studyId),
+                isNull(ingestionSessions.transcriptFileId),
+              ),
+            )
+          for (const row of rows.map(toSession).filter(givesUpRecordings)) {
+            const rest = withoutRecordings(row, taken, s.updatedAt)
+            if (rest) await writeSession(tx, rest, row.version)
+            else await tx.delete(ingestionSessions).where(eq(ingestionSessions.id, row.id))
+          }
+        }
+        written = await writeSession(tx, s, expected)
+        // Released sessions come back when the write does not happen.
+        if (written !== 'saved') tx.rollback()
+        return written
+      })
+    } catch (error) {
+      if (error instanceof TransactionRollbackError) return written
+      if (isUniqueViolation(error)) return 'linked'
+      throw error
+    }
+  },
+
+  backfillSessions: async (studyId, now) => {
+    await db.transaction(async (tx) => {
+      // The lock first: files read after an inventory that commits meanwhile are its files.
+      await lockSessions(tx, studyId)
+      const files = (
+        await tx
+          .select()
+          .from(ingestionInventoryFiles)
+          .where(eq(ingestionInventoryFiles.studyId, studyId))
+      ).map(
+        (r): InventoryFile => ({
+          id: r.fileId,
+          name: r.name,
+          kind: r.kind as FileKind,
+          group: r.group,
+          mimeType: r.mimeType,
+          size: r.size,
+          modifiedAt: r.modifiedAt?.toISOString() ?? null,
+          webViewLink: r.webViewLink,
+        }),
+      )
+      await reconcile(tx, studyId, files, now)
+    })
+  },
+
+  moveLink: async (from, to, expected) => {
+    try {
+      return await db.transaction(async (tx) => {
+        await lockSessions(tx, to.studyId)
+        const cleared = await writeSession(tx, from, expected.from)
+        if (cleared !== 'saved') return cleared
+        const saved = await writeSession(tx, to, expected.to)
+        if (saved !== 'saved') tx.rollback()
+        return saved
+      })
+    } catch (error) {
+      if (isUniqueViolation(error)) return 'linked'
+      if (error instanceof TransactionRollbackError) return 'stale'
+      throw error
+    }
   },
 })

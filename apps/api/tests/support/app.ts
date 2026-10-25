@@ -2,6 +2,7 @@ import { type AppConfig, loadConfig } from '@goodresearch/config'
 import { fixedClock } from '@goodresearch/shared'
 import type { FastifyInstance, LightMyRequestResponse } from 'fastify'
 import { composeApp } from '../../src/compose.ts'
+import type { ModelRunner } from '../../src/modules/ai-gateway/application/ports.ts'
 import type { InMemoryDrive } from '../../src/modules/ingestion/tests/fakes/in-memory-drive.ts'
 import type { Db } from '../../src/platform/db.ts'
 
@@ -28,7 +29,7 @@ export const testConfig = (issuer: string, overrides: Record<string, string> = {
 export const startTestApp = async (
   config: AppConfig,
   db: Db,
-  options: { rateLimit?: boolean; drive?: InMemoryDrive } = {},
+  options: { rateLimit?: boolean; drive?: InMemoryDrive; runner?: ModelRunner } = {},
 ) => {
   const clock = fixedClock(new Date())
   const queued: object[] = []
@@ -53,6 +54,7 @@ export const startTestApp = async (
             },
           }
         : {}),
+      ...(options.runner ? { ai: { runner: options.runner } } : {}),
     },
     { logger: false, rateLimit: options.rateLimit ?? false },
   )

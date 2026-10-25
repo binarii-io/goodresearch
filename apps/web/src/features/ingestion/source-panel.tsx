@@ -50,8 +50,22 @@ type Inventory = NonNullable<StudySourceView['source']>['inventory']
 const connectUrl = (studyId: string) =>
   `/api/sources/google-drive/connect?returnTo=${encodeURIComponent(`/studies/${studyId}`)}`
 
-/** The Drive folder of an interview study and its inventory (spec 002 US2, US3). */
-export function SourcePanel({ studyId, isAdmin }: { studyId: string; isAdmin: boolean }) {
+/**
+ * The Drive folder of an interview study and its inventory (spec 002 US2, US3), in the Fieldwork
+ * phase. `interviews`: how many interviews a new or detached folder discards (spec 008 FR-012).
+ */
+export function SourcePanel({
+  studyId,
+  isAdmin,
+  interviews = 0,
+  showFiles = true,
+}: {
+  studyId: string
+  isAdmin: boolean
+  interviews?: number
+  /** False in the folder dialog: the interviews show what the folder holds. */
+  showFiles?: boolean
+}) {
   const { t } = useLingui()
   const view = useGetStudySource(studyId, {
     query: {
@@ -82,7 +96,14 @@ export function SourcePanel({ studyId, isAdmin }: { studyId: string; isAdmin: bo
   if (data.access === 'no-folder-access')
     return <NoFolderAccess studyId={studyId} owner={data.folderOwner} isAdmin={isAdmin} />
   if (!data.source) return <NewSource studyId={studyId} />
-  return <AttachedFolder studyId={studyId} source={data.source} />
+  return (
+    <AttachedFolder
+      studyId={studyId}
+      source={data.source}
+      interviews={interviews}
+      showFiles={showFiles}
+    />
+  )
 }
 
 function ConnectDrive({ studyId, attached }: { studyId: string; attached: boolean }) {
@@ -148,10 +169,12 @@ function NewSource({ studyId }: { studyId: string }) {
 function AttachFolder({
   studyId,
   replacing = false,
+  interviews = 0,
   onDone,
 }: {
   studyId: string
   replacing?: boolean
+  interviews?: number
   onDone?: () => void
 }) {
   const { t, i18n } = useLingui()
@@ -170,6 +193,9 @@ function AttachFolder({
   return (
     <form onSubmit={(e) => void submit(e).catch(() => undefined)} className="grid max-w-2xl gap-2">
       {replacing ? null : <DriveExplanation />}
+      {replacing && interviews > 0 ? (
+        <p className="text-sm">{t`Another folder replaces the inventory and discards the ${interviews} interviews found, with their links and decisions. Nothing changes in Drive.`}</p>
+      ) : null}
       <Label htmlFor={ids.link}>{t`Link of the Drive folder`}</Label>
       <p id={ids.hint} className="text-muted-foreground text-sm">
         {t`Open the folder in Google Drive and copy the address from your browser.`}
@@ -197,7 +223,7 @@ function AttachFolder({
   )
 }
 
-function DetachFolder({ studyId }: { studyId: string }) {
+function DetachFolder({ studyId, interviews = 0 }: { studyId: string; interviews?: number }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const detach = useDetachFolder()
@@ -209,7 +235,11 @@ function DetachFolder({ studyId }: { studyId: string }) {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t`Detach this folder?`}</AlertDialogTitle>
-          <AlertDialogDescription>{t`The inventory is removed from goodresearch. Nothing changes in Drive.`}</AlertDialogDescription>
+          <AlertDialogDescription>
+            {interviews > 0
+              ? t`The inventory and the ${interviews} interviews found, with their links and decisions, are removed from goodresearch. Nothing changes in Drive.`
+              : t`The inventory is removed from goodresearch. Nothing changes in Drive.`}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
@@ -233,9 +263,13 @@ function DetachFolder({ studyId }: { studyId: string }) {
 function AttachedFolder({
   studyId,
   source,
+  interviews,
+  showFiles,
 }: {
   studyId: string
   source: NonNullable<StudySourceView['source']>
+  interviews: number
+  showFiles: boolean
 }) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
@@ -275,7 +309,7 @@ function AttachedFolder({
         <Button size="sm" variant="ghost" onClick={() => setReplacing((v) => !v)}>
           {t`Replace folder`}
         </Button>
-        <DetachFolder studyId={studyId} />
+        <DetachFolder studyId={studyId} interviews={interviews} />
       </div>
       {refresh.isError ? (
         <p role="alert" className="text-destructive text-sm">
@@ -283,10 +317,15 @@ function AttachedFolder({
         </p>
       ) : null}
       {replacing ? (
-        <AttachFolder studyId={studyId} replacing onDone={() => setReplacing(false)} />
+        <AttachFolder
+          studyId={studyId}
+          replacing
+          interviews={interviews}
+          onDone={() => setReplacing(false)}
+        />
       ) : null}
       <InventoryStatus inventory={source.inventory} formatDate={formatDate} />
-      {source.inventory.lastSuccessAt ? (
+      {showFiles && source.inventory.lastSuccessAt ? (
         <InventoryFiles studyId={studyId} inventory={source.inventory} />
       ) : null}
     </div>

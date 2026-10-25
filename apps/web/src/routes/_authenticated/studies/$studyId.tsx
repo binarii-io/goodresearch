@@ -19,9 +19,8 @@ import {
 } from '@goodresearch/ui/components/alert-dialog'
 import { Button } from '@goodresearch/ui/components/button'
 import { DangerZone } from '@goodresearch/ui/components/danger-zone'
-import { FolderIcon } from '@goodresearch/ui/components/icons'
 import { InlineEdit } from '@goodresearch/ui/components/inline-edit'
-import { PageBar, Pill } from '@goodresearch/ui/components/page-header'
+import { PageBar } from '@goodresearch/ui/components/page-header'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
 import { msg } from '@lingui/core/macro'
@@ -31,6 +30,8 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { FieldworkTab } from '../../../features/fieldwork/fieldwork-tab.tsx'
+import { FolderButton } from '../../../features/ingestion/folder-button.tsx'
 import { SourcePanel } from '../../../features/ingestion/source-panel.tsx'
 import { PreparationTab } from '../../../features/preparation/preparation-tab.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
@@ -41,7 +42,7 @@ export const Route = createFileRoute('/_authenticated/studies/$studyId')({
   // Set by the Drive consent callback.
   validateSearch: z.object({
     drive: z.enum(['connected', 'error']).optional().catch(undefined),
-    // Opens on Analysis, where the source folder is (spec 003, FR-013).
+    // Opens on Fieldwork, where the source folder and the interviews are (spec 008).
     phase: z.enum(['preparation', 'fieldwork', 'analysis']).optional().catch(undefined),
   }),
   component: StudyPage,
@@ -50,7 +51,7 @@ export const Route = createFileRoute('/_authenticated/studies/$studyId')({
 function StudyPage() {
   const { t, i18n } = useLingui()
   const { studyId } = Route.useParams()
-  const { drive, phase = 'analysis' } = Route.useSearch()
+  const { drive, phase = 'fieldwork' } = Route.useSearch()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const me = useMe()
@@ -86,8 +87,6 @@ function StudyPage() {
   // FR-010a: without folder access, only the name and type are shown and nothing can be changed.
   const canAct = source.data?.access === 'full'
   const canDelete = canAct || me.role === 'admin'
-
-  const folderName = source.data?.source?.folderName
 
   return (
     <Tabs
@@ -141,12 +140,11 @@ function StudyPage() {
         }
         right={
           <>
-            {folderName ? (
-              <Pill className="max-w-56">
-                <FolderIcon aria-hidden />
-                <span className="truncate">{folderName}</span>
-              </Pill>
-            ) : null}
+            <FolderButton
+              studyId={studyId}
+              isAdmin={me.role === 'admin'}
+              interviewStudy={s.type === 'interviews'}
+            />
             <TabsList aria-label={t`Study phases`}>
               <TabsTrigger value="preparation">{t`1 · Preparation`}</TabsTrigger>
               <TabsTrigger value="fieldwork">{t`2 · Fieldwork`}</TabsTrigger>
@@ -167,10 +165,17 @@ function StudyPage() {
         )}
       </TabsContent>
       <TabsContent value="fieldwork">
-        <p className="text-muted-foreground text-base">{t`Run the interviews; recordings and transcripts land in the study's Drive folder.`}</p>
+        {s.type === 'interviews' ? (
+          <FieldworkTab studyId={studyId} isAdmin={me.role === 'admin'} />
+        ) : (
+          <div className="grid gap-3">
+            <p className="text-muted-foreground text-base">{t`Fieldwork for this type of study is coming in a later version.`}</p>
+            <SourcePanel studyId={studyId} isAdmin={me.role === 'admin'} />
+          </div>
+        )}
       </TabsContent>
-      <TabsContent value="analysis" className="grid gap-3">
-        <SourcePanel studyId={studyId} isAdmin={me.role === 'admin'} />
+      <TabsContent value="analysis">
+        <p className="text-muted-foreground text-base">{t`Analysis of the validated interviews is coming in a later version.`}</p>
       </TabsContent>
 
       {canDelete ? (
@@ -181,7 +186,7 @@ function StudyPage() {
           <DangerZone
             className="mt-2.5"
             title={t`Delete this study`}
-            description={t`The study and its inventory are removed from goodresearch. Nothing changes in Drive.`}
+            description={t`The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive.`}
           >
             <AlertDialog>
               <AlertDialogTrigger render={<Button variant="destructive" />}>
@@ -190,7 +195,7 @@ function StudyPage() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>{t`Delete this study?`}</AlertDialogTitle>
-                  <AlertDialogDescription>{t`The study and its inventory are removed from goodresearch. Nothing changes in Drive.`}</AlertDialogDescription>
+                  <AlertDialogDescription>{t`The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive.`}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>

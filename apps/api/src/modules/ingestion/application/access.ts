@@ -8,11 +8,13 @@ export type StudyAccess =
   | {
       readonly kind: 'full'
       readonly role: 'admin' | 'member'
+      readonly type: string
       readonly source: StudySource | null
     }
   | {
       readonly kind: 'drive-not-connected' | 'no-folder-access' | 'drive-unavailable'
       readonly role: 'admin' | 'member'
+      readonly type: string
       readonly source: StudySource
     }
 
@@ -29,13 +31,13 @@ export const resolveStudyAccess = async (
   const visible = await deps.studies.getStudyAccess(accountId, studyId)
   if (!visible) return { kind: 'not-found' }
   const source = await deps.store.getSource(studyId)
-  if (!source) return { kind: 'full', role: visible.role, source: null }
+  if (!source) return { kind: 'full', role: visible.role, type: visible.type, source: null }
 
   const refreshToken = deps.drive
     ? await readRefreshToken(deps, await deps.store.getConnection(accountId))
     : null
   if (!deps.drive || !refreshToken)
-    return { kind: 'drive-not-connected', role: visible.role, source }
+    return { kind: 'drive-not-connected', role: visible.role, type: visible.type, source }
 
   const now = deps.clock.now()
   const decision = folderAccessDecision({
@@ -50,14 +52,14 @@ export const resolveStudyAccess = async (
     } catch (error) {
       if (error instanceof DriveConnectionLost) {
         await deps.store.markConnectionLost(accountId)
-        return { kind: 'drive-not-connected', role: visible.role, source }
+        return { kind: 'drive-not-connected', role: visible.role, type: visible.type, source }
       }
       deps.log.warn({ err: error, studyId }, 'Drive access check failed')
-      return { kind: 'drive-unavailable', role: visible.role, source }
+      return { kind: 'drive-unavailable', role: visible.role, type: visible.type, source }
     }
     await deps.store.saveFolderAccess(studyId, accountId, result, now)
   }
   return result === 'granted'
-    ? { kind: 'full', role: visible.role, source }
-    : { kind: 'no-folder-access', role: visible.role, source }
+    ? { kind: 'full', role: visible.role, type: visible.type, source }
+    : { kind: 'no-folder-access', role: visible.role, type: visible.type, source }
 }

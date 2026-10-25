@@ -2,6 +2,7 @@ import type { Clock } from '@goodresearch/shared'
 import { fixedClock, newId } from '@goodresearch/shared'
 import { CIPHER_PURPOSES, createTokenCipher } from '#platform/crypto/token-cipher.ts'
 import { makeRunInventory } from '../../application/commands/run-inventory.ts'
+import { makeSessionCommands } from '../../application/commands/session-commands.ts'
 import { makeSourceCommands } from '../../application/commands/source-commands.ts'
 import type {
   IngestionDeps,
@@ -9,13 +10,18 @@ import type {
   InventoryFailure,
   InventoryJob,
   OauthState,
+  PlannedSummary,
+  SessionWrite,
   SourceConnection,
   StudySource,
 } from '../../application/ports.ts'
+import { makeSessionQueries } from '../../application/queries/session-queries.ts'
 import { makeSourceQueries, makeStudyActionGate } from '../../application/queries/source-queries.ts'
 import type { FolderAccessResult } from '../../domain/folder-access.ts'
 import { type InventoryRun, isActiveRun } from '../../domain/inventory-run.ts'
 import type { InventoryFile } from '../../domain/inventory-walk.ts'
+import { reconcileSessions } from '../../domain/reconcile-sessions.ts'
+import { givesUpRecordings, type Session, withoutRecordings } from '../../domain/session.ts'
 import { InMemoryDrive } from './in-memory-drive.ts'
 
 /** Same rules as the Drizzle store, including run-scoped writes. */
@@ -26,6 +32,33 @@ export class InMemoryIngestionStore implements IngestionStore {
   readonly runs = new Map<string, string | null>()
   readonly files = new Map<string, InventoryFile[]>()
   readonly access = new Map<string, { result: FolderAccessResult; checkedAt: Date }>()
+  readonly sessions = new Map<string, Session>()
+
+  #dropSessions(studyId: string) {
+    for (const [id, s] of this.sessions) if (s.studyId === studyId) this.sessions.delete(id)
+  }
+
+  #write(s: Session, expected: number): SessionWrite {
+    const current = this.sessions.get(s.id)
+    if (!current || current.version !== expected) return 'stale'
+    const mine = new Set(s.media.map((m) => m.fileId))
+    if (
+      [...this.sessions.values()].some(
+        (o) => o.id !== s.id && o.studyId === s.studyId && o.media.some((m) => mine.has(m.fileId)),
+      )
+    )
+      return 'media-taken'
+    if (
+      s.plannedInterviewId &&
+      [...this.sessions.values()].some(
+        (o) =>
+          o.id !== s.id && o.studyId === s.studyId && o.plannedInterviewId === s.plannedInterviewId,
+      )
+    )
+      return 'linked'
+    this.sessions.set(s.id, { ...s, version: expected + 1 })
+    return 'saved'
+  }
 
   #isCurrent(run: InventoryRun): boolean {
     const s = this.sources.get(run.studyId)
@@ -66,12 +99,14 @@ export class InMemoryIngestionStore implements IngestionStore {
     this.sources.set(s.studyId, s)
     this.runs.set(s.studyId, null)
     this.files.delete(s.studyId)
+    this.#dropSessions(s.studyId)
     for (const key of this.access.keys())
       if (key.startsWith(`${s.studyId}:`)) this.access.delete(key)
   }
   async deleteSource(id: string) {
     this.sources.delete(id)
     this.files.delete(id)
+    this.#dropSessions(id)
   }
   async startInventory(id: string, runBy: string, now: Date) {
     const s = this.sources.get(id)
@@ -101,10 +136,12 @@ export class InMemoryIngestionStore implements IngestionStore {
     files: readonly InventoryFile[],
     folder: { name: string; ownerName: string | null },
     now: Date,
+    options?: { sessions: boolean },
   ) {
     const s = this.sources.get(run.studyId)
     if (!s || !this.#isCurrent(run)) return false
     this.files.set(run.studyId, [...files])
+    if (options?.sessions !== false) await this.#reconcile(run.studyId, files, now)
     this.sources.set(run.studyId, {
       ...s,
       folderName: folder.name,
@@ -176,8 +213,58 @@ export class InMemoryIngestionStore implements IngestionStore {
     }
     return result
   }
+  async accountNames(ids: readonly string[]) {
+    return new Map(ids.map((id) => [id, id]))
+  }
   async accountName(id: string) {
     return id
+  }
+  async #reconcile(studyId: string, files: readonly InventoryFile[], now: Date) {
+    const r = reconcileSessions({
+      studyId,
+      files,
+      sessions: await this.listSessions(studyId),
+      now,
+      newId,
+    })
+    for (const id of r.removed) this.sessions.delete(id)
+    for (const m of r.media) {
+      const s = this.sessions.get(m.id)
+      if (s)
+        this.sessions.set(m.id, { ...s, media: m.media, updatedAt: now, version: s.version + 1 })
+    }
+    for (const s of r.created) this.sessions.set(s.id, s)
+  }
+  async backfillSessions(studyId: string, now: Date) {
+    await this.#reconcile(studyId, this.files.get(studyId) ?? [], now)
+  }
+  async listSessions(studyId: string) {
+    return [...this.sessions.values()].filter((s) => s.studyId === studyId)
+  }
+  async getSession(id: string) {
+    return this.sessions.get(id) ?? null
+  }
+  async saveSession(s: Session, expected: number, release: readonly string[] = []) {
+    const before = new Map(this.sessions)
+    const taken = new Set(s.media.map((m) => m.fileId))
+    for (const id of release) {
+      const o = this.sessions.get(id)
+      if (!o || o.studyId !== s.studyId || !givesUpRecordings(o)) continue
+      const rest = withoutRecordings(o, taken, s.updatedAt)
+      if (rest) this.sessions.set(id, { ...rest, version: o.version + 1 })
+      else this.sessions.delete(id)
+    }
+    const written = this.#write(s, expected)
+    if (written !== 'saved') for (const [id, o] of before) this.sessions.set(id, o)
+    return written
+  }
+  async moveLink(from: Session, to: Session, expected: { from: number; to: number }) {
+    const before = new Map(this.sessions)
+    const cleared = this.#write(from, expected.from)
+    if (cleared !== 'saved') return cleared
+    const saved = this.#write(to, expected.to)
+    if (saved !== 'saved') for (const [id, s] of before) this.sessions.set(id, s)
+    return saved
   }
 }
 
@@ -187,6 +274,13 @@ export class InMemoryIngestion {
   readonly drive = new InMemoryDrive()
   /** Study id → account ids that can see it (the project's team). */
   readonly studies = new Map<string, string[]>()
+  /** Study id → its schedule (spec 006), for every person who can see the study. */
+  readonly schedules = new Map<string, PlannedSummary[]>()
+  readonly memberIds = new Set<string>(['alice', 'bob', 'admin'])
+  /** Simulates a schedule the research module could not read. */
+  scheduleUnreadable = false
+  /** Study id → type, `interviews` when not set. */
+  readonly studyTypes = new Map<string, string>()
   readonly jobs: InventoryJob[] = []
   /** Simulates a queue refusing the job (an equivalent one is still queued). */
   refuseJobs = false
@@ -195,6 +289,8 @@ export class InMemoryIngestion {
   readonly commands: ReturnType<typeof makeSourceCommands>
   readonly queries: ReturnType<typeof makeSourceQueries>
   readonly gate: ReturnType<typeof makeStudyActionGate>
+  readonly sessions: ReturnType<typeof makeSessionCommands>
+  readonly sessionQueries: ReturnType<typeof makeSessionQueries>
   readonly run: ReturnType<typeof makeRunInventory>
 
   constructor(
@@ -207,9 +303,19 @@ export class InMemoryIngestion {
       studies: {
         getStudyAccess: async (accountId, studyId) =>
           this.studies.get(studyId)?.includes(accountId)
-            ? { role: accountId === 'admin' ? 'admin' : 'member' }
+            ? {
+                role: accountId === 'admin' ? 'admin' : 'member',
+                type: this.studyTypes.get(studyId) ?? 'interviews',
+              }
             : null,
       },
+      schedule: {
+        list: async (accountId, studyId) =>
+          !this.scheduleUnreadable && this.studies.get(studyId)?.includes(accountId)
+            ? (this.schedules.get(studyId) ?? [])
+            : null,
+      },
+      members: { exist: async (ids) => ids.every((id) => this.memberIds.has(id)) },
       drive:
         options.configured === false ? null : { gateway: this.drive, authorization: this.drive },
       cipher: createTokenCipher(
@@ -227,6 +333,8 @@ export class InMemoryIngestion {
     this.commands = makeSourceCommands(this.deps)
     this.queries = makeSourceQueries(this.deps)
     this.gate = makeStudyActionGate(this.deps)
+    this.sessions = makeSessionCommands(this.deps)
+    this.sessionQueries = makeSessionQueries(this.deps)
     this.run = makeRunInventory(this.deps)
   }
 

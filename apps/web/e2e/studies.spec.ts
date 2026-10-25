@@ -23,10 +23,10 @@ test.describe('spec 002 — studies', () => {
     await expectAccessible(page)
     await dialog.getByRole('button', { name: 'Create study' }).click()
 
-    // Spec 003: the phases are tabs; the study opens on Analysis.
+    // Spec 003: the phases are tabs; the study opens on Fieldwork (spec 008).
     await expect(page.getByRole('tab', { name: '1 · Preparation' })).toBeVisible()
     await expect(page.getByRole('tab', { name: '2 · Fieldwork' })).toBeVisible()
-    await expect(page.getByRole('tab', { name: '3 · Analysis' })).toHaveAttribute(
+    await expect(page.getByRole('tab', { name: '2 · Fieldwork' })).toHaveAttribute(
       'aria-selected',
       'true',
     )

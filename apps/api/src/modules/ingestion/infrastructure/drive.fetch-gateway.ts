@@ -8,6 +8,7 @@ import {
 import { createGoogleRequests, type GoogleRequests } from './google-requests.ts'
 
 const API = 'https://www.googleapis.com/drive/v3'
+const DOCS_API = 'https://docs.googleapis.com/v1'
 const ITEM_FIELDS =
   'id,name,mimeType,parents,size,modifiedTime,webViewLink,trashed,driveId,owners(displayName),shortcutDetails(targetId,targetMimeType)'
 
@@ -68,6 +69,23 @@ export const createDriveFetchGateway = (options: {
       if (response.status === 401) throw new DriveConnectionLost()
       if (!response.ok) throw new Error(`drive files.get failed: ${response.status}`)
       return toItem((await response.json()) as RawItem)
+    },
+
+    documentTabs: async (refreshToken, fileId) => {
+      const url = new URL(`${DOCS_API}/documents/${encodeURIComponent(fileId)}`)
+      url.searchParams.set('includeTabsContent', 'true')
+      // Titles only: the text of the document is never asked for.
+      url.searchParams.set(
+        'fields',
+        'tabs(tabProperties/title,childTabs(tabProperties/title,childTabs(tabProperties/title)))',
+      )
+      const response = await get(refreshToken, url)
+      if (response.status === 401) throw new DriveConnectionLost()
+      if (!response.ok) return null
+      type Tab = { tabProperties?: { title?: string }; childTabs?: Tab[] }
+      const titles = (tabs: Tab[] = []): string[] =>
+        tabs.flatMap((t) => [t.tabProperties?.title ?? '', ...titles(t.childTabs)])
+      return titles(((await response.json()) as { tabs?: Tab[] }).tabs)
     },
 
     async *listChildren(refreshToken, parentIds, driveId) {

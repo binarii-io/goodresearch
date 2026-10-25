@@ -1,5 +1,6 @@
 export * from './ai-provider/ai-provider.ts';
 export * from './assistant/assistant.ts';
+export * from './fieldwork/fieldwork.ts';
 export * from './me/me.ts';
 export * from './members/members.ts';
 export * from './preparation/preparation.ts';

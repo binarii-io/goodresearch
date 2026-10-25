@@ -3,6 +3,7 @@ import { Badge } from './badge.tsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card.tsx'
 import { Skeleton } from './skeleton.tsx'
 import { GoogleDriveIcon } from './source-icons.tsx'
+import { StatTile, StatTiles } from './stat-tile.tsx'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table.tsx'
 
 const meta = { title: 'Display' } satisfies Meta
@@ -50,5 +51,16 @@ export const SourceIcons: StoryObj = {
     <span className="flex items-center gap-2">
       <GoogleDriveIcon /> Google Drive
     </span>
+  ),
+}
+
+export const StatTileRow: StoryObj = {
+  render: () => (
+    <StatTiles>
+      <StatTile label="Interviews found" value={12} detail="9 validated · 3 to review" />
+      <StatTile label="With a recording" value={8} detail="6 videos · 2 audio" />
+      <StatTile label="Planned interviews" value={14} detail="2 without a transcript yet" />
+      <StatTile label="Done in the schedule" value={10} />
+    </StatTiles>
   ),
 }

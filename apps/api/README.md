@@ -10,7 +10,7 @@ Fastify API and background worker of goodresearch: a modular monolith with one m
 | `src/compose.ts` | Composition root: builds adapters, modules and routes |
 | `src/platform/` | Cross-cutting infrastructure: database, auth library wiring, HTTP errors, logger, storage |
 | `src/modules/<context>/` | `domain/`, `application/{commands,queries}/`, `infrastructure/`, `tests/`, public `index.ts` |
-| `src/modules/ingestion/` | Sources of studies (spec 002): Drive connection, folder access, inventories (jobs run by `worker`) |
+| `src/modules/ingestion/` | Sources of studies (spec 002): Drive connection, folder access, inventories (jobs run by `worker`); the sessions (interviews) found in each inventory, matched to recordings and to the schedule (spec 008) |
 | `src/platform/jobs.ts` | Queues (pg-boss), created by `migrate`; the server enqueues, the worker runs |
 | `drizzle/` | Versioned SQL migrations (generated, plus hand-written constraints and cross-module foreign keys in `0001_access_rules.sql`, `0003_sources_rules.sql`) |
 | `tests/` | API component and integration tests (real PostgreSQL) |

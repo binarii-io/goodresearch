@@ -65,6 +65,14 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
     return false
   }
 
+  /** Tab titles of documents (spec 008); a document without an entry cannot be read. */
+  readonly tabs = new Map<string, string[]>()
+
+  async documentTabs(refreshToken: string, id: string): Promise<readonly string[] | null> {
+    this.#account(refreshToken)
+    return this.tabs.get(id) ?? null
+  }
+
   async getItem(refreshToken: string, id: string): Promise<DriveItem | null> {
     const account = this.#account(refreshToken)
     const item = this.items.get(id)

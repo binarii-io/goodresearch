@@ -19,7 +19,7 @@ test.describe('spec 007 — publishing the preparation to Drive', () => {
     await page.getByRole('button', { name: 'New study' }).click()
     await page.getByRole('dialog').getByLabel('Name').fill(`Drive study ${runId}`)
     await page.getByRole('dialog').getByRole('button', { name: 'Create study' }).click()
-    await expect(page.getByRole('tab', { name: '3 · Analysis' })).toHaveAttribute(
+    await expect(page.getByRole('tab', { name: '2 · Fieldwork' })).toHaveAttribute(
       'aria-selected',
       'true',
     )
@@ -34,7 +34,9 @@ test.describe('spec 007 — publishing the preparation to Drive', () => {
     if (await connect.isVisible()) await connect.click()
     await folderLink.fill('https://drive.google.com/drive/folders/dev-study-folder')
     await page.getByRole('button', { name: 'Attach folder' }).click()
-    await expect(page.getByText('Demo study folder').first()).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: 'Study folder: Demo study folder. Change it' }),
+    ).toBeVisible()
 
     // A guide written by hand and one planned interview.
     await page.getByRole('tab', { name: '1 · Preparation' }).click()

@@ -61,7 +61,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @goodresearch/web exec playwright install --with-deps chromium
       # Wait for the server only: migrate is a one-shot container that exits once done.
-      - run: docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait server
+      # The worker runs inventories; it has no healthcheck, so it is started after the server.
+      - run: |
+          docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait server
+          docker compose -f compose.yaml -f compose.dev.yaml up -d worker
       - run: pnpm e2e
       - if: failure()
         run: docker compose -f compose.yaml -f compose.dev.yaml logs

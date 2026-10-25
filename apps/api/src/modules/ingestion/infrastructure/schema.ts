@@ -1,5 +1,7 @@
+import { sql } from 'drizzle-orm'
 import {
   bigint,
+  boolean,
   index,
   integer,
   jsonb,
@@ -7,6 +9,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
 // Foreign keys to other modules (accounts, studies) live in migration SQL only (docs/standards.md §6).
@@ -91,3 +94,46 @@ export const ingestionOauthStates = pgTable('ingestion_oauth_states', {
   access: text('access').notNull().default('read'),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 })
+
+/** The interviews (sessions) of a study, built from its inventory (spec 008). */
+export const ingestionSessions = pgTable(
+  'ingestion_sessions',
+  {
+    id: text('id').primaryKey(),
+    studyId: text('study_id').notNull(),
+    /** Null for a recording without its transcript. */
+    transcriptFileId: text('transcript_file_id'),
+    media: jsonb('media')
+      .$type<{ fileId: string; confidence: 'high' | 'medium' | 'low' | null; reason: string }[]>()
+      .notNull(),
+    mediaEdited: boolean('media_edited').notNull().default(false),
+    state: text('state').notNull(),
+    excludedReason: text('excluded_reason'),
+    title: text('title'),
+    /** A planned interview of the research module (no foreign key across modules). */
+    plannedInterviewId: text('planned_interview_id'),
+    linkedBy: text('linked_by'),
+    roster: jsonb('roster')
+      .$type<
+        {
+          id: string
+          name: string
+          role: 'interviewer' | 'interviewee'
+          memberId: string | null
+        }[]
+      >()
+      .notNull(),
+    decidedBy: text('decided_by'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+    version: integer('version').notNull().default(1),
+  },
+  (t) => [
+    uniqueIndex('ingestion_sessions_transcript_idx').on(t.studyId, t.transcriptFileId),
+    uniqueIndex('ingestion_sessions_planned_idx')
+      .on(t.studyId, t.plannedInterviewId)
+      .where(sql`${t.plannedInterviewId} is not null`),
+    index('ingestion_sessions_state_idx').on(t.studyId, t.state),
+  ],
+)

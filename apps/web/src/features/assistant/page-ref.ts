@@ -11,12 +11,12 @@ export const usePageRef = (): AssistantPage => {
   if (project) return { kind: 'project', id: project }
   const study = /^\/studies\/([0-9a-f-]{36})(?:\/|$)/i.exec(pathname)?.[1]
   if (study) {
-    // The tab the person is on (the study opens on Analysis).
+    // The tab the person is on (the study opens on Fieldwork, spec 008).
     const phase = (search as { phase?: unknown }).phase
     return {
       kind: 'study',
       id: study,
-      phase: phase === 'preparation' || phase === 'fieldwork' ? phase : 'analysis',
+      phase: phase === 'preparation' || phase === 'analysis' ? phase : 'fieldwork',
     }
   }
   if (pathname === '/') return { kind: 'home' }

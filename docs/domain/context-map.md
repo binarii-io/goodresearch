@@ -83,10 +83,12 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 - **Source** — where a study's files live (`Connector`: Google Drive first; upload, other drives later). Holds the last **inventory** of files with `kind` (`transcript | media | other`) and `group` (first-level folder).
 - **Source connection** — a person's own grant to read a connector (e.g. Drive), separate from sign-in, encrypted, revocable; never used for someone else's request.
 - **Folder access** — a study with a source folder has a second access barrier: on top of the project's team, a person must have access to the folder at the source. Without it they see only the study's name and type. Admins can always detach the folder or delete the study.
-- **Session** — one interview occurrence: at most one transcript file + 0..n ordered media files. `status` `proposed | validated | excluded`, `matchConfidence` `high | medium | low` with a reason, optional custom title.
-- **Roster** — the people of a session, owned by the Session: **Interviewers** (the people conducting it, optionally linked to a workspace Member) and **Interviewees** (the people interviewed). Suggested from metadata, validated by the user. Other contexts reference roster entries by ID.
-- **Matching policy** — proposes sessions from file metadata. Rules (initial heuristic): only within a group; identical timestamp → high; same day ≤15 min or shared rare word → medium; shared rare word without date → low; different days → incompatible. A rare word appears in ≤3 files of the group.
-- Invariants: re-scanning replaces only `proposed` sessions; validated/excluded sessions and their files are **frozen**; a frozen file cannot be used elsewhere; a session needs at least one file; reopening ("back to review") is the only way to change a decided session.
+- **Session** (spec 008, the "interviews" of the Fieldwork phase) — one interview occurrence: at most one transcript file + 0..n ordered media files, at least one file. Each transcript of the inventory gives one session, validated by the app; a recording no transcript claims gets a session of its own, without transcript (shown with a warning); at most 500 per study. A Google document is a transcript only when one of its tabs holds the transcript (meeting notes alone are not interviews). `state` `proposed | validated | excluded` (with an optional exclusion reason); each media file has a confidence `high | medium | low` and a reason, or was added by a person; optional custom title; optional link to a **PlannedInterview** of the schedule (at most one session per planned interview).
+- **Roster** — the people of a session, owned by the Session: **Interviewers** (the people conducting it, optionally linked to a workspace Member; for now the person's own account) and **Interviewees** (the people interviewed). Prefilled from the linked planned interview, edited by people. Other contexts reference roster entries by ID.
+- **Matching policy** — matches media files to sessions from file metadata. Rules (initial heuristic): only within a group; timestamps within 1 minute → high; ≤15 min, or the same day with a shared rare word → medium; shared rare word without date → low; different days → incompatible; a tie on the best leaves the file unmatched. A rare word appears in ≤3 files of the group (numbers, words under 3 letters and common words such as "interview" or "transcript" excluded).
+- **Link suggestion** — the planned interview a proposed session probably belongs to, computed by the app at read time (never stored, never by an AI provider: the schedule holds real names): the interviewee whose name shares the most words with the transcript's file name, if no other shares as many; otherwise the only planned interview within 24 hours of the file's date. The person confirms or picks another one.
+- Validation: a session found with its transcript is `validated` by the app (no `decidedBy`) and stays open to changes; a person's decision (validate, exclude, or undo) freezes it.
+- Invariants: each inventory adds sessions for new transcripts and removes only sessions no person decided whose transcript is gone; sessions a person validated or excluded, and their files, are **frozen** (one whose file left the folder is kept, "file missing in Drive"); a file belongs to one session at most; reopening ("back to review") is the only way to change a decided session; replacing or detaching the folder discards the sessions.
 
 ### 4. Transcripts
 
@@ -181,7 +183,7 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Research goal | Objectif de recherche | |
 | Study | Étude | A method run to collect evidence; "Experiment" is not used (implies A/B testing) |
 | Study type: interviews | Entretiens | Later: survey (Questionnaire), usability test (Test utilisateur) |
-| Preparation / Fieldwork / Analysis | Préparation / Terrain / Analyse | Study phases |
+| Preparation / Fieldwork / Analysis | Préparation / Passation / Analyse | Study phases |
 | Interview guide | Guide d'entretien | |
 | Guide question | Question du guide | |
 | Framing | Cadrage | Objectives, hypotheses, audience, format of a guide |
@@ -198,6 +200,8 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Inventory | Inventaire | |
 | Connected sources | Sources connectées | |
 | Session | Session | UI label is "Interview / Entretien" for interview studies |
+| Proposed / Validated / Excluded (session) | Proposé / Validé / Exclu | States of a session |
+| Link suggestion | Suggestion | "Suggested: … (name in the file name / same date)" |
 | Transcript | Transcription | |
 | Segment | Tour de parole | One speaker turn |
 | Speaker | Locuteur | |

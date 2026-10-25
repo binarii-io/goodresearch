@@ -22,6 +22,7 @@ Guide for contributors and coding agents. Read before changing anything.
 - Commands change one aggregate and return `Result`; queries read SQL into DTOs and never touch aggregates.
 - Modules import each other only through `index.ts`; never another module's tables.
 - Validate every boundary input with Zod; never trust AI output (verify quotes and ids).
+- Every AI call goes through the AI Gateway, is recorded in the usage ledger, and its cost is shown in the screen that uses it (not only in the assistant panel).
 - No company or customer context and no real person's data in code, tests, fixtures, prompts or docs. Vendors appear only in adapters and docs, never in domain or application code.
 - Every user-facing string goes through Lingui (long-form content documents: one typed module per language, ADR-0006); every UI piece comes from `packages/ui`.
 - Domain rules are written test-first; prefer fakes over mocks.

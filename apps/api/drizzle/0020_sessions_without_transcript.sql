@@ -1,0 +1,1 @@
+ALTER TABLE "ingestion_sessions" ALTER COLUMN "transcript_file_id" DROP NOT NULL;

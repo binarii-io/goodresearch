@@ -100,7 +100,7 @@ Once a folder is attached, the study shows what it contains: every file in the f
 - **FR-002**: The type "interviews" MUST be the only selectable type; "survey" and "usability test" MUST be displayed as coming later and MUST NOT be selectable.
 - **FR-003**: A study MUST belong to exactly one project and follow that project's access rules (FR-011/FR-012 of spec 001): outside access, it does not exist.
 - **FR-004**: The project overview MUST list the project's studies, most recently updated first, with name, type, source status and last update; the folder name is shown only to people whose access to the folder was confirmed (FR-010a).
-- **FR-005**: The study page MUST show the name (editable in place, with the same conflict rule as projects), the type and the phases Preparation, Fieldwork and Analysis. In this feature, Preparation and Fieldwork describe what will come; Analysis holds the source folder and its inventory.
+- **FR-005**: The study page MUST show the name (editable in place, with the same conflict rule as projects), the type and the phases Preparation, Fieldwork and Analysis. In this feature, Preparation and Fieldwork describe what will come; Analysis holds the source folder and its inventory. *(Spec 008: the source folder and its inventory moved to Fieldwork, renamed « Passation » in French.)*
 - **FR-006**: Team members MUST be able to delete a study after confirmation; deleting a study removes its inventory from the app and never touches Drive.
 
 **Drive connection and folder access**

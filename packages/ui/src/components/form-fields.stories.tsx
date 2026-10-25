@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Checkbox } from './checkbox.tsx'
 import { Input } from './input.tsx'
 import { Label } from './label.tsx'
+import { Switch } from './switch.tsx'
 import { Textarea } from './textarea.tsx'
 
 const meta = { title: 'Form fields' } satisfies Meta
@@ -42,6 +43,16 @@ export const CheckboxField: StoryObj = {
     <div className="flex items-center gap-2">
       <Checkbox id="team" />
       <Label htmlFor="team">Research team</Label>
+    </div>
+  ),
+}
+
+export const OnOffSwitch: StoryObj = {
+  render: () => (
+    <div className="flex items-center gap-4">
+      <Switch aria-label="Validated" defaultChecked />
+      <Switch aria-label="Not validated" />
+      <Switch aria-label="Excluded" disabled />
     </div>
   ),
 }

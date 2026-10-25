@@ -45,6 +45,11 @@ export interface DriveGateway {
     parentIds: readonly string[],
     driveId?: string,
   ): AsyncIterable<DriveItem[]>
+  /**
+   * Titles of the tabs of a document (child tabs included), never its text (spec 008); null when
+   * it cannot be read.
+   */
+  documentTabs(refreshToken: string, fileId: string): Promise<readonly string[] | null>
 }
 
 /**

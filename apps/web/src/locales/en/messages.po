@@ -29,6 +29,11 @@ msgstr "(none)"
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# project} other {# projects}}"
 
+#. placeholder {0}: active.length
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{0, plural, one {of # interview} other {of # interviews}}"
+msgstr "{0, plural, one {of # interview} other {of # interviews}}"
+
 #. placeholder {0}: result.applied
 #. placeholder {1}: result.rejected
 #: src/features/preparation/drive-review.tsx
@@ -57,6 +62,15 @@ msgstr "{0} items in a new order"
 msgid "{0} min"
 msgstr "{0} min"
 
+#. placeholder {0}: data.skipped
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{0} more transcripts are in the folder: a study holds at most 500 interviews."
+msgstr "{0} more transcripts are in the folder: a study holds at most 500 interviews."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{audios, plural, one {# audio} other {# audio}}"
+msgstr "{audios, plural, one {# audio} other {# audio}}"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "{calls} calls · {tokens} tokens"
 msgstr "{calls} calls · {tokens} tokens"
@@ -69,13 +83,30 @@ msgstr "{count, plural, one {# project} other {# projects}}"
 msgid "{count} points"
 msgstr "{count} points"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{excluded} excluded"
+msgstr "{excluded} excluded"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "{flaggedCount} questions to review"
 msgstr "{flaggedCount} questions to review"
 
+#. placeholder {0}: data.plannedWithoutSession.length
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{linked} with a transcript · {0} without"
+msgstr "{linked} with a transcript · {0} without"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{missing} missing in Drive"
+msgstr "{missing} missing in Drive"
+
 #: src/features/ai/provider-forms.tsx
 msgid "{name} API key"
 msgstr "{name} API key"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{proposed} to review"
+msgstr "{proposed} to review"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "{sectionCount} sections · {questions} main questions · {minutes} min"
@@ -92,6 +123,22 @@ msgstr "{toReview} changes made in Drive have not been reviewed. Updating replac
 #: src/features/ingestion/source-panel.tsx
 msgid "{transcript} transcripts · {media} media · {other} other files"
 msgstr "{transcript} transcripts · {media} media · {other} other files"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{unmatched} not matched"
+msgstr "{unmatched} not matched"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{validated} validated"
+msgstr "{validated} validated"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{videos, plural, one {# video} other {# videos}}"
+msgstr "{videos, plural, one {# video} other {# videos}}"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{without} without transcript"
+msgstr "{without} without transcript"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "1 · Preparation"
@@ -189,6 +236,7 @@ msgstr "Account deleted"
 msgid "Account reactivated"
 msgstr "Account reactivated"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/preparation/schedule.tsx
 msgid "Actions"
 msgstr "Actions"
@@ -196,6 +244,10 @@ msgstr "Actions"
 #: src/features/workspace/member-labels.ts
 msgid "Active"
 msgstr "Active"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Add a person"
+msgstr "Add a person"
 
 #: src/features/preparation/guide-editor.tsx
 msgid "Add a question"
@@ -217,6 +269,10 @@ msgstr "Add team"
 msgid "Add to the schedule"
 msgstr "Add to the schedule"
 
+#: src/features/fieldwork/labels.ts
+msgid "added by hand"
+msgstr "added by hand"
+
 #: src/features/preparation/drive-review.tsx
 msgid "Added in Drive"
 msgstr "Added in Drive"
@@ -235,6 +291,15 @@ msgstr "AI is not configured on this instance."
 msgid "AI provider"
 msgstr "AI provider"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "All"
+msgstr "All"
+
+#. placeholder {0}: data.sessions.length
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "All ({0})"
+msgstr "All ({0})"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "All groups"
 msgstr "All groups"
@@ -250,6 +315,14 @@ msgstr "An inventory is already running for this study."
 #: src/features/assistant/proposal-card.tsx
 msgid "Analysis"
 msgstr "Analysis"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Analysis of the validated interviews is coming in a later version."
+msgstr "Analysis of the validated interviews is coming in a later version."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Another folder replaces the inventory and discards the {interviews} interviews found, with their links and decisions. Nothing changes in Drive."
+msgstr "Another folder replaces the inventory and discards the {interviews} interviews found, with their links and decisions. Nothing changes in Drive."
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "API key"
@@ -310,8 +383,8 @@ msgid "Attach folder"
 msgstr "Attach folder"
 
 #: src/features/workspace/errors.ts
-msgid "Attach the study's Drive folder first (Analysis tab)."
-msgstr "Attach the study's Drive folder first (Analysis tab)."
+msgid "Attach the study's Drive folder first (Fieldwork tab)."
+msgstr "Attach the study's Drive folder first (Fieldwork tab)."
 
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
@@ -340,6 +413,10 @@ msgstr "Back to projects"
 msgid "Back to research projects"
 msgstr "Back to research projects"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Back to review"
+msgstr "Back to review"
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Back to the project"
 msgstr "Back to the project"
@@ -356,11 +433,22 @@ msgstr "Better-designed studies, answers you can trust."
 msgid "Bias review"
 msgstr "Bias review"
 
+#. placeholder {0}: view.decidedBy.name ?? '—'
+#. placeholder {1}: formatDate(view.decidedAt)
+#: src/features/fieldwork/session-dialog.tsx
+msgid "by {0}, {1}"
+msgstr "by {0}, {1}"
+
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "by {actor}"
 msgstr "by {actor}"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "by the app: its transcript was found"
+msgstr "by the app: its transcript was found"
+
 #: src/features/assistant/panel.tsx
+#: src/features/fieldwork/session-dialog.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/guide-editor.tsx
 #: src/features/preparation/schedule.tsx
@@ -457,6 +545,12 @@ msgstr "Choose your AI provider"
 msgid "Claude models with an API key from your Anthropic account."
 msgstr "Claude models with an API key from your Anthropic account."
 
+#: src/features/ingestion/folder-button.tsx
+msgid "Click to change"
+msgstr "Click to change"
+
+#: src/features/fieldwork/session-dialog.tsx
+#: src/features/ingestion/folder-button.tsx
 #: src/features/preparation/best-practices.tsx
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/schedule.tsx
@@ -488,6 +582,16 @@ msgstr "Columns of the sheet"
 #: src/features/research/study-list.tsx
 msgid "coming later"
 msgstr "coming later"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Confirm"
+msgstr "Confirm"
+
+#. placeholder {0}: s.suggestion.interviewee
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Confirm {0} for {name}"
+msgstr "Confirm {0} for {name}"
 
 #: src/features/preparation/drive-publishing.tsx
 msgid "Conflict: changed in the app and in Drive"
@@ -582,6 +686,7 @@ msgstr "Ctrl+Enter to save, Escape to cancel"
 msgid "Current name"
 msgstr "Current name"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/preparation/schedule.tsx
 msgid "Date and time"
 msgstr "Date and time"
@@ -714,6 +819,10 @@ msgstr "Download (Markdown)"
 msgid "Durations are whole minutes from 1 to 180."
 msgstr "Durations are whole minutes from 1 to 180."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Each transcript of the folder is an interview. Link it to the planned interview, check its recordings and people, then validate it."
+msgstr "Each transcript of the folder is an interview. Link it to the planned interview, check its recordings and people, then validate it."
+
 #: src/features/preparation/preparation-tab.tsx
 msgid "Edit"
 msgstr "Edit"
@@ -759,6 +868,14 @@ msgstr "Enter to save, Escape to cancel"
 msgid "Enter who you will interview."
 msgstr "Enter who you will interview."
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Every person needs a name before you save or validate."
+msgstr "Every person needs a name before you save or validate."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Every planned interview has its transcript."
+msgstr "Every planned interview has its transcript."
+
 #: src/routes/_authenticated/welcome.tsx
 msgid "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
 msgstr "Every project belongs to a team, and people get access to projects through their teams. Create a first team to start."
@@ -767,9 +884,30 @@ msgstr "Every project belongs to a team, and people get access to projects throu
 msgid "Every project belongs to one team; its members work on the team's projects."
 msgstr "Every project belongs to one team; its members work on the team's projects."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Every recording is with its transcript."
+msgstr "Every recording is with its transcript."
+
 #: src/features/preparation/guide-editor.tsx
 msgid "Every section needs a title."
 msgstr "Every section needs a title."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Exclude"
+msgstr "Exclude"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Exclude the interview"
+msgstr "Exclude the interview"
+
+#: src/features/fieldwork/labels.ts
+msgid "Excluded"
+msgstr "Excluded"
+
+#. placeholder {0}: view.excludedReason
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Excluded because: {0}"
+msgstr "Excluded because: {0}"
 
 #: src/features/workspace/app-sidebar.tsx
 msgid "Expand the sidebar"
@@ -782,6 +920,18 @@ msgstr "Failed"
 #: src/features/assistant/proposal-card.tsx
 msgid "Fieldwork"
 msgstr "Fieldwork"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Fieldwork for this type of study is coming in a later version."
+msgstr "Fieldwork for this type of study is coming in a later version."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Fieldwork in numbers"
+msgstr "Fieldwork in numbers"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Files"
+msgstr "Files"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Final text"
@@ -823,6 +973,10 @@ msgstr "Format and logistics"
 #: src/features/preparation/guide-markdown.ts
 msgid "Framing"
 msgstr "Framing"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "from the schedule"
+msgstr "from the schedule"
 
 #: src/features/ai/labels.ts
 msgid "Gemini models in your own Google Cloud project, with your Google account."
@@ -917,6 +1071,7 @@ msgstr "Google will ask you to let goodresearch edit the Drive files you can edi
 msgid "GPT models with an API key from your OpenAI account."
 msgstr "GPT models with an API key from your OpenAI account."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/ingestion/source-panel.tsx
 msgid "Group"
 msgstr "Group"
@@ -932,6 +1087,10 @@ msgstr "Help me design the interview guide for this study."
 #: src/features/preparation/preparation-tab.tsx
 msgid "Help me improve the interview guide of this study."
 msgstr "Help me improve the interview guide of this study."
+
+#: src/features/fieldwork/labels.ts
+msgid "high confidence"
+msgstr "high confidence"
 
 #: src/features/preparation/best-practices.tsx
 msgid "How to run a neutral interview: phases, questions, follow-ups, biases, what is measured."
@@ -963,6 +1122,10 @@ msgstr "In sync"
 #: src/features/preparation/drive-review.tsx
 msgid "In the app"
 msgstr "In the app"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Interview"
+msgstr "Interview"
 
 #: src/features/preparation/drive-publishing.tsx
 msgid "Interview best practices"
@@ -1000,13 +1163,40 @@ msgstr "interview-best-practices.md"
 msgid "interview-guide"
 msgstr "interview-guide"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Interview: {name}"
+msgstr "Interview: {name}"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Interviewee"
+msgstr "Interviewee"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Interviewer"
+msgstr "Interviewer"
+
+#. placeholder {0}: who.interviewers.join(', ')
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Interviewer: {0}"
+msgstr "Interviewer: {0}"
+
 #: src/features/preparation/schedule.tsx
 msgid "Interviewer(s)"
 msgstr "Interviewer(s)"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/research/study-list.tsx
 msgid "Interviews"
 msgstr "Interviews"
+
+#. placeholder {0}: data.sessions.length
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Interviews ({0})"
+msgstr "Interviews ({0})"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Interviews found"
+msgstr "Interviews found"
 
 #: src/features/preparation/schedule.tsx
 msgid "Interviews per status"
@@ -1119,13 +1309,33 @@ msgstr "Looking at: study {name}"
 msgid "Looking at: this page"
 msgstr "Looking at: this page"
 
+#: src/features/fieldwork/labels.ts
+msgid "low confidence"
+msgstr "low confidence"
+
 #: src/features/workspace/app-sidebar.tsx
 msgid "Main"
 msgstr "Main"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Mark done"
+msgstr "Mark done"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Mark the planned interview done?"
+msgstr "Mark the planned interview done?"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Marked done in the schedule"
+msgstr "Marked done in the schedule"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Media"
 msgstr "Media"
+
+#: src/features/fieldwork/labels.ts
+msgid "medium confidence"
+msgstr "medium confidence"
 
 #: src/features/workspace/account-menu.tsx
 #: src/features/workspace/member-labels.ts
@@ -1177,6 +1387,14 @@ msgstr "Move section down"
 msgid "Move section up"
 msgstr "Move section up"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Move the link"
+msgstr "Move the link"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Move the link here?"
+msgstr "Move the link here?"
+
 #: src/features/assistant/proposal-card.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/research/create-project-dialog.tsx
@@ -1184,6 +1402,15 @@ msgstr "Move section up"
 #: src/routes/_authenticated/members/index.tsx
 msgid "Name"
 msgstr "Name"
+
+#: src/features/fieldwork/labels.ts
+msgid "name in the file name"
+msgstr "name in the file name"
+
+#. placeholder {0}: i + 1
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Name of person {0}"
+msgstr "Name of person {0}"
 
 #: src/routes/_authenticated/projects/$projectId.tsx
 #: src/routes/_authenticated/studies/$studyId.tsx
@@ -1243,9 +1470,21 @@ msgstr "No conversation yet."
 msgid "No folder yet"
 msgstr "No folder yet"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No interview matches these filters."
+msgstr "No interview matches these filters."
+
 #: src/features/preparation/schedule.tsx
 msgid "No interview planned yet."
 msgstr "No interview planned yet."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "No planned interview"
+msgstr "No planned interview"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "No recording found for this interview."
+msgstr "No recording found for this interview."
 
 #: src/features/research/study-list.tsx
 msgid "No study yet. A study collects evidence for this project, for example a series of interviews."
@@ -1254,6 +1493,26 @@ msgstr "No study yet. A study collects evidence for this project, for example a 
 #: src/routes/_authenticated/members/index.tsx
 msgid "No team yet"
 msgstr "No team yet"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No transcript"
+msgstr "No transcript"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No transcript found"
+msgstr "No transcript found"
+
+#: src/features/fieldwork/labels.ts
+msgid "no transcript found for it"
+msgstr "no transcript found for it"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "No transcript found: only a recording."
+msgstr "No transcript found: only a recording."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No transcript in the folder yet. Transcripts dropped in the folder appear here after a refresh."
+msgstr "No transcript in the folder yet. Transcripts dropped in the folder appear here after a refresh."
 
 #: src/routes/_authenticated/teams.tsx
 msgid "Nobody yet."
@@ -1270,6 +1529,10 @@ msgstr "Not connected. You will be asked to connect when you attach a folder to 
 #: src/features/workspace/not-found.tsx
 msgid "Not found"
 msgstr "Not found"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Not now"
+msgstr "Not now"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Not run"
@@ -1306,12 +1569,20 @@ msgid "Only admins can do this."
 msgstr "Only admins can do this."
 
 #: src/features/workspace/errors.ts
-msgid "Only interview studies have a guide and a schedule."
-msgstr "Only interview studies have a guide and a schedule."
+msgid "Only interview studies have a guide, a schedule and interviews."
+msgstr "Only interview studies have a guide, a schedule and interviews."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Open"
+msgstr "Open"
 
 #: src/features/assistant/panel.tsx
 msgid "Open · {when}"
 msgstr "Open · {when}"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Open {name}"
+msgstr "Open {name}"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Open a project"
@@ -1338,6 +1609,11 @@ msgstr "Open in Drive: {0}"
 msgid "Open the AI provider page"
 msgstr "Open the AI provider page"
 
+#. placeholder {0}: m.name
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Open the audio: {0}"
+msgstr "Open the audio: {0}"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Open the folder in Google Drive and copy the address from your browser."
 msgstr "Open the folder in Google Drive and copy the address from your browser."
@@ -1354,9 +1630,19 @@ msgstr "Open the project"
 msgid "Open the study"
 msgstr "Open the study"
 
+#. placeholder {0}: s.transcript.name
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Open the transcript: {0}"
+msgstr "Open the transcript: {0}"
+
 #: src/features/ai/provider-forms.tsx
 msgid "Open the Vertex AI API page of this project"
 msgstr "Open the Vertex AI API page of this project"
+
+#. placeholder {0}: m.name
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Open the video: {0}"
+msgstr "Open the video: {0}"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Opened the project"
@@ -1398,14 +1684,23 @@ msgstr "partial"
 msgid "Passed"
 msgstr "Passed"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "People"
+msgstr "People"
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "People join by signing in with an allowed email. Give them access to one or more teams to let them work on those teams' projects."
 msgstr "People join by signing in with an allowed email. Give them access to one or more teams to let them work on those teams' projects."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "People of the interview"
+msgstr "People of the interview"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Permission to call models"
 msgstr "Permission to call models"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/preparation/schedule.tsx
 msgid "Person to interview"
 msgstr "Person to interview"
@@ -1414,9 +1709,24 @@ msgstr "Person to interview"
 msgid "Plan an interview"
 msgstr "Plan an interview"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Planned interview"
 msgstr "Planned interview"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Planned interviews"
+msgstr "Planned interviews"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Planned interviews with no transcript in the folder yet."
+msgstr "Planned interviews with no transcript in the folder yet."
+
+#. placeholder {0}: data.plannedWithoutSession.length
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Planned only ({0})"
+msgstr "Planned only ({0})"
 
 #: src/features/preparation/labels.ts
 msgid "Postponed"
@@ -1447,6 +1757,10 @@ msgstr "Project name"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Projects"
 msgstr "Projects"
+
+#: src/features/fieldwork/labels.ts
+msgid "Proposed"
+msgstr "Proposed"
 
 #: src/routes/_authenticated/members/index.tsx
 #: src/routes/setup.ai-provider.tsx
@@ -1499,9 +1813,22 @@ msgstr "Read the whole guide"
 msgid "Reconnect Google"
 msgstr "Reconnect Google"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Recordings"
+msgstr "Recordings"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Recordings matched by the app, and the ones no other interview uses."
+msgstr "Recordings matched by the app, and the ones no other interview uses."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/ingestion/source-panel.tsx
 msgid "Refresh"
 msgstr "Refresh"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Refreshing…"
+msgstr "Refreshing…"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Region"
@@ -1527,6 +1854,11 @@ msgstr "Remove"
 #: src/features/preparation/guide-editor.tsx
 msgid "Remove or fill in the empty questions."
 msgstr "Remove or fill in the empty questions."
+
+#. placeholder {0}: i + 1
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Remove person {0}"
+msgstr "Remove person {0}"
 
 #. placeholder {0}: qi + 1
 #: src/features/preparation/guide-editor.tsx
@@ -1587,6 +1919,14 @@ msgstr "Research goal"
 msgid "Research projects"
 msgstr "Research projects"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Review"
+msgstr "Review"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Review {name}"
+msgstr "Review {name}"
+
 #: src/features/preparation/drive-publishing.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Review the changes from Drive"
@@ -1610,18 +1950,32 @@ msgstr "Role changed"
 msgid "Role changed to {to}"
 msgstr "Role changed to {to}"
 
+#. placeholder {0}: i + 1
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Role of person {0}"
+msgstr "Role of person {0}"
+
 #: src/features/ai/provider-forms.tsx
 msgid "Run the checks"
 msgstr "Run the checks"
-
-#: src/routes/_authenticated/studies/$studyId.tsx
-msgid "Run the interviews; recordings and transcripts land in the study's Drive folder."
-msgstr "Run the interviews; recordings and transcripts land in the study's Drive folder."
 
 #: src/features/ai/provider-forms.tsx
 msgid "Running the checks…"
 msgstr "Running the checks…"
 
+#: src/features/fieldwork/labels.ts
+msgid "same date"
+msgstr "same date"
+
+#: src/features/fieldwork/labels.ts
+msgid "same meeting in their names"
+msgstr "same meeting in their names"
+
+#: src/features/fieldwork/labels.ts
+msgid "same time"
+msgstr "same time"
+
+#: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/schedule.tsx
 msgid "Save"
 msgstr "Save"
@@ -1658,6 +2012,11 @@ msgstr "See the guide"
 #: src/features/assistant/panel.tsx
 msgid "Send"
 msgstr "Send"
+
+#. placeholder {0}: word ?? ''
+#: src/features/fieldwork/labels.ts
+msgid "shared word “{0}”"
+msgstr "shared word “{0}”"
 
 #: src/routes/sign-in.tsx
 msgid "Sign in with {provider}"
@@ -1700,6 +2059,11 @@ msgstr "Something went wrong. Please try again."
 msgid "Sources goodresearch reads with your own permission. They are separate from signing in."
 msgstr "Sources goodresearch reads with your own permission. They are separate from signing in."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "State"
+msgstr "State"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/preparation/schedule.tsx
 #: src/routes/_authenticated/members/index.tsx
 msgid "Status"
@@ -1717,6 +2081,15 @@ msgstr "Stopped"
 msgid "Studies"
 msgstr "Studies"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/ingestion/folder-button.tsx
+msgid "Study folder"
+msgstr "Study folder"
+
+#: src/features/ingestion/folder-button.tsx
+msgid "Study folder: {folderName}. Change it"
+msgstr "Study folder: {folderName}. Change it"
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Study name"
 msgstr "Study name"
@@ -1724,6 +2097,17 @@ msgstr "Study name"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Study phases"
 msgstr "Study phases"
+
+#. placeholder {0}: s.suggestion.interviewee
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Suggested: {0}"
+msgstr "Suggested: {0}"
+
+#. placeholder {0}: view.suggestion.interviewee
+#. placeholder {1}: i18n._(SUGGESTION_RULES[view.suggestion.rule])
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Suggested: {0} ({1})"
+msgstr "Suggested: {0} ({1})"
 
 #: src/features/preparation/labels.ts
 msgid "suggests the answer"
@@ -1795,6 +2179,10 @@ msgstr "The best practices are not brought back: the next update replaces this."
 msgid "The check did not work for an unexpected reason."
 msgstr "The check did not work for an unexpected reason."
 
+#: src/features/ingestion/folder-button.tsx
+msgid "The Drive folder the interviews come from."
+msgstr "The Drive folder the interviews come from."
+
 #: src/features/workspace/errors.ts
 msgid "The email you typed does not match."
 msgstr "The email you typed does not match."
@@ -1826,6 +2214,15 @@ msgstr "the Google Drive permission was revoked; reconnect from Connected source
 #: src/features/preparation/preparation-tab.tsx
 msgid "The guide holds the framing (objectives, hypotheses, audience, format) and the questions of the four phases: introduction, warm-up, one section per research theme, wrap-up. It is used during the interviews, then to check their coverage and to group the findings by theme."
 msgstr "The guide holds the framing (objectives, hypotheses, audience, format) and the questions of the four phases: introduction, warm-up, one section per research theme, wrap-up. It is used during the interviews, then to check their coverage and to group the findings by theme."
+
+#. placeholder {0}: view.link?.interviewee ?? ''
+#: src/features/fieldwork/session-dialog.tsx
+msgid "The interview with {0} is validated. Its row in the schedule can be marked done."
+msgstr "The interview with {0} is validated. Its row in the schedule can be marked done."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "The inventory and the {interviews} interviews found, with their links and decisions, are removed from goodresearch. Nothing changes in Drive."
+msgstr "The inventory and the {interviews} interviews found, with their links and decisions, are removed from goodresearch. Nothing changes in Drive."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "The inventory failed ({reason})."
@@ -1876,8 +2273,12 @@ msgid "The schedule is full: at most 300 interviews per study."
 msgstr "The schedule is full: at most 300 interviews per study."
 
 #: src/routes/_authenticated/studies/$studyId.tsx
-msgid "The study and its inventory are removed from goodresearch. Nothing changes in Drive."
-msgstr "The study and its inventory are removed from goodresearch. Nothing changes in Drive."
+msgid "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
+msgstr "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "The transcript is missing in Drive."
+msgstr "The transcript is missing in Drive."
 
 #: src/features/ai/labels.ts
 msgid "The Vertex AI API is not enabled in this project."
@@ -1928,12 +2329,28 @@ msgid "This Google Cloud project does not exist or your account cannot open it."
 msgstr "This Google Cloud project does not exist or your account cannot open it."
 
 #: src/features/workspace/errors.ts
+msgid "This interview is no longer in the folder's list."
+msgstr "This interview is no longer in the folder's list."
+
+#: src/features/workspace/errors.ts
 msgid "This interview is no longer in the schedule."
 msgstr "This interview is no longer in the schedule."
 
 #: src/features/workspace/errors.ts
+msgid "This interview was already decided. Reload to see where it stands."
+msgstr "This interview was already decided. Reload to see where it stands."
+
+#: src/features/workspace/errors.ts
+msgid "This interview was already validated or excluded. Reopen it first."
+msgstr "This interview was already validated or excluded. Reopen it first."
+
+#: src/features/workspace/errors.ts
 msgid "This is already published in the Drive folder."
 msgstr "This is already published in the Drive folder."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "This is me"
+msgstr "This is me"
 
 #: src/features/workspace/errors.ts
 msgid "This is not the link of a Google Drive folder."
@@ -1946,6 +2363,18 @@ msgstr "This page does not exist or you do not have access to it."
 #: src/features/workspace/errors.ts
 msgid "This person does not exist."
 msgstr "This person does not exist."
+
+#: src/features/workspace/errors.ts
+msgid "This planned interview is already linked to another interview."
+msgstr "This planned interview is already linked to another interview."
+
+#: src/features/workspace/errors.ts
+msgid "This planned interview is linked to an interview already validated or excluded. Reopen that one first."
+msgstr "This planned interview is linked to an interview already validated or excluded. Reopen that one first."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "This planned interview is linked to another interview. Moving it removes that link."
+msgstr "This planned interview is linked to another interview. Moving it removes that link."
 
 #: src/features/workspace/errors.ts
 msgid "This project does not exist or you do not have access to it."
@@ -1964,6 +2393,10 @@ msgid "This published file is no longer known."
 msgstr "This published file is no longer known."
 
 #: src/features/workspace/errors.ts
+msgid "This recording is used by another interview."
+msgstr "This recording is used by another interview."
+
+#: src/features/workspace/errors.ts
 msgid "This study does not exist or you do not have access to it."
 msgstr "This study does not exist or you do not have access to it."
 
@@ -1979,6 +2412,7 @@ msgstr "This team still has {projects}. Move them to another team first."
 msgid "This team still has projects. Move them to another team first."
 msgstr "This team still has projects. Move them to another team first."
 
+#: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/guide-editor.tsx
 msgid "Title"
 msgstr "Title"
@@ -2001,8 +2435,17 @@ msgid "Total duration: {total} min"
 msgstr "Total duration: {total} min"
 
 #: src/features/ingestion/source-panel.tsx
+#: src/features/preparation/schedule.tsx
 msgid "Transcript"
 msgstr "Transcript"
+
+#: src/features/preparation/schedule.tsx
+msgid "Transcript found"
+msgstr "Transcript found"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Transcript missing"
+msgstr "Transcript missing"
 
 #: src/features/ai/labels.ts
 msgid "Try again in a moment."
@@ -2068,6 +2511,19 @@ msgstr "Use the project ID, not its name: lower-case letters, digits and hyphens
 msgid "Using the skill: {name}"
 msgstr "Using the skill: {name}"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Validate"
+msgstr "Validate"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/fieldwork/labels.ts
+msgid "Validated"
+msgstr "Validated"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Validated: {name}"
+msgstr "Validated: {name}"
+
 #. placeholder {0}: g.version + 1
 #: src/features/preparation/preparation-tab.tsx
 msgid "Version {0} · changes from Drive accepted by {who} {when}"
@@ -2098,6 +2554,27 @@ msgstr "Welcome to goodresearch"
 #: src/features/preparation/schedule.tsx
 msgid "Who to interview, when and by whom. Shared with the people who can open this study; never sent to the assistant."
 msgstr "Who to interview, when and by whom. Shared with the people who can open this study; never sent to the assistant."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Why exclude it? (optional)"
+msgstr "Why exclude it? (optional)"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "With a recording"
+msgstr "With a recording"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "With a transcript"
+msgstr "With a transcript"
+
+#: src/features/fieldwork/labels.ts
+msgid "within 15 minutes"
+msgstr "within 15 minutes"
+
+#. placeholder {0}: withoutTranscript.length
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Without transcript ({0})"
+msgstr "Without transcript ({0})"
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Working"

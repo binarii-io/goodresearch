@@ -84,6 +84,18 @@ export {
   UpdateProjectGoal,
 } from './research.ts'
 export {
+  DecideSession,
+  EditSession,
+  Fieldwork,
+  LinkSession,
+  MatchConfidence,
+  RosterEntry,
+  RosterRole,
+  Session,
+  SessionParams,
+  SessionState,
+} from './sessions.ts'
+export {
   AccessEventType,
   AccessHistoryEntry,
   AccountStatus,

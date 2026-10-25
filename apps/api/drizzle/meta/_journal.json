@@ -134,6 +134,27 @@
       "when": 1792945250775,
       "tag": "0018_publishing_base_rev",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792947688692,
+      "tag": "0019_fieldwork_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792951440783,
+      "tag": "0020_sessions_without_transcript",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792952483180,
+      "tag": "0021_sessions_validated_by_app",
+      "breakpoints": true
     }
   ]
 }

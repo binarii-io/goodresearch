@@ -1,0 +1,48 @@
+import { cn } from 'cn'
+import type * as React from 'react'
+
+/**
+ * One headline number with its label and a short detail ("Interviews found · 12 · 9 validated").
+ * A list of tiles is a `<dl>`: each tile is a group of a term and its value.
+ */
+function StatTiles({ className, ...props }: React.ComponentProps<'dl'>) {
+  return (
+    <dl
+      data-slot="stat-tiles"
+      className={cn('grid grid-cols-2 gap-3 lg:grid-cols-4', className)}
+      {...props}
+    />
+  )
+}
+
+function StatTile({
+  className,
+  label,
+  value,
+  detail,
+  icon,
+  ...props
+}: Omit<React.ComponentProps<'div'>, 'children'> & {
+  label: React.ReactNode
+  value: React.ReactNode
+  detail?: React.ReactNode
+  /** Decorative: the label names the tile. */
+  icon?: React.ReactNode
+}) {
+  return (
+    <div
+      data-slot="stat-tile"
+      className={cn('grid content-start gap-1 rounded-lg border bg-card p-4', className)}
+      {...props}
+    >
+      <dt className="flex items-center gap-1.5 text-muted-foreground text-sm [&>svg]:size-4">
+        {icon}
+        {label}
+      </dt>
+      <dd className="font-semibold text-3xl">{value}</dd>
+      {detail ? <dd className="text-muted-foreground text-xs">{detail}</dd> : null}
+    </div>
+  )
+}
+
+export { StatTile, StatTiles }

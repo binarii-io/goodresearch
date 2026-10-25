@@ -6,8 +6,10 @@ import type { Db } from '#platform/db.ts'
 import type { JobHandler } from '#platform/jobs.ts'
 import { QUEUES } from '#platform/jobs.ts'
 import { makeRunInventory } from '../application/commands/run-inventory.ts'
+import { makeSessionCommands } from '../application/commands/session-commands.ts'
 import { makeSourceCommands } from '../application/commands/source-commands.ts'
-import type { IngestionDeps, StudyDirectory } from '../application/ports.ts'
+import type { IngestionDeps, Members, Schedule, StudyDirectory } from '../application/ports.ts'
+import { makeSessionQueries } from '../application/queries/session-queries.ts'
 import { makeSourceQueries, makeStudyActionGate } from '../application/queries/source-queries.ts'
 import { makeStudyFiles } from '../application/study-files.ts'
 import type { DriveDocuments } from '../domain/drive-documents.ts'
@@ -43,6 +45,9 @@ export const createIngestionModule = (deps: {
   clock: Clock
   config: Pick<AppConfig, 'appUrl' | 'authSecret' | 'google' | 'driveFake'>
   studies: StudyDirectory
+  /** The study's schedule (research module), for link suggestions (spec 008). */
+  schedule: Schedule
+  members: Members
   enqueue: (queue: string, data: object, options: { singletonKey: string }) => Promise<boolean>
   drive?: {
     gateway: DriveGateway
@@ -69,6 +74,8 @@ export const createIngestionModule = (deps: {
   const ingestion: IngestionDeps = {
     store: createIngestionStore(deps.db),
     studies: deps.studies,
+    schedule: deps.schedule,
+    members: deps.members,
     drive,
     cipher: createTokenCipher(config.authSecret, CIPHER_PURPOSES.sourceConnections),
     // One job per run: an invalidated run still in flight never blocks the next one.
@@ -80,6 +87,8 @@ export const createIngestionModule = (deps: {
   const handlers: IngestionHandlers = {
     commands: makeSourceCommands(ingestion),
     queries: makeSourceQueries(ingestion),
+    sessions: makeSessionCommands(ingestion),
+    sessionQueries: makeSessionQueries(ingestion),
     ...(devDrive ? { devEdit: devDrive.edit } : {}),
   }
   const jobs: JobHandler[] = [

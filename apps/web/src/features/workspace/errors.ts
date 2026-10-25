@@ -27,14 +27,20 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   PROPOSAL_NOT_FOUND: msg`This proposal does not exist any more.`,
   PLANNED_INTERVIEW_NOT_FOUND: msg`This interview is no longer in the schedule.`,
   SCHEDULE_FULL: msg`The schedule is full: at most 300 interviews per study.`,
-  NOT_AN_INTERVIEW_STUDY: msg`Only interview studies have a guide and a schedule.`,
   DRIVE_WRITE_REQUIRED: msg`Let goodresearch edit your Drive files first.`,
   ALREADY_PUBLISHED: msg`This is already published in the Drive folder.`,
-  NO_SOURCE_FOLDER: msg`Attach the study's Drive folder first (Analysis tab).`,
+  NO_SOURCE_FOLDER: msg`Attach the study's Drive folder first (Fieldwork tab).`,
   DRIVE_CHANGES_PENDING: msg`Changes made in Drive are waiting for review.`,
   DRIVE_CHANGED_MEANWHILE: msg`The file changed in Drive meanwhile. It was checked again: review it, then update.`,
   DRIVE_CANNOT_EDIT: msg`You can view this file in Drive but not edit it.`,
   PUBLICATION_NOT_FOUND: msg`This published file is no longer known.`,
+  SESSION_NOT_FOUND: msg`This interview is no longer in the folder's list.`,
+  SESSION_DECIDED: msg`This interview was already validated or excluded. Reopen it first.`,
+  INVALID_TRANSITION: msg`This interview was already decided. Reload to see where it stands.`,
+  PLANNED_INTERVIEW_LINKED: msg`This planned interview is already linked to another interview.`,
+  MEDIA_UNAVAILABLE: msg`This recording is used by another interview.`,
+  LINKED_TO_DECIDED_SESSION: msg`This planned interview is linked to an interview already validated or excluded. Reopen that one first.`,
+  NOT_AN_INTERVIEW_STUDY: msg`Only interview studies have a guide, a schedule and interviews.`,
 }
 
 /** One translated sentence for an error code (never technical details). */

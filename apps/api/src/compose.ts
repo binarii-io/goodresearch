@@ -76,6 +76,17 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     clock,
     config,
     studies: { getStudyAccess: research.getStudyAccess },
+    schedule: {
+      // Fieldwork is shown only to people who can act on the study: same gate as the schedule.
+      list: async (accountId, studyId) => {
+        const planned = await bound(research).handlers.preparationQueries.listPlannedInterviews(
+          accountId,
+          studyId,
+        )
+        return planned.ok ? planned.value : null
+      },
+    },
+    members: { exist: workspace.membersExist },
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
     ...(infra.drive !== undefined ? { drive: infra.drive } : {}),
   })

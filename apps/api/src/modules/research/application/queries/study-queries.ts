@@ -73,13 +73,13 @@ export const makeStudyQueries = (deps: {
     getStudyAccess: async (
       accountId: string,
       studyId: string,
-    ): Promise<{ role: 'admin' | 'member' } | null> => {
+    ): Promise<{ role: 'admin' | 'member'; type: string } | null> => {
       const [study] = await db
-        .select({ projectId: researchStudies.projectId })
+        .select({ projectId: researchStudies.projectId, type: researchStudies.type })
         .from(researchStudies)
         .where(eq(researchStudies.id, studyId))
       const visible = study ? await projectFor(accountId, study.projectId) : null
-      return visible ? { role: visible.role } : null
+      return visible && study ? { role: visible.role, type: study.type } : null
     },
   }
 }

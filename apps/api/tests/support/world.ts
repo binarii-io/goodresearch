@@ -1,4 +1,5 @@
 import type { StartedTestContainer } from 'testcontainers'
+import type { ModelRunner } from '../../src/modules/ai-gateway/application/ports.ts'
 import type { InMemoryDrive } from '../../src/modules/ingestion/tests/fakes/in-memory-drive.ts'
 import { workspaceTeamMemberships } from '../../src/modules/workspace/infrastructure/schema.ts'
 import type { Db } from '../../src/platform/db.ts'
@@ -9,7 +10,7 @@ import { startMockOidc } from './oidc.ts'
 
 /** A running app with its own database and identity provider, plus helpers to arrange data. */
 export const startWorld = async (
-  options: { drive?: InMemoryDrive; config?: Record<string, string> } = {},
+  options: { drive?: InMemoryDrive; config?: Record<string, string>; runner?: ModelRunner } = {},
 ) => {
   const oidc: { issuer: string; container: StartedTestContainer } = await startMockOidc()
   const database = await createTestDatabase()
@@ -18,6 +19,7 @@ export const startWorld = async (
     database.db,
     {
       ...(options.drive ? { drive: options.drive } : {}),
+      ...(options.runner ? { runner: options.runner } : {}),
     },
   )
   const db: Db = database.db

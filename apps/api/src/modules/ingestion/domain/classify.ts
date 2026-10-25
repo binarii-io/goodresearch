@@ -1,7 +1,9 @@
 export type FileKind = 'transcript' | 'media' | 'other'
 
+export const GOOGLE_DOC_MIME = 'application/vnd.google-apps.document'
+
 const TRANSCRIPT_MIME = new Set([
-  'application/vnd.google-apps.document',
+  GOOGLE_DOC_MIME,
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'text/plain',
@@ -9,6 +11,13 @@ const TRANSCRIPT_MIME = new Set([
   'application/x-subrip',
 ])
 const TRANSCRIPT_EXTENSIONS = ['.doc', '.docx', '.txt', '.vtt', '.srt']
+
+/**
+ * Spec 008: a document with tabs (meeting notes with their transcript) is an interview file only
+ * when one of its tabs is the transcript ("Transcript", "Transcription"…).
+ */
+export const hasTranscriptTab = (tabs: readonly string[]): boolean =>
+  tabs.some((title) => /transcri/i.test(title))
 
 /** FR-013: transcripts (documents, text, subtitles), media (audio, video), everything else. */
 export const classifyFile = (file: { name: string; mimeType: string }): FileKind => {

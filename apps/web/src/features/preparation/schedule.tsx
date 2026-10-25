@@ -3,6 +3,7 @@ import {
   type PlannedInterview,
   useAddPlannedInterview,
   useDeletePlannedInterview,
+  useGetFieldwork,
   useListPlannedInterviews,
   useUpdatePlannedInterview,
 } from '@goodresearch/api-client'
@@ -48,6 +49,7 @@ import {
 import { Textarea } from '@goodresearch/ui/components/textarea'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { type FormEvent, useId, useState } from 'react'
 import { toast } from 'sonner'
 import { errorMessage } from '../workspace/errors.ts'
@@ -263,6 +265,11 @@ export function InterviewSchedule({ studyId, studyName }: { studyId: string; stu
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const list = useListPlannedInterviews(studyId)
+  // Spec 008: which planned interviews have their transcript in the folder.
+  const fieldwork = useGetFieldwork(studyId)
+  const found = new Set(
+    (fieldwork.data?.sessions ?? []).flatMap((s) => (s.link ? [s.link.plannedInterviewId] : [])),
+  )
   const remove = useDeletePlannedInterview()
   const [editing, setEditing] = useState<{ row: PlannedInterview | null; n: number } | null>(null)
   const rows = list.data ?? []
@@ -336,6 +343,7 @@ export function InterviewSchedule({ studyId, studyName }: { studyId: string; stu
                 <TableHead>{t`Interviewer(s)`}</TableHead>
                 <TableHead>{t`Date and time`}</TableHead>
                 <TableHead>{t`Status`}</TableHead>
+                <TableHead>{t`Transcript`}</TableHead>
                 <TableHead>{t`Notes`}</TableHead>
                 <TableHead>
                   <span className="sr-only">{t`Actions`}</span>
@@ -352,6 +360,19 @@ export function InterviewSchedule({ studyId, studyName }: { studyId: string; stu
                     {r.scheduledAt ? date.format(new Date(r.scheduledAt)) : '—'}
                   </TableCell>
                   <TableCell>{i18n._(PLANNED_STATUSES[r.status])}</TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {found.has(r.id) ? (
+                      <Link
+                        to="."
+                        search={(previous) => ({ ...previous, phase: 'fieldwork' })}
+                        className="underline"
+                      >
+                        {t`Transcript found`}
+                      </Link>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
                   <TableCell className="max-w-56 truncate" title={r.notes}>
                     {r.notes}
                   </TableCell>

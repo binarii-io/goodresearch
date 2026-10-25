@@ -4,13 +4,43 @@ import type { DriveAuthorization, DriveGateway } from '../domain/drive-gateway.t
 import type { FolderAccessResult } from '../domain/folder-access.ts'
 import type { InventoryRun } from '../domain/inventory-run.ts'
 import type { InventoryFile, InventoryProgress } from '../domain/inventory-walk.ts'
+import type { Session } from '../domain/session.ts'
 
 export type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
 
 /** Who may see a study at all (its project's team): implemented by the research module. */
 export type StudyDirectory = {
-  getStudyAccess(accountId: string, studyId: string): Promise<{ role: 'admin' | 'member' } | null>
+  getStudyAccess(
+    accountId: string,
+    studyId: string,
+  ): Promise<{ role: 'admin' | 'member'; type: string } | null>
 }
+
+/** A planned interview of a study's schedule (spec 006), as fieldwork needs it. */
+export type PlannedSummary = {
+  readonly id: string
+  readonly interviewee: string
+  readonly interviewers: string
+  readonly scheduledAt: string | null
+  readonly status: 'to-contact' | 'invited' | 'scheduled' | 'done' | 'postponed' | 'cancelled'
+  readonly version: number
+}
+
+/**
+ * The study's schedule, read with the person's own access (research module); `null` when it could
+ * not be read, so a link is never dropped on a doubt (PR #8 review).
+ */
+export type Schedule = {
+  list(accountId: string, studyId: string): Promise<readonly PlannedSummary[] | null>
+}
+
+/** Workspace members, for the interviewers of a session (spec 008 FR-008). */
+export type Members = {
+  exist(ids: readonly string[]): Promise<boolean>
+}
+
+/** Result of a conditional write of a session. */
+export type SessionWrite = 'saved' | 'stale' | 'linked' | 'media-taken'
 
 export type SourceConnection = {
   readonly accountId: string
@@ -74,19 +104,24 @@ export interface IngestionStore {
   /** Returns and deletes the state, or null if unknown or expired. */
   takeOauthState(state: string, now: Date): Promise<OauthState | null>
   getSource(studyId: string): Promise<StudySource | null>
-  /** Attaches (or replaces) a folder: previous files, access checks and runs are discarded. */
+  /** Attaches (or replaces) a folder: previous files, sessions, access checks and runs are discarded. */
   attachSource(source: StudySource): Promise<void>
   deleteSource(studyId: string): Promise<void>
   /** Starts a new run unless an active (non-stale) one exists; returns it, or null. */
   startInventory(studyId: string, runBy: string, now: Date): Promise<InventoryRun | null>
   /** The writes below apply only to the current run of the same folder (see InventoryRun). */
   updateProgress(run: InventoryRun, progress: InventoryProgress): Promise<void>
-  /** Replaces the files and marks the run done, atomically; false when the run is no longer current. */
+  /**
+   * Replaces the files, reconciles the sessions (spec 008 FR-002) and marks the run done, atomically;
+   * false when the run is no longer current.
+   */
   completeInventory(
     run: InventoryRun,
     files: readonly InventoryFile[],
     folder: { name: string; ownerName: string | null },
     now: Date,
+    /** Only interview studies have sessions. */
+    options?: { sessions: boolean },
   ): Promise<boolean>
   failInventory(run: InventoryRun, failure: InventoryFailure, now: Date): Promise<void>
   getFolderAccess(
@@ -113,6 +148,32 @@ export interface IngestionStore {
     studyIds: readonly string[],
   ): Promise<ReadonlyMap<string, { folderName: string | null }>>
   accountName(accountId: string): Promise<string | null>
+  /** Names of several accounts in one read (deleted accounts have none). */
+  accountNames(accountIds: readonly string[]): Promise<ReadonlyMap<string, string>>
+  listSessions(studyId: string): Promise<Session[]>
+  getSession(id: string): Promise<Session | null>
+  /**
+   * Writes the session if its version is still `expected` (and adds one), under the study's lock;
+   * `linked` when its planned interview is held by another session of the study, `media-taken`
+   * when another session holds one of its recordings (FR-004).
+   */
+  saveSession(
+    session: Session,
+    expected: number,
+    /**
+     * Rows without transcript whose recordings join this session: they lose them in the same
+     * transaction, and go when none is left.
+     */
+    release?: readonly string[],
+  ): Promise<SessionWrite>
+  /** Proposes the sessions of an inventory taken before sessions existed (spec 008 SC-001). */
+  backfillSessions(studyId: string, now: Date): Promise<void>
+  /** Clears `from`'s link and writes `to`, both versions checked, in one transaction. */
+  moveLink(
+    from: Session,
+    to: Session,
+    expected: { from: number; to: number },
+  ): Promise<SessionWrite>
 }
 
 export type InventoryJob = InventoryRun & { readonly accountId: string }
@@ -120,6 +181,8 @@ export type InventoryJob = InventoryRun & { readonly accountId: string }
 export type IngestionDeps = {
   readonly store: IngestionStore
   readonly studies: StudyDirectory
+  readonly schedule: Schedule
+  readonly members: Members
   readonly drive: {
     readonly gateway: DriveGateway
     readonly authorization: DriveAuthorization
