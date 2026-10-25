@@ -35,6 +35,8 @@ x-dev-env: &dev-env
   GOOGLE_CLIENT_SECRET: ""
   GOOGLE_DRIVE_CLIENT_ID: ""
   GOOGLE_DRIVE_CLIENT_SECRET: ""
+  # Simulated Google Drive (spec 007): consent, a demo folder, published files in memory.
+  DRIVE_FAKE: "true"
   # Test AI provider (spec 004): keys starting with "test-ok" work, no real provider is called.
   AI_FAKE_PROVIDER: "true"
   # A price for the test model, so costs show in the dev stack (USD per million tokens).

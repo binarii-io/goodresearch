@@ -15,6 +15,7 @@ import { errorMessage } from '../workspace/errors.ts'
 import { useFormatRelative } from '../workspace/format.ts'
 import { BestPracticesCard } from './best-practices.tsx'
 import { downloadText, slug } from './download.ts'
+import { DriveButton, DriveStatus } from './drive-publishing.tsx'
 import { GuideEditor, useEmptyGuide } from './guide-editor.tsx'
 import { guideToMarkdown } from './guide-markdown.ts'
 import { GuideView, questionCount } from './guide-view.tsx'
@@ -48,7 +49,7 @@ export function PreparationTab({ studyId, studyName }: { studyId: string; studyN
 
   return (
     <div className="grid gap-8">
-      <p className="text-muted-foreground text-base">{t`Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews.`}</p>
+      <p className="text-muted-foreground text-base">{t`Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews. Each one can be published to the study's Drive folder: edits made there come back here for review.`}</p>
 
       <section aria-labelledby="guide-heading" className="grid gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -79,9 +80,12 @@ export function PreparationTab({ studyId, studyName }: { studyId: string; studyN
                 <DownloadIcon aria-hidden />
                 {t`Download (Markdown)`}
               </Button>
+              <DriveButton studyId={studyId} kind="guide" />
             </div>
           ) : null}
         </div>
+
+        {!editing ? <DriveStatus studyId={studyId} kind="guide" /> : null}
 
         {guide.isPending ? (
           <Skeleton className="h-32 w-full" />
@@ -101,7 +105,9 @@ export function PreparationTab({ studyId, studyName }: { studyId: string; studyN
             <p className="text-muted-foreground text-sm">
               {g.origin === 'assistant'
                 ? t`Version ${g.version + 1} · written with the assistant, applied by ${who} ${when}`
-                : t`Version ${g.version + 1} · edited by hand by ${who} ${when}`}
+                : g.origin === 'drive'
+                  ? t`Version ${g.version + 1} · changes from Drive accepted by ${who} ${when}`
+                  : t`Version ${g.version + 1} · edited by hand by ${who} ${when}`}
             </p>
             <GuideView guide={g.content} />
           </>
@@ -123,7 +129,7 @@ export function PreparationTab({ studyId, studyName }: { studyId: string; studyN
         )}
       </section>
 
-      <BestPracticesCard />
+      <BestPracticesCard studyId={studyId} />
 
       <InterviewSchedule studyId={studyId} studyName={studyName} />
     </div>

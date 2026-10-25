@@ -41,7 +41,10 @@ export const makeSourceCommands = (deps: IngestionDeps) => {
     startDriveConnection: async (c: {
       actor: { id: string }
       returnTo: string
+      /** `write` when publishing needs it (spec 007); `read` otherwise. */
+      access?: 'read' | 'write'
     }): Promise<Result<{ url: string }, SourceError>> => {
+      const access = c.access ?? 'read'
       if (!deps.drive) return err('DRIVE_NOT_CONFIGURED')
       const state = randomBytes(24).toString('base64url')
       const codeVerifier = randomBytes(48).toString('base64url')
@@ -52,13 +55,19 @@ export const makeSourceCommands = (deps: IngestionDeps) => {
           accountId: c.actor.id,
           codeVerifier,
           returnTo: safeReturnPath(c.returnTo),
+          access,
           expiresAt: new Date(now.getTime() + STATE_TTL_MS),
         },
         now,
       )
       const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url')
       return ok({
-        url: deps.drive.authorization.authorizationUrl({ state, codeChallenge, loginHint: '' }),
+        url: deps.drive.authorization.authorizationUrl({
+          state,
+          codeChallenge,
+          loginHint: '',
+          access,
+        }),
       })
     },
 
@@ -74,6 +83,7 @@ export const makeSourceCommands = (deps: IngestionDeps) => {
       const granted = await deps.drive.authorization.exchange({
         code: c.code,
         codeVerifier: saved.codeVerifier,
+        access: saved.access,
       })
       await deps.store.saveConnection({
         accountId: c.actor.id,
@@ -82,6 +92,7 @@ export const makeSourceCommands = (deps: IngestionDeps) => {
         encryptedRefreshToken: deps.cipher.encrypt(granted.refreshToken, c.actor.id),
         status: 'connected',
         connectedAt: deps.clock.now(),
+        access: granted.access,
       })
       await deps.store.clearFolderAccessOf(c.actor.id)
       return ok({ returnTo: saved.returnTo })

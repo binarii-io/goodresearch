@@ -52,6 +52,7 @@ import { type FormEvent, useId, useState } from 'react'
 import { toast } from 'sonner'
 import { errorMessage } from '../workspace/errors.ts'
 import { downloadText, slug } from './download.ts'
+import { DriveButton, DriveStatus } from './drive-publishing.tsx'
 import { PLANNED_STATUSES, type PlannedStatus } from './labels.ts'
 
 type Form = {
@@ -309,9 +310,11 @@ export function InterviewSchedule({ studyId, studyName }: { studyId: string; stu
             <PlusIcon aria-hidden />
             {t`Plan an interview`}
           </Button>
+          <DriveButton studyId={studyId} kind="schedule" />
         </div>
       </div>
       <p className="text-muted-foreground text-sm">{t`Who to interview, when and by whom. Shared with the people who can open this study; never sent to the assistant.`}</p>
+      <DriveStatus studyId={studyId} kind="schedule" />
       {counts.length ? (
         <ul aria-label={t`Interviews per status`} className="flex flex-wrap gap-2">
           {counts.map(([status, n]) => (

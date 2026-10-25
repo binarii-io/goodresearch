@@ -516,6 +516,9 @@ importers:
       '@goodresearch/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@goodresearch/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@goodresearch/ui':
         specifier: workspace:*
         version: link:../../packages/ui

@@ -1,3 +1,4 @@
+import { BEST_PRACTICES, type BestPractices } from '@goodresearch/shared'
 import { Button } from '@goodresearch/ui/components/button'
 import {
   Dialog,
@@ -11,12 +12,8 @@ import { BookOpenIcon, DownloadIcon } from '@goodresearch/ui/components/icons'
 import { useLingui } from '@lingui/react/macro'
 import type { ReactNode } from 'react'
 import { normalise } from '../../app/i18n.ts'
-import { bestPractices as en } from './best-practices.en.ts'
-import { bestPractices as fr } from './best-practices.fr.ts'
-import type { BestPractices } from './best-practices.types.ts'
 import { downloadText } from './download.ts'
-
-const CONTENT = { en, fr }
+import { DriveButton, DriveStatus } from './drive-publishing.tsx'
 
 /** `**bold**` only. */
 const strong = (text: string): ReactNode[] =>
@@ -44,9 +41,9 @@ export const practicesToMarkdown = (doc: BestPractices): string => {
 }
 
 /** The interview best practices (US4), in the interface language. */
-export function BestPracticesCard() {
+export function BestPracticesCard({ studyId }: { studyId: string }) {
   const { t, i18n } = useLingui()
-  const doc = CONTENT[normalise(i18n.locale)]
+  const doc = BEST_PRACTICES[normalise(i18n.locale)]
   const download = () =>
     downloadText(t`interview-best-practices.md`, practicesToMarkdown(doc), 'text/markdown')
   return (
@@ -117,6 +114,10 @@ export function BestPracticesCard() {
           <DownloadIcon aria-hidden />
           {t`Download (Markdown)`}
         </Button>
+        <DriveButton studyId={studyId} kind="best-practices" size="default" />
+      </div>
+      <div className="basis-full empty:hidden">
+        <DriveStatus studyId={studyId} kind="best-practices" />
       </div>
     </section>
   )

@@ -54,6 +54,17 @@ export {
   UpdatePlannedInterview,
 } from './preparation.ts'
 export {
+  DecideDriveChanges,
+  DecisionResult,
+  DriveChange,
+  Publication,
+  PublicationKind,
+  PublicationParams,
+  PublicationState,
+  PublishPreparation,
+  UpdatePublication,
+} from './publishing.ts'
+export {
   CreateProject,
   CreateStudy,
   ListProjectsQuery,

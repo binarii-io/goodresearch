@@ -110,3 +110,22 @@ Designing an interview guide needs a long method the assistant should only read 
 
 - Good: the context stays small until a task needs a skill; the rules are testable and the same for every provider; no write access to people's drives.
 - Bad: an answer may take several model calls (each recorded in the usage ledger as one streamed call with the summed usage); teams that want the guide in their drive download it until a publishing adapter exists.
+
+## Update 2026-10-25 — writing to the source folder, three-way sync (spec 007)
+
+### Context
+
+Teams want the study preparation (guide, best practices, schedule) in their shared drive and edit it there, several people on the same files; the app must stay the source of truth without losing those edits. This revises the "Drive keeps its read-only grant" consequence of the spec 006 update.
+
+### Decision
+
+- **Editing consent on demand**: the Drive connection is upgraded from `drive.readonly` to `drive` when a person first publishes or updates (incremental consent). goodresearch can then edit the files the person can edit, whoever created them; Google's permissions decide. It only writes the files a feature is about and never deletes or trashes anything.
+- **Neutral document and table models** behind an ingestion port (`DriveDocuments`); the Google adapter maps anchors to Docs named ranges and row ids to a hidden, warning-protected first column. The publishing module never sees tokens or Google requests.
+- **Three-way sync**: base (content read back after the last write), app, file; Drive-side changes are proposals decided by a person; rewriting is refused while changes are unreviewed and uses a revision precondition (Docs).
+- **No push notifications**: checks run when the tab opens and on demand (a self-hosted instance may have no public callback).
+
+### Consequences
+
+- Good: teammates edit the same files; nothing in Drive is lost silently; another connector can implement the port.
+- Bad: a broader Drive scope (still in Google's restricted class, already required by `drive.readonly`); a spreadsheet update has a short race window (no revision control in Sheets).
+

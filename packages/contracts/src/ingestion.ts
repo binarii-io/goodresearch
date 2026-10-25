@@ -70,9 +70,15 @@ export const MySource = z
     status: z.enum(['connected', 'lost', 'none']),
     externalAccount: z.string().nullable(),
     connectedAt: Timestamp.nullable(),
+    /** Whether the person let goodresearch edit their Drive files (spec 007). */
+    canWrite: z.boolean(),
   })
   .meta({ id: 'MySource' })
-export const ConnectQuery = z.object({ returnTo: z.string().max(500).default('/') })
+export const ConnectQuery = z.object({
+  returnTo: z.string().max(500).default('/'),
+  /** `write`: also edit the files the person can edit, for publishing (spec 007). */
+  access: z.enum(['read', 'write']).default('read'),
+})
 export const CallbackQuery = z.object({
   state: z.string().optional(),
   code: z.string().optional(),

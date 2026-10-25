@@ -11,4 +11,5 @@ export type InterviewGuideInputOrigin = typeof InterviewGuideInputOrigin[keyof t
 export const InterviewGuideInputOrigin = {
   assistant: 'assistant',
   person: 'person',
+  drive: 'drive',
 } as const;

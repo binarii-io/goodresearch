@@ -30,8 +30,12 @@ test.describe('spec 002 — studies', () => {
       'aria-selected',
       'true',
     )
-    // The dev stack has no Google Drive client configured.
-    await expect(page.getByText('Google Drive is not configured on this instance')).toBeVisible()
+    // The dev stack simulates Google Drive (DRIVE_FAKE): connect it, or attach a folder once connected.
+    await expect(
+      page
+        .getByRole('heading', { name: 'Connect your Google Drive' })
+        .or(page.getByLabel('Link of the Drive folder')),
+    ).toBeVisible()
     await expectAccessible(page)
 
     await page.getByRole('button', { name: /Study name:/ }).click()
@@ -98,7 +102,10 @@ test.describe('spec 002 — studies', () => {
     await page.getByRole('button', { name: /^admin / }).click()
     await page.getByRole('menuitem', { name: 'Connected sources' }).click()
     await expect(page.getByRole('heading', { name: 'Connected sources' })).toBeVisible()
-    await expect(page.getByText('Google Drive is not configured on this instance.')).toBeVisible()
+    // The shared admin account may be connected, not yet, or hold a permission from an earlier run.
+    await expect(
+      page.getByText(/^Not connected|^Connected as|^The permission no longer works/),
+    ).toBeVisible()
     await expectAccessible(page)
   })
 })

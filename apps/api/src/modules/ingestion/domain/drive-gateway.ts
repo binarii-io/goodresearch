@@ -47,14 +47,23 @@ export interface DriveGateway {
   ): AsyncIterable<DriveItem[]>
 }
 
-/** OAuth consent for Drive, separate from sign-in (FR-007). */
+/**
+ * OAuth consent for Drive, separate from sign-in (FR-007): `read` for the folders (spec 002),
+ * `write` to edit the files the person can edit (spec 007), asked only when publishing.
+ */
 export interface DriveAuthorization {
-  authorizationUrl(input: { state: string; codeChallenge: string; loginHint: string }): string
-  /** Exchanges the callback code; fails when the read-only Drive scope was not granted. */
+  authorizationUrl(input: {
+    state: string
+    codeChallenge: string
+    loginHint: string
+    access: 'read' | 'write'
+  }): string
+  /** Exchanges the callback code; fails when the scope asked was not granted. */
   exchange(input: {
     code: string
     codeVerifier: string
-  }): Promise<{ refreshToken: string; externalAccount: string }>
+    access: 'read' | 'write'
+  }): Promise<{ refreshToken: string; externalAccount: string; access: 'read' | 'write' }>
   /** Revokes the grant at Google (FR-009). */
   revoke(refreshToken: string): Promise<void>
 }

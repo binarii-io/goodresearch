@@ -4,7 +4,7 @@
 
 goodresearch is an open-source, self-hostable app for user research teams. It helps you prepare interview guides, collect and clean transcripts, check interview conduct, extract evidence and turn it into insights and recommendations — with AI proposing and humans deciding at every step.
 
-**Status:** early. Sign-in through your identity provider, team-based access, teams and research projects ([spec 001](specs/001-walking-skeleton/spec.md)), interview studies with a Google Drive folder ([002](specs/002-studies-drive-source/spec.md)), a per-person AI provider ([004](specs/004-ai-provider-connection/spec.md)), the assistant panel ([005](specs/005-assistant-panel/spec.md)) and study preparation — interview guide designed with the assistant or by hand, interview best practices, interview schedule ([006](specs/006-study-preparation/spec.md)) — work; transcripts and analysis come next.
+**Status:** early. Sign-in through your identity provider, team-based access, teams and research projects ([spec 001](specs/001-walking-skeleton/spec.md)), interview studies with a Google Drive folder ([002](specs/002-studies-drive-source/spec.md)), a per-person AI provider ([004](specs/004-ai-provider-connection/spec.md)), the assistant panel ([005](specs/005-assistant-panel/spec.md)) and study preparation — interview guide designed with the assistant or by hand, interview best practices, interview schedule ([006](specs/006-study-preparation/spec.md)), published to Drive with a reviewed two-way sync ([007](specs/007-drive-publishing/spec.md)) — work; transcripts and analysis come next.
 
 ## Principles
 
@@ -49,7 +49,17 @@ Google classifies `drive.readonly` as a *restricted* scope:
 - with an **Internal** consent screen (Google Workspace organisation), no verification is needed and there is no user limit;
 - with an **External** consent screen, people see an "unverified app" warning and at most 100 people can connect until Google verifies your app (restricted-scope verification and a yearly security assessment).
 
-goodresearch only reads the attached folders and, for now, only file metadata; it never writes to Drive. Disconnecting Drive (Connected sources) revokes the permission at Google. If sign-in and Drive use the same Google Cloud project, the revocation also removes the sign-in consent: the next Google sign-in shows the consent screen again (sessions are not affected). Stored Drive permissions are encrypted with a key derived from `AUTH_SECRET`; changing it means everyone reconnects Drive.
+goodresearch reads the attached folders (for now, only file metadata). It writes to Drive only when someone publishes a study's preparation (below), and never deletes anything. Disconnecting Drive (Connected sources) revokes the permission at Google. If sign-in and Drive use the same Google Cloud project, the revocation also removes the sign-in consent: the next Google sign-in shows the consent screen again (sessions are not affected). Stored Drive permissions are encrypted with a key derived from `AUTH_SECRET`; changing it means everyone reconnects Drive.
+
+### Publishing the study preparation to Drive (optional)
+
+People can publish an interview study's guide and best practices (Google Docs) and its interview schedule (Google Sheets) to the study's folder, edit them there, and review the changes back in goodresearch (spec 007): accepted changes go into the app, conflicts are settled by a person, and a file with unreviewed changes is never rewritten silently.
+
+1. In the same Google Cloud project, also enable the **Google Docs API** and the **Google Sheets API**.
+2. On the OAuth consent screen, add the scope `https://www.googleapis.com/auth/drive` (edit the files the person can edit). It is *restricted* like `drive.readonly`, so the verification needs do not change.
+3. People are asked for this consent the first time they publish or update; until then their Drive stays read-only. Whoever can edit a published file in Drive can update it from goodresearch, whoever published it.
+
+`compose.dev.yaml` sets `DRIVE_FAKE=true`: a Google Drive simulated in memory (a demo folder, files lost at restart), for local evaluation and end-to-end tests.
 
 ### AI providers
 

@@ -1,0 +1,1 @@
+ALTER TABLE "publishing_documents" ADD COLUMN "base_rev" integer DEFAULT 0 NOT NULL;

@@ -21,6 +21,8 @@ export const ingestionSourceConnections = pgTable(
     encryptedRefreshToken: text('encrypted_refresh_token').notNull(),
     status: text('status').notNull(),
     connectedAt: timestamp('connected_at', { withTimezone: true }).notNull(),
+    /** `write`: the person also lets goodresearch edit the files they can edit (spec 007). */
+    access: text('access').notNull().default('read'),
   },
   (t) => [primaryKey({ columns: [t.accountId, t.connector] })],
 )
@@ -86,5 +88,6 @@ export const ingestionOauthStates = pgTable('ingestion_oauth_states', {
   connector: text('connector').notNull(),
   codeVerifier: text('code_verifier').notNull(),
   returnTo: text('return_to').notNull(),
+  access: text('access').notNull().default('read'),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 })

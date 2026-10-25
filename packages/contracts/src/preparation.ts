@@ -71,7 +71,8 @@ export const InterviewGuide = z
   .object({
     studyId: Id,
     content: GuideContent,
-    origin: z.enum(['assistant', 'person']),
+    /** `drive`: Drive changes a person accepted (spec 007). */
+    origin: z.enum(['assistant', 'person', 'drive']),
     updatedBy: z.object({ name: z.string() }).nullable(),
     updatedAt: Timestamp,
     version: Version,

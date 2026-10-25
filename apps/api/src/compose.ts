@@ -8,6 +8,7 @@ import {
   registerAssistantRoutes,
 } from './modules/assistant/index.ts'
 import { createIngestionModule, registerIngestionRoutes } from './modules/ingestion/index.ts'
+import { createPublishingModule, registerPublishingRoutes } from './modules/publishing/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
 import { createWorkspaceModule, registerWorkspaceRoutes } from './modules/workspace/index.ts'
 import { createAuth } from './platform/auth/auth.ts'
@@ -118,7 +119,56 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         r.preparationQueries.preparationForAssistant(accountId, studyId),
     },
   })
-  return { clock, workspace, research, ingestion, ai, assistant }
+  const at = (iso: string | null) => (iso ? new Date(iso) : null)
+  const publishing = createPublishingModule({
+    db: infra.db,
+    clock,
+    files: (accountId, studyId, access) => bound(ingestion).studyFiles(accountId, studyId, access),
+    reads: {
+      studyName: async (accountId, studyId) =>
+        (await r.studyQueries.getStudy(accountId, studyId))?.name ?? null,
+      guide: async (accountId, studyId) => {
+        const guide = await r.preparationQueries.getGuide(accountId, studyId)
+        if (!guide.ok) return guide
+        return {
+          ok: true as const,
+          value: guide.value
+            ? { content: guide.value.content, version: guide.value.version }
+            : null,
+        }
+      },
+      schedule: (accountId, studyId) =>
+        r.preparationQueries.listPlannedInterviews(accountId, studyId),
+    },
+    actions: {
+      saveGuide: async (c) => outcome(await r.preparation.saveGuide({ ...c, origin: 'drive' })),
+      addPlanned: async (c) =>
+        outcome(
+          await r.preparation.addPlannedInterview({
+            actor: c.actor,
+            studyId: c.studyId,
+            fields: { ...c.fields, scheduledAt: at(c.fields.scheduledAt) },
+          }),
+        ),
+      updatePlanned: async (c) =>
+        outcome(
+          await r.preparation.updatePlannedInterview({
+            actor: c.actor,
+            plannedInterviewId: c.id,
+            fields: { ...c.fields, scheduledAt: at(c.fields.scheduledAt) },
+            version: c.version,
+          }),
+        ),
+      deletePlanned: async (c) => {
+        const done = await r.preparation.deletePlannedInterview({
+          actor: c.actor,
+          plannedInterviewId: c.id,
+        })
+        return done.ok ? { ok: true as const } : { ok: false as const, error: done.error }
+      },
+    },
+  })
+  return { clock, workspace, research, ingestion, ai, assistant, publishing }
 }
 
 /** Composition root of the HTTP server: modules, auth and routes. */
@@ -128,7 +178,7 @@ export const composeApp = async (
   options: { logger?: boolean; rateLimit?: boolean } = {},
 ) => {
   const modules = composeModules(config, infra)
-  const { clock, workspace, research, ingestion, ai, assistant } = modules
+  const { clock, workspace, research, ingestion, ai, assistant, publishing } = modules
   const auth = createAuth({
     config,
     db: infra.db,
@@ -148,6 +198,7 @@ export const composeApp = async (
       registerIngestionRoutes(instance, { guard, handlers: ingestion.handlers })
       registerAiRoutes(instance, { guard, handlers: ai.handlers })
       registerAssistantRoutes(instance, { guard, handlers: assistant.handlers })
+      registerPublishingRoutes(instance, { guard, handlers: publishing.handlers })
     },
   })
   return { app, auth, modules }

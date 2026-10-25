@@ -28,6 +28,13 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   PLANNED_INTERVIEW_NOT_FOUND: msg`This interview is no longer in the schedule.`,
   SCHEDULE_FULL: msg`The schedule is full: at most 300 interviews per study.`,
   NOT_AN_INTERVIEW_STUDY: msg`Only interview studies have a guide and a schedule.`,
+  DRIVE_WRITE_REQUIRED: msg`Let goodresearch edit your Drive files first.`,
+  ALREADY_PUBLISHED: msg`This is already published in the Drive folder.`,
+  NO_SOURCE_FOLDER: msg`Attach the study's Drive folder first (Analysis tab).`,
+  DRIVE_CHANGES_PENDING: msg`Changes made in Drive are waiting for review.`,
+  DRIVE_CHANGED_MEANWHILE: msg`The file changed in Drive meanwhile. It was checked again: review it, then update.`,
+  DRIVE_CANNOT_EDIT: msg`You can view this file in Drive but not edit it.`,
+  PUBLICATION_NOT_FOUND: msg`This published file is no longer known.`,
 }
 
 /** One translated sentence for an error code (never technical details). */

@@ -5,9 +5,9 @@ import {
   DriveIncompleteListing,
   type DriveItem,
 } from '../domain/drive-gateway.ts'
+import { createGoogleRequests, type GoogleRequests } from './google-requests.ts'
 
 const API = 'https://www.googleapis.com/drive/v3'
-const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const ITEM_FIELDS =
   'id,name,mimeType,parents,size,modifiedTime,webViewLink,trashed,driveId,owners(displayName),shortcutDetails(targetId,targetMimeType)'
 
@@ -51,65 +51,11 @@ export const createDriveFetchGateway = (options: {
   clientSecret: string
   fetch?: typeof fetch
   retryDelayMs?: number
+  /** Shared with the documents adapter: one access token per person (PR #7 review). */
+  requests?: GoogleRequests
 }): DriveGateway => {
-  const http = options.fetch ?? fetch
-  const baseDelay = options.retryDelayMs ?? 500
-  const tokens = new Map<string, { value: string; expiresAt: number }>()
-
-  const accessToken = async (refreshToken: string, force = false): Promise<string> => {
-    const cached = tokens.get(refreshToken)
-    if (!force && cached && cached.expiresAt > Date.now() + 30_000) return cached.value
-    const response = await http(TOKEN_URL, {
-      method: 'POST',
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        client_id: options.clientId,
-        client_secret: options.clientSecret,
-      }),
-    })
-    const body = (await response.json().catch(() => ({}))) as {
-      access_token?: string
-      expires_in?: number
-      error?: string
-    }
-    if (!response.ok || !body.access_token) {
-      tokens.delete(refreshToken)
-      if (body.error === 'invalid_grant' || response.status === 400 || response.status === 401)
-        throw new DriveConnectionLost()
-      throw new Error(`token refresh failed: ${response.status}`)
-    }
-    tokens.set(refreshToken, {
-      value: body.access_token,
-      expiresAt: Date.now() + (body.expires_in ?? 3600) * 1000,
-    })
-    return body.access_token
-  }
-
-  /** GET with one token refresh on 401 and exponential backoff with jitter on rate limits. */
-  const get = async (refreshToken: string, url: URL): Promise<Response> => {
-    let refreshed = false
-    for (let attempt = 0; ; attempt++) {
-      const response = await http(url, {
-        headers: { authorization: `Bearer ${await accessToken(refreshToken)}` },
-      })
-      if (response.status === 401 && !refreshed) {
-        refreshed = true
-        await accessToken(refreshToken, true)
-        continue
-      }
-      const rateLimited =
-        response.status === 429 ||
-        (response.status === 403 && (await isRateLimit(response.clone())))
-      if (!rateLimited) return response
-      // Still rate limited after the retries: Drive is unavailable, not "no access".
-      if (attempt >= 5) throw new Error('drive rate limited')
-      await new Promise((resolve) =>
-        setTimeout(resolve, baseDelay * 2 ** attempt * (0.5 + Math.random())),
-      )
-    }
-  }
+  const google = options.requests ?? createGoogleRequests(options)
+  const get = (refreshToken: string, url: URL) => google.request(refreshToken, url)
 
   return {
     getItem: async (refreshToken, id) => {
@@ -157,9 +103,4 @@ export const createDriveFetchGateway = (options: {
       } while (pageToken)
     },
   }
-}
-
-const isRateLimit = async (response: Response): Promise<boolean> => {
-  const text = await response.text().catch(() => '')
-  return /rateLimitExceeded|userRateLimitExceeded/.test(text)
 }

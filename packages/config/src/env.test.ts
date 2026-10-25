@@ -151,6 +151,14 @@ describe('loadConfig', () => {
     ).toContain('AI_FAKE_PROVIDER')
   })
 
+  it('allows the simulated Google Drive only without https (spec 007)', () => {
+    expect(loadConfig(valid).driveFake).toBe(false)
+    expect(loadConfig({ ...valid, DRIVE_FAKE: 'true' }).driveFake).toBe(true)
+    expect(
+      errorOf({ ...valid, APP_URL: 'https://research.example.org', DRIVE_FAKE: 'true' }),
+    ).toContain('DRIVE_FAKE')
+  })
+
   it('reads secrets from *_FILE variables', () => {
     const dir = mkdtempSync(join(tmpdir(), 'cfg-'))
     const file = join(dir, 'secret')

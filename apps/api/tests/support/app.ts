@@ -44,7 +44,15 @@ export const startTestApp = async (
           return true
         },
       },
-      ...(options.drive ? { drive: { gateway: options.drive, authorization: options.drive } } : {}),
+      ...(options.drive
+        ? {
+            drive: {
+              gateway: options.drive,
+              authorization: options.drive,
+              documents: options.drive.documents,
+            },
+          }
+        : {}),
     },
     { logger: false, rateLimit: options.rateLimit ?? false },
   )

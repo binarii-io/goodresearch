@@ -19,7 +19,11 @@ export type SourceConnection = {
   readonly encryptedRefreshToken: string
   readonly status: 'connected' | 'lost'
   readonly connectedAt: Date
+  /** `write` once the person granted editing (spec 007); reading needs `read` or more. */
+  readonly access: DriveAccess
 }
+
+export type DriveAccess = 'read' | 'write'
 
 export type InventoryFailure =
   | 'FOLDER_NOT_FOUND'
@@ -54,6 +58,8 @@ export type OauthState = {
   readonly accountId: string
   readonly codeVerifier: string
   readonly returnTo: string
+  /** What the consent asks for. */
+  readonly access: DriveAccess
   readonly expiresAt: Date
 }
 

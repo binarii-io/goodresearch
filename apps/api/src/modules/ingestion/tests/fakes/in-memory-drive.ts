@@ -1,5 +1,6 @@
 import type { DriveAuthorization, DriveGateway, DriveItem } from '../../domain/drive-gateway.ts'
 import { DriveConnectionLost, FOLDER_MIME } from '../../domain/drive-gateway.ts'
+import { InMemoryDriveDocuments } from '../../infrastructure/in-memory.drive-documents.ts'
 
 /**
  * A fake Google Drive: items, which Google accounts can open which folder trees, and refresh tokens
@@ -16,6 +17,8 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
   listCalls = 0
   /** Simulates Google Drive not answering. */
   outage = false
+  /** Published files (spec 007), opened with the same Google accounts. */
+  readonly documents = new InMemoryDriveDocuments((token) => this.#account(token))
 
   addFolder(id: string, name: string, parent?: string, owner = 'Alice'): void {
     this.items.set(id, {
@@ -84,10 +87,16 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
     return `https://accounts.google.test/consent?state=${input.state}`
   }
 
-  async exchange(): Promise<{ refreshToken: string; externalAccount: string }> {
+  /** Consents asked, in order (`read` or `write`). */
+  readonly consents: ('read' | 'write')[] = []
+
+  async exchange(input: {
+    access: 'read' | 'write'
+  }): Promise<{ refreshToken: string; externalAccount: string; access: 'read' | 'write' }> {
+    this.consents.push(input.access)
     const refreshToken = `token-${this.tokens.size + 1}`
     this.tokens.set(refreshToken, this.nextConsentAccount)
-    return { refreshToken, externalAccount: this.nextConsentAccount }
+    return { refreshToken, externalAccount: this.nextConsentAccount, access: input.access }
   }
 
   async revoke(refreshToken: string): Promise<void> {

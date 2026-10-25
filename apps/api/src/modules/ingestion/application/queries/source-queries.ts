@@ -105,6 +105,7 @@ export const makeSourceQueries = (deps: IngestionDeps) => ({
         status: connection ? connection.status : ('none' as const),
         externalAccount: connection?.externalAccount ?? null,
         connectedAt: connection?.connectedAt.toISOString() ?? null,
+        canWrite: connection?.access === 'write',
       },
     ]
   },

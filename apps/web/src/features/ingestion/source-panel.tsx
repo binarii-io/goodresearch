@@ -108,7 +108,7 @@ function DriveExplanation() {
     <ul className="text-muted-foreground list-disc pl-5 text-sm">
       <li>{t`goodresearch asks Google for read-only access to your Drive, separate from signing in.`}</li>
       <li>{t`For now it only reads the names, types, dates and sizes of the files in the folders you attach; file content will be read when transcripts are imported.`}</li>
-      <li>{t`Nothing is ever created, changed or deleted in your Drive. You can disconnect at any time from Connected sources.`}</li>
+      <li>{t`Nothing is created or changed in your Drive unless you publish a study's preparation, which asks separately for editing. Nothing is ever deleted. You can disconnect at any time from Connected sources.`}</li>
     </ul>
   )
 }

@@ -7,10 +7,48 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
 
+#. placeholder {0}: v.minutes
+#: src/features/preparation/drive-review.tsx
+msgid "({0} min)"
+msgstr "({0} min)"
+
+#: src/features/preparation/drive-review.tsx
+msgid "(empty)"
+msgstr "(empty)"
+
+#: src/features/preparation/drive-review.tsx
+msgid "(no duration)"
+msgstr "(no duration)"
+
+#: src/features/preparation/drive-review.tsx
+msgid "(none)"
+msgstr "(none)"
+
 #. placeholder {0}: team.projectCount
 #: src/routes/_authenticated/teams.tsx
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# project} other {# projects}}"
+
+#. placeholder {0}: result.applied
+#. placeholder {1}: result.rejected
+#: src/features/preparation/drive-review.tsx
+msgid "{0} applied, {1} rejected"
+msgstr "{0} applied, {1} rejected"
+
+#. placeholder {0}: p.counts.rejected
+#: src/features/preparation/drive-publishing.tsx
+msgid "{0} Drive changes will be replaced at the next update. "
+msgstr "{0} Drive changes will be replaced at the next update. "
+
+#. placeholder {0}: i18n._(KINDS[kind])
+#: src/features/preparation/drive-publishing.tsx
+msgid "{0} in Drive"
+msgstr "{0} in Drive"
+
+#. placeholder {0}: v.ids.length
+#: src/features/preparation/drive-review.tsx
+msgid "{0} items in a new order"
+msgstr "{0} items in a new order"
 
 #. placeholder {0}: s.minutes
 #: src/features/assistant/proposal-card.tsx
@@ -42,6 +80,14 @@ msgstr "{name} API key"
 #: src/features/assistant/proposal-card.tsx
 msgid "{sectionCount} sections · {questions} main questions · {minutes} min"
 msgstr "{sectionCount} sections · {questions} main questions · {minutes} min"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "{toReview} changes from Drive to review. "
+msgstr "{toReview} changes from Drive to review. "
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "{toReview} changes made in Drive have not been reviewed. Updating replaces them with the app's version."
+msgstr "{toReview} changes made in Drive have not been reviewed. Updating replaces them with the app's version."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "{transcript} transcripts · {media} media · {other} other files"
@@ -98,6 +144,18 @@ msgstr "about the future"
 #: src/features/preparation/guide-editor.tsx
 msgid "About you"
 msgstr "About you"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Accept"
+msgstr "Accept"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Accept all"
+msgstr "Accept all"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Accepted changes are applied to the app; rejected ones are replaced in Drive at the next update."
+msgstr "Accepted changes are applied to the app; rejected ones are replaced in Drive at the next update."
 
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Access history"
@@ -159,6 +217,10 @@ msgstr "Add team"
 msgid "Add to the schedule"
 msgstr "Add to the schedule"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Added in Drive"
+msgstr "Added in Drive"
+
 #: src/features/workspace/account-menu.tsx
 #: src/features/workspace/member-labels.ts
 msgid "Admin"
@@ -200,6 +262,10 @@ msgstr "Applied"
 #: src/features/assistant/proposal-card.tsx
 msgid "Apply"
 msgstr "Apply"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Apply the decisions"
+msgstr "Apply the decisions"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Ask {ownerName} to share the folder with your Google account in Drive. Access is checked again when you come back to this page."
@@ -243,6 +309,11 @@ msgstr "At most 8 follow-ups per question."
 msgid "Attach folder"
 msgstr "Attach folder"
 
+#: src/features/workspace/errors.ts
+msgid "Attach the study's Drive folder first (Analysis tab)."
+msgstr "Attach the study's Drive folder first (Analysis tab)."
+
+#: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
 msgid "Audience"
@@ -274,8 +345,8 @@ msgid "Back to the project"
 msgstr "Back to the project"
 
 #: src/features/preparation/preparation-tab.tsx
-msgid "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews."
-msgstr "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews."
+msgid "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews. Each one can be published to the study's Drive folder: edits made there come back here for review."
+msgstr "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews. Each one can be published to the study's Drive folder: edits made there come back here for review."
 
 #: src/routes/sign-in.tsx
 msgid "Better-designed studies, answers you can trust."
@@ -313,9 +384,29 @@ msgstr "Change provider"
 msgid "Change the research goal"
 msgstr "Change the research goal"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Changed in Drive"
+msgstr "Changed in Drive"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Changed in Drive: to review"
+msgstr "Changed in Drive: to review"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Changed in the app and in Drive"
+msgstr "Changed in the app and in Drive"
+
+#: src/features/workspace/errors.ts
+msgid "Changes made in Drive are waiting for review."
+msgstr "Changes made in Drive are waiting for review."
+
 #: src/features/ai/provider-forms.tsx
 msgid "Check and save"
 msgstr "Check and save"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Check now"
+msgstr "Check now"
 
 #: src/features/ai/labels.ts
 msgid "Check that you copied the whole key, or create a new one, then try again."
@@ -332,6 +423,10 @@ msgstr "Checked {total} questions: {count} to review"
 #: src/features/assistant/proposal-card.tsx
 msgid "Checked {total} questions: nothing to review."
 msgstr "Checked {total} questions: nothing to review."
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Checked {when}."
+msgstr "Checked {when}."
 
 #: src/features/ai/provider-forms.tsx
 msgid "Checking the key…"
@@ -363,6 +458,7 @@ msgid "Claude models with an API key from your Anthropic account."
 msgstr "Claude models with an API key from your Anthropic account."
 
 #: src/features/preparation/best-practices.tsx
+#: src/features/preparation/drive-review.tsx
 #: src/features/preparation/schedule.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
@@ -385,9 +481,17 @@ msgstr "closed (yes or no)"
 msgid "Collapse the sidebar"
 msgstr "Collapse the sidebar"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Columns of the sheet"
+msgstr "Columns of the sheet"
+
 #: src/features/research/study-list.tsx
 msgid "coming later"
 msgstr "coming later"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Conflict: changed in the app and in Drive"
+msgstr "Conflict: changed in the app and in Drive"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Connect your Google Drive"
@@ -396,6 +500,10 @@ msgstr "Connect your Google Drive"
 #: src/features/workspace/errors.ts
 msgid "Connect your Google Drive first."
 msgstr "Connect your Google Drive first."
+
+#: src/routes/_authenticated/sources.tsx
+msgid "Connected as {account} since {since}. Can edit the Drive files you can edit, to publish study preparations."
+msgstr "Connected as {account} since {since}. Can edit the Drive files you can edit, to publish study preparations."
 
 #: src/routes/_authenticated/sources.tsx
 msgid "Connected as {account} since {since}. Read-only."
@@ -485,6 +593,10 @@ msgstr "Deactivate"
 #: src/features/workspace/member-labels.ts
 msgid "Deactivated"
 msgstr "Deactivated"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Decision"
+msgstr "Decision"
 
 #: src/features/assistant/panel.tsx
 #: src/routes/_authenticated/studies/$studyId.tsx
@@ -581,6 +693,10 @@ msgstr "Dismiss"
 msgid "Dismissed"
 msgstr "Dismissed"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Document text"
+msgstr "Document text"
+
 #: src/features/preparation/labels.ts
 msgid "Done"
 msgstr "Done"
@@ -667,6 +783,10 @@ msgstr "Failed"
 msgid "Fieldwork"
 msgstr "Fieldwork"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Final text"
+msgstr "Final text"
+
 #: src/features/research/study-list.tsx
 msgid "Folder attached"
 msgstr "Folder attached"
@@ -684,6 +804,11 @@ msgstr "Follow-ups (one per line)"
 msgid "For now it only reads the names, types, dates and sizes of the files in the folders you attach; file content will be read when transcripts are imported."
 msgstr "For now it only reads the names, types, dates and sizes of the files in the folders you attach; file content will be read when transcripts are imported."
 
+#: src/features/preparation/drive-publishing.tsx
+msgid "Forget this file"
+msgstr "Forget this file"
+
+#: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
 msgid "Format"
@@ -784,6 +909,10 @@ msgstr "Google Drive was not connected. You can try again."
 msgid "Google no longer accepts goodresearch's access to Google Cloud."
 msgstr "Google no longer accepts goodresearch's access to Google Cloud."
 
+#: src/features/preparation/drive-publishing.tsx
+msgid "Google will ask you to let goodresearch edit the Drive files you can edit."
+msgstr "Google will ask you to let goodresearch edit the Drive files you can edit."
+
 #: src/features/ai/labels.ts
 msgid "GPT models with an API key from your OpenAI account."
 msgstr "GPT models with an API key from your OpenAI account."
@@ -808,6 +937,7 @@ msgstr "Help me improve the interview guide of this study."
 msgid "How to run a neutral interview: phases, questions, follow-ups, biases, what is measured."
 msgstr "How to run a neutral interview: phases, questions, follow-ups, biases, what is measured."
 
+#: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
 #: src/features/preparation/labels.ts
@@ -822,7 +952,24 @@ msgstr "Hypotheses (one per line)"
 msgid "hypothetical"
 msgstr "hypothetical"
 
+#: src/features/preparation/drive-review.tsx
+msgid "In Drive"
+msgstr "In Drive"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "In sync"
+msgstr "In sync"
+
+#: src/features/preparation/drive-review.tsx
+msgid "In the app"
+msgstr "In the app"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Interview best practices"
+msgstr "Interview best practices"
+
 #: src/features/assistant/proposal-card.tsx
+#: src/features/preparation/drive-publishing.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/preparation-tab.tsx
 msgid "Interview guide"
@@ -840,6 +987,7 @@ msgstr "Interview guide design"
 msgid "Interview guide design progress"
 msgstr "Interview guide design progress"
 
+#: src/features/preparation/drive-publishing.tsx
 #: src/features/preparation/schedule.tsx
 msgid "Interview schedule"
 msgstr "Interview schedule"
@@ -872,6 +1020,10 @@ msgstr "Introduction"
 #: src/features/preparation/labels.ts
 msgid "Introduction and warm-up"
 msgstr "Introduction and warm-up"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Invalid in Drive"
+msgstr "Invalid in Drive"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Inventory"
@@ -913,6 +1065,10 @@ msgstr "its owner"
 msgid "Keep at least one section."
 msgstr "Keep at least one section."
 
+#: src/features/preparation/drive-review.tsx
+msgid "Keep the app's"
+msgstr "Keep the app's"
+
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/guide-editor.tsx
 msgid "Kind"
@@ -921,6 +1077,11 @@ msgstr "Kind"
 #: src/features/workspace/language-switch.tsx
 msgid "Language"
 msgstr "Language"
+
+#. placeholder {0}: p.lastEditor
+#: src/features/preparation/drive-publishing.tsx
+msgid "Last edited in Drive by {0}. "
+msgstr "Last edited in Drive by {0}. "
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Last inventory {when} by {who}."
@@ -937,6 +1098,10 @@ msgstr "Last sign-in"
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Last successful check"
 msgstr "Last successful check"
+
+#: src/features/workspace/errors.ts
+msgid "Let goodresearch edit your Drive files first."
+msgstr "Let goodresearch edit your Drive files first."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Link of the Drive folder"
@@ -1066,6 +1231,10 @@ msgstr "New theme"
 msgid "No access yet"
 msgstr "No access yet"
 
+#: src/features/preparation/drive-review.tsx
+msgid "No change to review."
+msgstr "No change to review."
+
 #: src/features/assistant/panel.tsx
 msgid "No conversation yet."
 msgstr "No conversation yet."
@@ -1106,14 +1275,19 @@ msgstr "Not found"
 msgid "Not run"
 msgstr "Not run"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Not understood"
+msgstr "Not understood"
+
 #: src/features/preparation/schedule.tsx
 msgid "Notes"
 msgstr "Notes"
 
 #: src/features/ingestion/source-panel.tsx
-msgid "Nothing is ever created, changed or deleted in your Drive. You can disconnect at any time from Connected sources."
-msgstr "Nothing is ever created, changed or deleted in your Drive. You can disconnect at any time from Connected sources."
+msgid "Nothing is created or changed in your Drive unless you publish a study's preparation, which asks separately for editing. Nothing is ever deleted. You can disconnect at any time from Connected sources."
+msgstr "Nothing is created or changed in your Drive unless you publish a study's preparation, which asks separately for editing. Nothing is ever deleted. You can disconnect at any time from Connected sources."
 
+#: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
 msgid "Objectives"
@@ -1151,6 +1325,15 @@ msgstr "Open a study"
 msgid "Open Google account permissions"
 msgstr "Open Google account permissions"
 
+#: src/features/preparation/drive-publishing.tsx
+msgid "Open in Drive"
+msgstr "Open in Drive"
+
+#. placeholder {0}: i18n._(KINDS[kind])
+#: src/features/preparation/drive-publishing.tsx
+msgid "Open in Drive: {0}"
+msgstr "Open in Drive: {0}"
+
 #: src/features/assistant/panel.tsx
 msgid "Open the AI provider page"
 msgstr "Open the AI provider page"
@@ -1183,9 +1366,25 @@ msgstr "Opened the project"
 msgid "Opened the study"
 msgstr "Opened the study"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Order changed in Drive"
+msgstr "Order changed in Drive"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Order of the questions"
+msgstr "Order of the questions"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Order of the sections"
+msgstr "Order of the sections"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Other"
 msgstr "Other"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Out of date: changed in the app"
+msgstr "Out of date: changed in the app"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Owner: {owner}"
@@ -1214,6 +1413,10 @@ msgstr "Person to interview"
 #: src/features/preparation/schedule.tsx
 msgid "Plan an interview"
 msgstr "Plan an interview"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Planned interview"
+msgstr "Planned interview"
 
 #: src/features/preparation/labels.ts
 msgid "Postponed"
@@ -1250,9 +1453,21 @@ msgstr "Projects"
 msgid "Provider"
 msgstr "Provider"
 
+#: src/features/preparation/drive-publishing.tsx
+msgid "Publish to Drive"
+msgstr "Publish to Drive"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Published to Drive"
+msgstr "Published to Drive"
+
 #: src/features/preparation/guide-view.tsx
 msgid "Q{n}"
 msgstr "Q{n}"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Question"
+msgstr "Question"
 
 #. placeholder {0}: qi + 1
 #: src/features/preparation/guide-editor.tsx
@@ -1292,6 +1507,14 @@ msgstr "Refresh"
 msgid "Region"
 msgstr "Region"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Reject"
+msgstr "Reject"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Reject all"
+msgstr "Reject all"
+
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Reload"
 msgstr "Reload"
@@ -1322,6 +1545,10 @@ msgstr "Remove this interview from the schedule?"
 msgid "Remove your AI provider?"
 msgstr "Remove your AI provider?"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Removed in Drive"
+msgstr "Removed in Drive"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Removing the provider deletes it from goodresearch. To also withdraw goodresearch's access at Google, use your Google account permissions."
 msgstr "Removing the provider deletes it from goodresearch. To also withdraw goodresearch's access at Google, use your Google account permissions."
@@ -1338,6 +1565,14 @@ msgstr "Rename the study"
 msgid "Replace folder"
 msgstr "Replace folder"
 
+#: src/features/preparation/drive-publishing.tsx
+msgid "Replace the Drive version"
+msgstr "Replace the Drive version"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Replace the Drive version?"
+msgstr "Replace the Drive version?"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Replaces the current guide of the study."
 msgstr "Replaces the current guide of the study."
@@ -1351,6 +1586,15 @@ msgstr "Research goal"
 #: src/routes/_authenticated/index.tsx
 msgid "Research projects"
 msgstr "Research projects"
+
+#: src/features/preparation/drive-publishing.tsx
+#: src/features/preparation/drive-review.tsx
+msgid "Review the changes from Drive"
+msgstr "Review the changes from Drive"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Review them first"
+msgstr "Review them first"
 
 #: src/features/preparation/schedule.tsx
 #: src/routes/_authenticated/members/$memberId.tsx
@@ -1397,6 +1641,10 @@ msgstr "Scheduled"
 #: src/routes/_authenticated/members/index.tsx
 msgid "Search by name or email"
 msgstr "Search by name or email"
+
+#: src/features/preparation/drive-review.tsx
+msgid "Section"
+msgstr "Section"
 
 #. placeholder {0}: si + 1
 #: src/features/preparation/guide-editor.tsx
@@ -1485,6 +1733,10 @@ msgstr "suggests the answer"
 msgid "Survey"
 msgstr "Survey"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Take Drive's"
+msgstr "Take Drive's"
+
 #: src/features/assistant/proposal-card.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
@@ -1523,6 +1775,10 @@ msgstr "Test call to the model"
 msgid "Testing…"
 msgstr "Testing…"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Text"
+msgstr "Text"
+
 #: src/features/ai/labels.ts
 msgid "The account has no credit or quota left."
 msgstr "The account has no credit or quota left."
@@ -1531,6 +1787,10 @@ msgstr "The account has no credit or quota left."
 msgid "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
 msgstr "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
 
+#: src/features/preparation/drive-review.tsx
+msgid "The best practices are not brought back: the next update replaces this."
+msgstr "The best practices are not brought back: the next update replaces this."
+
 #: src/features/ai/labels.ts
 msgid "The check did not work for an unexpected reason."
 msgstr "The check did not work for an unexpected reason."
@@ -1538,6 +1798,22 @@ msgstr "The check did not work for an unexpected reason."
 #: src/features/workspace/errors.ts
 msgid "The email you typed does not match."
 msgstr "The email you typed does not match."
+
+#: src/features/workspace/errors.ts
+msgid "The file changed in Drive meanwhile. It was checked again: review it, then update."
+msgstr "The file changed in Drive meanwhile. It was checked again: review it, then update."
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "The file is in the trash."
+msgstr "The file is in the trash."
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "The file was deleted, or you cannot open it."
+msgstr "The file was deleted, or you cannot open it."
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "The file was moved out of the study folder."
+msgstr "The file was moved out of the study folder."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "the folder no longer exists or is no longer shared with the person who refreshed"
@@ -1631,6 +1907,10 @@ msgstr "Thinking…"
 msgid "This account was deleted."
 msgstr "This account was deleted."
 
+#: src/features/preparation/drive-review.tsx
+msgid "This cannot be applied: copy it into the editor if you need it. The next update replaces it."
+msgstr "This cannot be applied: copy it into the editor if you need it. The next update replaces it."
+
 #: src/features/workspace/errors.ts
 msgid "This conversation does not exist any more."
 msgstr "This conversation does not exist any more."
@@ -1650,6 +1930,10 @@ msgstr "This Google Cloud project does not exist or your account cannot open it.
 #: src/features/workspace/errors.ts
 msgid "This interview is no longer in the schedule."
 msgstr "This interview is no longer in the schedule."
+
+#: src/features/workspace/errors.ts
+msgid "This is already published in the Drive folder."
+msgstr "This is already published in the Drive folder."
 
 #: src/features/workspace/errors.ts
 msgid "This is not the link of a Google Drive folder."
@@ -1674,6 +1958,10 @@ msgstr "This proposal does not exist any more."
 #: src/features/workspace/errors.ts
 msgid "This proposal was already applied or dismissed."
 msgstr "This proposal was already applied or dismissed."
+
+#: src/features/workspace/errors.ts
+msgid "This published file is no longer known."
+msgstr "This published file is no longer known."
 
 #: src/features/workspace/errors.ts
 msgid "This study does not exist or you do not have access to it."
@@ -1736,13 +2024,29 @@ msgstr "Type"
 msgid "Type {email} to confirm"
 msgstr "Type {email} to confirm"
 
+#: src/features/preparation/drive-publishing.tsx
+msgid "Unavailable in Drive"
+msgstr "Unavailable in Drive"
+
 #: src/features/assistant/cost.tsx
 msgid "unknown"
 msgstr "unknown"
 
+#: src/features/preparation/drive-review.tsx
+msgid "unknown status"
+msgstr "unknown status"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Update in Drive"
+msgstr "Update in Drive"
+
 #: src/features/research/study-list.tsx
 msgid "Updated {updated}"
 msgstr "Updated {updated}"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Updated in Drive"
+msgstr "Updated in Drive"
 
 #: src/features/research/study-list.tsx
 msgid "Usability test"
@@ -1763,6 +2067,11 @@ msgstr "Use the project ID, not its name: lower-case letters, digits and hyphens
 #: src/features/assistant/proposal-card.tsx
 msgid "Using the skill: {name}"
 msgstr "Using the skill: {name}"
+
+#. placeholder {0}: g.version + 1
+#: src/features/preparation/preparation-tab.tsx
+msgid "Version {0} · changes from Drive accepted by {who} {when}"
+msgstr "Version {0} · changes from Drive accepted by {who} {when}"
 
 #. placeholder {0}: g.version + 1
 #: src/features/preparation/preparation-tab.tsx
@@ -1803,6 +2112,10 @@ msgstr "Wrap-up"
 msgid "Write it myself"
 msgstr "Write it myself"
 
+#: src/features/preparation/drive-review.tsx
+msgid "Write the final text"
+msgstr "Write the final text"
+
 #: src/routes/_authenticated/teams.tsx
 msgid "You are not in any team yet."
 msgstr "You are not in any team yet."
@@ -1810,6 +2123,14 @@ msgstr "You are not in any team yet."
 #: src/routes/_authenticated/index.tsx
 msgid "You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects."
 msgstr "You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects."
+
+#: src/features/workspace/errors.ts
+msgid "You can view this file in Drive but not edit it."
+msgstr "You can view this file in Drive but not edit it."
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "You can view this file in Drive but not edit it. Ask {owner}, who owns it."
+msgstr "You can view this file in Drive but not edit it. Ask {owner}, who owns it."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "You do not have access to this study's folder"

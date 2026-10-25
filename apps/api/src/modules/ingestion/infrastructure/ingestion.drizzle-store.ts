@@ -59,7 +59,12 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
         ),
       )
     return row
-      ? { ...row, connector: CONNECTOR, status: row.status === 'lost' ? 'lost' : 'connected' }
+      ? {
+          ...row,
+          connector: CONNECTOR,
+          status: row.status === 'lost' ? 'lost' : 'connected',
+          access: row.access === 'write' ? 'write' : 'read',
+        }
       : null
   },
 
@@ -74,6 +79,7 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
           encryptedRefreshToken: c.encryptedRefreshToken,
           status: c.status,
           connectedAt: c.connectedAt,
+          access: c.access,
         },
       })
   },
@@ -102,7 +108,9 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
       .delete(ingestionOauthStates)
       .where(eq(ingestionOauthStates.state, state))
       .returning()
-    return row && row.expiresAt > now ? row : null
+    return row && row.expiresAt > now
+      ? { ...row, access: row.access === 'write' ? ('write' as const) : ('read' as const) }
+      : null
   },
 
   getSource: async (studyId) => {

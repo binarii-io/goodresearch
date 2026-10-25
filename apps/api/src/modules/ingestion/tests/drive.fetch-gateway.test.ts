@@ -201,9 +201,11 @@ describe('Google Drive authorization', () => {
         clientSecret: 's',
         appUrl,
         fetch,
-      }).authorizationUrl({ state: 'st', codeChallenge: 'ch', loginHint: '' }),
+      }).authorizationUrl({ state: 'st', codeChallenge: 'ch', loginHint: '', access: 'read' }),
     )
     expect(url.origin + url.pathname).toBe('https://accounts.google.com/o/oauth2/v2/auth')
+    // Each consent stays on its own (Drive, Vertex AI): no merged incremental grant.
+    expect(url.searchParams.has('include_granted_scopes')).toBe(false)
     expect(Object.fromEntries(url.searchParams)).toMatchObject({
       client_id: 'cid',
       response_type: 'code',
@@ -238,9 +240,10 @@ describe('Google Drive authorization', () => {
       appUrl,
       fetch,
     })
-    expect(await auth.exchange({ code: 'c', codeVerifier: 'v' })).toEqual({
+    expect(await auth.exchange({ code: 'c', codeVerifier: 'v', access: 'read' })).toEqual({
       refreshToken: 'r',
       externalAccount: 'alice@example.org',
+      access: 'read',
     })
     expect(calls[0]?.body).toContain('code_verifier=v')
     onlyReads(calls)
@@ -257,8 +260,43 @@ describe('Google Drive authorization', () => {
         clientSecret: 's',
         appUrl,
         fetch,
-      }).exchange({ code: 'c', codeVerifier: 'v' }),
+      }).exchange({ code: 'c', codeVerifier: 'v', access: 'read' }),
     ).rejects.toThrow(/scope/)
+  })
+
+  it('asks the editing scope for publishing and refuses a consent without it (spec 007)', async () => {
+    const auth = (body: object) =>
+      createGoogleDriveAuthorization({
+        clientId: 'cid',
+        clientSecret: 's',
+        appUrl,
+        fetch: fakeFetch((c) =>
+          c.url.pathname === '/drive/v3/about'
+            ? { status: 200, body: { user: { emailAddress: 'alice@example.org' } } }
+            : { status: 200, body },
+        ).fetch,
+      })
+    const url = new URL(
+      auth({}).authorizationUrl({
+        state: 'st',
+        codeChallenge: 'ch',
+        loginHint: '',
+        access: 'write',
+      }),
+    )
+    expect(url.searchParams.get('scope')).toBe('https://www.googleapis.com/auth/drive')
+    const readOnly = {
+      access_token: 'a',
+      refresh_token: 'r',
+      scope: 'https://www.googleapis.com/auth/drive.readonly',
+    }
+    await expect(
+      auth(readOnly).exchange({ code: 'c', codeVerifier: 'v', access: 'write' }),
+    ).rejects.toThrow(/scope/)
+    const both = { ...readOnly, scope: `${readOnly.scope} https://www.googleapis.com/auth/drive` }
+    expect(
+      (await auth(both).exchange({ code: 'c', codeVerifier: 'v', access: 'read' })).access,
+    ).toBe('write')
   })
 
   it('revokes at Google', async () => {

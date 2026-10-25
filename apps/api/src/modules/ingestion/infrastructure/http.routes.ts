@@ -16,17 +16,27 @@ import { sendError } from '#platform/http/errors.ts'
 import { reply } from '#platform/http/result.ts'
 import type { SourceCommands } from '../application/commands/source-commands.ts'
 import type { SourceQueries } from '../application/queries/source-queries.ts'
+import type { DevDrive } from './dev-drive.ts'
 
 export type IngestionHandlers = {
   readonly commands: SourceCommands
   readonly queries: SourceQueries
+  /** Simulated Drive only (`DRIVE_FAKE`): what a person does in Drive, for end-to-end tests. */
+  readonly devEdit?: DevDrive['edit']
 }
+
+const DevEdit = z.object({
+  replace: z.array(z.object({ from: z.string(), to: z.string() })).optional(),
+  cells: z
+    .array(z.object({ row: z.string(), key: z.string(), value: z.string().nullable() }))
+    .optional(),
+})
 
 export const registerIngestionRoutes = (
   app: FastifyInstance,
   deps: { guard: preHandlerAsyncHookHandler; handlers: IngestionHandlers },
 ): void => {
-  const { commands, queries } = deps.handlers
+  const { commands, queries, devEdit } = deps.handlers
   const api = app.withTypeProvider<ZodTypeProvider>()
   const secured = { preHandler: deps.guard }
   const tags = ['sources']
@@ -129,6 +139,19 @@ export const registerIngestionRoutes = (
       ),
   )
 
+  if (devEdit)
+    api.post(
+      '/api/dev/drive-documents/:fileId/edit',
+      {
+        ...secured,
+        schema: { hide: true, params: z.object({ fileId: z.string().max(200) }), body: DevEdit },
+      },
+      async (request, res) =>
+        devEdit(request.params.fileId, request.body)
+          ? res.status(204).send()
+          : sendError(res, 'NOT_FOUND'),
+    )
+
   // Browser navigations (not called by the API client): consent start and Google's redirect back.
   api.get(
     '/api/sources/google-drive/connect',
@@ -137,6 +160,7 @@ export const registerIngestionRoutes = (
       const started = await commands.startDriveConnection({
         actor: request.account,
         returnTo: request.query.returnTo,
+        access: request.query.access,
       })
       return started.ok ? res.redirect(started.value.url) : sendError(res, started.error)
     },

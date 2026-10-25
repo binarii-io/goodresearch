@@ -57,7 +57,7 @@ export type GuideInput = {
   }[]
 }
 
-export type GuideOrigin = 'assistant' | 'person'
+export type GuideOrigin = 'assistant' | 'person' | 'drive'
 
 export type InterviewGuideProps = {
   readonly studyId: string

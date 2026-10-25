@@ -1,0 +1,2 @@
+ALTER TABLE "ingestion_oauth_states" ADD COLUMN "access" text DEFAULT 'read' NOT NULL;--> statement-breakpoint
+ALTER TABLE "ingestion_source_connections" ADD COLUMN "access" text DEFAULT 'read' NOT NULL;

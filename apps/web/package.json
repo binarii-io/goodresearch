@@ -15,6 +15,7 @@
   "dependencies": {
     "@goodresearch/api-client": "workspace:*",
     "@goodresearch/contracts": "workspace:*",
+    "@goodresearch/shared": "workspace:*",
     "@goodresearch/ui": "workspace:*",
     "@lingui/core": "catalog:",
     "@lingui/detect-locale": "catalog:",

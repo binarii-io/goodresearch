@@ -13,4 +13,5 @@ export interface MySource {
   /** @nullable */
   externalAccount: string | null;
   connectedAt: string | null;
+  canWrite: boolean;
 }

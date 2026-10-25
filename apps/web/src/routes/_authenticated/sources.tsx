@@ -55,7 +55,11 @@ function Sources() {
             <p>{t`Google Drive is not configured on this instance.`}</p>
           ) : drive.status === 'connected' ? (
             <>
-              <p>{t`Connected as ${account} since ${since}. Read-only.`}</p>
+              <p>
+                {drive.canWrite
+                  ? t`Connected as ${account} since ${since}. Can edit the Drive files you can edit, to publish study preparations.`
+                  : t`Connected as ${account} since ${since}. Read-only.`}
+              </p>
               <AlertDialog>
                 <AlertDialogTrigger
                   render={<Button variant="outline" className="justify-self-start" />}

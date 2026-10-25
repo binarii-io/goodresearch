@@ -33,6 +33,7 @@ Every AI-produced object follows the same lifecycle and the same protections. Th
 | 8 | **Reporting** | Supporting | Read models only (no aggregates) | — (deck, graph, evidence chain, exports) |
 | 9 | **AI Gateway** | Generic | Adapters + ledger | AI provider connection, UsageEntry (append-only), PricingCatalog |
 | 10 | **Assistant** | Supporting | Plain handlers + proposal rules | Conversation (messages, action proposals) |
+| 11 | **Publishing** | Supporting | Domain model (three-way sync) | PublishedDocument (base, state, Drive changes) |
 
 Background jobs (`Job`, per-item progress, stop, retry) are **shared infrastructure** used by contexts 3–7, not a context of their own.
 
@@ -153,6 +154,14 @@ Deck (debrief presentation), project graph, evidence chain (recommendation → i
 - Concurrency cap per provider credential, retries with backoff on transient errors.
 - **UsageEntry** — **single append-only ledger**: person, task, provider, model, tokens in and out, duration, outcome, `ref` (what the call was for, e.g. an assistant message); never prompt or answer text (spec 004). Cost is computed at read time from a dated **PricingCatalog** (built-in prices for the default models, deployer prices with `AI_PRICES`; spec 005).
 
+### 11. Publishing (spec 007)
+
+- **PublishedDocument** — a file created from a study's preparation in the study's source folder: the interview guide and the best practices as documents, the schedule as a spreadsheet. It keeps the **base** (the content as read back right after the last write), the file's state and its **Drive changes**. Shared by everyone who can act on the study; files are read and written with the acting person's own source access (an editing consent asked when publishing; the person must be able to edit the file at the source).
+- **Item identity** — invisible anchors in documents (one per framing heading, section and main question) and a hidden id column in spreadsheets, so a reworded question or a sorted sheet keeps its items.
+- **Three-way sync** — for each item, base, app and file are compared: changed in the app only → the file is **out of date** ("Update in Drive" rewrites the same file); changed in the file only → a **Drive change** to review; changed on both sides, differently → a **conflict**; unreadable text → **not understood**; a value breaking the app's rules → **invalid**. Nothing read from Drive changes the app without a person's decision, and a file with unreviewed changes is never rewritten unless the person explicitly replaces them.
+- **Drive change** — decided once (accepted or rejected, shared by the team). Accepted changes go through the Research commands (guide origin `drive`); rejected ones are replaced at the next update. The best practices are fixed content: their Drive changes are reported, never brought back.
+- **States**: in sync, out of date, changed in Drive, conflict, unavailable (deleted, trashed, moved out of the folder, or no access). Checked when the Preparation tab opens (at most every 5 minutes) and on demand; never deleted at the source.
+
 ## Bilingual glossary
 
 Code, API and docs use the English term. The UI ships in English and French; translators use this table so a term is always translated the same way. A new domain term is added here in the same PR that introduces it.
@@ -228,6 +237,11 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Conversation | Conversation | |
 | Action proposal | Proposition | Shown as a card with Apply / Dismiss |
 | Apply / Dismiss | Appliquer / Ignorer | |
+| Published file | Fichier publié | In the study's source folder |
+| Publish / Update in Drive | Publier / Mettre à jour dans le Drive | |
+| In sync / Out of date / Changed in Drive / Conflict / Unavailable | À jour / Pas à jour / Modifié dans le Drive / Conflit / Indisponible | States of a published file |
+| Drive change | Modification du Drive | Accept / Reject = Accepter / Refuser |
+| Not understood | Non compris | Text read from Drive that matches no item |
 
 ## Domain events (initial list)
 

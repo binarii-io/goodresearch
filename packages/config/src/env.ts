@@ -68,6 +68,8 @@ export type AppConfig = {
   readonly signInRateLimit: number
   /** Google OAuth client shared by the Drive connector (spec 002) and Vertex AI (spec 004); `null` when not configured. */
   readonly google: { readonly clientId: string; readonly clientSecret: string } | null
+  /** A Google Drive simulated in memory (dev stack and end-to-end tests, spec 007); never with https. */
+  readonly driveFake: boolean
   /** AI providers offered to people (spec 004); each person uses their own credentials. */
   readonly ai: {
     readonly offered: readonly AiProviderKind[]
@@ -141,6 +143,7 @@ const baseSchema = z.object({
   AI_MODEL_OPENAI: optionalText,
   AI_CALL_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
   AI_FAKE_PROVIDER: bool,
+  DRIVE_FAKE: bool,
   AI_PRICES: optionalText,
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -250,6 +253,9 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     else offered.push('fake')
   }
 
+  if (values.DRIVE_FAKE && appUrl.protocol === 'https:')
+    issues.push('DRIVE_FAKE: the simulated Google Drive cannot be used with an https APP_URL')
+
   let prices: AiPrice[] = []
   if (values.AI_PRICES) {
     try {
@@ -283,6 +289,7 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     trustedProxies: list(values.TRUSTED_PROXIES),
     signInRateLimit: values.AUTH_SIGN_IN_RATE_LIMIT,
     google: googleId && googleSecret ? { clientId: googleId, clientSecret: googleSecret } : null,
+    driveFake: values.DRIVE_FAKE,
     ai: {
       offered,
       models: {
