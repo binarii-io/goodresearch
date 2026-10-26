@@ -41,6 +41,16 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   MEDIA_UNAVAILABLE: msg`This recording is used by another interview.`,
   LINKED_TO_DECIDED_SESSION: msg`This planned interview is linked to an interview already validated or excluded. Reopen that one first.`,
   NOT_AN_INTERVIEW_STUDY: msg`Only interview studies have a guide, a schedule and interviews.`,
+  NO_VALIDATED_INTERVIEW: msg`Validate interviews in Fieldwork first: only validated interviews are read.`,
+  NOTHING_TO_READ: msg`Every interview is already read.`,
+  LEXICON_CONSENT_REQUIRED: msg`Agree to send excerpts to your AI provider first.`,
+  LEXICON_RUNNING: msg`Terms are already being found for this study.`,
+  TERM_NOT_FOUND: msg`This term is no longer in the lexicon.`,
+  TERM_EXISTS: msg`Another term of the lexicon already has this form: merge them instead.`,
+  CORRECTION_REQUIRED: msg`Say what a transcription error should read.`,
+  MERGE_ITSELF: msg`A term cannot be merged into itself.`,
+  LANGUAGE_DIFFERS: msg`Only terms of the same language can be merged.`,
+  AI_PROVIDER_REQUIRED: msg`Set up your AI provider first.`,
 }
 
 /** One translated sentence for an error code (never technical details). */

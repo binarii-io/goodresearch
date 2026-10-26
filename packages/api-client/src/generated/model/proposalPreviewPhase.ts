@@ -11,5 +11,6 @@ export type ProposalPreviewPhase = typeof ProposalPreviewPhase[keyof typeof Prop
 export const ProposalPreviewPhase = {
   preparation: 'preparation',
   fieldwork: 'fieldwork',
+  enrichment: 'enrichment',
   analysis: 'analysis',
 } as const;

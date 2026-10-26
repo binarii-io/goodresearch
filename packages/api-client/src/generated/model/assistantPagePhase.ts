@@ -11,5 +11,6 @@ export type AssistantPagePhase = typeof AssistantPagePhase[keyof typeof Assistan
 export const AssistantPagePhase = {
   preparation: 'preparation',
   fieldwork: 'fieldwork',
+  enrichment: 'enrichment',
   analysis: 'analysis',
 } as const;

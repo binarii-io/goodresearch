@@ -16,7 +16,7 @@ export type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
 export type PageRef = {
   readonly kind: 'home' | 'project' | 'study' | 'teams' | 'members' | 'sources' | 'other'
   readonly id?: string | undefined
-  readonly phase?: 'preparation' | 'fieldwork' | 'analysis' | undefined
+  readonly phase?: 'preparation' | 'fieldwork' | 'enrichment' | 'analysis' | undefined
 }
 
 export type Conversation = {
@@ -49,7 +49,7 @@ export type ProposalPreview = {
   readonly goal?: string
   readonly previousName?: string
   readonly previousGoal?: string
-  readonly phase?: 'preparation' | 'fieldwork' | 'analysis'
+  readonly phase?: 'preparation' | 'fieldwork' | 'enrichment' | 'analysis'
   readonly studyName?: string
   readonly guide?: GuideDraft
   readonly replacesGuide?: boolean

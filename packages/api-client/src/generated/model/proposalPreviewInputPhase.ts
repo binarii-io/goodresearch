@@ -11,5 +11,6 @@ export type ProposalPreviewInputPhase = typeof ProposalPreviewInputPhase[keyof t
 export const ProposalPreviewInputPhase = {
   preparation: 'preparation',
   fieldwork: 'fieldwork',
+  enrichment: 'enrichment',
   analysis: 'analysis',
 } as const;

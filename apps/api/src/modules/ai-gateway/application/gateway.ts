@@ -156,16 +156,18 @@ export const makeGateway = (deps: AiDeps) => {
       accountId: string,
       task: string,
       request: ModelRequest & { schema: ZodType<T> },
-      options: { ref?: string } = {},
+      /** `timeoutMs`: a longer limit for calls run in the worker (spec 010 lexicon readings). */
+      options: { ref?: string; timeoutMs?: number } = {},
     ) => {
       const { credential, model } = await resolve(accountId)
+      const timeoutMs = options.timeoutMs ?? deps.config.timeoutMs
       try {
         return await callWith(
           accountId,
           task,
           credential,
           model,
-          () => deps.runner.generateObject(credential, model, request, deps.config.timeoutMs),
+          () => deps.runner.generateObject(credential, model, request, timeoutMs),
           options.ref ?? null,
         )
       } catch (error) {

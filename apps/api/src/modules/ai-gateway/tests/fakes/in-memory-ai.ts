@@ -80,6 +80,8 @@ export const inMemoryAiStore = () => {
 /** A model runner whose answer depends on the credential: `bad-*` keys fail with that reason. */
 export const fakeRunner = () => {
   const calls: { credential: Credential; model: string }[] = []
+  /** The time limit of each structured call (spec 010: long calls run in the worker). */
+  const timeouts: number[] = []
   let nextFailure: AiFailure | null = null
   let nextUsage: { inputTokens: number; outputTokens: number } | null = null
   const outcome = (credential: Credential) => {
@@ -100,7 +102,8 @@ export const fakeRunner = () => {
       outcome(credential)
       return { text: 'OK', usage }
     },
-    generateObject: async (credential, _model, request) => {
+    generateObject: async (credential, _model, request, timeoutMs) => {
+      timeouts.push(timeoutMs)
       outcome(credential)
       return { object: request.schema.parse({ answer: 'yes' }), usage }
     },
@@ -127,6 +130,7 @@ export const fakeRunner = () => {
   return {
     runner,
     calls,
+    timeouts,
     /** The next call fails; `usage`: tokens the provider still counted (an answer that did not fit). */
     failNext: (failure: AiFailure, usage?: { inputTokens: number; outputTokens: number }) => {
       nextFailure = failure

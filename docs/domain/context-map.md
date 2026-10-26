@@ -73,7 +73,7 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 ### 2. Research
 
 - **Project** — a research question. `name`, `goal` (question, objectives, hypotheses — given to the AI everywhere), `reviewPolicy` (`auto | manual`), **exactly one team** (required; access follows the team). Linked to 0..n studies (many-to-many). Its key takeaways are owned by the Synthesis context.
-- **Study** — one source of evidence that can feed several projects. `type` (`interviews` first; `survey`, `usability-test`, `documents`, `analytics` later), phases **Preparation → Fieldwork → Analysis**.
+- **Study** — one source of evidence that can feed several projects. `type` (`interviews` first; `survey`, `usability-test`, `documents`, `analytics` later), phases **Preparation → Fieldwork → Enrichment → Analysis** (Enrichment, spec 010: the team lexicon, then Cleaning, spec 011, on the validated interviews).
 - **InterviewGuide** (spec 006) — the protocol of an interview study, at most one per study: a **framing** (objectives with the research themes, hypotheses, audience, format) and ordered **sections** of kind `introduction | warm-up | theme | wrap-up`, each with a title, a duration and ordered main **GuideQuestions** (app `id`, `text`, follow-ups). Versioned, with its origin (`assistant` when an assistant proposal was applied, `person` when edited by hand). Question ids are kept when a new version has the same question (same id sent back, or same text). Limits: 12 sections, 60 main questions, 8 follow-ups each. It is the hub: it feeds evaluation coverage, insight themes and the deck.
 - **PlannedInterview** (spec 006) — one row of a study's **interview schedule**: the person to interview, role, interviewers, date and time, status (`to-contact | invited | scheduled | done | postponed | cancelled`), notes. Holds names of real people: never sent to an AI provider (the assistant only gets counts per status).
 - **PublishedDocument** — an export of something the app owns (guide, best-practices, schedule) to an external tool. The app stays the source of truth. Until a publishing adapter exists, the guide and the best practices download as Markdown and the schedule as CSV.
@@ -94,13 +94,15 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 
 ### 4. Transcripts
 
-- **Transcript** — the text of a session, with **versions**: `raw` (imported, immutable) and successive `clean` versions. Each version is a list of **Segments**.
+- **Transcript** — the text of a session, with **versions**: `raw` (imported, immutable) and successive `clean` versions. Each version is a list of **Segments**. Spec 010 imports the raw version of each **validated** interview the first time Enrichment reads it, and again only when its file changed in Drive (unchanged turns keep their ids); the text is deleted with its session. Clean versions come with Cleaning (spec 011).
 - **Segment** — one speaker turn: `id` (**stable across versions**), `speaker`, `start`/`end` (nullable), `text`. Everything downstream anchors on `(transcriptVersionId, segmentId, offsets)` — never on a positional index.
 - **TranscriptParser** — strategy per format (VTT, SRT, plain `Speaker: text`, meeting-notes exports…). Unusable input → `unavailable` with a reason.
 - **Speaker mapping** — explicit, user-validated mapping from transcript speaker labels to **roster** entries (interviewer or interviewee) of the session (replaces name heuristics everywhere).
-- **LexiconTerm** — team-level glossary entry per language (the team that owns the projects; a cross-study, global lexicon comes later): `surface`, `kind` (`domain | suspect`), `correction`, `scope` (`global | caseByCase`), status. Has **Occurrences** (recomputed) and **Verdicts** (user yes/no per occurrence, survive recounts).
+- **LexiconTerm** (spec 010) — team-level entry per language (the team that owns the study's project; a cross-team, global lexicon comes later): `form` (the correct form; for a `suspect` term, what the transcription wrote), `kind` (`domain`: a real term; `suspect`: a probable transcription error, with its `correction`), `category` (`product | organisation | place | acronym | jargon | role | person | other`), `definition`, status `proposed | accepted | edited | rejected | merged`, and its **variants** (other spellings, each `proposed | accepted | rejected`). One active term per form in a team and language. Has **Occurrences** (counts per interview, recomputed by the app at each reading), a `scope` (`global | case-by-case`) and **Verdicts** (a person's yes/no on one occurrence in its context, kept across readings while the turn is unchanged, moved by a merge). Cleaning (spec 011): `global` → every occurrence corrected except verdicts *no*; `case-by-case` → only verdicts *yes*, the others decided in context.
+  - **Lexicon reading** ("Find terms", one per study at a time, in the worker): imports the transcripts, finds **candidates** by the app's rules (words absent from the common words of the language, capitalised words inside a sentence, acronyms, spellings close to a known term; known names, speaker labels and decided spellings left out; at most 300), then asks the AI to group them into terms. The AI gets only the candidates with at most 3 excerpts of 200 characters each, the names the app knows replaced by placeholders (anonymisation on or off), never a full transcript; variants must be among the candidates and quotes in the excerpts. Costs: ledger ref `lexicon-reading:<runId>`, shown on the Enrichment tab for every account.
+  - Decisions: accept, edit, reject, reopen, merge (the merged term's spellings move to the kept one, which counts as accepted). A new reading never changes a decided term, only adds proposed variants, and never proposes a rejected spelling again.
   - Match rule: whole word/phrase; all-caps acronyms case-sensitive, others case-insensitive. Same rule server and UI (shared package).
-  - Default scope `caseByCase` when the surface has ≤3 characters or is spread much wider than flagged; user choice wins once set.
+  - Default scope `case-by-case` when a counted spelling has ≤3 characters (spec 010; "spread much wider than flagged" may come with Cleaning); user choice wins once set.
   - Re-extraction never overwrites a human decision; while undecided, `suspect` wins over `domain`.
 - **CorrectionRun** — a versioned correction pass producing **Edits** (`segmentId`, offsets, original, replacement, `origin` `user | rule | ai-lexicon | ai-other`, confidence, reason, status). Overlap priority: user > rule > ai-lexicon > ai-other. An identical edit inherits the earlier human decision. **Publishing** a run creates a new clean version.
 
@@ -185,7 +187,7 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Research goal | Objectif de recherche | |
 | Study | Étude | A method run to collect evidence; "Experiment" is not used (implies A/B testing) |
 | Study type: interviews | Entretiens | Later: survey (Questionnaire), usability test (Test utilisateur) |
-| Preparation / Fieldwork / Analysis | Préparation / Passation / Analyse | Study phases |
+| Preparation / Fieldwork / Enrichment / Analysis | Préparation / Passation / Enrichissement / Analyse | Study phases |
 | Interview guide | Guide d'entretien | |
 | Guide question | Question du guide | |
 | Framing | Cadrage | Objectives, hypotheses, audience, format of a guide |
@@ -220,9 +222,13 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Interviewer intervention | Intervention de l'intervieweur | Segment spoken by an interviewer (Interview Quality) |
 | Participant | Participant | Pseudonym `P01`… in both languages |
 | Lexicon | Lexique | |
-| Term (domain / suspect) | Terme (métier / douteux) | |
+| Term (domain / suspect) | Terme (métier / douteux) | UI kinds: "Term / Terme" and "Transcription error / Erreur de transcription" |
+| Variant | Graphie | "Spellings found / Graphies trouvées" in the UI |
+| Lexicon reading (Find terms) | Lecture du lexique (Trouver les termes) | Spec 010 |
+| Merge (terms) | Fusionner | |
 | Occurrence | Occurrence | |
-| Verdict | Verdict | |
+| Verdict | Verdict | UI: "This is the term / C'est bien ce terme", "Not this term / Pas ce terme" |
+| Scope (everywhere / case by case) | Portée (partout / au cas par cas) | "Where to correct / Où corriger" in the UI |
 | Correction run | Passe de correction | |
 | Edit | Modification | |
 | Publish (a transcript version) | Publier | |

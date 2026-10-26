@@ -70,8 +70,12 @@ export const createProject = async (page: Page, name: string) => {
 /** WCAG 2.2 AA: no serious or critical violation (SC-007). */
 export const expectAccessible = async (page: Page) => {
   // Mid-animation colours are not what people read: let transitions (dialogs, toasts) finish first.
+  // A theme switch can leave transitions that never settle: wait at most a second for them.
   await page.evaluate(() =>
-    Promise.allSettled(document.getAnimations().map((animation) => animation.finished)),
+    Promise.race([
+      Promise.allSettled(document.getAnimations().map((animation) => animation.finished)),
+      new Promise((resolve) => setTimeout(resolve, 1_000)),
+    ]),
   )
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])

@@ -9,7 +9,7 @@ export const AssistantPage = z
     kind: z.enum(['home', 'project', 'study', 'teams', 'members', 'sources', 'other']),
     id: Id.optional(),
     /** The study tab the person is on. */
-    phase: z.enum(['preparation', 'fieldwork', 'analysis']).optional(),
+    phase: z.enum(['preparation', 'fieldwork', 'enrichment', 'analysis']).optional(),
   })
   .meta({ id: 'AssistantPage' })
 
@@ -71,7 +71,7 @@ export const ProposalPreview = z
     previousName: z.string().optional(),
     previousGoal: z.string().optional(),
     /** For an opened study: the tab to show. */
-    phase: z.enum(['preparation', 'fieldwork', 'analysis']).optional(),
+    phase: z.enum(['preparation', 'fieldwork', 'enrichment', 'analysis']).optional(),
     studyName: z.string().optional(),
     /** A proposed interview guide (spec 006). */
     guide: GuideDraft.optional(),

@@ -10,6 +10,7 @@ export default defineConfig({
     './src/modules/ai-gateway/infrastructure/schema.ts',
     './src/modules/assistant/infrastructure/schema.ts',
     './src/modules/publishing/infrastructure/schema.ts',
+    './src/modules/transcripts/infrastructure/schema.ts',
   ],
   out: './drizzle',
   casing: 'snake_case',

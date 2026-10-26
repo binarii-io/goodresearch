@@ -96,6 +96,7 @@ export function SessionDialog({
   const schedule = useAddToSchedule(studyId)
   /** `accepted`: opened by accepting a name (renames at once when the person said not to ask). */
   const [renaming, setRenaming] = useState<false | 'asked' | 'accepted'>(false)
+  const [renameBusy, setRenameBusy] = useState(false)
   const [choosing, setChoosing] = useState(false)
   const [view, setView] = useState(session)
   const [title, setTitle] = useState(session.title ?? '')
@@ -502,6 +503,7 @@ export function SessionDialog({
               onDecide={decideProposals}
               onAnalyze={() => void analyzeAgain()}
               onRename={() => setRenaming('asked')}
+              renaming={renameBusy}
               lead={plannedCard}
             />
           </TabsContent>
@@ -717,6 +719,7 @@ export function SessionDialog({
             afterAccept={renaming === 'accepted'}
             onClose={() => setRenaming(false)}
             onRenamed={reload}
+            onBusy={setRenameBusy}
           />
         ) : null}
 

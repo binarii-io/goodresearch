@@ -20,7 +20,7 @@ const INPUTS = {
   open_project: z.object({ projectId: Id }),
   open_study: z.object({
     studyId: Id,
-    phase: z.enum(['preparation', 'fieldwork', 'analysis']).optional(),
+    phase: z.enum(['preparation', 'fieldwork', 'enrichment', 'analysis']).optional(),
   }),
   propose_interview_guide: z.object({ studyId: Id, guide: GuideDraft }),
   report_guide_progress: z.object({
@@ -77,7 +77,7 @@ export const TOOLS: readonly ToolSpec[] = [
   {
     name: 'open_study',
     description:
-      'Open the page of a study for the person (use a study id from the context), optionally on one of its tabs: preparation, fieldwork or analysis. Also use it to switch tabs on the study already open. Changes nothing; happens at once.',
+      'Open the page of a study for the person (use a study id from the context), optionally on one of its tabs: preparation, fieldwork, enrichment or analysis. Also use it to switch tabs on the study already open. Changes nothing; happens at once.',
     inputSchema: INPUTS.open_study,
   },
 ]

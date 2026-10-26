@@ -30,6 +30,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { EnrichmentTab } from '../../../features/enrichment/enrichment-tab.tsx'
 import { FieldworkTab } from '../../../features/fieldwork/fieldwork-tab.tsx'
 import { FolderButton } from '../../../features/ingestion/folder-button.tsx'
 import { SourcePanel } from '../../../features/ingestion/source-panel.tsx'
@@ -44,7 +45,10 @@ export const Route = createFileRoute('/_authenticated/studies/$studyId')({
   validateSearch: z.object({
     drive: z.enum(['connected', 'error']).optional().catch(undefined),
     // Opens on Fieldwork, where the source folder and the interviews are (spec 008).
-    phase: z.enum(['preparation', 'fieldwork', 'analysis']).optional().catch(undefined),
+    phase: z
+      .enum(['preparation', 'fieldwork', 'enrichment', 'analysis'])
+      .optional()
+      .catch(undefined),
   }),
   component: StudyPage,
 })
@@ -150,7 +154,8 @@ function StudyPage() {
             <TabsList aria-label={t`Study phases`}>
               <TabsTrigger value="preparation">{t`1 · Preparation`}</TabsTrigger>
               <TabsTrigger value="fieldwork">{t`2 · Fieldwork`}</TabsTrigger>
-              <TabsTrigger value="analysis">{t`3 · Analysis`}</TabsTrigger>
+              <TabsTrigger value="enrichment">{t`3 · Enrichment`}</TabsTrigger>
+              <TabsTrigger value="analysis">{t`4 · Analysis`}</TabsTrigger>
             </TabsList>
           </>
         }
@@ -174,6 +179,17 @@ function StudyPage() {
             <p className="text-muted-foreground text-base">{t`Fieldwork for this type of study is coming in a later version.`}</p>
             <SourcePanel studyId={studyId} isAdmin={me.role === 'admin'} />
           </div>
+        )}
+      </TabsContent>
+      <TabsContent value="enrichment">
+        {s.type !== 'interviews' ? (
+          <p className="text-muted-foreground text-base">{t`Enrichment for this type of study is coming in a later version.`}</p>
+        ) : source.isPending ? (
+          <Skeleton className="h-40 w-full" />
+        ) : canAct ? (
+          <EnrichmentTab studyId={studyId} />
+        ) : (
+          <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see its interviews.`}</p>
         )}
       </TabsContent>
       <TabsContent value="analysis">

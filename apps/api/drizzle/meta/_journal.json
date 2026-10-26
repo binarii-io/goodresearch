@@ -169,6 +169,27 @@
       "when": 1792995214291,
       "tag": "0023_sessions_to_validate",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793011972391,
+      "tag": "0024_enrichment_lexicon",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793023002882,
+      "tag": "0025_lexicon_verdicts",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793029468948,
+      "tag": "0026_transcripts_read_at",
+      "breakpoints": true
     }
   ]
 }

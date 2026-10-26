@@ -16,7 +16,7 @@ const modules = composeModules(config, {
   isReady: async () => true,
   jobs: createJobQueue(boss),
 })
-await registerHandlers(boss, modules.ingestion.jobs)
+await registerHandlers(boss, [...modules.ingestion.jobs, ...modules.transcripts.jobs])
 console.log('worker started')
 
 const stop = async () => {

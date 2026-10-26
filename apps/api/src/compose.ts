@@ -14,6 +14,11 @@ import {
 } from './modules/ingestion/index.ts'
 import { createPublishingModule, registerPublishingRoutes } from './modules/publishing/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
+import {
+  createLexiconAi,
+  createTranscriptsModule,
+  registerTranscriptsRoutes,
+} from './modules/transcripts/index.ts'
 import { createWorkspaceModule, registerWorkspaceRoutes } from './modules/workspace/index.ts'
 import { createAuth } from './platform/auth/auth.ts'
 import { registerAuthRoutes } from './platform/auth/routes.ts'
@@ -123,6 +128,23 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     ...(infra.drive !== undefined ? { drive: infra.drive } : {}),
   })
   ai = createAiGatewayModule({ db: infra.db, clock, config, ...(infra.ai ?? {}) })
+  const enrichment = ingestion.enrichment
+  const transcripts = createTranscriptsModule({
+    db: infra.db,
+    clock,
+    studies: { getStudyAccess: research.getStudyAccess },
+    sources: {
+      enrichmentSessions: enrichment.enrichmentSessions,
+      readTranscript: enrichment.readTranscript,
+      knownNames: enrichment.knownNames,
+    },
+    ai: createLexiconAi({
+      gateway: () => bound(ai).gateway,
+      estimateCost: (...args) => bound(ai).estimateCost(...args),
+      studyCosts: (refs) => bound(ai).studyCosts(refs),
+    }),
+    enqueue: (queue, data, options) => jobs.send(queue, data, options),
+  })
   const r = research.handlers
   // Results of research commands, as the assistant reads them (`ok` + id, or an error code).
   const outcome = <T extends object>(
@@ -211,7 +233,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       },
     },
   })
-  return { clock, workspace, research, ingestion, ai, assistant, publishing }
+  return { clock, workspace, research, ingestion, ai, assistant, publishing, transcripts }
 }
 
 /** Composition root of the HTTP server: modules, auth and routes. */
@@ -221,7 +243,7 @@ export const composeApp = async (
   options: { logger?: boolean; rateLimit?: boolean } = {},
 ) => {
   const modules = composeModules(config, infra)
-  const { clock, workspace, research, ingestion, ai, assistant, publishing } = modules
+  const { clock, workspace, research, ingestion, ai, assistant, publishing, transcripts } = modules
   const auth = createAuth({
     config,
     db: infra.db,
@@ -242,6 +264,7 @@ export const composeApp = async (
       registerAiRoutes(instance, { guard, handlers: ai.handlers })
       registerAssistantRoutes(instance, { guard, handlers: assistant.handlers })
       registerPublishingRoutes(instance, { guard, handlers: publishing.handlers })
+      registerTranscriptsRoutes(instance, { guard, handlers: transcripts.handlers })
     },
   })
   return { app, auth, modules }

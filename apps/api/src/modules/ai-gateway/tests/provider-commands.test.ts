@@ -281,6 +281,14 @@ describe('US4 — gateway and ledger', () => {
     ])
   })
 
+  it('spec 010: a call may ask for a longer time limit than the default', async () => {
+    await world.commands.connectApiKey({ actor: ada, provider: 'openai', apiKey: 'sk-ada-1234' })
+    const request = { prompt: 'x', schema: z.object({ answer: z.string() }) }
+    await world.gateway.generateObject('ada', 'lexicon', request, { timeoutMs: 120_000 })
+    await world.gateway.generateObject('ada', 'lexicon', request)
+    expect(world.model.timeouts.slice(-2)).toEqual([120_000, 1000])
+  })
+
   it('records one entry per call with tokens and outcome, never the prompt', async () => {
     await world.commands.connectApiKey({ actor: ada, provider: 'openai', apiKey: 'sk-ada-1234' })
     world.usage.length = 0

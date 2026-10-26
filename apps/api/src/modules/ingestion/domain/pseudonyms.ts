@@ -1,7 +1,4 @@
-import { normaliseWord } from './file-words.ts'
-
-/** The same person whatever the case, accents or spaces of their name. */
-export const nameKey = (name: string): string => normaliseWord(name).replace(/\s+/g, ' ').trim()
+export { nameKey } from '@goodresearch/shared'
 
 const number = (code: string) => Number(code.replace(/^P/, '')) || 0
 

@@ -7,7 +7,8 @@
       "entry": [
         "src/{server,worker,migrate,export-openapi}.ts",
         "src/platform/auth/cli-config.ts",
-        "tests/**/*.ts"
+        "tests/**/*.ts",
+        "src/modules/*/infrastructure/words/build-words.ts"
       ],
       "ignoreDependencies": ["pino-pretty"]
     },

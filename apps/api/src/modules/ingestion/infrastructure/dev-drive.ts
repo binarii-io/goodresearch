@@ -19,7 +19,8 @@ const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.doc
 const GOOGLE_DOC = 'application/vnd.google-apps.document'
 /**
  * Beginnings of the demo transcripts (spec 009): a meeting tool's header with participants, speaker
- * labels that need the AI, and a Word file read as text.
+ * labels that need the AI, and a Word file read as text. Spec 010: unusual words to find (a product
+ * name and its misspelling, an acronym, a filler).
  */
 const DEMO_TEXTS: Record<string, string> = {
   'dev-transcript': [
@@ -31,18 +32,21 @@ const DEMO_TEXTS: Record<string, string> = {
     'Lee Example: Thank you for joining. Could you introduce yourself in a few words?',
     'Sam Example: Sure. I plan the week for the whole household, usually on Sunday evening.',
     'Lee Example: What happened the last time you planned your week?',
+    'Sam Example: We use Goodresearch for that, and our NPS went up. Hmm.',
   ].join('\n'),
   'dev-transcript-2': [
     'Robin Sample: Hello, and thanks for taking the time to talk with us today.',
     'Casey Test: Thanks for having me, it is a pleasure.',
     'Robin Sample: So what do you think about the way you plan your week?',
     'Casey Test: Well, I keep a paper list on the fridge and I update it every evening.',
+    'Casey Test: My team tried Gooresearch too, and the NPS is good. Hmm.',
   ].join('\n'),
   'dev-transcript-3': [
     'Entretien avec Camille',
     '27/10/2026',
     'Intervieweuse : Alors, est-ce que vous pouvez vous présenter ?',
     'Camille : Oui, je suis responsable de la logistique et je prépare les plannings de la semaine.',
+    'Camille : Nous utilisons Goodresearch au quotidien.',
   ].join('\n'),
   'dev-notes-1': [
     'Lee Other: Thanks for your time, shall we start with your role?',

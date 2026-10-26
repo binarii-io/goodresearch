@@ -70,7 +70,7 @@ export const buildContext = async (
       lines.push(
         'The person is on a study page.',
         `Study: ${study.name} (${study.type}), Study id: ${study.id}`,
-        `Tabs (study phases): preparation, fieldwork, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
+        `Tabs (study phases): preparation, fieldwork, enrichment, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
         `Source folder: ${folder ?? '(none, or no access)'}`,
         `Project: ${project.name}`,
         `Project id: ${project.id}`,

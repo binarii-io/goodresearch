@@ -19,7 +19,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@goodresearch/ui/components/dialog'
-import { CheckIcon, FileSearchIcon, PencilIcon, XIcon } from '@goodresearch/ui/components/icons'
+import {
+  CheckIcon,
+  FileSearchIcon,
+  LoaderCircleIcon,
+  PencilIcon,
+  XIcon,
+} from '@goodresearch/ui/components/icons'
 import { Input } from '@goodresearch/ui/components/input'
 import { Label } from '@goodresearch/ui/components/label'
 import {
@@ -267,6 +273,7 @@ export function Proposals({
   onDecide,
   onAnalyze,
   onRename,
+  renaming = false,
   lead,
 }: {
   /** The planned interview's card, first in the list (same pattern as the proposals). */
@@ -277,6 +284,8 @@ export function Proposals({
   onDecide: (decisions: Decision[]) => Promise<void>
   onAnalyze: () => void
   onRename: () => void
+  /** The files are being renamed in Drive now (with or without the rename dialog). */
+  renaming?: boolean
 }) {
   const { t, i18n } = useLingui()
   const money = useMoney()
@@ -385,8 +394,15 @@ export function Proposals({
                           {t`Files named in Drive`}
                         </Badge>
                       ) : (
-                        <Button size="sm" variant="outline" onClick={onRename}>
-                          {t`Rename in Drive (${view.fileNames?.differing ?? 0})`}
+                        <Button size="sm" variant="outline" disabled={renaming} onClick={onRename}>
+                          {renaming ? (
+                            <>
+                              <LoaderCircleIcon aria-hidden className="animate-spin" />
+                              {t`Renaming…`}
+                            </>
+                          ) : (
+                            t`Rename in Drive (${view.fileNames?.differing ?? 0})`
+                          )}
                         </Button>
                       )
                     ) : open && editing !== key ? (
@@ -465,6 +481,7 @@ export function RenameDialog({
   session,
   onClose,
   onRenamed,
+  onBusy,
   afterAccept = false,
 }: {
   studyId: string
@@ -472,6 +489,8 @@ export function RenameDialog({
   onClose: () => void
   /** The interview changed (its files' names): the window holding it reloads it. */
   onRenamed?: () => Promise<void>
+  /** Tells the page the files are being renamed, so the rename button shows it. */
+  onBusy?: (busy: boolean) => void
   /** Opened because a name was just accepted: renames at once if the person said not to ask. */
   afterAccept?: boolean
 }) {
@@ -499,6 +518,7 @@ export function RenameDialog({
   const failed = results?.filter((r) => r.outcome !== 'renamed').map((r) => r.fileId) ?? []
 
   const submit = async (fileIds: string[]) => {
+    onBusy?.(true)
     try {
       const done = await rename.mutateAsync({ sessionId: session.id, data: { fileIds } })
       setResults(done.results)
@@ -516,6 +536,8 @@ export function RenameDialog({
       setSilent(false)
       if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED') return askWriteConsent(studyId)
       toast.error(errorMessage(i18n, failure))
+    } finally {
+      onBusy?.(false)
     }
   }
 
@@ -601,7 +623,16 @@ export function RenameDialog({
             disabled={!selected.size || rename.isPending || plan.data?.writeAccess === false}
             onClick={() => void submit([...selected])}
           >
-            {failed.length ? t`Retry ${selected.size} files` : t`Rename ${selected.size} files`}
+            {rename.isPending ? (
+              <>
+                <LoaderCircleIcon aria-hidden className="animate-spin" />
+                {t`Renaming…`}
+              </>
+            ) : failed.length ? (
+              t`Retry ${selected.size} files`
+            ) : (
+              t`Rename ${selected.size} files`
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

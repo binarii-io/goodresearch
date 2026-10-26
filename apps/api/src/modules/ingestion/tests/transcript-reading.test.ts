@@ -134,7 +134,7 @@ describe('reading the beginning of a transcript (spec 009 research R2)', () => {
         { id: 'v-1', name: 'a.vtt', mimeType: 'text/vtt' },
         100,
       ),
-    ).toBe('Lee Example: Hello there\n\nSam: Hi')
+    ).toBe('[00:00:01] Lee Example: Hello there\n\n[00:00:04] Sam: Hi')
   })
 
   it('unzips a Word file, and refuses old Word files and other formats', async () => {
@@ -174,7 +174,7 @@ describe('reading the beginning of a transcript (spec 009 research R2)', () => {
       subtitlesToText(
         '1\n00:00:01,000 --> 00:00:02,000\nLee: Hello\n\n2\n00:00:03,000 --> 00:00:04,000\nSam: Hi',
       ),
-    ).toBe('Lee: Hello\n\nSam: Hi')
+    ).toBe('[00:00:01] Lee: Hello\n\n[00:00:03] Sam: Hi')
   })
 
   it('tells a transcript from a summary by its speaker turns', () => {

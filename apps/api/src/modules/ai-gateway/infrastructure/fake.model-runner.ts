@@ -6,6 +6,86 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 let calls = 0
 
+const squash = (word: string) =>
+  word
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]/gu, '')
+
+/** Edit distance, for the fake grouping only. */
+const distance = (a: string, b: string): number => {
+  let row = Array.from({ length: b.length + 1 }, (_, j) => j)
+  for (let i = 1; i <= a.length; i++) {
+    const next = [i]
+    for (let j = 1; j <= b.length; j++)
+      next[j] = Math.min(
+        (row[j] ?? 0) + 1,
+        (next[j - 1] ?? 0) + 1,
+        (row[j - 1] ?? 0) + (a[i - 1] === b[j - 1] ? 0 : 1),
+      )
+    row = next
+  }
+  return row[b.length] ?? 0
+}
+
+/** The test provider's lexicon: candidates within 2 edits are one term, the known form first. */
+const lexiconAnswer = (prompt: string) => {
+  const candidates: { spelling: string; excerpts: string[] }[] = []
+  const known: string[] = []
+  let inKnown = false
+  for (const line of prompt.split('\n')) {
+    if (line.startsWith('<known-terms>')) inKnown = true
+    const item = /^- (.+)$/.exec(line)?.[1]
+    if (item && inKnown) known.push(item)
+    else if (item) candidates.push({ spelling: item, excerpts: [] })
+    const excerpt = /^ {2}> (.+)$/.exec(line)?.[1]
+    if (excerpt) candidates.at(-1)?.excerpts.push(excerpt)
+  }
+  const close = (a: string, b: string) => distance(squash(a), squash(b)) <= 2
+  const terms: {
+    form: string
+    kind: 'domain'
+    correction: null
+    category: 'acronym' | 'product'
+    definition: string | null
+    variants: string[]
+    existingTerm: string | null
+    quote: string
+  }[] = []
+  for (const c of candidates) {
+    const group = terms.find((t) => close(t.form, c.spelling))
+    if (group) {
+      group.variants.push(c.spelling)
+      continue
+    }
+    const existing = known.find((k) => close(k, c.spelling)) ?? null
+    terms.push({
+      form: existing ?? c.spelling,
+      kind: 'domain',
+      correction: null,
+      category: /^[A-Z]{2,6}$/.test(c.spelling) ? 'acronym' : 'product',
+      definition: null,
+      variants: [c.spelling],
+      existingTerm: existing,
+      quote: c.excerpts[0] ?? '',
+    })
+  }
+  const first = candidates[0]
+  if (first)
+    terms.push({
+      form: 'Invented',
+      kind: 'domain',
+      correction: null,
+      category: 'product',
+      definition: null,
+      variants: [first.spelling],
+      existingTerm: null,
+      quote: 'This sentence is in no excerpt.',
+    })
+  return terms
+}
+
 /** A fixed interview guide, as the assistant writes it (spec 006 research R8). */
 const FAKE_GUIDE = {
   framing: {
@@ -207,6 +287,15 @@ export const createFakeRunner = (): ModelRunner => {
         const parsed = request.schema.safeParse(answer)
         if (!parsed.success) throw new ProviderCallError('UNKNOWN')
         return { object: parsed.data, usage: { inputTokens: 1200, outputTokens: 80 } }
+      }
+      // Spec 010: a lexicon reading groups close spellings of the candidates, quotes their first
+      // excerpt, and adds one term with an invented quote (the app must drop it).
+      if (request.prompt?.startsWith('<candidates>')) {
+        await sleep(500)
+        const answer = { terms: lexiconAnswer(request.prompt) }
+        const parsed = request.schema.safeParse(answer)
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 2400, outputTokens: 200 } }
       }
       // Only schemas with defaults can be answered without a model.
       const parsed = request.schema.safeParse({})

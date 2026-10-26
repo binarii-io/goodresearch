@@ -10,3 +10,19 @@ export { ConcurrencyError } from './errors.ts'
 export { newId } from './id.ts'
 export { err, ok, type Result } from './result.ts'
 export { safeReturnPath, withQuery } from './return-path.ts'
+export {
+  findMatches,
+  fold,
+  fromPlaceholders,
+  isAcronym,
+  languageOf,
+  nameKey,
+  normaliseQuote,
+  PLACEHOLDER,
+  QUOTE_MAX,
+  quoteFound,
+  type SessionLanguage,
+  type Word,
+  withPlaceholders,
+  words,
+} from './text.ts'

@@ -11,6 +11,7 @@ import { makeRenameCommands } from '../application/commands/rename-commands.ts'
 import { makeRunInventory } from '../application/commands/run-inventory.ts'
 import { makeSessionCommands } from '../application/commands/session-commands.ts'
 import { makeSourceCommands } from '../application/commands/source-commands.ts'
+import { makeEnrichmentSources } from '../application/enrichment-sources.ts'
 import type {
   Analyzer,
   IngestionDeps,
@@ -141,6 +142,8 @@ export const createIngestionModule = (deps: {
     /** The files of a study's folder with one person's own access (spec 007). */
     studyFiles,
     sourceSummaries: ingestion.store.folderSummaries,
+    /** What the Enrichment phase reads from the validated interviews (spec 010). */
+    enrichment: makeEnrichmentSources(ingestion),
     /** The research module tells when a planned interview changed (spec 009 FR-022). */
     plannedChanged: makePlannedSync(ingestion).plannedChanged,
   }

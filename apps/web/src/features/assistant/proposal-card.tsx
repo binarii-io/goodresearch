@@ -102,7 +102,12 @@ function OpenedPage({ proposal }: { proposal: Proposal }) {
   const { t } = useLingui()
   const name = proposal.preview.name ?? proposal.preview.projectName ?? ''
   const phase = proposal.preview.phase
-  const tabs = { preparation: t`Preparation`, fieldwork: t`Fieldwork`, analysis: t`Analysis` }
+  const tabs = {
+    preparation: t`Preparation`,
+    fieldwork: t`Fieldwork`,
+    enrichment: t`Enrichment`,
+    analysis: t`Analysis`,
+  }
   if (proposal.result?.kind === 'study')
     return (
       <p className="text-sm">
