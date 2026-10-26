@@ -1,5 +1,7 @@
 import { err, ok, type Result } from '@goodresearch/shared'
+import type { SessionLanguage } from './language.ts'
 import type { MediaMatch } from './media-matching.ts'
+import type { Analysis } from './proposal.ts'
 
 export type SessionState = 'proposed' | 'validated' | 'excluded'
 
@@ -27,6 +29,17 @@ export type Session = {
   readonly roster: readonly RosterEntry[]
   readonly decidedBy: string | null
   readonly decidedAt: Date | null
+  /** Spec 009: set by a person, from a proposal or by hand (`YYYY-MM-DD`). */
+  readonly interviewDate: string | null
+  readonly language: SessionLanguage | null
+  /** Other files of the folder that belong to the interview (notes, consent forms…). */
+  /**
+   * `label`: what the file is, taken once from its original name ("Consent form"); its new name
+   * is the interview's name followed by it, so renaming again gives the same name.
+   */
+  readonly attachments: readonly { readonly fileId: string; readonly label?: string | null }[]
+  /** The last analysis and its proposals (spec 009 research R1). */
+  readonly analysis: Analysis | null
   readonly createdAt: Date
   readonly updatedAt: Date
   readonly version: number
@@ -173,7 +186,7 @@ export const edit = (
 }
 
 /** Interviewers of a planned interview are a free text: "Ana, Bo & Cy" gives three people. */
-const splitNames = (text: string): string[] =>
+export const splitNames = (text: string): string[] =>
   text
     .split(/\s*(?:,|;|&|\/|\band\b|\bet\b)\s*/i)
     .map((n) => n.trim())

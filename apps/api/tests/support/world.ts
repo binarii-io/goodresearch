@@ -24,8 +24,8 @@ export const startWorld = async (
   )
   const db: Db = database.db
 
-  const session = async (email: string) => {
-    const result = await signIn(app, { email })
+  const session = async (email: string, name?: string) => {
+    const result = await signIn(app, { email, ...(name ? { name } : {}) })
     if (result.status !== 'signed-in') throw new Error(`could not sign in ${email}`)
     const me = await app.inject({
       method: 'GET',

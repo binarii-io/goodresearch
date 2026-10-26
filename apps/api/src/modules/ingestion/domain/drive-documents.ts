@@ -63,6 +63,8 @@ export type FileMeta = {
   readonly ownerName: string | null
   readonly lastEditorName: string | null
   readonly webViewLink: string
+  /** When the file last changed at the source (a rename changes it too); null when unknown. */
+  readonly modifiedAt?: string | null
 }
 
 export type CreatedFile = { readonly id: string; readonly webViewLink: string }
@@ -107,4 +109,9 @@ export interface DriveDocuments {
   rewriteTable(refreshToken: string, fileId: string, table: TableModel): Promise<void>
   /** `null` when the file does not exist or the person cannot open it. */
   metadata(refreshToken: string, fileId: string): Promise<FileMeta | null>
+  /**
+   * Gives the file a new name, nothing else (spec 009 FR-009); `null` when it does not exist or
+   * the person cannot open it, DriveCannotEdit when they may not edit it.
+   */
+  renameFile(refreshToken: string, fileId: string, name: string): Promise<FileMeta | null>
 }

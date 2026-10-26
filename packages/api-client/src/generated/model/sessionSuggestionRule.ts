@@ -9,6 +9,7 @@ export type SessionSuggestionRule = typeof SessionSuggestionRule[keyof typeof Se
 
 
 export const SessionSuggestionRule = {
+  transcript: 'transcript',
   name: 'name',
   date: 'date',
 } as const;

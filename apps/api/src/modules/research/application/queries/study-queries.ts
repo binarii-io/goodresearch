@@ -63,6 +63,7 @@ export const makeStudyQueries = (deps: {
         name: study.name,
         type: study.type as StudyDetail['type'],
         project: { id: visible.project.id, name: visible.project.name },
+        anonymised: study.anonymised,
         createdAt: study.createdAt.toISOString(),
         updatedAt: study.updatedAt.toISOString(),
         version: study.version,
@@ -73,13 +74,29 @@ export const makeStudyQueries = (deps: {
     getStudyAccess: async (
       accountId: string,
       studyId: string,
-    ): Promise<{ role: 'admin' | 'member'; type: string } | null> => {
+    ): Promise<{
+      role: 'admin' | 'member'
+      type: string
+      teamId: string
+      anonymised: boolean
+    } | null> => {
       const [study] = await db
-        .select({ projectId: researchStudies.projectId, type: researchStudies.type })
+        .select({
+          projectId: researchStudies.projectId,
+          type: researchStudies.type,
+          anonymised: researchStudies.anonymised,
+        })
         .from(researchStudies)
         .where(eq(researchStudies.id, studyId))
       const visible = study ? await projectFor(accountId, study.projectId) : null
-      return visible && study ? { role: visible.role, type: study.type } : null
+      return visible && study
+        ? {
+            role: visible.role,
+            type: study.type,
+            teamId: visible.project.teamId,
+            anonymised: study.anonymised,
+          }
+        : null
     },
   }
 }

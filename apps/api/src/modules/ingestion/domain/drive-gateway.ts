@@ -32,6 +32,11 @@ export class DriveIncompleteListing extends Error {
   override name = 'DriveIncompleteListing'
 }
 
+/** A transcript the app does not read (old binary Word, too large, not text). */
+export class TranscriptUnreadable extends Error {
+  override name = 'TranscriptUnreadable'
+}
+
 /**
  * Read-only access to Drive with one person's own authorization (FR-008, FR-010). Every method takes
  * that person's refresh token; implementations never write to Drive.
@@ -50,6 +55,21 @@ export interface DriveGateway {
    * it cannot be read.
    */
   documentTabs(refreshToken: string, fileId: string): Promise<readonly string[] | null>
+  /**
+   * The beginning of a transcript as plain text, at most `maxChars` (spec 009 FR-002): the tab
+   * holding the transcript for a document, the text of a text, subtitle or Word file. Null when
+   * the file is gone; TranscriptUnreadable for a format the app does not read.
+   */
+  readTextStart(
+    refreshToken: string,
+    file: { readonly id: string; readonly name: string; readonly mimeType: string },
+    maxChars: number,
+  ): Promise<string | null>
+  /**
+   * The beginning of the other tabs of a document (meeting notes: who was invited), at most
+   * `maxChars`; null for other files or when it cannot be read.
+   */
+  readNotesStart(refreshToken: string, fileId: string, maxChars: number): Promise<string | null>
 }
 
 /**

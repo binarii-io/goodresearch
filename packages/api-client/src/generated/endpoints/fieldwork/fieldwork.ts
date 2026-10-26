@@ -24,11 +24,20 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AnalysisEstimate,
+  AnalysisRunStarted,
+  AnalyzeSessionInput,
+  DecideProposalsInput,
   DecideSessionInput,
   EditSessionInput,
+  EstimateAnalysisRunParams,
   Fieldwork,
   LinkSessionInput,
-  Session
+  RenameFilesInput,
+  RenamePlan,
+  RenameResult,
+  Session,
+  StartAnalysisRunInput
 } from '../../model';
 
 import { apiFetch } from '../../../fetcher.ts';
@@ -396,4 +405,604 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDecideSessionMutationOptions(options), queryClient);
+    }
+    export const getAnalyzeSessionUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/sessions/${sessionId}/analysis`
+}
+
+export const analyzeSession = async (sessionId: string,
+    analyzeSessionInput: AnalyzeSessionInput, options?: Parameters<typeof apiFetch>[1]): Promise<Session> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<Session>(getAnalyzeSessionUrl(sessionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(analyzeSessionInput)
+  }
+);}
+
+
+
+
+
+export const getAnalyzeSessionMutationKey = () => ['analyzeSession'] as const;
+
+export const getAnalyzeSessionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof analyzeSession>>, TError,AnalyzeSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof analyzeSession>>, TError,AnalyzeSessionMutationVariables, TContext> => {
+
+const mutationKey = getAnalyzeSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof analyzeSession>>, AnalyzeSessionMutationVariables> = (props) => {
+          const {sessionId,data} = props ?? {};
+
+          return  analyzeSession(sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AnalyzeSessionMutationResult = NonNullable<Awaited<ReturnType<typeof analyzeSession>>>
+    export type AnalyzeSessionMutationBody = AnalyzeSessionInput
+    export type AnalyzeSessionMutationError = unknown
+    export type AnalyzeSessionMutationVariables = {sessionId: string;data: AnalyzeSessionInput}
+
+    export const useAnalyzeSession = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof analyzeSession>>, TError,AnalyzeSessionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof analyzeSession>>,
+        TError,
+        AnalyzeSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAnalyzeSessionMutationOptions(options), queryClient);
+    }
+    export const getDecideProposalsUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/sessions/${sessionId}/proposals`
+}
+
+export const decideProposals = async (sessionId: string,
+    decideProposalsInput: DecideProposalsInput, options?: Parameters<typeof apiFetch>[1]): Promise<Session> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<Session>(getDecideProposalsUrl(sessionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(decideProposalsInput)
+  }
+);}
+
+
+
+
+
+export const getDecideProposalsMutationKey = () => ['decideProposals'] as const;
+
+export const getDecideProposalsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideProposals>>, TError,DecideProposalsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideProposals>>, TError,DecideProposalsMutationVariables, TContext> => {
+
+const mutationKey = getDecideProposalsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideProposals>>, DecideProposalsMutationVariables> = (props) => {
+          const {sessionId,data} = props ?? {};
+
+          return  decideProposals(sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideProposalsMutationResult = NonNullable<Awaited<ReturnType<typeof decideProposals>>>
+    export type DecideProposalsMutationBody = DecideProposalsInput
+    export type DecideProposalsMutationError = unknown
+    export type DecideProposalsMutationVariables = {sessionId: string;data: DecideProposalsInput}
+
+    export const useDecideProposals = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideProposals>>, TError,DecideProposalsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof decideProposals>>,
+        TError,
+        DecideProposalsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideProposalsMutationOptions(options), queryClient);
+    }
+    export const getEstimateAnalysisRunUrl = (studyId: string,
+    params?: EstimateAnalysisRunParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/studies/${studyId}/analysis-runs/estimate?${stringifiedParams}` : `/api/studies/${studyId}/analysis-runs/estimate`
+}
+
+export const estimateAnalysisRun = async (studyId: string,
+    params?: EstimateAnalysisRunParams, options?: Parameters<typeof apiFetch>[1]): Promise<AnalysisEstimate> => {
+
+  return apiFetch<AnalysisEstimate>(getEstimateAnalysisRunUrl(studyId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getEstimateAnalysisRunQueryKey = (studyId: string,
+    params?: EstimateAnalysisRunParams,) => {
+    return [
+    `/api/studies/${studyId}/analysis-runs/estimate`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getEstimateAnalysisRunQueryOptions = <TData = Awaited<ReturnType<typeof estimateAnalysisRun>>, TError = unknown>(studyId: string,
+    params?: EstimateAnalysisRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateAnalysisRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getEstimateAnalysisRunQueryKey(studyId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof estimateAnalysisRun>>> = ({ signal }) => estimateAnalysisRun(studyId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof estimateAnalysisRun>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type EstimateAnalysisRunQueryResult = NonNullable<Awaited<ReturnType<typeof estimateAnalysisRun>>>
+export type EstimateAnalysisRunQueryError = unknown
+
+
+export function useEstimateAnalysisRun<TData = Awaited<ReturnType<typeof estimateAnalysisRun>>, TError = unknown>(
+ studyId: string,
+    params: undefined |  EstimateAnalysisRunParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateAnalysisRun>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof estimateAnalysisRun>>,
+          TError,
+          Awaited<ReturnType<typeof estimateAnalysisRun>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEstimateAnalysisRun<TData = Awaited<ReturnType<typeof estimateAnalysisRun>>, TError = unknown>(
+ studyId: string,
+    params?: EstimateAnalysisRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateAnalysisRun>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof estimateAnalysisRun>>,
+          TError,
+          Awaited<ReturnType<typeof estimateAnalysisRun>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEstimateAnalysisRun<TData = Awaited<ReturnType<typeof estimateAnalysisRun>>, TError = unknown>(
+ studyId: string,
+    params?: EstimateAnalysisRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateAnalysisRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useEstimateAnalysisRun<TData = Awaited<ReturnType<typeof estimateAnalysisRun>>, TError = unknown>(
+ studyId: string,
+    params?: EstimateAnalysisRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateAnalysisRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getEstimateAnalysisRunQueryOptions(studyId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getStartAnalysisRunUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/analysis-runs`
+}
+
+export const startAnalysisRun = async (studyId: string,
+    startAnalysisRunInput: StartAnalysisRunInput, options?: Parameters<typeof apiFetch>[1]): Promise<AnalysisRunStarted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AnalysisRunStarted>(getStartAnalysisRunUrl(studyId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(startAnalysisRunInput)
+  }
+);}
+
+
+
+
+
+export const getStartAnalysisRunMutationKey = () => ['startAnalysisRun'] as const;
+
+export const getStartAnalysisRunMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startAnalysisRun>>, TError,StartAnalysisRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startAnalysisRun>>, TError,StartAnalysisRunMutationVariables, TContext> => {
+
+const mutationKey = getStartAnalysisRunMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startAnalysisRun>>, StartAnalysisRunMutationVariables> = (props) => {
+          const {studyId,data} = props ?? {};
+
+          return  startAnalysisRun(studyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartAnalysisRunMutationResult = NonNullable<Awaited<ReturnType<typeof startAnalysisRun>>>
+    export type StartAnalysisRunMutationBody = StartAnalysisRunInput
+    export type StartAnalysisRunMutationError = unknown
+    export type StartAnalysisRunMutationVariables = {studyId: string;data: StartAnalysisRunInput}
+
+    export const useStartAnalysisRun = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startAnalysisRun>>, TError,StartAnalysisRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startAnalysisRun>>,
+        TError,
+        StartAnalysisRunMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartAnalysisRunMutationOptions(options), queryClient);
+    }
+    export const getStopAnalysisRunUrl = (studyId: string,
+    runId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/analysis-runs/${runId}/stop`
+}
+
+export const stopAnalysisRun = async (studyId: string,
+    runId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getStopAnalysisRunUrl(studyId,runId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getStopAnalysisRunMutationKey = () => ['stopAnalysisRun'] as const;
+
+export const getStopAnalysisRunMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopAnalysisRun>>, TError,StopAnalysisRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof stopAnalysisRun>>, TError,StopAnalysisRunMutationVariables, TContext> => {
+
+const mutationKey = getStopAnalysisRunMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stopAnalysisRun>>, StopAnalysisRunMutationVariables> = (props) => {
+          const {studyId,runId} = props ?? {};
+
+          return  stopAnalysisRun(studyId,runId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StopAnalysisRunMutationResult = NonNullable<Awaited<ReturnType<typeof stopAnalysisRun>>>
+
+    export type StopAnalysisRunMutationError = unknown
+    export type StopAnalysisRunMutationVariables = {studyId: string;runId: string}
+
+    export const useStopAnalysisRun = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopAnalysisRun>>, TError,StopAnalysisRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stopAnalysisRun>>,
+        TError,
+        StopAnalysisRunMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStopAnalysisRunMutationOptions(options), queryClient);
+    }
+    export const getGetRenamePlanUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/sessions/${sessionId}/rename`
+}
+
+export const getRenamePlan = async (sessionId: string, options?: Parameters<typeof apiFetch>[1]): Promise<RenamePlan> => {
+
+  return apiFetch<RenamePlan>(getGetRenamePlanUrl(sessionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRenamePlanQueryKey = (sessionId: string,) => {
+    return [
+    `/api/sessions/${sessionId}/rename`
+    ] as const;
+    }
+
+
+export const getGetRenamePlanQueryOptions = <TData = Awaited<ReturnType<typeof getRenamePlan>>, TError = unknown>(sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRenamePlan>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRenamePlanQueryKey(sessionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRenamePlan>>> = ({ signal }) => getRenamePlan(sessionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: sessionId !== null && sessionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRenamePlan>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRenamePlanQueryResult = NonNullable<Awaited<ReturnType<typeof getRenamePlan>>>
+export type GetRenamePlanQueryError = unknown
+
+
+export function useGetRenamePlan<TData = Awaited<ReturnType<typeof getRenamePlan>>, TError = unknown>(
+ sessionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRenamePlan>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRenamePlan>>,
+          TError,
+          Awaited<ReturnType<typeof getRenamePlan>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRenamePlan<TData = Awaited<ReturnType<typeof getRenamePlan>>, TError = unknown>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRenamePlan>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRenamePlan>>,
+          TError,
+          Awaited<ReturnType<typeof getRenamePlan>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRenamePlan<TData = Awaited<ReturnType<typeof getRenamePlan>>, TError = unknown>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRenamePlan>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRenamePlan<TData = Awaited<ReturnType<typeof getRenamePlan>>, TError = unknown>(
+ sessionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRenamePlan>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRenamePlanQueryOptions(sessionId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getRenameSessionFilesUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/sessions/${sessionId}/rename`
+}
+
+export const renameSessionFiles = async (sessionId: string,
+    renameFilesInput: RenameFilesInput, options?: Parameters<typeof apiFetch>[1]): Promise<RenameResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<RenameResult>(getRenameSessionFilesUrl(sessionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(renameFilesInput)
+  }
+);}
+
+
+
+
+
+export const getRenameSessionFilesMutationKey = () => ['renameSessionFiles'] as const;
+
+export const getRenameSessionFilesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameSessionFiles>>, TError,RenameSessionFilesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof renameSessionFiles>>, TError,RenameSessionFilesMutationVariables, TContext> => {
+
+const mutationKey = getRenameSessionFilesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renameSessionFiles>>, RenameSessionFilesMutationVariables> = (props) => {
+          const {sessionId,data} = props ?? {};
+
+          return  renameSessionFiles(sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RenameSessionFilesMutationResult = NonNullable<Awaited<ReturnType<typeof renameSessionFiles>>>
+    export type RenameSessionFilesMutationBody = RenameFilesInput
+    export type RenameSessionFilesMutationError = unknown
+    export type RenameSessionFilesMutationVariables = {sessionId: string;data: RenameFilesInput}
+
+    export const useRenameSessionFiles = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameSessionFiles>>, TError,RenameSessionFilesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof renameSessionFiles>>,
+        TError,
+        RenameSessionFilesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRenameSessionFilesMutationOptions(options), queryClient);
     }

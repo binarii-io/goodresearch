@@ -71,6 +71,27 @@ export const makeStudyCommands = (
       return ok({ version: c.version + 1 })
     },
 
+    /** Spec 009 FR-013: names and titles of the interviews use pseudonyms, or not. */
+    setAnonymisation: async (c: {
+      actor: Actor
+      studyId: string
+      anonymised: boolean
+      version: number
+    }): Promise<Result<{ version: number }, StudyCommandError>> => {
+      const study = await loadVisible(c.actor.id, c.studyId)
+      if (!study) return err('STUDY_NOT_FOUND')
+      if (!(await deps.gate.canAct(c.actor.id, study.id))) return err('FOLDER_ACCESS_REQUIRED')
+      if (study.version !== c.version) return err('VERSION_CONFLICT')
+      study.setAnonymised(c.anonymised, deps.clock.now())
+      try {
+        await deps.studies.save(study)
+      } catch (error) {
+        if (error instanceof ConcurrencyError) return err('VERSION_CONFLICT')
+        throw error
+      }
+      return ok({ version: c.version + 1 })
+    },
+
     /** Admins may delete without folder access, so a study is never stuck (FR-010b). */
     deleteStudy: async (c: {
       actor: Actor

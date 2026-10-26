@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { FieldworkPlannedWithoutSessionItem } from './fieldworkPlannedWithoutSessionItem.ts';
+import type { FieldworkRun } from './fieldworkRun.ts';
 import type { FieldworkTotals } from './fieldworkTotals.ts';
 import type { FieldworkUnmatchedMediaItem } from './fieldworkUnmatchedMediaItem.ts';
 import type { Session } from './session.ts';
@@ -19,4 +20,14 @@ export interface Fieldwork {
      * @maximum 9007199254740991
      */
   skipped: number;
+  /** @nullable */
+  analysisCost: number | null;
+  run: FieldworkRun;
+  anonymised: boolean;
+  /**
+     * @minimum -9007199254740991
+     * @maximum 9007199254740991
+     */
+  namedFiles: number;
+  consentNeeded: boolean;
 }

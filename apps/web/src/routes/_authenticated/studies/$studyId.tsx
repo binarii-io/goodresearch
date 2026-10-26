@@ -34,6 +34,7 @@ import { FieldworkTab } from '../../../features/fieldwork/fieldwork-tab.tsx'
 import { FolderButton } from '../../../features/ingestion/folder-button.tsx'
 import { SourcePanel } from '../../../features/ingestion/source-panel.tsx'
 import { PreparationTab } from '../../../features/preparation/preparation-tab.tsx'
+import { StudySettingsButton } from '../../../features/research/study-settings.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useMe } from '../../../features/workspace/me.ts'
 import { NotFound } from '../../../features/workspace/not-found.tsx'
@@ -145,6 +146,7 @@ function StudyPage() {
               isAdmin={me.role === 'admin'}
               interviewStudy={s.type === 'interviews'}
             />
+            {canAct && s.type === 'interviews' ? <StudySettingsButton study={s} /> : null}
             <TabsList aria-label={t`Study phases`}>
               <TabsTrigger value="preparation">{t`1 · Preparation`}</TabsTrigger>
               <TabsTrigger value="fieldwork">{t`2 · Fieldwork`}</TabsTrigger>

@@ -1,25 +1,35 @@
 import type { Clock } from '@goodresearch/shared'
 import { fixedClock, newId } from '@goodresearch/shared'
 import { CIPHER_PURPOSES, createTokenCipher } from '#platform/crypto/token-cipher.ts'
+import { makeAnalysisCommands } from '../../application/commands/analysis-commands.ts'
+import { makeRenameCommands } from '../../application/commands/rename-commands.ts'
 import { makeRunInventory } from '../../application/commands/run-inventory.ts'
 import { makeSessionCommands } from '../../application/commands/session-commands.ts'
 import { makeSourceCommands } from '../../application/commands/source-commands.ts'
-import type {
-  IngestionDeps,
-  IngestionStore,
-  InventoryFailure,
-  InventoryJob,
-  OauthState,
-  PlannedSummary,
-  SessionWrite,
-  SourceConnection,
-  StudySource,
+import {
+  AiUnavailable,
+  type AnalysisJob,
+  type AnalysisRun,
+  type Analyzer,
+  type AnalyzerAnswer,
+  type IngestionDeps,
+  type IngestionStore,
+  type InventoryFailure,
+  type InventoryJob,
+  type OauthState,
+  type PlannedSummary,
+  type SessionWrite,
+  type SourceConnection,
+  type StudySource,
 } from '../../application/ports.ts'
 import { makeSessionQueries } from '../../application/queries/session-queries.ts'
 import { makeSourceQueries, makeStudyActionGate } from '../../application/queries/source-queries.ts'
+import { makeStudyFiles } from '../../application/study-files.ts'
+import type { Analysis } from '../../domain/analysis.ts'
 import type { FolderAccessResult } from '../../domain/folder-access.ts'
 import { type InventoryRun, isActiveRun } from '../../domain/inventory-run.ts'
 import type { InventoryFile } from '../../domain/inventory-walk.ts'
+import { assignPseudonyms } from '../../domain/pseudonyms.ts'
 import { reconcileSessions } from '../../domain/reconcile-sessions.ts'
 import { givesUpRecordings, type Session, withoutRecordings } from '../../domain/session.ts'
 import { InMemoryDrive } from './in-memory-drive.ts'
@@ -41,10 +51,14 @@ export class InMemoryIngestionStore implements IngestionStore {
   #write(s: Session, expected: number): SessionWrite {
     const current = this.sessions.get(s.id)
     if (!current || current.version !== expected) return 'stale'
-    const mine = new Set(s.media.map((m) => m.fileId))
+    const mine = new Set([...s.media.map((m) => m.fileId), ...s.attachments.map((a) => a.fileId)])
     if (
       [...this.sessions.values()].some(
-        (o) => o.id !== s.id && o.studyId === s.studyId && o.media.some((m) => mine.has(m.fileId)),
+        (o) =>
+          o.id !== s.id &&
+          o.studyId === s.studyId &&
+          (o.media.some((m) => mine.has(m.fileId)) ||
+            o.attachments.some((a) => mine.has(a.fileId))),
       )
     )
       return 'media-taken'
@@ -258,6 +272,69 @@ export class InMemoryIngestionStore implements IngestionStore {
     if (written !== 'saved') for (const [id, o] of before) this.sessions.set(id, o)
     return written
   }
+  readonly pseudonyms = new Map<string, Map<string, string>>()
+  readonly consents = new Set<string>()
+  readonly analysisRuns = new Map<string, AnalysisRun>()
+
+  async writeAnalysis(sessionId: string, expected: number, analysis: Analysis | null) {
+    const current = this.sessions.get(sessionId)
+    if (!current || current.version !== expected) return 'stale' as const
+    this.sessions.set(sessionId, { ...current, analysis, version: expected + 1 })
+    return 'saved' as const
+  }
+  async ensurePseudonyms(studyId: string, needed: readonly { key: string; date: string | null }[]) {
+    const codes = this.pseudonyms.get(studyId) ?? new Map<string, string>()
+    for (const f of assignPseudonyms(codes, needed)) codes.set(f.key, f.code)
+    this.pseudonyms.set(studyId, codes)
+    return new Map(codes)
+  }
+  async hasConsent(accountId: string, studyId: string, provider: string) {
+    return this.consents.has(`${accountId}/${studyId}/${provider}`)
+  }
+  async saveConsent(accountId: string, studyId: string, provider: string) {
+    this.consents.add(`${accountId}/${studyId}/${provider}`)
+  }
+  async startRun(run: AnalysisRun) {
+    for (const r of this.analysisRuns.values())
+      if (r.studyId === run.studyId && r.state === 'running') {
+        if (run.startedAt.getTime() - r.heartbeatAt.getTime() < 10 * 60_000) return false
+        this.analysisRuns.set(r.id, { ...r, state: 'stopped', finishedAt: run.startedAt })
+      }
+    this.analysisRuns.set(run.id, run)
+    return true
+  }
+  async lastRun(studyId: string) {
+    const runs = [...this.analysisRuns.values()].filter((r) => r.studyId === studyId)
+    return (
+      runs.find((r) => r.state === 'running') ??
+      runs.sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())[0] ??
+      null
+    )
+  }
+  async getRun(runId: string) {
+    return this.analysisRuns.get(runId) ?? null
+  }
+  async heartbeat(runId: string, now: Date) {
+    const r = this.analysisRuns.get(runId)
+    if (r) this.analysisRuns.set(runId, { ...r, heartbeatAt: now })
+  }
+  async requestStop(runId: string) {
+    const r = this.analysisRuns.get(runId)
+    if (r?.state === 'running') this.analysisRuns.set(runId, { ...r, stopRequested: true })
+  }
+  async finishRun(runId: string, state: 'stopped' | 'done', now: Date) {
+    const r = this.analysisRuns.get(runId)
+    if (r?.state === 'running') this.analysisRuns.set(runId, { ...r, state, finishedAt: now })
+  }
+  async renameFile(studyId: string, fileId: string, name: string, modifiedAt: string | null) {
+    this.files.set(
+      studyId,
+      (this.files.get(studyId) ?? []).map((f) =>
+        f.id === fileId ? { ...f, name, modifiedAt: modifiedAt ?? f.modifiedAt } : f,
+      ),
+    )
+  }
+
   async moveLink(from: Session, to: Session, expected: { from: number; to: number }) {
     const before = new Map(this.sessions)
     const cleared = this.#write(from, expected.from)
@@ -265,6 +342,41 @@ export class InMemoryIngestionStore implements IngestionStore {
     const saved = this.#write(to, expected.to)
     if (saved !== 'saved') for (const [id, s] of before) this.sessions.set(id, s)
     return saved
+  }
+}
+
+/**
+ * The AI of the analyses (spec 009), scripted per test: answers by text, calls recorded with the
+ * text sent (to check no known name leaves the app), costs per call.
+ */
+export class FakeAnalyzer implements Analyzer {
+  provider: string | null = 'fake'
+  answer: (text: string) => AnalyzerAnswer = () => ({
+    interviewees: [],
+    interviewers: [],
+    date: null,
+  })
+  fail = false
+  readonly calls: { accountId: string; ref: string; text: string }[] = []
+  /** USD per call, recorded by ref like the usage ledger. */
+  costPerCall = 0.01
+
+  async analyze(accountId: string, ref: string, text: string) {
+    if (!this.provider) throw new AiUnavailable()
+    this.calls.push({ accountId, ref, text })
+    if (this.fail) throw new Error('provider down')
+    return this.answer(text)
+  }
+  async providerOf() {
+    return this.provider
+  }
+  async estimate(_accountId: string, inputChars: number) {
+    return this.provider ? inputChars / 1_000_000 : null
+  }
+  async costs(refs: readonly string[]) {
+    return new Map(
+      refs.map((ref) => [ref, this.calls.filter((c) => c.ref === ref).length * this.costPerCall]),
+    )
   }
 }
 
@@ -282,6 +394,12 @@ export class InMemoryIngestion {
   /** Study id → type, `interviews` when not set. */
   readonly studyTypes = new Map<string, string>()
   readonly jobs: InventoryJob[] = []
+  readonly analysisJobs: AnalysisJob[] = []
+  readonly analyzer = new FakeAnalyzer()
+  /** Team members (spec 009): id and name, the team of every study. */
+  readonly team: { id: string; name: string }[] = []
+  /** Studies whose names and titles use pseudonyms. */
+  readonly anonymised = new Set<string>()
   /** Simulates a queue refusing the job (an equivalent one is still queued). */
   refuseJobs = false
   readonly clock: Clock & { advance(ms: number): void }
@@ -292,6 +410,8 @@ export class InMemoryIngestion {
   readonly sessions: ReturnType<typeof makeSessionCommands>
   readonly sessionQueries: ReturnType<typeof makeSessionQueries>
   readonly run: ReturnType<typeof makeRunInventory>
+  readonly analysis: ReturnType<typeof makeAnalysisCommands>
+  readonly rename: ReturnType<typeof makeRenameCommands>
 
   constructor(
     clock: Clock & { advance(ms: number): void } = fixedClock(new Date()),
@@ -306,6 +426,8 @@ export class InMemoryIngestion {
             ? {
                 role: accountId === 'admin' ? 'admin' : 'member',
                 type: this.studyTypes.get(studyId) ?? 'interviews',
+                teamId: 'team',
+                anonymised: this.anonymised.has(studyId),
               }
             : null,
       },
@@ -314,8 +436,26 @@ export class InMemoryIngestion {
           !this.scheduleUnreadable && this.studies.get(studyId)?.includes(accountId)
             ? (this.schedules.get(studyId) ?? [])
             : null,
+        update: async (_actor, studyId, id, change) => {
+          const rows = this.schedules.get(studyId) ?? []
+          if (!rows.some((p) => p.id === id)) return false
+          this.schedules.set(
+            studyId,
+            rows.map((p) => (p.id === id ? { ...p, ...change, version: p.version + 1 } : p)),
+          )
+          return true
+        },
       },
-      members: { exist: async (ids) => ids.every((id) => this.memberIds.has(id)) },
+      members: {
+        exist: async (ids) => ids.every((id) => this.memberIds.has(id)),
+        ofTeam: async () => this.team,
+      },
+      analyzer: this.analyzer,
+      enqueueAnalysis: async (job) => {
+        if (this.refuseJobs) return false
+        this.analysisJobs.push(job)
+        return true
+      },
       drive:
         options.configured === false ? null : { gateway: this.drive, authorization: this.drive },
       cipher: createTokenCipher(
@@ -336,6 +476,15 @@ export class InMemoryIngestion {
     this.sessions = makeSessionCommands(this.deps)
     this.sessionQueries = makeSessionQueries(this.deps)
     this.run = makeRunInventory(this.deps)
+    this.analysis = makeAnalysisCommands(this.deps)
+    this.rename = makeRenameCommands(this.deps, makeStudyFiles(this.deps, this.drive.documents))
+  }
+
+  async runAnalysisJobs(): Promise<void> {
+    while (this.analysisJobs.length > 0) {
+      const job = this.analysisJobs.shift()
+      if (job) await this.analysis.runJob(job)
+    }
   }
 
   async runJobs(): Promise<void> {

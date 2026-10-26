@@ -29,6 +29,7 @@
     "drizzle-orm": "catalog:",
     "fastify": "catalog:",
     "fastify-type-provider-zod": "catalog:",
+    "fflate": "catalog:",
     "google-auth-library": "catalog:",
     "pg": "catalog:",
     "pg-boss": "catalog:",

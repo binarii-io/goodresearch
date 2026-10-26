@@ -14,7 +14,10 @@ import { Button } from '@goodresearch/ui/components/button'
 import { SectionTitle } from '@goodresearch/ui/components/count'
 import {
   CalendarIcon,
+  FileSearchIcon,
   FileTextIcon,
+  HourglassIcon,
+  LoaderCircleIcon,
   MicIcon,
   PencilIcon,
   RefreshCwIcon,
@@ -46,10 +49,20 @@ import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useId, useState } from 'react'
 import { toast } from 'sonner'
+import { useMoney } from '../assistant/cost.tsx'
 import { SourcePanel } from '../ingestion/source-panel.tsx'
 import { PLANNED_STATUSES } from '../preparation/labels.ts'
 import { errorMessage } from '../workspace/errors.ts'
 import { useFormatDate } from '../workspace/format.ts'
+import {
+  AnalysisLine,
+  AnalyzeAll,
+  analysisRunning,
+  reviewable,
+  scheduleEntryOf,
+  useAddToSchedule,
+  useAnalyzeOne,
+} from './analysis.tsx'
 import { SESSION_STATES, SUGGESTION_RULES } from './labels.ts'
 import { SessionDialog } from './session-dialog.tsx'
 
@@ -57,9 +70,13 @@ const ALL = '__all__'
 
 const isVideo = (f: { mimeType: string }) => f.mimeType.startsWith('video/')
 
-/** Open to changes until a person decides (validated by the app included). */
-const reviewable = (s: Session) =>
-  s.state === 'proposed' || (s.state === 'validated' && !s.decidedBy)
+/** Analyzed (done or incomplete): the interview now waits for the person's decision. */
+const wasAnalyzed = (s: Session) => s.analysis?.state === 'done' || s.analysis?.state === 'failed'
+
+/** What waits for the person: open proposals, and the planned interview to link or add. */
+const toDecide = (s: Session) =>
+  (s.analysis?.proposals.filter((p) => p.status === 'proposed').length ?? 0) +
+  (!s.link && (s.suggestion || scheduleEntryOf(s)) ? 1 : 0)
 
 /** The group of an interview: its transcript's, else its first recording's. */
 const group0 = (s: Session) => s.transcript?.group ?? s.media[0]?.group
@@ -126,6 +143,8 @@ export function FieldworkTab({ studyId, isAdmin }: { studyId: string; isAdmin: b
 /** The headline numbers: interviews, transcripts, recordings, and the schedule. */
 function Overview({ data }: { data: Fieldwork }) {
   const { t } = useLingui()
+  const money = useMoney()
+  const analyzed = data.sessions.filter((s) => s.analysis).length
   const active = data.sessions.filter((s) => s.state !== 'excluded')
   const withTranscript = active.filter((s) => !s.noTranscript && !s.fileMissing).length
   const missing = active.filter((s) => !s.noTranscript && s.fileMissing).length
@@ -136,7 +155,10 @@ function Overview({ data }: { data: Fieldwork }) {
   const audios = recordings.length - videos
   const linked = new Set(active.flatMap((s) => (s.link ? [s.link.plannedInterviewId] : []))).size
   const planned = linked + data.plannedWithoutSession.length
-  const { validated, proposed, excluded } = data.totals
+  const { validated, excluded } = data.totals
+  // Proposed: not analyzed yet; to decide: analyzed, waiting for the person (spec 009).
+  const toDecideCount = data.sessions.filter((s) => s.state === 'proposed' && wasAnalyzed(s)).length
+  const proposed = data.totals.proposed - toDecideCount
   const unmatched = data.unmatchedMedia.length
   return (
     <StatTiles aria-label={t`Fieldwork in numbers`}>
@@ -146,7 +168,8 @@ function Overview({ data }: { data: Fieldwork }) {
         value={active.length}
         detail={[
           t`${validated} validated`,
-          t`${proposed} to review`,
+          ...(toDecideCount ? [t`${toDecideCount} to decide`] : []),
+          ...(proposed || !toDecideCount ? [t`${proposed} proposed`] : []),
           ...(excluded ? [t`${excluded} excluded`] : []),
         ].join(' · ')}
       />
@@ -175,6 +198,12 @@ function Overview({ data }: { data: Fieldwork }) {
         label={t`Planned interviews`}
         value={planned}
         detail={t`${linked} with a transcript · ${data.plannedWithoutSession.length} without`}
+      />
+      <StatTile
+        icon={<FileSearchIcon aria-hidden />}
+        label={t`Analyzed`}
+        value={analyzed}
+        detail={t`Cost of the analyses: ${data.analysisCost === null ? t`unknown` : money(data.analysisCost)}`}
       />
     </StatTiles>
   )
@@ -279,7 +308,12 @@ function Interviews({
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const formatDate = useFormatDate()
-  const fieldwork = useGetFieldwork(studyId)
+  // While analyses run, the rows follow their progress (spec 009 US2).
+  const fieldwork = useGetFieldwork(studyId, {
+    query: { refetchInterval: (query) => (analysisRunning(query.state.data) ? 2000 : false) },
+  })
+  const analyzer = useAnalyzeOne(studyId)
+  const schedule = useAddToSchedule(studyId)
   const link = useLinkSession()
   const decide = useDecideSession()
   const [state, setState] = useState<string>(ALL)
@@ -378,6 +412,7 @@ function Interviews({
                         .filter(Boolean)
                         .join(' · ')}
                     </span>
+                    <AnalysisLine s={s} />
                   </span>
                 </TableCell>
                 <TableCell>
@@ -419,12 +454,35 @@ function Interviews({
                         {t`Confirm`}
                       </Button>
                     </span>
+                  ) : reviewable(s) && scheduleEntryOf(s) ? (
+                    // No planned interview matches: the interview can become one (FR-017).
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={schedule.pending}
+                      aria-label={t`Add ${scheduleEntryOf(s)?.interviewee ?? ''} to the schedule`}
+                      onClick={() => void schedule.add(s)}
+                    >
+                      {t`Add to the schedule`}
+                    </Button>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={STATE_BADGE[s.state]}>{i18n._(SESSION_STATES[s.state])}</Badge>
+                  {s.state === 'proposed' && wasAnalyzed(s) ? (
+                    // FR-020: the interview waits for a person; the count is what its analysis left.
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      aria-label={t`To decide (${toDecide(s)}): open ${name}`}
+                      onClick={() => setOpen(s)}
+                    >
+                      {t`To decide (${toDecide(s)})`}
+                    </Button>
+                  ) : (
+                    <Badge variant={STATE_BADGE[s.state]}>{i18n._(SESSION_STATES[s.state])}</Badge>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Switch
@@ -434,7 +492,39 @@ function Interviews({
                     onCheckedChange={(on) => toggle(s, on)}
                   />
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="whitespace-nowrap text-right">
+                  {reviewable(s) ? (
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label={
+                        analyzer.stage(s) === 'analyzing'
+                          ? t`Analyzing ${name}…`
+                          : analyzer.stage(s) === 'waiting'
+                            ? t`${name} waits for its analysis`
+                            : t`Analyze ${name}`
+                      }
+                      aria-busy={analyzer.stage(s) !== null || undefined}
+                      title={
+                        analyzer.stage(s) === 'analyzing'
+                          ? t`Analyzing…`
+                          : analyzer.stage(s) === 'waiting'
+                            ? t`Waiting for analysis`
+                            : t`Analyze`
+                      }
+                      disabled={analyzer.stage(s) !== null}
+                      onClick={() => void analyzer.analyze(s)}
+                    >
+                      {/* Analyzing now: a spinner; waiting in the run's queue: an hourglass. */}
+                      {analyzer.stage(s) === 'analyzing' ? (
+                        <LoaderCircleIcon aria-hidden className="animate-spin" />
+                      ) : analyzer.stage(s) === 'waiting' ? (
+                        <HourglassIcon aria-hidden className="text-muted-foreground" />
+                      ) : (
+                        <FileSearchIcon aria-hidden />
+                      )}
+                    </Button>
+                  ) : null}
                   <Button
                     size="icon-sm"
                     variant="ghost"
@@ -498,7 +588,17 @@ function Interviews({
                 </Select>
               </div>
             ) : null}
+            <AnalyzeAll studyId={studyId} data={data} />
           </div>
+          {data.anonymised && data.namedFiles ? (
+            <p role="status" className="text-sm">
+              {plural(data.namedFiles, {
+                one: 'Anonymisation is on: # interview has a name in its file names. Analyze it and rename its files.',
+                other:
+                  'Anonymisation is on: # interviews have a name in their file names. Analyze them and rename their files.',
+              })}
+            </p>
+          ) : null}
           {rows.length ? (
             table(rows)
           ) : (
@@ -577,6 +677,7 @@ function Interviews({
         </TabsContent>
       </Tabs>
 
+      {analyzer.dialog}
       {open ? (
         <SessionDialog
           key={open.id}

@@ -13,6 +13,7 @@ import {
 } from '../../domain/session.ts'
 import { resolveStudyAccess } from '../access.ts'
 import type { Actor, IngestionDeps, PlannedSummary } from '../ports.ts'
+import { makePlannedSync } from './planned-sync.ts'
 
 type Failure =
   | 'SESSION_NOT_FOUND'
@@ -36,6 +37,7 @@ type Done = Result<{ id: string }, Failure>
  * on the next write (research R6).
  */
 export const makeSessionCommands = (deps: IngestionDeps) => {
+  const sync = makePlannedSync(deps)
   /** The session, if the person can act on its study, at the version they saw. */
   const load = async (
     actor: Actor,
@@ -165,7 +167,10 @@ export const makeSessionCommands = (deps: IngestionDeps) => {
         deps.clock.now(),
       )
       if (!next.ok) return next
-      return save(next.value, c.version, release)
+      const saved = await save(next.value, c.version, release)
+      // The schedule follows the people of its interview (spec 009 FR-022).
+      if (saved.ok && roster) await sync.push(c.actor, next.value)
+      return saved
     },
 
     decide: async (c: {

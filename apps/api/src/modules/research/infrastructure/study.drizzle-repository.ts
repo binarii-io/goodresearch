@@ -17,7 +17,12 @@ export const drizzleStudyRepository = (tx: Executor): StudyRepository => ({
     const p = study.snapshot()
     const updated = await tx
       .update(researchStudies)
-      .set({ name: p.name, updatedAt: p.updatedAt, version: sql`${researchStudies.version} + 1` })
+      .set({
+        name: p.name,
+        anonymised: p.anonymised,
+        updatedAt: p.updatedAt,
+        version: sql`${researchStudies.version} + 1`,
+      })
       .where(and(eq(researchStudies.id, p.id), eq(researchStudies.version, p.version)))
       .returning({ id: researchStudies.id })
     if (updated.length > 0) return

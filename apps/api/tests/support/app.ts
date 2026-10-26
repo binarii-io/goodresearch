@@ -32,7 +32,7 @@ export const startTestApp = async (
   options: { rateLimit?: boolean; drive?: InMemoryDrive; runner?: ModelRunner } = {},
 ) => {
   const clock = fixedClock(new Date())
-  const queued: object[] = []
+  const queued: { queue: string; data: object }[] = []
   const { app, modules } = await composeApp(
     config,
     {
@@ -40,8 +40,8 @@ export const startTestApp = async (
       isReady: async () => true,
       clock,
       jobs: {
-        send: async (_queue, data) => {
-          queued.push(data)
+        send: async (queue, data) => {
+          queued.push({ queue, data })
           return true
         },
       },
@@ -63,10 +63,8 @@ export const startTestApp = async (
   const runJobs = async () => {
     while (queued.length > 0) {
       const job = queued.shift()
-      if (job)
-        await modules.ingestion.runInventory(
-          job as Parameters<typeof modules.ingestion.runInventory>[0],
-        )
+      const handler = modules.ingestion.jobs.find((h) => h.queue === job?.queue)
+      if (job && handler) await handler.handle(job.data)
     }
   }
   return { app, clock, runJobs }

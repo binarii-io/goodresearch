@@ -82,7 +82,7 @@ describe('fieldwork sessions (spec 008)', () => {
     expect(view.sessions[1]?.media).toMatchObject([
       { fileId: 'm-sam', confidence: 'high', reason: 'same-time' },
     ])
-    expect(view.totals).toEqual({ proposed: 0, validated: 2, excluded: 0 })
+    expect(view.totals).toEqual({ proposed: 2, validated: 0, excluded: 0 })
     expect(view.unmatchedMedia).toEqual([])
   })
 

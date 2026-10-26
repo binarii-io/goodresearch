@@ -9,6 +9,7 @@ export type SessionInputSuggestionRule = typeof SessionInputSuggestionRule[keyof
 
 
 export const SessionInputSuggestionRule = {
+  transcript: 'transcript',
   name: 'name',
   date: 'date',
 } as const;

@@ -57,7 +57,7 @@ export const createGoogleRequests = (options: {
   const request = async (
     refreshToken: string,
     url: URL,
-    init: { method?: string; json?: unknown } = {},
+    init: { method?: string; json?: unknown; headers?: Record<string, string> } = {},
   ): Promise<Response> => {
     let refreshed = false
     for (let attempt = 0; ; attempt++) {
@@ -66,6 +66,7 @@ export const createGoogleRequests = (options: {
         headers: {
           authorization: `Bearer ${await accessToken(refreshToken)}`,
           ...(init.json === undefined ? {} : { 'content-type': 'application/json' }),
+          ...init.headers,
         },
         ...(init.json === undefined ? {} : { body: JSON.stringify(init.json) }),
       })

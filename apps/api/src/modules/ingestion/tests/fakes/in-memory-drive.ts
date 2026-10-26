@@ -1,5 +1,9 @@
 import type { DriveAuthorization, DriveGateway, DriveItem } from '../../domain/drive-gateway.ts'
-import { DriveConnectionLost, FOLDER_MIME } from '../../domain/drive-gateway.ts'
+import {
+  DriveConnectionLost,
+  FOLDER_MIME,
+  TranscriptUnreadable,
+} from '../../domain/drive-gateway.ts'
 import { InMemoryDriveDocuments } from '../../infrastructure/in-memory.drive-documents.ts'
 
 /**
@@ -18,7 +22,18 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
   /** Simulates Google Drive not answering. */
   outage = false
   /** Published files (spec 007), opened with the same Google accounts. */
-  readonly documents = new InMemoryDriveDocuments((token) => this.#account(token))
+  readonly documents = new InMemoryDriveDocuments(
+    (token) => this.#account(token),
+    (id, name) => {
+      const item = this.items.get(id)
+      if (item) this.items.set(id, { ...item, name })
+    },
+  )
+  /** Text of transcripts by file id (spec 009); `unreadable` files throw like a `.doc`. */
+  readonly texts = new Map<string, string>()
+  readonly unreadable = new Set<string>()
+  /** Every text read, with its length asked. */
+  readonly reads: { id: string; maxChars: number }[] = []
 
   addFolder(id: string, name: string, parent?: string, owner = 'Alice'): void {
     this.items.set(id, {
@@ -40,6 +55,7 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
       size: 1,
       modifiedTime: '2026-10-01T00:00:00Z',
     })
+    this.documents.adopt(id, name, [parent])
   }
 
   share(folderId: string, googleAccount: string): void {
@@ -71,6 +87,26 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
   async documentTabs(refreshToken: string, id: string): Promise<readonly string[] | null> {
     this.#account(refreshToken)
     return this.tabs.get(id) ?? null
+  }
+
+  /** Meeting notes of documents by file id (other tabs than the transcript). */
+  readonly notes = new Map<string, string>()
+
+  async readNotesStart(refreshToken: string, id: string, maxChars: number): Promise<string | null> {
+    this.#account(refreshToken)
+    return this.notes.get(id)?.slice(0, maxChars) ?? null
+  }
+
+  async readTextStart(
+    refreshToken: string,
+    file: { id: string },
+    maxChars: number,
+  ): Promise<string | null> {
+    const account = this.#account(refreshToken)
+    this.reads.push({ id: file.id, maxChars })
+    if (this.unreadable.has(file.id)) throw new TranscriptUnreadable()
+    if (!this.items.has(file.id) || !this.#canOpen(account, file.id)) return null
+    return (this.texts.get(file.id) ?? '').slice(0, maxChars)
   }
 
   async getItem(refreshToken: string, id: string): Promise<DriveItem | null> {

@@ -17,6 +17,45 @@ const TOKEN_PREFIX = 'dev-drive-'
 
 const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 const GOOGLE_DOC = 'application/vnd.google-apps.document'
+/**
+ * Beginnings of the demo transcripts (spec 009): a meeting tool's header with participants, speaker
+ * labels that need the AI, and a Word file read as text.
+ */
+const DEMO_TEXTS: Record<string, string> = {
+  'dev-transcript': [
+    'Transcript',
+    'Interview Sam Example',
+    '20 October 2026, 10:00',
+    'Participants: Sam Example, Lee Example',
+    '',
+    'Lee Example: Thank you for joining. Could you introduce yourself in a few words?',
+    'Sam Example: Sure. I plan the week for the whole household, usually on Sunday evening.',
+    'Lee Example: What happened the last time you planned your week?',
+  ].join('\n'),
+  'dev-transcript-2': [
+    'Robin Sample: Hello, and thanks for taking the time to talk with us today.',
+    'Casey Test: Thanks for having me, it is a pleasure.',
+    'Robin Sample: So what do you think about the way you plan your week?',
+    'Casey Test: Well, I keep a paper list on the fridge and I update it every evening.',
+  ].join('\n'),
+  'dev-transcript-3': [
+    'Entretien avec Camille',
+    '27/10/2026',
+    'Intervieweuse : Alors, est-ce que vous pouvez vous présenter ?',
+    'Camille : Oui, je suis responsable de la logistique et je prépare les plannings de la semaine.',
+  ].join('\n'),
+  'dev-notes-1': [
+    'Lee Other: Thanks for your time, shall we start with your role?',
+    'Jordan Sample: I coordinate the volunteers of the association.',
+  ].join('\n'),
+}
+
+/** Meeting notes of the demo documents: who was invited, with full names. */
+const DEMO_NOTES: Record<string, string> = {
+  'dev-notes-1':
+    'Notes\nInvited: Lee Other, Jordan Sample\n\nSummary\nThe association plans its volunteers.',
+}
+
 const DEMO_TABS: Record<string, string[]> = {
   'dev-notes-1': ['Notes', 'Transcript'],
   'dev-notes-2': ['Notes'],
@@ -77,6 +116,14 @@ const demoFiles = (): [string, DriveItem][] => {
     // Meeting notes: an interview only when a tab holds the transcript.
     file('dev-notes-1', 'Interview Lee - Notes', 'dev-week-2', GOOGLE_DOC, '2026-10-29T09:00:00Z'),
     file('dev-notes-2', 'Team sync - Notes', 'dev-week-2', GOOGLE_DOC, '2026-10-29T15:00:00Z'),
+    // Belongs to Sam's interview by its name (spec 009 US5).
+    file(
+      'dev-consent',
+      'Sam Example consent.pdf',
+      'dev-week-1',
+      'application/pdf',
+      '2026-10-20T09:00:00Z',
+    ),
   ]
 }
 
@@ -116,6 +163,15 @@ export const createDevDrive = (appUrl: URL) => {
       known(token)
       return DEMO_TABS[id] ?? null
     },
+    readNotesStart: async (token, id, maxChars) => {
+      known(token)
+      return DEMO_NOTES[id]?.slice(0, maxChars) ?? null
+    },
+    readTextStart: async (token, file, maxChars) => {
+      known(token)
+      if (!items.has(file.id)) return null
+      return (DEMO_TEXTS[file.id] ?? '').slice(0, maxChars)
+    },
     async *listChildren(token, parentIds) {
       known(token)
       yield [...items.values()].filter((i) => i.parents?.some((p) => parentIds.includes(p)))
@@ -135,7 +191,13 @@ export const createDevDrive = (appUrl: URL) => {
     revoke: async () => {},
   }
 
-  const documents = new InMemoryDriveDocuments(known)
+  // The demo files can be renamed by the app (spec 009): the folder then shows the new name.
+  const documents = new InMemoryDriveDocuments(known, (id, name) => {
+    const item = items.get(id)
+    if (item) items.set(id, { ...item, name })
+  })
+  for (const item of items.values())
+    if (item.mimeType !== FOLDER_MIME) documents.adopt(item.id, item.name, item.parents ?? [])
 
   /** What a person does in Drive, for the dev endpoint (texts replaced, cells set). */
   const edit = (

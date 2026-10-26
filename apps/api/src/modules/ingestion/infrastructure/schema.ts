@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   bigint,
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -11,6 +12,10 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
+import type { Analysis } from '../domain/analysis.ts'
+
+/** An analysis as stored: its date as text (jsonb). */
+export type StoredAnalysis = Omit<Analysis, 'at'> & { at: string | null }
 
 // Foreign keys to other modules (accounts, studies) live in migration SQL only (docs/standards.md §6).
 
@@ -125,6 +130,15 @@ export const ingestionSessions = pgTable(
       .notNull(),
     decidedBy: text('decided_by'),
     decidedAt: timestamp('decided_at', { withTimezone: true }),
+    /** Spec 009: set by a person. */
+    interviewDate: date('interview_date', { mode: 'string' }),
+    language: text('language'),
+    attachments: jsonb('attachments')
+      .$type<{ fileId: string; label?: string | null }[]>()
+      .notNull()
+      .default([]),
+    /** The last analysis and its proposals (Analysis in the domain). */
+    analysis: jsonb('analysis').$type<StoredAnalysis>(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     version: integer('version').notNull().default(1),
@@ -136,4 +150,52 @@ export const ingestionSessions = pgTable(
       .where(sql`${t.plannedInterviewId} is not null`),
     index('ingestion_sessions_state_idx').on(t.studyId, t.state),
   ],
+)
+
+/** "Analyze interviews" over a study (spec 009 research R6): one running at a time per study. */
+export const ingestionAnalysisRuns = pgTable(
+  'ingestion_analysis_runs',
+  {
+    id: text('id').primaryKey(),
+    studyId: text('study_id').notNull(),
+    startedBy: text('started_by').notNull(),
+    sessionIds: jsonb('session_ids').$type<string[]>().notNull(),
+    state: text('state').notNull(),
+    stopRequested: boolean('stop_requested').notNull().default(false),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    heartbeatAt: timestamp('heartbeat_at', { withTimezone: true }).notNull(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex('ingestion_analysis_runs_running_idx')
+      .on(t.studyId)
+      .where(sql`${t.state} = 'running'`),
+  ],
+)
+
+/** Pseudonyms of a study's interviewees (research R10), assigned once, never reused. */
+export const ingestionPseudonyms = pgTable(
+  'ingestion_pseudonyms',
+  {
+    studyId: text('study_id').notNull(),
+    nameKey: text('name_key').notNull(),
+    code: text('code').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.studyId, t.nameKey] }),
+    uniqueIndex('ingestion_pseudonyms_code_idx').on(t.studyId, t.code),
+  ],
+)
+
+/** A person agreed that transcript text goes to their AI provider for this study (FR-011). */
+export const ingestionAnalysisConsents = pgTable(
+  'ingestion_analysis_consents',
+  {
+    accountId: text('account_id').notNull(),
+    studyId: text('study_id').notNull(),
+    provider: text('provider').notNull(),
+    givenAt: timestamp('given_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.accountId, t.studyId, t.provider] })],
 )

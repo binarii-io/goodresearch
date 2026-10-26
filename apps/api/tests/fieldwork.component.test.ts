@@ -126,7 +126,7 @@ describe('Fieldwork sessions on PostgreSQL (spec 008)', () => {
   it('proposes the interviews of the inventory with their recordings and suggestions', async () => {
     const view = await fieldwork()
     // Both have their transcript: validated by the app (FR-002c).
-    expect(view.totals).toEqual({ proposed: 0, validated: 2, excluded: 0 })
+    expect(view.totals).toEqual({ proposed: 2, validated: 0, excluded: 0 })
     const sam = view.sessions[0]
     expect(sam?.transcript?.name).toBe('Interview Sam Example.txt')
     expect(sam?.media.map((m) => m.fileId)).toEqual(['m-sam'])
@@ -226,7 +226,7 @@ describe('Fieldwork sessions on PostgreSQL (spec 008)', () => {
     await call(alex, 'POST', `/api/studies/${studyId}/source/inventory`)
     await world.runJobs()
     const view = await fieldwork()
-    expect(view.totals).toEqual({ proposed: 0, validated: 4, excluded: 1 })
+    expect(view.totals).toEqual({ proposed: 3, validated: 1, excluded: 1 })
     expect(view.sessions.map((s) => s.transcript?.name)).toContain('Interview Dana.txt')
   })
 

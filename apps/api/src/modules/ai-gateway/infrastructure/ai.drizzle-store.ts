@@ -126,6 +126,19 @@ export const createAiStore = (db: Db): AiStore => ({
     }))
   },
 
+  usageByRefsAll: async (refs) => {
+    if (refs.length === 0) return []
+    const rows = await db
+      .select()
+      .from(aiUsageEntries)
+      .where(inArray(aiUsageEntries.ref, [...refs]))
+    return rows.map((r) => ({
+      ...r,
+      provider: r.provider as ProviderKind,
+      outcome: r.outcome as UsageEntry['outcome'],
+    }))
+  },
+
   usageSummary: async (accountId) => {
     const [row] = await db
       .select({

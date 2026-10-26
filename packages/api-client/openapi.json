@@ -1385,7 +1385,11 @@
               "INVALID_TRANSITION",
               "PLANNED_INTERVIEW_LINKED",
               "MEDIA_UNAVAILABLE",
-              "LINKED_TO_DECIDED_SESSION"
+              "LINKED_TO_DECIDED_SESSION",
+              "ANALYSIS_CONSENT_REQUIRED",
+              "ANALYSIS_RUNNING",
+              "NOTHING_TO_ANALYZE",
+              "NAME_NOT_ACCEPTED"
             ]
           },
           "detail": {
@@ -2705,6 +2709,9 @@
               "name"
             ]
           },
+          "anonymised": {
+            "type": "boolean"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -2726,6 +2733,7 @@
           "name",
           "type",
           "project",
+          "anonymised",
           "createdAt",
           "updatedAt",
           "version"
@@ -2772,6 +2780,23 @@
           "version"
         ]
       },
+      "StudySettingsInput": {
+        "type": "object",
+        "properties": {
+          "anonymised": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "anonymised",
+          "version"
+        ]
+      },
       "RosterEntryInput": {
         "type": "object",
         "properties": {
@@ -2800,6 +2825,251 @@
           "name",
           "role",
           "memberId"
+        ]
+      },
+      "SessionProposalInput": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "enum": [
+              "interviewees",
+              "interviewers",
+              "date",
+              "language",
+              "name",
+              "attachment"
+            ]
+          },
+          "people": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "memberId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 64
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "memberId"
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attachment": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "fileId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "modifiedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "webLink": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "fileId",
+                  "name",
+                  "mimeType",
+                  "group",
+                  "modifiedAt",
+                  "webLink",
+                  "reason"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "file-name",
+              "header",
+              "speakers",
+              "planned",
+              "ai",
+              "file-date",
+              "rule"
+            ]
+          },
+          "quote": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "otherDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "accepted",
+              "edited",
+              "rejected",
+              "already-set"
+            ]
+          }
+        },
+        "required": [
+          "field",
+          "people",
+          "text",
+          "attachment",
+          "origin",
+          "quote",
+          "otherDate",
+          "status"
+        ]
+      },
+      "SessionAnalysisInput": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "waiting",
+              "analyzing",
+              "done",
+              "failed"
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "UNREADABLE_FORMAT",
+                  "FILE_NOT_FOUND",
+                  "DRIVE_NOT_CONNECTED",
+                  "DRIVE_UNAVAILABLE",
+                  "NOT_A_TRANSCRIPT",
+                  "INTERRUPTED",
+                  "AI_PROVIDER_REQUIRED",
+                  "AI_FAILED",
+                  "INVALID_ANSWER"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "by": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "usedAi": {
+            "type": "boolean"
+          },
+          "filesChanged": {
+            "type": "boolean"
+          },
+          "proposals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionProposalInput"
+            }
+          }
+        },
+        "required": [
+          "state",
+          "failure",
+          "at",
+          "by",
+          "usedAi",
+          "filesChanged",
+          "proposals"
         ]
       },
       "SessionInput": {
@@ -3060,6 +3330,7 @@
                   "rule": {
                     "type": "string",
                     "enum": [
+                      "transcript",
                       "name",
                       "date"
                     ]
@@ -3129,6 +3400,110 @@
               }
             ]
           },
+          "interviewDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "fr",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fileId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "mimeType": {
+                  "type": "string"
+                },
+                "group": {
+                  "type": "string"
+                },
+                "modifiedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "webLink": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "fileId",
+                "name",
+                "mimeType",
+                "group",
+                "modifiedAt",
+                "webLink"
+              ]
+            }
+          },
+          "analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SessionAnalysisInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "fileNames": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "inSync": {
+                    "type": "boolean"
+                  },
+                  "differing": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "inSync",
+                  "differing"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "version": {
             "type": "integer",
             "minimum": 0,
@@ -3151,6 +3526,12 @@
           "excludedReason",
           "decidedBy",
           "decidedAt",
+          "interviewDate",
+          "language",
+          "attachments",
+          "analysis",
+          "cost",
+          "fileNames",
           "version"
         ]
       },
@@ -3280,6 +3661,93 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "analysisCost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "run": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "running",
+                      "stopped",
+                      "done"
+                    ]
+                  },
+                  "stopRequested": {
+                    "type": "boolean"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "done": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "failed": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "startedBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "state",
+                  "stopRequested",
+                  "total",
+                  "done",
+                  "failed",
+                  "startedBy"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "anonymised": {
+            "type": "boolean"
+          },
+          "namedFiles": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "consentNeeded": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -3287,7 +3755,12 @@
           "unmatchedMedia",
           "plannedWithoutSession",
           "totals",
-          "skipped"
+          "skipped",
+          "analysisCost",
+          "run",
+          "anonymised",
+          "namedFiles",
+          "consentNeeded"
         ]
       },
       "LinkSessionInput": {
@@ -3418,6 +3891,259 @@
         "required": [
           "decision",
           "version"
+        ]
+      },
+      "AnalyzeSessionInput": {
+        "type": "object",
+        "properties": {
+          "consent": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StartAnalysisRunInput": {
+        "type": "object",
+        "properties": {
+          "consent": {
+            "type": "boolean"
+          },
+          "all": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AnalysisEstimateInput": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "withTranscript": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "estimatedCost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "consentNeeded": {
+            "type": "boolean"
+          },
+          "aiConnected": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "count",
+          "withTranscript",
+          "estimatedCost",
+          "consentNeeded",
+          "aiConnected"
+        ]
+      },
+      "AnalysisRunStartedInput": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "runId"
+        ]
+      },
+      "DecideProposalsInput": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "decisions": {
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "enum": [
+                    "interviewees",
+                    "interviewers",
+                    "date",
+                    "language",
+                    "name",
+                    "attachment"
+                  ]
+                },
+                "fileId": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "accept",
+                    "edit",
+                    "reject"
+                  ]
+                },
+                "people": {
+                  "maxItems": 10,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "memberId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 64
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "memberId"
+                    ]
+                  }
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              },
+              "required": [
+                "field",
+                "action"
+              ]
+            }
+          }
+        },
+        "required": [
+          "version",
+          "decisions"
+        ]
+      },
+      "RenamePlanInput": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fileId": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "transcript",
+                    "media",
+                    "attachment"
+                  ]
+                },
+                "current": {
+                  "type": "string"
+                },
+                "next": {
+                  "type": "string"
+                },
+                "canEdit": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "fileId",
+                "kind",
+                "current",
+                "next",
+                "canEdit"
+              ]
+            }
+          },
+          "writeAccess": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "files",
+          "writeAccess"
+        ]
+      },
+      "RenameFilesInput": {
+        "type": "object",
+        "properties": {
+          "fileIds": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        },
+        "required": [
+          "fileIds"
+        ]
+      },
+      "RenameResultInput": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fileId": {
+                  "type": "string"
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "renamed",
+                    "cannot-edit",
+                    "not-found",
+                    "failed"
+                  ]
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "fileId",
+                "outcome",
+                "name"
+              ]
+            }
+          }
+        },
+        "required": [
+          "results"
         ]
       },
       "PublicConfigInput": {
@@ -4878,7 +5604,11 @@
               "INVALID_TRANSITION",
               "PLANNED_INTERVIEW_LINKED",
               "MEDIA_UNAVAILABLE",
-              "LINKED_TO_DECIDED_SESSION"
+              "LINKED_TO_DECIDED_SESSION",
+              "ANALYSIS_CONSENT_REQUIRED",
+              "ANALYSIS_RUNNING",
+              "NOTHING_TO_ANALYZE",
+              "NAME_NOT_ACCEPTED"
             ]
           },
           "detail": {
@@ -6246,6 +6976,9 @@
             ],
             "additionalProperties": false
           },
+          "anonymised": {
+            "type": "boolean"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -6267,6 +7000,7 @@
           "name",
           "type",
           "project",
+          "anonymised",
           "createdAt",
           "updatedAt",
           "version"
@@ -6316,6 +7050,24 @@
         ],
         "additionalProperties": false
       },
+      "StudySettings": {
+        "type": "object",
+        "properties": {
+          "anonymised": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "anonymised",
+          "version"
+        ],
+        "additionalProperties": false
+      },
       "RosterEntry": {
         "type": "object",
         "properties": {
@@ -6344,6 +7096,256 @@
           "name",
           "role",
           "memberId"
+        ],
+        "additionalProperties": false
+      },
+      "SessionProposal": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "enum": [
+              "interviewees",
+              "interviewers",
+              "date",
+              "language",
+              "name",
+              "attachment"
+            ]
+          },
+          "people": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "memberId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 64
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "memberId"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attachment": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "fileId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "modifiedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "webLink": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "fileId",
+                  "name",
+                  "mimeType",
+                  "group",
+                  "modifiedAt",
+                  "webLink",
+                  "reason"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "file-name",
+              "header",
+              "speakers",
+              "planned",
+              "ai",
+              "file-date",
+              "rule"
+            ]
+          },
+          "quote": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "otherDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "accepted",
+              "edited",
+              "rejected",
+              "already-set"
+            ]
+          }
+        },
+        "required": [
+          "field",
+          "people",
+          "text",
+          "attachment",
+          "origin",
+          "quote",
+          "otherDate",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "SessionAnalysis": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "waiting",
+              "analyzing",
+              "done",
+              "failed"
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "UNREADABLE_FORMAT",
+                  "FILE_NOT_FOUND",
+                  "DRIVE_NOT_CONNECTED",
+                  "DRIVE_UNAVAILABLE",
+                  "NOT_A_TRANSCRIPT",
+                  "INTERRUPTED",
+                  "AI_PROVIDER_REQUIRED",
+                  "AI_FAILED",
+                  "INVALID_ANSWER"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "by": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "usedAi": {
+            "type": "boolean"
+          },
+          "filesChanged": {
+            "type": "boolean"
+          },
+          "proposals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionProposal"
+            }
+          }
+        },
+        "required": [
+          "state",
+          "failure",
+          "at",
+          "by",
+          "usedAi",
+          "filesChanged",
+          "proposals"
         ],
         "additionalProperties": false
       },
@@ -6608,6 +7610,7 @@
                   "rule": {
                     "type": "string",
                     "enum": [
+                      "transcript",
                       "name",
                       "date"
                     ]
@@ -6679,6 +7682,112 @@
               }
             ]
           },
+          "interviewDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "fr",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fileId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "mimeType": {
+                  "type": "string"
+                },
+                "group": {
+                  "type": "string"
+                },
+                "modifiedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "webLink": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "fileId",
+                "name",
+                "mimeType",
+                "group",
+                "modifiedAt",
+                "webLink"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SessionAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "fileNames": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "inSync": {
+                    "type": "boolean"
+                  },
+                  "differing": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "inSync",
+                  "differing"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "version": {
             "type": "integer",
             "minimum": 0,
@@ -6701,6 +7810,12 @@
           "excludedReason",
           "decidedBy",
           "decidedAt",
+          "interviewDate",
+          "language",
+          "attachments",
+          "analysis",
+          "cost",
+          "fileNames",
           "version"
         ],
         "additionalProperties": false
@@ -6834,6 +7949,95 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "analysisCost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "run": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "running",
+                      "stopped",
+                      "done"
+                    ]
+                  },
+                  "stopRequested": {
+                    "type": "boolean"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "done": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "failed": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "startedBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "id",
+                  "state",
+                  "stopRequested",
+                  "total",
+                  "done",
+                  "failed",
+                  "startedBy"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "anonymised": {
+            "type": "boolean"
+          },
+          "namedFiles": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "consentNeeded": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -6841,7 +8045,12 @@
           "unmatchedMedia",
           "plannedWithoutSession",
           "totals",
-          "skipped"
+          "skipped",
+          "analysisCost",
+          "run",
+          "anonymised",
+          "namedFiles",
+          "consentNeeded"
         ],
         "additionalProperties": false
       },
@@ -6976,6 +8185,271 @@
         "required": [
           "decision",
           "version"
+        ],
+        "additionalProperties": false
+      },
+      "AnalyzeSession": {
+        "type": "object",
+        "properties": {
+          "consent": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StartAnalysisRun": {
+        "type": "object",
+        "properties": {
+          "consent": {
+            "type": "boolean"
+          },
+          "all": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AnalysisEstimate": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "withTranscript": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "estimatedCost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "consentNeeded": {
+            "type": "boolean"
+          },
+          "aiConnected": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "count",
+          "withTranscript",
+          "estimatedCost",
+          "consentNeeded",
+          "aiConnected"
+        ],
+        "additionalProperties": false
+      },
+      "AnalysisRunStarted": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "runId"
+        ],
+        "additionalProperties": false
+      },
+      "DecideProposals": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "decisions": {
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "enum": [
+                    "interviewees",
+                    "interviewers",
+                    "date",
+                    "language",
+                    "name",
+                    "attachment"
+                  ]
+                },
+                "fileId": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "accept",
+                    "edit",
+                    "reject"
+                  ]
+                },
+                "people": {
+                  "maxItems": 10,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "memberId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 64
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "memberId"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              },
+              "required": [
+                "field",
+                "action"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "version",
+          "decisions"
+        ],
+        "additionalProperties": false
+      },
+      "RenamePlan": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fileId": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "transcript",
+                    "media",
+                    "attachment"
+                  ]
+                },
+                "current": {
+                  "type": "string"
+                },
+                "next": {
+                  "type": "string"
+                },
+                "canEdit": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "fileId",
+                "kind",
+                "current",
+                "next",
+                "canEdit"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "writeAccess": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "files",
+          "writeAccess"
+        ],
+        "additionalProperties": false
+      },
+      "RenameFiles": {
+        "type": "object",
+        "properties": {
+          "fileIds": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        },
+        "required": [
+          "fileIds"
+        ],
+        "additionalProperties": false
+      },
+      "RenameResult": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fileId": {
+                  "type": "string"
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "renamed",
+                    "cannot-edit",
+                    "not-found",
+                    "failed"
+                  ]
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "fileId",
+                "outcome",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "results"
         ],
         "additionalProperties": false
       },
@@ -7832,6 +9306,48 @@
         }
       }
     },
+    "/api/studies/{studyId}/settings": {
+      "patch": {
+        "operationId": "updateStudySettings",
+        "tags": [
+          "studies"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudySettingsInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionAck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/studies/{studyId}/guide": {
       "get": {
         "operationId": "getInterviewGuide",
@@ -8372,6 +9888,283 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{sessionId}/analysis": {
+      "post": {
+        "operationId": "analyzeSession",
+        "tags": [
+          "fieldwork"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeSessionInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{sessionId}/proposals": {
+      "post": {
+        "operationId": "decideProposals",
+        "tags": [
+          "fieldwork"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideProposalsInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/analysis-runs/estimate": {
+      "get": {
+        "operationId": "estimateAnalysisRun",
+        "tags": [
+          "fieldwork"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "in": "query",
+            "name": "all",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisEstimate"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/analysis-runs": {
+      "post": {
+        "operationId": "startAnalysisRun",
+        "tags": [
+          "fieldwork"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartAnalysisRunInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisRunStarted"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/analysis-runs/{runId}/stop": {
+      "post": {
+        "operationId": "stopAnalysisRun",
+        "tags": [
+          "fieldwork"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "runId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/sessions/{sessionId}/rename": {
+      "get": {
+        "operationId": "getRenamePlan",
+        "tags": [
+          "fieldwork"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenamePlan"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "renameSessionFiles",
+        "tags": [
+          "fieldwork"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameFilesInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenameResult"
                 }
               }
             }

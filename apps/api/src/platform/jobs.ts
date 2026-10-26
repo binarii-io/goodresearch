@@ -4,6 +4,8 @@ import type { PgBoss } from 'pg-boss'
 export const QUEUES = {
   /** One inventory per study at a time (policy `exclusive` keyed by study id). */
   inventory: 'ingestion.inventory',
+  /** One analysis run per study at a time (spec 009, `exclusive` keyed by study id). */
+  analysis: 'ingestion.analysis',
 } as const
 
 export type JobQueue = {
@@ -21,6 +23,11 @@ export const createQueues = async (boss: PgBoss): Promise<void> => {
     policy: 'exclusive',
     retryLimit: 0,
     expireInSeconds: 30 * 60,
+  })
+  await boss.createQueue(QUEUES.analysis, {
+    policy: 'exclusive',
+    retryLimit: 0,
+    expireInSeconds: 60 * 60,
   })
 }
 

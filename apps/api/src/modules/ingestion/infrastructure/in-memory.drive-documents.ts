@@ -35,9 +35,29 @@ export class InMemoryDriveDocuments implements DriveDocuments {
   #next = 0
 
   readonly accountOf: (refreshToken: string) => string
+  /** Told when the app renames a file (the simulated folder shows the new name). */
+  readonly onRename: (fileId: string, name: string) => void
 
-  constructor(accountOf: (refreshToken: string) => string) {
+  constructor(
+    accountOf: (refreshToken: string) => string,
+    onRename: (fileId: string, name: string) => void = () => {},
+  ) {
     this.accountOf = accountOf
+    this.onRename = onRename
+  }
+
+  /** A file of the folder that was not published by the app (a transcript, a recording). */
+  adopt(id: string, name: string, parents: readonly string[], owner = 'Drive user'): void {
+    this.files.set(id, {
+      id,
+      name,
+      parents: [...parents],
+      owner,
+      trashed: false,
+      version: 1,
+      revision: 1,
+      lastEditor: owner,
+    })
   }
 
   #open(refreshToken: string, fileId: string): { file: StoredFile; account: string } | null {
@@ -117,6 +137,14 @@ export class InMemoryDriveDocuments implements DriveDocuments {
       lastEditorName: file.lastEditor,
       webViewLink: `https://drive.example.test/file/${file.id}`,
     }
+  }
+
+  async renameFile(refreshToken: string, fileId: string, name: string) {
+    if (!this.#open(refreshToken, fileId)) return null
+    const { file, account } = this.#editable(refreshToken, fileId)
+    Object.assign(file, { name, version: file.version + 1, lastEditor: account })
+    this.onRename(fileId, name)
+    return this.metadata(refreshToken, fileId)
   }
 
   #change(file: StoredFile, by: string, content: Partial<StoredFile>) {

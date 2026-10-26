@@ -106,9 +106,16 @@ test.describe('spec 005 — assistant panel', () => {
       'true',
     )
     await expect(page).toHaveURL(/phase=preparation/)
+    // The page opens before the answer ends: wait for it, or Enter is not taken.
+    await expect(panel.getByRole('button', { name: 'Stop' })).toHaveCount(0)
     await field.fill('open project')
+    // After a page change the panel reloads its context: Send is off until it is ready.
+    await expect(panel.getByRole('button', { name: 'Send' })).toBeEnabled()
     await page.keyboard.press('Enter')
-    await expect(page.getByRole('button', { name: /Project name:/ })).toBeVisible()
+    // The answer streams before the page opens: slower when the whole suite runs.
+    await expect(page.getByRole('button', { name: /Project name:/ })).toBeVisible({
+      timeout: 15_000,
+    })
     await expect(panel).toBeVisible()
 
     await panel.getByRole('button', { name: 'Conversations' }).click()
@@ -156,7 +163,8 @@ test.describe('spec 005 — assistant panel', () => {
     // "long answer" streams 300 words slowly (dev stack test provider).
     await field.fill('long answer')
     await page.keyboard.press('Enter')
-    await expect(log.getByText(/word150/)).toBeVisible()
+    // About 5 s of streaming: more on a loaded machine.
+    await expect(log.getByText(/word150/)).toBeVisible({ timeout: 15_000 })
     expect(await log.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)
     expect(await fromBottom()).toBeLessThan(48)
 

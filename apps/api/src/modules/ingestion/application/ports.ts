@@ -1,9 +1,11 @@
 import type { Clock } from '@goodresearch/shared'
+import type { Analysis } from '../domain/analysis.ts'
 import type { FileKind } from '../domain/classify.ts'
 import type { DriveAuthorization, DriveGateway } from '../domain/drive-gateway.ts'
 import type { FolderAccessResult } from '../domain/folder-access.ts'
 import type { InventoryRun } from '../domain/inventory-run.ts'
 import type { InventoryFile, InventoryProgress } from '../domain/inventory-walk.ts'
+import type { ScheduleChange } from '../domain/planned-sync.ts'
 import type { Session } from '../domain/session.ts'
 
 export type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
@@ -13,7 +15,14 @@ export type StudyDirectory = {
   getStudyAccess(
     accountId: string,
     studyId: string,
-  ): Promise<{ role: 'admin' | 'member'; type: string } | null>
+  ): Promise<{
+    role: 'admin' | 'member'
+    type: string
+    /** The team that owns the study's project (spec 009: its members interview). */
+    teamId: string
+    /** Spec 009: names and titles use pseudonyms. */
+    anonymised: boolean
+  } | null>
 }
 
 /** A planned interview of a study's schedule (spec 006), as fieldwork needs it. */
@@ -32,12 +41,66 @@ export type PlannedSummary = {
  */
 export type Schedule = {
   list(accountId: string, studyId: string): Promise<readonly PlannedSummary[] | null>
+  /**
+   * Spec 009 FR-022: the schedule takes the people and date of its interview, through the
+   * schedule's own rules and version check; false when it could not (changed meanwhile, gone).
+   */
+  update(
+    actor: Actor,
+    studyId: string,
+    plannedInterviewId: string,
+    change: ScheduleChange,
+  ): Promise<boolean>
 }
 
 /** Workspace members, for the interviewers of a session (spec 008 FR-008). */
 export type Members = {
   exist(ids: readonly string[]): Promise<boolean>
+  /** Active members of a team: the app's rules tell interviewers apart with them (spec 009). */
+  ofTeam(teamId: string): Promise<readonly { id: string; name: string }[]>
 }
+
+/** What the AI found in the beginning of a transcript; quotes are checked by the app (FR-005). */
+export type AnalyzerAnswer = {
+  readonly interviewees: readonly { name: string; quote: string }[]
+  readonly interviewers: readonly { name: string; quote: string }[]
+  readonly date: { value: string; quote: string } | null
+}
+
+/** The person has no working AI provider. */
+export class AiUnavailable extends Error {
+  override name = 'AiUnavailable'
+}
+/** The provider failed, or answered in a shape that does not fit. */
+export class AiFailed extends Error {
+  override name = 'AiFailed'
+}
+
+/**
+ * The AI part of an analysis (spec 009 research R4, R5), through the AI Gateway: each call is
+ * recorded in the usage ledger under `ref`.
+ */
+export type Analyzer = {
+  analyze(accountId: string, ref: string, text: string): Promise<AnalyzerAnswer>
+  providerOf(accountId: string): Promise<string | null>
+  estimate(accountId: string, inputChars: number, outputTokens: number): Promise<number | null>
+  /** Costs by ref, for every account. */
+  costs(refs: readonly string[]): Promise<ReadonlyMap<string, number | null>>
+}
+
+export type AnalysisRun = {
+  readonly id: string
+  readonly studyId: string
+  readonly startedBy: string
+  readonly sessionIds: readonly string[]
+  readonly state: 'running' | 'stopped' | 'done'
+  readonly stopRequested: boolean
+  readonly startedAt: Date
+  readonly heartbeatAt: Date
+  readonly finishedAt: Date | null
+}
+
+export type AnalysisJob = { readonly runId: string; readonly studyId: string }
 
 /** Result of a conditional write of a session. */
 export type SessionWrite = 'saved' | 'stale' | 'linked' | 'media-taken'
@@ -168,6 +231,35 @@ export interface IngestionStore {
   ): Promise<SessionWrite>
   /** Proposes the sessions of an inventory taken before sessions existed (spec 008 SC-001). */
   backfillSessions(studyId: string, now: Date): Promise<void>
+  /** Writes only the analysis of a session if its version is still `expected` (research R7). */
+  writeAnalysis(
+    sessionId: string,
+    expected: number,
+    analysis: Analysis | null,
+  ): Promise<'saved' | 'stale'>
+  /** The study's pseudonyms by name key, the missing ones assigned under the study's lock. */
+  ensurePseudonyms(
+    studyId: string,
+    needed: readonly { key: string; date: string | null }[],
+    now: Date,
+  ): Promise<ReadonlyMap<string, string>>
+  hasConsent(accountId: string, studyId: string, provider: string): Promise<boolean>
+  saveConsent(accountId: string, studyId: string, provider: string, now: Date): Promise<void>
+  /** Starts a run unless a live one exists (a run without heartbeat for 10 minutes is replaced). */
+  startRun(run: AnalysisRun): Promise<boolean>
+  /** The running run of a study, else its last one. */
+  lastRun(studyId: string): Promise<AnalysisRun | null>
+  getRun(runId: string): Promise<AnalysisRun | null>
+  heartbeat(runId: string, now: Date): Promise<void>
+  requestStop(runId: string): Promise<void>
+  finishRun(runId: string, state: 'stopped' | 'done', now: Date): Promise<void>
+  /** The inventory row of a file renamed by the app (the next inventory confirms it). */
+  renameFile(
+    studyId: string,
+    fileId: string,
+    name: string,
+    modifiedAt: string | null,
+  ): Promise<void>
   /** Clears `from`'s link and writes `to`, both versions checked, in one transaction. */
   moveLink(
     from: Session,
@@ -192,6 +284,9 @@ export type IngestionDeps = {
     decrypt(stored: string, owner: string): string
   }
   readonly enqueueInventory: (job: InventoryJob) => Promise<boolean>
+  /** One analysis run per study at a time (spec 009 research R6). */
+  readonly enqueueAnalysis: (job: AnalysisJob) => Promise<boolean>
+  readonly analyzer: Analyzer
   readonly clock: Clock
   readonly log: {
     warn(object: object, message: string): void

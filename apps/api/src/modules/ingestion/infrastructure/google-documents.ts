@@ -287,7 +287,7 @@ export const createGoogleDocuments = (options: {
     )
   }
 
-  return {
+  const adapter: DriveDocuments = {
     createDocument: async (token, folderId, name, doc) => {
       const file = await createFile(token, folderId, name, DOC_MIME)
       // Once the file exists it is returned even if filling it fails: the caller tracks it and
@@ -476,10 +476,22 @@ export const createGoogleDocuments = (options: {
       await writeValues(token, fileId, sheet.title, table)
     },
 
+    renameFile: async (token, fileId, name) => {
+      const response = await call(
+        token,
+        `${DRIVE}/files/${encodeURIComponent(fileId)}?supportsAllDrives=true&fields=id`,
+        { method: 'PATCH', json: { name } },
+      )
+      if (response.status === 404) return null
+      if (response.status === 403) throw new DriveCannotEdit()
+      await ok<{ id: string }>(response, 'drive files.update')
+      return adapter.metadata(token, fileId)
+    },
+
     metadata: async (token, fileId): Promise<FileMeta | null> => {
       const response = await call(
         token,
-        `${DRIVE}/files/${encodeURIComponent(fileId)}?supportsAllDrives=true&fields=id,name,version,trashed,parents,webViewLink,capabilities(canEdit),owners(displayName),lastModifyingUser(displayName)`,
+        `${DRIVE}/files/${encodeURIComponent(fileId)}?supportsAllDrives=true&fields=id,name,version,trashed,parents,webViewLink,modifiedTime,capabilities(canEdit),owners(displayName),lastModifyingUser(displayName)`,
       )
       if (response.status === 404 || response.status === 403) return null
       const raw = await ok<{
@@ -489,6 +501,7 @@ export const createGoogleDocuments = (options: {
         trashed?: boolean
         parents?: string[]
         webViewLink?: string
+        modifiedTime?: string
         capabilities?: { canEdit?: boolean }
         owners?: { displayName?: string }[]
         lastModifyingUser?: { displayName?: string }
@@ -503,7 +516,9 @@ export const createGoogleDocuments = (options: {
         ownerName: raw.owners?.[0]?.displayName ?? null,
         lastEditorName: raw.lastModifyingUser?.displayName ?? null,
         webViewLink: raw.webViewLink ?? `https://drive.google.com/file/d/${raw.id}`,
+        modifiedAt: raw.modifiedTime ?? null,
       }
     },
   }
+  return adapter
 }

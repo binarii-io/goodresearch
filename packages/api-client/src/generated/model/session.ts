@@ -5,7 +5,11 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { RosterEntry } from './rosterEntry.ts';
+import type { SessionAnalysis } from './sessionAnalysis.ts';
+import type { SessionAttachmentsItem } from './sessionAttachmentsItem.ts';
 import type { SessionDecidedBy } from './sessionDecidedBy.ts';
+import type { SessionFileNames } from './sessionFileNames.ts';
+import type { SessionLanguage } from './sessionLanguage.ts';
 import type { SessionLink } from './sessionLink.ts';
 import type { SessionMediaItem } from './sessionMediaItem.ts';
 import type { SessionState } from './sessionState.ts';
@@ -31,6 +35,14 @@ export interface Session {
   excludedReason: string | null;
   decidedBy: SessionDecidedBy;
   decidedAt: string | null;
+  /** @nullable */
+  interviewDate: string | null;
+  language: SessionLanguage;
+  attachments: SessionAttachmentsItem[];
+  analysis: SessionAnalysis | null;
+  /** @nullable */
+  cost: number | null;
+  fileNames: SessionFileNames;
   /**
      * @minimum 0
      * @maximum 9007199254740991

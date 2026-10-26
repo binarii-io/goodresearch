@@ -30,7 +30,10 @@ export const isLoneRecording = (s: Session): boolean =>
   !s.mediaEdited &&
   s.title === null &&
   s.plannedInterviewId === null &&
-  s.roster.length === 0
+  s.roster.length === 0 &&
+  s.interviewDate === null &&
+  s.language === null &&
+  s.attachments.length === 0
 
 const fresh = (studyId: string, id: string, now: Date): Session => ({
   id,
@@ -46,6 +49,10 @@ const fresh = (studyId: string, id: string, now: Date): Session => ({
   roster: [],
   decidedBy: null,
   decidedAt: null,
+  interviewDate: null,
+  language: null,
+  attachments: [],
+  analysis: null,
   createdAt: now,
   updatedAt: now,
   version: 1,
@@ -53,7 +60,8 @@ const fresh = (studyId: string, id: string, now: Date): Session => ({
 
 /**
  * The sessions after an inventory (research R2). Sessions a person decided never change. Others go
- * with their transcript; each transcript nobody holds becomes a session validated by the app. Recordings are
+ * with their transcript; each transcript nobody holds becomes a proposed session, to validate by a
+ * person (spec 009: nothing is validated by the app). Recordings are
  * matched again for proposed sessions, except the ones a person chose, which stay while they exist.
  * A recording no transcript claims becomes a session of its own, without transcript (shown with a
  * warning). Newest first, at most SESSION_LIMIT sessions per study.
@@ -89,13 +97,8 @@ export const reconcileSessions = (input: {
     .filter((f) => f.kind === 'transcript' && !held.has(f.id))
     .sort(newestFirst)
     .slice(0, room)
-    // An interview with its transcript is validated by the app; a person can still undo it.
-    .map((f) => ({
-      ...fresh(studyId, input.newId(), now),
-      transcriptFileId: f.id,
-      state: 'validated' as const,
-      decidedAt: now,
-    }))
+    // A person validates every interview (spec 009 FR-020).
+    .map((f) => ({ ...fresh(studyId, input.newId(), now), transcriptFileId: f.id }))
   room -= created.length
 
   // Recordings of decided sessions are frozen; the ones a person chose come next.

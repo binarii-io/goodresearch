@@ -12,6 +12,8 @@ export type StudyProps = {
   readonly projectId: string
   readonly name: string
   readonly type: StudyType
+  /** Spec 009: interview names and titles use pseudonyms instead of names. */
+  readonly anonymised: boolean
   readonly createdBy: string | null
   readonly createdAt: Date
   readonly updatedAt: Date
@@ -48,6 +50,7 @@ export class Study {
         projectId: input.projectId,
         name: name.value,
         type: input.type as StudyType,
+        anonymised: false,
         createdBy: input.createdBy,
         createdAt: input.now,
         updatedAt: input.now,
@@ -74,6 +77,14 @@ export class Study {
   }
   get version(): number {
     return this.#props.version
+  }
+  get anonymised(): boolean {
+    return this.#props.anonymised
+  }
+
+  /** Turned on or off by any person who can act on the study (spec 009 FR-013). */
+  setAnonymised(on: boolean, now: Date): void {
+    this.#props = { ...this.#props, anonymised: on, updatedAt: now }
   }
 
   rename(name: string, now: Date): Result<void, 'VALIDATION'> {

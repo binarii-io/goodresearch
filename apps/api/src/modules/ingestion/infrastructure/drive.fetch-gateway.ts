@@ -4,7 +4,10 @@ import {
   type DriveGateway,
   DriveIncompleteListing,
   type DriveItem,
+  TranscriptUnreadable,
 } from '../domain/drive-gateway.ts'
+import { cutText, subtitlesToText } from '../domain/transcript-text.ts'
+import { docxText } from './docx-text.ts'
 import { createGoogleRequests, type GoogleRequests } from './google-requests.ts'
 
 const API = 'https://www.googleapis.com/drive/v3'
@@ -25,6 +28,51 @@ type RawItem = {
   owners?: { displayName?: string }[]
   shortcutDetails?: { targetId?: string; targetMimeType?: string }
 }
+
+const GOOGLE_DOC = 'application/vnd.google-apps.document'
+const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+/** A Word file is read whole (a zip): larger ones are not transcripts worth reading. */
+const DOCX_MAX_BYTES = 20 * 1024 * 1024
+
+type DocTab = {
+  tabProperties?: { title?: string }
+  documentTab?: {
+    body?: {
+      content?: {
+        paragraph?: {
+          elements?: {
+            textRun?: { content?: string }
+            /** A person chip (meeting notes list the invited people this way). */
+            person?: { personProperties?: { name?: string; email?: string } }
+          }[]
+        }
+      }[]
+    }
+  }
+  childTabs?: DocTab[]
+}
+
+const flatTabs = (tabs: DocTab[] = []): DocTab[] =>
+  tabs.flatMap((t) => [t, ...flatTabs(t.childTabs)])
+
+/**
+ * The text of a tab. A person chip reads as "Name," in a transcript (a list of chips reads as a
+ * list of names), and as "[[person:Name]]" in meeting notes, where the chips are the invited
+ * people whatever the heading or language (spec 009).
+ */
+const tabText = (tab: DocTab, chips: 'names' | 'markers' = 'names'): string =>
+  (tab.documentTab?.body?.content ?? [])
+    .map((c) =>
+      (c.paragraph?.elements ?? [])
+        .map((e) => {
+          const person = e.person?.personProperties
+          if (!person) return e.textRun?.content ?? ''
+          const who = person.name || person.email || ''
+          return chips === 'markers' ? `[[person:${who}]]` : `${who},`
+        })
+        .join(''),
+    )
+    .join('')
 
 const toItem = (raw: RawItem): DriveItem => ({
   id: raw.id,
@@ -86,6 +134,65 @@ export const createDriveFetchGateway = (options: {
       const titles = (tabs: Tab[] = []): string[] =>
         tabs.flatMap((t) => [t.tabProperties?.title ?? '', ...titles(t.childTabs)])
       return titles(((await response.json()) as { tabs?: Tab[] }).tabs)
+    },
+
+    readNotesStart: async (refreshToken, fileId, maxChars) => {
+      const url = new URL(`${DOCS_API}/documents/${encodeURIComponent(fileId)}`)
+      url.searchParams.set('includeTabsContent', 'true')
+      const response = await get(refreshToken, url)
+      if (response.status === 401) throw new DriveConnectionLost()
+      if (!response.ok) return null
+      const tabs = flatTabs(((await response.json()) as { tabs?: DocTab[] }).tabs)
+      const notes = tabs.filter((t) => !/transcri/i.test(t.tabProperties?.title ?? ''))
+      return cutText(notes.map((t) => tabText(t, 'markers')).join('\n'), maxChars)
+    },
+
+    readTextStart: async (refreshToken, file, maxChars) => {
+      const name = file.name.toLowerCase()
+      if (file.mimeType === GOOGLE_DOC) {
+        // Spec 008 FR-002b: the tab that holds the transcript, else the first one.
+        const url = new URL(`${DOCS_API}/documents/${encodeURIComponent(file.id)}`)
+        url.searchParams.set('includeTabsContent', 'true')
+        const response = await get(refreshToken, url)
+        if (response.status === 401) throw new DriveConnectionLost()
+        if (response.status === 404 || response.status === 403) return null
+        if (!response.ok) throw new Error(`docs documents.get failed: ${response.status}`)
+        const tabs = flatTabs(((await response.json()) as { tabs?: DocTab[] }).tabs)
+        const tab = tabs.find((t) => /transcri/i.test(t.tabProperties?.title ?? '')) ?? tabs[0]
+        return cutText(tab ? tabText(tab) : '', maxChars)
+      }
+      const docx = file.mimeType === DOCX || name.endsWith('.docx')
+      const text =
+        file.mimeType.startsWith('text/') ||
+        file.mimeType === 'application/x-subrip' ||
+        /\.(txt|vtt|srt)$/.test(name)
+      if (!docx && !text) throw new TranscriptUnreadable()
+      const url = new URL(`${API}/files/${encodeURIComponent(file.id)}`)
+      url.searchParams.set('alt', 'media')
+      url.searchParams.set('supportsAllDrives', 'true')
+      // Text: only the first bytes (4 per character at most); Word: the whole zip.
+      const response = await google.request(refreshToken, url, {
+        headers: docx ? {} : { range: `bytes=0-${maxChars * 4 - 1}` },
+      })
+      if (response.status === 401) throw new DriveConnectionLost()
+      if (response.status === 404 || response.status === 403) return null
+      if (!response.ok && response.status !== 206)
+        throw new Error(`drive files.get media failed: ${response.status}`)
+      const bytes = new Uint8Array(await response.arrayBuffer())
+      if (docx) {
+        if (bytes.byteLength > DOCX_MAX_BYTES) throw new TranscriptUnreadable()
+        return cutText(docxText(bytes), maxChars)
+      }
+      // A cut in the middle of a character drops it (replacement character removed).
+      const raw = new TextDecoder('utf-8').decode(bytes).replace(/\uFFFD+$/, '')
+      return cutText(
+        /\.(vtt|srt)$/.test(name) ||
+          file.mimeType === 'text/vtt' ||
+          file.mimeType === 'application/x-subrip'
+          ? subtitlesToText(raw)
+          : raw,
+        maxChars,
+      )
     },
 
     async *listChildren(refreshToken, parentIds, driveId) {

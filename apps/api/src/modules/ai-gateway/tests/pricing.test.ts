@@ -47,11 +47,19 @@ describe('dated prices', () => {
     const costs = makeUsageCosts({
       config: { offered: [], models: {} as never, timeoutMs: 1, prices: DEFAULT_PRICES },
       store: {
-        usageByRefs: async () => [entry('RATE_LIMITED', 'a'), entry('cancelled', 'b')],
+        usageByRefs: async () => [
+          entry('RATE_LIMITED', 'a'),
+          entry('cancelled', 'b'),
+          entry('UNKNOWN', 'c'),
+          entry('UNREACHABLE', 'd'),
+        ],
       } as never,
     })
-    const result = await costs('ada', ['a', 'b'])
+    const result = await costs('ada', ['a', 'b', 'c', 'd'])
     expect(result.get('a')).toBe(0)
     expect(result.get('b')).toBeNull()
+    // Spec 009: a failed call without tokens produced nothing billed that can be known.
+    expect(result.get('c')).toBe(0)
+    expect(result.get('d')).toBe(0)
   })
 })

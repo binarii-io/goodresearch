@@ -33,6 +33,20 @@ export const makePreparationCommands = (
     guides: InterviewGuideRepository
     planned: PlannedInterviewRepository
     gate: StudyActionGate
+    /**
+     * Told after a planned interview changed (spec 009 FR-022): its interview follows. A failure
+     * there never undoes the schedule's change.
+     */
+    plannedChanged?: (
+      actor: Actor,
+      planned: {
+        id: string
+        studyId: string
+        interviewee: string
+        interviewers: string
+        scheduledAt: string | null
+      },
+    ) => Promise<void>
   },
 ) => {
   const canAct = async (
@@ -148,9 +162,18 @@ export const makePreparationCommands = (
       if (row.value.version !== c.version) return err('VERSION_CONFLICT')
       const edited = row.value.edit(c.fields, deps.clock.now())
       if (!edited.ok) return edited
-      return (await saved(() => deps.planned.update(row.value)))
-        ? ok({ version: c.version + 1 })
-        : err('VERSION_CONFLICT')
+      if (!(await saved(() => deps.planned.update(row.value)))) return err('VERSION_CONFLICT')
+      const p = row.value.snapshot()
+      await deps
+        .plannedChanged?.(c.actor, {
+          id: p.id,
+          studyId: p.studyId,
+          interviewee: p.interviewee,
+          interviewers: p.interviewers,
+          scheduledAt: p.scheduledAt?.toISOString() ?? null,
+        })
+        .catch(() => undefined)
+      return ok({ version: c.version + 1 })
     },
 
     deletePlannedInterview: async (c: {

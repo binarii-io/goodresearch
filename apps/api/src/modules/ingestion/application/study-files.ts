@@ -41,6 +41,7 @@ export type StudyFiles = {
   ): Promise<Result<TableRead, FileError>>
   rewriteTable(fileId: string, table: TableModel): Promise<Result<void, FileError>>
   metadata(fileId: string): Promise<Result<FileMeta | null, FileError>>
+  renameFile(fileId: string, name: string): Promise<Result<FileMeta | null, FileError>>
 }
 
 export const makeStudyFiles =
@@ -90,5 +91,6 @@ export const makeStudyFiles =
       readTable: (fileId, table) => run(() => documents.readTable(token, fileId, table)),
       rewriteTable: (fileId, table) => run(() => documents.rewriteTable(token, fileId, table)),
       metadata: (fileId) => run(() => documents.metadata(token, fileId)),
+      renameFile: (fileId, name) => run(() => documents.renameFile(token, fileId, name)),
     })
   }

@@ -78,7 +78,8 @@ export const makeGateway = (deps: AiDeps) => {
         model,
         startedAt,
         failureOf(error),
-        NO_USAGE,
+        // A failed call can still be billed (spec 009: every AI cost is shown).
+        error instanceof ProviderCallError && error.usage ? error.usage : NO_USAGE,
         ref,
       )
       throw error instanceof ProviderCallError ? error : new ProviderCallError('UNKNOWN')
@@ -119,6 +120,14 @@ export const makeGateway = (deps: AiDeps) => {
   return {
     callWith,
 
+    /** The provider a person's calls go to now, or null without a working one (spec 009 FR-011). */
+    providerOf: async (accountId: string): Promise<ProviderKind | null> => {
+      const connection = await deps.store.getConnection(accountId)
+      return connection && deps.config.offered.includes(connection.provider)
+        ? connection.provider
+        : null
+    },
+
     /** Minimal real call proving a credential works (spec 004 FR-004, research R3 check 4). */
     check: (accountId: string, credential: Credential, model: string) =>
       callWith(accountId, 'provider-check', credential, model, () =>
@@ -147,11 +156,17 @@ export const makeGateway = (deps: AiDeps) => {
       accountId: string,
       task: string,
       request: ModelRequest & { schema: ZodType<T> },
+      options: { ref?: string } = {},
     ) => {
       const { credential, model } = await resolve(accountId)
       try {
-        return await callWith(accountId, task, credential, model, () =>
-          deps.runner.generateObject(credential, model, request, deps.config.timeoutMs),
+        return await callWith(
+          accountId,
+          task,
+          credential,
+          model,
+          () => deps.runner.generateObject(credential, model, request, deps.config.timeoutMs),
+          options.ref ?? null,
         )
       } catch (error) {
         await noteFailure(accountId, error)

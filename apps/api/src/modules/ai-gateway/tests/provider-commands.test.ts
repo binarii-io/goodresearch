@@ -264,6 +264,23 @@ describe('US4 — gateway and ledger', () => {
     expect(last).toEqual({ provider: 'anthropic', apiKey: 'sk-ada-1234' })
   })
 
+  it('spec 009: a call that fails after the model answered still records its tokens', async () => {
+    await world.commands.connectApiKey({ actor: ada, provider: 'openai', apiKey: 'sk-ada-1234' })
+    world.usage.length = 0
+    world.model.failNext('UNKNOWN', { inputTokens: 1200, outputTokens: 90 })
+    await expect(
+      world.gateway.generateObject(
+        'ada',
+        'session-analysis',
+        { prompt: 'x', schema: z.object({ answer: z.string() }) },
+        { ref: 'session-analysis:s1' },
+      ),
+    ).rejects.toThrow()
+    expect(world.usage.map((e) => [e.outcome, e.inputTokens, e.outputTokens, e.ref])).toEqual([
+      ['UNKNOWN', 1200, 90, 'session-analysis:s1'],
+    ])
+  })
+
   it('records one entry per call with tokens and outcome, never the prompt', async () => {
     await world.commands.connectApiKey({ actor: ada, provider: 'openai', apiKey: 'sk-ada-1234' })
     world.usage.length = 0

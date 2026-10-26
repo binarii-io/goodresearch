@@ -1,4 +1,4 @@
-import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 
 export const researchProjects = pgTable(
@@ -27,6 +27,8 @@ export const researchStudies = pgTable(
       .references(() => researchProjects.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     type: text('type').notNull(),
+    /** Spec 009: names and titles use pseudonyms. */
+    anonymised: boolean('anonymised').notNull().default(false),
     createdBy: text('created_by').references(() => auth_users.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),

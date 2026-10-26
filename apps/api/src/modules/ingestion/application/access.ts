@@ -9,6 +9,8 @@ export type StudyAccess =
       readonly kind: 'full'
       readonly role: 'admin' | 'member'
       readonly type: string
+      readonly teamId: string
+      readonly anonymised: boolean
       readonly source: StudySource | null
     }
   | {
@@ -31,7 +33,8 @@ export const resolveStudyAccess = async (
   const visible = await deps.studies.getStudyAccess(accountId, studyId)
   if (!visible) return { kind: 'not-found' }
   const source = await deps.store.getSource(studyId)
-  if (!source) return { kind: 'full', role: visible.role, type: visible.type, source: null }
+  const full = { kind: 'full' as const, ...visible }
+  if (!source) return { ...full, source: null }
 
   const refreshToken = deps.drive
     ? await readRefreshToken(deps, await deps.store.getConnection(accountId))
@@ -60,6 +63,6 @@ export const resolveStudyAccess = async (
     await deps.store.saveFolderAccess(studyId, accountId, result, now)
   }
   return result === 'granted'
-    ? { kind: 'full', role: visible.role, type: visible.type, source }
+    ? { ...full, source }
     : { kind: 'no-folder-access', role: visible.role, type: visible.type, source }
 }

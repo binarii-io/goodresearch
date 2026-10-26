@@ -64,6 +64,7 @@ export const inMemoryAiStore = () => {
     },
     usageByRefs: async (id, refs) =>
       usage.filter((e) => e.accountId === id && e.ref !== null && refs.includes(e.ref)),
+    usageByRefsAll: async (refs) => usage.filter((e) => e.ref !== null && refs.includes(e.ref)),
     usageSummary: async (id) => {
       const mine = usage.filter((e) => e.accountId === id)
       return {
@@ -80,12 +81,15 @@ export const inMemoryAiStore = () => {
 export const fakeRunner = () => {
   const calls: { credential: Credential; model: string }[] = []
   let nextFailure: AiFailure | null = null
+  let nextUsage: { inputTokens: number; outputTokens: number } | null = null
   const outcome = (credential: Credential) => {
     calls.push({ credential, model: '' })
     if (nextFailure) {
       const failure = nextFailure
+      const billed = nextUsage
       nextFailure = null
-      throw new ProviderCallError(failure)
+      nextUsage = null
+      throw new ProviderCallError(failure, billed)
     }
     if (credential.provider !== 'vertex' && credential.apiKey.startsWith('bad'))
       throw new ProviderCallError('INVALID_CREDENTIAL')
@@ -123,8 +127,10 @@ export const fakeRunner = () => {
   return {
     runner,
     calls,
-    failNext: (failure: AiFailure) => {
+    /** The next call fails; `usage`: tokens the provider still counted (an answer that did not fit). */
+    failNext: (failure: AiFailure, usage?: { inputTokens: number; outputTokens: number }) => {
       nextFailure = failure
+      nextUsage = usage ?? null
     },
   }
 }

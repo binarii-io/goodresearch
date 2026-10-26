@@ -28,6 +28,7 @@ import type {
   Created,
   RenameStudyInput,
   StudyDetail,
+  StudySettingsInput,
   StudySummary,
   VersionAck
 } from '../../model';
@@ -476,4 +477,86 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRenameStudyMutationOptions(options), queryClient);
+    }
+    export const getUpdateStudySettingsUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/settings`
+}
+
+export const updateStudySettings = async (studyId: string,
+    studySettingsInput: StudySettingsInput, options?: Parameters<typeof apiFetch>[1]): Promise<VersionAck> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<VersionAck>(getUpdateStudySettingsUrl(studyId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(studySettingsInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateStudySettingsMutationKey = () => ['updateStudySettings'] as const;
+
+export const getUpdateStudySettingsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudySettings>>, TError,UpdateStudySettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStudySettings>>, TError,UpdateStudySettingsMutationVariables, TContext> => {
+
+const mutationKey = getUpdateStudySettingsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStudySettings>>, UpdateStudySettingsMutationVariables> = (props) => {
+          const {studyId,data} = props ?? {};
+
+          return  updateStudySettings(studyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStudySettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateStudySettings>>>
+    export type UpdateStudySettingsMutationBody = StudySettingsInput
+    export type UpdateStudySettingsMutationError = unknown
+    export type UpdateStudySettingsMutationVariables = {studyId: string;data: StudySettingsInput}
+
+    export const useUpdateStudySettings = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudySettings>>, TError,UpdateStudySettingsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateStudySettings>>,
+        TError,
+        UpdateStudySettingsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateStudySettingsMutationOptions(options), queryClient);
     }

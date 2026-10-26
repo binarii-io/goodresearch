@@ -7,7 +7,11 @@ import {
   type ResearchActions,
   registerAssistantRoutes,
 } from './modules/assistant/index.ts'
-import { createIngestionModule, registerIngestionRoutes } from './modules/ingestion/index.ts'
+import {
+  createAiAnalyzer,
+  createIngestionModule,
+  registerIngestionRoutes,
+} from './modules/ingestion/index.ts'
 import { createPublishingModule, registerPublishingRoutes } from './modules/publishing/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
 import { createWorkspaceModule, registerWorkspaceRoutes } from './modules/workspace/index.ts'
@@ -85,8 +89,36 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         )
         return planned.ok ? planned.value : null
       },
+      // Spec 009 FR-022: through the schedule's own command (rules, version, Drive publishing).
+      update: async (actor, studyId, plannedInterviewId, change) => {
+        const r = bound(research).handlers
+        const planned = await r.preparationQueries.listPlannedInterviews(actor.id, studyId)
+        const row = planned.ok ? planned.value.find((p) => p.id === plannedInterviewId) : undefined
+        if (!row) return false
+        const scheduledAt = change.scheduledAt ?? row.scheduledAt
+        const done = await r.preparation.updatePlannedInterview({
+          actor,
+          plannedInterviewId,
+          fields: {
+            interviewee: change.interviewee ?? row.interviewee,
+            role: row.role,
+            interviewers: change.interviewers ?? row.interviewers,
+            scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+            status: row.status,
+            notes: row.notes,
+          },
+          version: row.version,
+        })
+        return done.ok
+      },
     },
-    members: { exist: workspace.membersExist },
+    members: { exist: workspace.membersExist, ofTeam: workspace.membersOfTeam },
+    analyzer: createAiAnalyzer({
+      // Late binding: the AI gateway is built after ingestion.
+      gateway: () => bound(ai).gateway,
+      estimateCost: (...args) => bound(ai).estimateCost(...args),
+      studyCosts: (refs) => bound(ai).studyCosts(refs),
+    }),
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
     ...(infra.drive !== undefined ? { drive: infra.drive } : {}),
   })

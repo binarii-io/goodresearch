@@ -4,3 +4,4 @@
 export { registerIngestionRoutes } from './infrastructure/http.routes.ts'
 export { InMemoryDriveDocuments } from './infrastructure/in-memory.drive-documents.ts'
 export { createIngestionModule } from './infrastructure/module.ts'
+export { createAiAnalyzer } from './infrastructure/prompts/analysis.ts'

@@ -66,9 +66,12 @@ export const failureOf = (error: unknown): AiFailure =>
 export class ProviderCallError extends Error {
   override name = 'ProviderCallError'
   readonly failure: AiFailure
-  constructor(failure: AiFailure) {
+  /** Tokens the provider counted before the call failed (an answer that does not fit): billed. */
+  readonly usage: Usage | null
+  constructor(failure: AiFailure, usage: Usage | null = null) {
     super(`provider call failed: ${failure}`)
     this.failure = failure
+    this.usage = usage
   }
 }
 
@@ -193,6 +196,8 @@ export interface AiStore {
   ): Promise<{ calls: number; inputTokens: number; outputTokens: number }>
   /** The person's entries made for these refs. */
   usageByRefs(accountId: string, refs: readonly string[]): Promise<UsageEntry[]>
+  /** Everyone's entries made for these refs (the costs of a study's work, spec 009). */
+  usageByRefsAll(refs: readonly string[]): Promise<UsageEntry[]>
 }
 
 export type AiDeps = {

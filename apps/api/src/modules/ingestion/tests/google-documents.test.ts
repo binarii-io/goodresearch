@@ -210,6 +210,7 @@ describe('Google documents adapter (spec 007)', () => {
       ownerName: 'Alex',
       lastEditorName: 'Sam',
       webViewLink: 'https://docs/f1',
+      modifiedAt: null,
     })
     expect(await documents(fetch).metadata('token', 'nope')).toBeNull()
   })

@@ -59,6 +59,8 @@ export const StudyDetail = z
     name: z.string(),
     type: StudyType,
     project: z.object({ id: Id, name: z.string() }),
+    /** Spec 009: names and titles of interviews use pseudonyms. */
+    anonymised: z.boolean(),
     createdAt: Timestamp,
     updatedAt: Timestamp,
     version: Version,
@@ -73,3 +75,6 @@ export const RenameStudy = z
   .object({ name: StudyName, version: Version })
   .meta({ id: 'RenameStudy' })
 export const StudyParams = z.object({ studyId: Id })
+export const StudySettings = z
+  .object({ anonymised: z.boolean(), version: Version })
+  .meta({ id: 'StudySettings' })

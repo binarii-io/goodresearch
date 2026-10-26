@@ -1,16 +1,26 @@
 import {
+  AnalysisEstimate,
+  AnalysisRunStarted,
+  AnalyzeSession,
   AttachFolder,
   CallbackQuery,
   ConnectQuery,
+  DecideProposals,
   DecideSession,
   EditSession,
+  EstimateQuery,
   Fieldwork,
   InventoryFile,
   InventoryFilesQuery,
   LinkSession,
   MySource,
+  RenameFiles,
+  RenamePlan,
+  RenameResult,
+  RunParams,
   Session,
   SessionParams,
+  StartAnalysisRun,
   StudyParams,
   StudySourceView,
 } from '@goodresearch/contracts'
@@ -20,6 +30,8 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { sendError } from '#platform/http/errors.ts'
 import { reply } from '#platform/http/result.ts'
+import type { AnalysisCommands } from '../application/commands/analysis-commands.ts'
+import type { RenameCommands } from '../application/commands/rename-commands.ts'
 import type { SessionCommands } from '../application/commands/session-commands.ts'
 import type { SourceCommands } from '../application/commands/source-commands.ts'
 import type { SessionQueries } from '../application/queries/session-queries.ts'
@@ -31,6 +43,8 @@ export type IngestionHandlers = {
   readonly queries: SourceQueries
   readonly sessions: SessionCommands
   readonly sessionQueries: SessionQueries
+  readonly analysis: AnalysisCommands
+  readonly rename: RenameCommands
   /** Simulated Drive only (`DRIVE_FAKE`): what a person does in Drive, for end-to-end tests. */
   readonly devEdit?: DevDrive['edit']
 }
@@ -46,7 +60,7 @@ export const registerIngestionRoutes = (
   app: FastifyInstance,
   deps: { guard: preHandlerAsyncHookHandler; handlers: IngestionHandlers },
 ): void => {
-  const { commands, queries, sessions, sessionQueries, devEdit } = deps.handlers
+  const { commands, queries, sessions, sessionQueries, analysis, rename, devEdit } = deps.handlers
   const api = app.withTypeProvider<ZodTypeProvider>()
   const secured = { preHandler: deps.guard }
   const tags = ['sources']
@@ -223,6 +237,153 @@ export const registerIngestionRoutes = (
       })
       return done.ok ? sendSession(request, res)(done.value) : reply(res, done, () => res)
     },
+  )
+
+  // Spec 009: analyzing the interviews.
+  api.post(
+    '/api/sessions/:sessionId/analysis',
+    {
+      ...secured,
+      schema: {
+        operationId: 'analyzeSession',
+        tags: fieldworkTags,
+        params: SessionParams,
+        body: AnalyzeSession,
+        response: { 200: Session },
+      },
+    },
+    async (request, res) => {
+      const done = await analysis.analyzeSession({
+        actor: request.account,
+        sessionId: request.params.sessionId,
+        consent: request.body.consent === true,
+      })
+      return done.ok ? sendSession(request, res)(done.value) : reply(res, done, () => res)
+    },
+  )
+
+  api.post(
+    '/api/sessions/:sessionId/proposals',
+    {
+      ...secured,
+      schema: {
+        operationId: 'decideProposals',
+        tags: fieldworkTags,
+        params: SessionParams,
+        body: DecideProposals,
+        response: { 200: Session },
+      },
+    },
+    async (request, res) => {
+      const done = await analysis.decide({
+        actor: request.account,
+        sessionId: request.params.sessionId,
+        version: request.body.version,
+        decisions: request.body.decisions.map((d) => ({
+          field: d.field,
+          fileId: d.fileId,
+          action: d.action,
+          value: d.people ?? d.text,
+        })),
+      })
+      return done.ok ? sendSession(request, res)(done.value) : reply(res, done, () => res)
+    },
+  )
+
+  api.get(
+    '/api/studies/:studyId/analysis-runs/estimate',
+    {
+      ...secured,
+      schema: {
+        operationId: 'estimateAnalysisRun',
+        tags: fieldworkTags,
+        params: StudyParams,
+        querystring: EstimateQuery,
+        response: { 200: AnalysisEstimate },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await analysis.estimate(request.account, request.params.studyId, {
+          all: request.query.all === 'true',
+        }),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.post(
+    '/api/studies/:studyId/analysis-runs',
+    {
+      ...secured,
+      schema: {
+        operationId: 'startAnalysisRun',
+        tags: fieldworkTags,
+        params: StudyParams,
+        body: StartAnalysisRun,
+        response: { 202: AnalysisRunStarted },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await analysis.startRun({
+          actor: request.account,
+          studyId: request.params.studyId,
+          consent: request.body.consent === true,
+          all: request.body.all === true,
+        }),
+        (v) => res.status(202).send(v),
+      ),
+  )
+
+  api.post(
+    '/api/studies/:studyId/analysis-runs/:runId/stop',
+    {
+      ...secured,
+      schema: { operationId: 'stopAnalysisRun', tags: fieldworkTags, params: RunParams },
+    },
+    async (request, res) =>
+      reply(res, await analysis.stopRun({ actor: request.account, ...request.params }), () =>
+        res.status(204).send(),
+      ),
+  )
+
+  api.get(
+    '/api/sessions/:sessionId/rename',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getRenamePlan',
+        tags: fieldworkTags,
+        params: SessionParams,
+        response: { 200: RenamePlan },
+      },
+    },
+    async (request, res) =>
+      reply(res, await rename.renamePlan(request.account, request.params.sessionId), (v) =>
+        res.send(v),
+      ),
+  )
+
+  api.post(
+    '/api/sessions/:sessionId/rename',
+    {
+      ...secured,
+      schema: {
+        operationId: 'renameSessionFiles',
+        tags: fieldworkTags,
+        params: SessionParams,
+        body: RenameFiles,
+        response: { 200: RenameResult },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await rename.renameFiles(request.account, request.params.sessionId, request.body.fileIds),
+        (v) => res.send(v),
+      ),
   )
 
   api.get(

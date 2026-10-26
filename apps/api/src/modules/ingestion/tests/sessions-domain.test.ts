@@ -43,6 +43,10 @@ const session = (over: Partial<Session> = {}): Session => ({
   roster: [],
   decidedBy: null,
   decidedAt: null,
+  interviewDate: null,
+  language: null,
+  attachments: [],
+  analysis: null,
   createdAt: NOW,
   updatedAt: NOW,
   version: 1,
@@ -201,6 +205,26 @@ describe('link suggestion (FR-005)', () => {
       plannedInterviewId: 'sam',
       rule: 'name',
     })
+  })
+
+  it('spec 009: suggests by the people found in the transcript first, whatever the file name', () => {
+    expect(
+      suggestLink({ name: 'GMT20261021-call.txt', modifiedAt: null }, planned, {
+        names: ['Lee Example'],
+        date: null,
+      }),
+    ).toEqual({ plannedInterviewId: 'lee', rule: 'transcript' })
+    // A first name alone is enough when only one planned interviewee has it.
+    expect(
+      suggestLink({ name: 'x.txt', modifiedAt: null }, planned, { names: ['Sam'], date: null }),
+    ).toEqual({ plannedInterviewId: 'sam', rule: 'transcript' })
+    // The interview date found in the transcript beats the file's date for the date rule.
+    expect(
+      suggestLink({ name: 'x.txt', modifiedAt: '2026-10-01T10:00:00Z' }, planned, {
+        names: [],
+        date: '2026-10-21',
+      }),
+    ).toEqual({ plannedInterviewId: 'lee', rule: 'date' })
   })
 
   it('suggests nothing when two names are equally close and no date decides', () => {
@@ -381,7 +405,7 @@ describe('recordings without transcript and meeting notes', () => {
 })
 
 describe('validated by the app (spec 008)', () => {
-  it('validates an interview with its transcript, not a lone recording', () => {
+  it('spec 009 FR-020: every interview waits for a person, with or without transcript', () => {
     const r = reconcileSessions({
       studyId: 'study',
       files: [
@@ -393,7 +417,7 @@ describe('validated by the app (spec 008)', () => {
       newId,
     })
     expect(r.created.map((s) => [s.transcriptFileId, s.state, s.decidedBy])).toEqual([
-      ['t', 'validated', null],
+      ['t', 'proposed', null],
       [null, 'proposed', null],
     ])
   })

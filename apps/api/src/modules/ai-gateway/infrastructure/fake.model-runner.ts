@@ -181,6 +181,33 @@ export const createFakeRunner = (): ModelRunner => {
     },
     generateObject: async (credential, _model, request) => {
       check(credential)
+      // Spec 009: an interview analysis is answered from the speakers of the transcript, with one
+      // quote that is not in it (the app must drop it).
+      if (request.prompt?.startsWith('<transcript>')) {
+        // Like a real model, an analysis takes a moment: the queue and spinners can be seen.
+        await sleep(1500)
+        const text = request.prompt.slice('<transcript>'.length)
+        const lines = [...text.matchAll(/^([^:\n]{1,60}?)\s*:\s+(.{1,200})$/gm)]
+        const speakers = [
+          ...new Map(
+            lines
+              .filter((m) => !/^(participants?|attendees|invit)/i.test(m[1] ?? ''))
+              .map((m) => [m[1]?.trim() ?? '', m[2] ?? '']),
+          ).entries(),
+        ]
+        const [first, second] = speakers
+        const answer = {
+          interviewers: first ? [{ name: first[0], quote: first[1].slice(0, 120) }] : [],
+          interviewees: [
+            ...(second ? [{ name: second[0], quote: second[1].slice(0, 120) }] : []),
+            { name: 'Nobody Here', quote: 'This sentence is not in the transcript.' },
+          ],
+          date: null,
+        }
+        const parsed = request.schema.safeParse(answer)
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 1200, outputTokens: 80 } }
+      }
       // Only schemas with defaults can be answered without a model.
       const parsed = request.schema.safeParse({})
       if (!parsed.success) throw new ProviderCallError('UNKNOWN')

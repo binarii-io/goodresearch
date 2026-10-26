@@ -7,7 +7,12 @@ import { makeProviderCommands } from '../application/commands/provider-commands.
 import { makeGateway } from '../application/gateway.ts'
 import type { AiDeps, GoogleCloudApi, ModelRunner } from '../application/ports.ts'
 import { makeProviderQueries } from '../application/queries/provider-queries.ts'
-import { makeUsageCosts, priceCatalog } from '../application/queries/usage-costs.ts'
+import {
+  makeEstimateCost,
+  makeStudyCosts,
+  makeUsageCosts,
+  priceCatalog,
+} from '../application/queries/usage-costs.ts'
 import { createAiStore } from './ai.drizzle-store.ts'
 import { createAiSdkRunner } from './ai-sdk.model-runner.ts'
 import { DEFAULT_PRICES } from './default-prices.ts'
@@ -57,7 +62,7 @@ export const createAiGatewayModule = (deps: {
   const log = deps.log ?? console
   const ai: AiDeps = {
     store: createAiStore(deps.db),
-    runner: deps.runner ?? createAiSdkRunner({ google: config.google }),
+    runner: deps.runner ?? createAiSdkRunner({ google: config.google, log }),
     google,
     cipher: createTokenCipher(config.authSecret, CIPHER_PURPOSES.aiProviderCredentials),
     config: { ...config.ai, prices: priceCatalog(DEFAULT_PRICES, config.ai.prices) },
@@ -76,6 +81,10 @@ export const createAiGatewayModule = (deps: {
     gateway,
     /** Cost in USD of the calls made for each ref (assistant messages). */
     usageCosts,
+    /** The same for every account (the cost of a study's analyses, spec 009). */
+    studyCosts: makeStudyCosts(ai),
+    /** What a call would cost with the person's model today (spec 009 estimates). */
+    estimateCost: makeEstimateCost(ai),
     /** For `Me` (workspace): is the provider step needed? */
     providerGate: queries.gate,
     /** Account deletion (spec 001 anonymisation, FR-013). */

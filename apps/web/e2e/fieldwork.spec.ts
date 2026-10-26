@@ -52,7 +52,8 @@ test.describe('spec 008 — the interviews found in the study folder', () => {
     const interviews = main.getByRole('region', { name: 'Interviews' })
     // The inventory runs in the worker: slower on CI.
     await expect(interviews.getByRole('row')).toHaveCount(6, { timeout: 30_000 })
-    await expect(interviews.getByText('4 validated · 1 to review')).toBeVisible()
+    // Spec 009 FR-020: every interview waits for a person.
+    await expect(interviews.getByText('0 validated · 5 proposed')).toBeVisible()
     await expect(
       interviews.getByRole('row', { name: /Extra recording/ }).getByText('No transcript'),
     ).toBeVisible()
@@ -66,24 +67,25 @@ test.describe('spec 008 — the interviews found in the study folder', () => {
     const sam = interviews.getByRole('row', { name: /Sam Example/ })
     await expect(sam.getByRole('button', { name: 'Review Sam Example' })).toBeVisible()
 
-    // Interviews with their transcript are validated by the app; the switch undoes and redoes it.
+    // The switch validates at once, and undoes it.
     const two = interviews.getByRole('switch', { name: 'Validated: Interview 2 - transcript' })
-    await expect(two).toBeChecked()
+    await expect(two).not.toBeChecked()
     await two.click()
-    await expect(interviews.getByText('3 validated · 2 to review')).toBeVisible()
+    await expect(interviews.getByText('1 validated · 4 proposed')).toBeVisible()
     await two.click()
-    await expect(interviews.getByText('4 validated · 1 to review')).toBeVisible()
+    await expect(interviews.getByText('0 validated · 5 proposed')).toBeVisible()
 
     // US3: validate it, and mark the planned interview done.
     await sam.getByRole('button', { name: 'Review Sam Example' }).click()
     const dialog = page.getByRole('dialog', { name: 'Interview: Sam Example' })
+    await dialog.getByRole('tab', { name: 'Interview' }).click()
     await expect(dialog.getByLabel('Name of person 1')).toHaveValue('Sam Example')
     await expect(dialog.getByRole('checkbox', { name: /Interview Sam Example\.mp4/ })).toBeChecked()
     await expectAccessible(page)
     await dialog.getByRole('button', { name: 'Validate' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Mark done' }).click()
     await expect(page.getByText('Marked done in the schedule')).toBeVisible()
-    await expect(interviews.getByText('4 validated · 1 to review')).toBeVisible()
+    await expect(interviews.getByText('1 validated · 4 proposed')).toBeVisible()
 
     // Exclude another one, then bring it back to review.
     await interviews.getByRole('button', { name: 'Review Camille' }).click()
@@ -91,14 +93,14 @@ test.describe('spec 008 — the interviews found in the study folder', () => {
     await camille.getByRole('button', { name: 'Exclude' }).click()
     await camille.getByLabel('Why exclude it? (optional)').fill('A test call')
     await camille.getByRole('button', { name: 'Exclude the interview' }).click()
-    await expect(interviews.getByText('3 validated · 1 to review · 1 excluded')).toBeVisible()
+    await expect(interviews.getByText('1 validated · 3 proposed · 1 excluded')).toBeVisible()
     await interviews.getByRole('button', { name: 'Open Camille' }).click()
     await page
       .getByRole('dialog', { name: 'Interview: Camille' })
       .getByRole('button', { name: 'Back to review' })
       .click()
     await page.keyboard.press('Escape')
-    await expect(interviews.getByText('3 validated · 2 to review')).toBeVisible()
+    await expect(interviews.getByText('1 validated · 4 proposed')).toBeVisible()
 
     // The schedule shows the transcript was found.
     await page.getByRole('tab', { name: '1 · Preparation' }).click()

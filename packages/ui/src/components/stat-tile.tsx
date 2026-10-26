@@ -3,13 +3,14 @@ import type * as React from 'react'
 
 /**
  * One headline number with its label and a short detail ("Interviews found · 12 · 9 validated").
- * A list of tiles is a `<dl>`: each tile is a group of a term and its value.
+ * A list of tiles is a `<dl>`: each tile is a group of a term and its value. On wide screens all
+ * tiles share one row, whatever their number.
  */
 function StatTiles({ className, ...props }: React.ComponentProps<'dl'>) {
   return (
     <dl
       data-slot="stat-tiles"
-      className={cn('grid grid-cols-2 gap-3 lg:grid-cols-4', className)}
+      className={cn('grid grid-cols-2 gap-3 lg:auto-cols-fr lg:grid-flow-col', className)}
       {...props}
     />
   )

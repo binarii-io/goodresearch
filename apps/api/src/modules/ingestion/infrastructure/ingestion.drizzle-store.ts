@@ -16,24 +16,31 @@ import {
 import { auth_users } from '#platform/auth/auth-schema.ts'
 import type { Db } from '#platform/db.ts'
 import type {
+  AnalysisRun,
   IngestionStore,
   InventoryState,
   SessionWrite,
   StudySource,
 } from '../application/ports.ts'
+import type { Analysis } from '../domain/analysis.ts'
 import type { FileKind } from '../domain/classify.ts'
 import type { FolderAccessResult } from '../domain/folder-access.ts'
 import { type InventoryRun, STALE_RUN_MS } from '../domain/inventory-run.ts'
 import type { InventoryFile } from '../domain/inventory-walk.ts'
+import { assignPseudonyms } from '../domain/pseudonyms.ts'
 import { reconcileSessions } from '../domain/reconcile-sessions.ts'
 import { givesUpRecordings, type Session, withoutRecordings } from '../domain/session.ts'
 import {
+  ingestionAnalysisConsents,
+  ingestionAnalysisRuns,
   ingestionFolderAccess,
   ingestionInventoryFiles,
   ingestionOauthStates,
+  ingestionPseudonyms,
   ingestionSessions,
   ingestionSourceConnections,
   ingestionStudySources,
+  type StoredAnalysis,
 } from './schema.ts'
 
 const CONNECTOR = 'google-drive'
@@ -42,11 +49,22 @@ type SourceRow = typeof ingestionStudySources.$inferSelect
 type SessionRow = typeof ingestionSessions.$inferSelect
 type Tx = Parameters<Parameters<Db['transaction']>[0]>[0]
 
+const toAnalysis = (a: StoredAnalysis | null): Analysis | null =>
+  a ? { ...a, at: a.at ? new Date(a.at) : null } : null
+
+const storedAnalysis = (a: Analysis | null): StoredAnalysis | null =>
+  a ? { ...a, at: a.at?.toISOString() ?? null } : null
+
 const toSession = (r: SessionRow): Session => ({
   ...r,
   state: r.state as Session['state'],
   linkedBy: r.linkedBy as Session['linkedBy'],
+  language: r.language as Session['language'],
+  analysis: toAnalysis(r.analysis),
 })
+
+type RunRow = typeof ingestionAnalysisRuns.$inferSelect
+const toRun = (r: RunRow): AnalysisRun => ({ ...r, state: r.state as AnalysisRun['state'] })
 
 const sessionValues = (s: Session) => ({
   studyId: s.studyId,
@@ -61,6 +79,10 @@ const sessionValues = (s: Session) => ({
   roster: [...s.roster],
   decidedBy: s.decidedBy,
   decidedAt: s.decidedAt,
+  interviewDate: s.interviewDate,
+  language: s.language,
+  attachments: [...s.attachments],
+  analysis: storedAnalysis(s.analysis),
   updatedAt: s.updatedAt,
 })
 
@@ -76,13 +98,24 @@ const lockSessions = (tx: Tx, studyId: string) =>
   tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`sessions:${studyId}`}))`)
 
 const writeSession = async (tx: Tx, s: Session, expected: number): Promise<SessionWrite> => {
-  if (s.media.length) {
+  if (s.media.length || s.attachments.length) {
     const held = await tx
-      .select({ id: ingestionSessions.id, media: ingestionSessions.media })
+      .select({
+        id: ingestionSessions.id,
+        media: ingestionSessions.media,
+        attachments: ingestionSessions.attachments,
+      })
       .from(ingestionSessions)
       .where(and(eq(ingestionSessions.studyId, s.studyId), ne(ingestionSessions.id, s.id)))
-    const mine = new Set(s.media.map((m) => m.fileId))
-    if (held.some((o) => o.media.some((m) => mine.has(m.fileId)))) return 'media-taken'
+    // A file belongs to one interview at most, as a recording or an attachment (spec 009 R11).
+    const mine = new Set([...s.media.map((m) => m.fileId), ...s.attachments.map((a) => a.fileId)])
+    if (
+      held.some(
+        (o) =>
+          o.media.some((m) => mine.has(m.fileId)) || o.attachments.some((a) => mine.has(a.fileId)),
+      )
+    )
+      return 'media-taken'
   }
   const rows = await tx
     .update(ingestionSessions)
@@ -242,6 +275,7 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
     await db.transaction(async (tx) => {
       await tx.delete(ingestionInventoryFiles).where(eq(ingestionInventoryFiles.studyId, s.studyId))
       await tx.delete(ingestionSessions).where(eq(ingestionSessions.studyId, s.studyId))
+      await tx.delete(ingestionAnalysisRuns).where(eq(ingestionAnalysisRuns.studyId, s.studyId))
       await tx.delete(ingestionFolderAccess).where(eq(ingestionFolderAccess.studyId, s.studyId))
       const values = {
         studyId: s.studyId,
@@ -273,6 +307,7 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
     await db.transaction(async (tx) => {
       await tx.delete(ingestionInventoryFiles).where(eq(ingestionInventoryFiles.studyId, studyId))
       await tx.delete(ingestionSessions).where(eq(ingestionSessions.studyId, studyId))
+      await tx.delete(ingestionAnalysisRuns).where(eq(ingestionAnalysisRuns.studyId, studyId))
       await tx.delete(ingestionFolderAccess).where(eq(ingestionFolderAccess.studyId, studyId))
       await tx.delete(ingestionStudySources).where(eq(ingestionStudySources.studyId, studyId))
     })
@@ -540,6 +575,128 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
       )
       await reconcile(tx, studyId, files, now)
     })
+  },
+
+  writeAnalysis: async (sessionId, expected, analysis) => {
+    const rows = await db
+      .update(ingestionSessions)
+      .set({ analysis: storedAnalysis(analysis), version: expected + 1 })
+      .where(and(eq(ingestionSessions.id, sessionId), eq(ingestionSessions.version, expected)))
+      .returning({ id: ingestionSessions.id })
+    return rows.length ? 'saved' : 'stale'
+  },
+
+  ensurePseudonyms: async (studyId, needed, now) =>
+    db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`pseudonyms:${studyId}`}))`)
+      const rows = await tx
+        .select({ key: ingestionPseudonyms.nameKey, code: ingestionPseudonyms.code })
+        .from(ingestionPseudonyms)
+        .where(eq(ingestionPseudonyms.studyId, studyId))
+      const codes = new Map(rows.map((r) => [r.key, r.code]))
+      const fresh = assignPseudonyms(codes, needed)
+      if (fresh.length)
+        await tx
+          .insert(ingestionPseudonyms)
+          .values(fresh.map((f) => ({ studyId, nameKey: f.key, code: f.code, createdAt: now })))
+      for (const f of fresh) codes.set(f.key, f.code)
+      return codes
+    }),
+
+  hasConsent: async (accountId, studyId, provider) => {
+    const [row] = await db
+      .select({ at: ingestionAnalysisConsents.givenAt })
+      .from(ingestionAnalysisConsents)
+      .where(
+        and(
+          eq(ingestionAnalysisConsents.accountId, accountId),
+          eq(ingestionAnalysisConsents.studyId, studyId),
+          eq(ingestionAnalysisConsents.provider, provider),
+        ),
+      )
+    return row !== undefined
+  },
+
+  saveConsent: async (accountId, studyId, provider, now) => {
+    await db
+      .insert(ingestionAnalysisConsents)
+      .values({ accountId, studyId, provider, givenAt: now })
+      .onConflictDoNothing()
+  },
+
+  startRun: async (run) =>
+    db.transaction(async (tx) => {
+      // A run without heartbeat for 10 minutes died with its worker: it is replaced.
+      await tx
+        .update(ingestionAnalysisRuns)
+        .set({ state: 'stopped', finishedAt: run.startedAt })
+        .where(
+          and(
+            eq(ingestionAnalysisRuns.studyId, run.studyId),
+            eq(ingestionAnalysisRuns.state, 'running'),
+            lt(ingestionAnalysisRuns.heartbeatAt, new Date(run.startedAt.getTime() - 10 * 60_000)),
+          ),
+        )
+      const inserted = await tx
+        .insert(ingestionAnalysisRuns)
+        .values({ ...run, sessionIds: [...run.sessionIds] })
+        .onConflictDoNothing()
+        .returning({ id: ingestionAnalysisRuns.id })
+      return inserted.length > 0
+    }),
+
+  lastRun: async (studyId) => {
+    const rows = await db
+      .select()
+      .from(ingestionAnalysisRuns)
+      .where(eq(ingestionAnalysisRuns.studyId, studyId))
+      .orderBy(
+        sql`${ingestionAnalysisRuns.state} = 'running' desc`,
+        sql`${ingestionAnalysisRuns.startedAt} desc`,
+      )
+      .limit(1)
+    return rows[0] ? toRun(rows[0]) : null
+  },
+
+  getRun: async (runId) => {
+    const [row] = await db
+      .select()
+      .from(ingestionAnalysisRuns)
+      .where(eq(ingestionAnalysisRuns.id, runId))
+    return row ? toRun(row) : null
+  },
+
+  heartbeat: async (runId, now) => {
+    await db
+      .update(ingestionAnalysisRuns)
+      .set({ heartbeatAt: now })
+      .where(eq(ingestionAnalysisRuns.id, runId))
+  },
+
+  requestStop: async (runId) => {
+    await db
+      .update(ingestionAnalysisRuns)
+      .set({ stopRequested: true })
+      .where(and(eq(ingestionAnalysisRuns.id, runId), eq(ingestionAnalysisRuns.state, 'running')))
+  },
+
+  finishRun: async (runId, state, now) => {
+    await db
+      .update(ingestionAnalysisRuns)
+      .set({ state, finishedAt: now })
+      .where(and(eq(ingestionAnalysisRuns.id, runId), eq(ingestionAnalysisRuns.state, 'running')))
+  },
+
+  renameFile: async (studyId, fileId, name, modifiedAt) => {
+    await db
+      .update(ingestionInventoryFiles)
+      .set({ name, ...(modifiedAt ? { modifiedAt: new Date(modifiedAt) } : {}) })
+      .where(
+        and(
+          eq(ingestionInventoryFiles.studyId, studyId),
+          eq(ingestionInventoryFiles.fileId, fileId),
+        ),
+      )
   },
 
   moveLink: async (from, to, expected) => {

@@ -1,4 +1,7 @@
 import { err, ok, type Result } from '@goodresearch/shared'
+import { type Analysis, filesChanged, type Proposal, shownAnalysis } from '../../domain/analysis.ts'
+import { fileNamesState } from '../../domain/file-names.ts'
+import { fileWords, nameWords } from '../../domain/file-words.ts'
 import type { InventoryFile } from '../../domain/inventory-walk.ts'
 import { suggestLink } from '../../domain/link-suggestion.ts'
 import {
@@ -8,7 +11,8 @@ import {
   type Session,
 } from '../../domain/session.ts'
 import { resolveStudyAccess } from '../access.ts'
-import type { Actor, IngestionDeps, PlannedSummary } from '../ports.ts'
+import { analysisRef, isLive } from '../commands/analysis-commands.ts'
+import type { Actor, AnalysisRun, IngestionDeps, PlannedSummary } from '../ports.ts'
 
 type FileView = {
   readonly fileId: string
@@ -40,12 +44,40 @@ export type SessionView = {
   readonly media: (FileView & { confidence: 'high' | 'medium' | 'low' | null; reason: string })[]
   readonly mediaEdited: boolean
   readonly link: (PlannedView & { linkedBy: 'suggestion' | 'person' }) | null
-  readonly suggestion: (PlannedView & { rule: 'name' | 'date' }) | null
+  readonly suggestion: (PlannedView & { rule: 'transcript' | 'name' | 'date' }) | null
   readonly roster: Session['roster'][number][]
   readonly excludedReason: string | null
   readonly decidedBy: { id: string; name: string | null } | null
   readonly decidedAt: string | null
+  readonly interviewDate: string | null
+  readonly language: Session['language']
+  readonly attachments: FileView[]
+  readonly analysis: AnalysisView | null
+  readonly cost: number | null
+  /** Spec 009 FR-028: the files in Drive carry the accepted name; null before one is accepted. */
+  readonly fileNames: { inSync: boolean; differing: number } | null
   readonly version: number
+}
+
+type ProposalView = {
+  readonly field: Proposal['field']
+  readonly people: { name: string; memberId: string | null }[] | null
+  readonly text: string | null
+  readonly attachment: (FileView & { reason: string }) | null
+  readonly origin: Proposal['origin']
+  readonly quote: string | null
+  readonly otherDate: string | null
+  readonly status: Proposal['status']
+}
+
+type AnalysisView = {
+  readonly state: Analysis['state']
+  readonly failure: Analysis['failure']
+  readonly at: string | null
+  readonly by: { id: string; name: string | null } | null
+  readonly usedAi: boolean
+  readonly filesChanged: boolean
+  readonly proposals: ProposalView[]
 }
 
 export type FieldworkView = {
@@ -59,6 +91,19 @@ export type FieldworkView = {
   }[]
   readonly totals: Record<Session['state'], number>
   readonly skipped: number
+  readonly analysisCost: number | null
+  readonly run: {
+    id: string
+    state: AnalysisRun['state']
+    stopRequested: boolean
+    total: number
+    done: number
+    failed: number
+    startedBy: { id: string; name: string | null }
+  } | null
+  readonly anonymised: boolean
+  readonly namedFiles: number
+  readonly consentNeeded: boolean
 }
 
 type Denied = 'STUDY_NOT_FOUND' | 'FOLDER_ACCESS_REQUIRED' | 'NOT_AN_INTERVIEW_STUDY'
@@ -119,9 +164,49 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
     const held = new Set(sessions.flatMap((s) => (linkOf(s) ? [s.plannedInterviewId] : [])))
     const free = planned.filter((p) => !held.has(p.id))
 
-    const names = await deps.store.accountNames(
-      sessions.flatMap((x) => (x.decidedBy ? [x.decidedBy] : [])),
-    )
+    const last = await deps.store.lastRun(studyId)
+    const liveRunId = isLive(last, deps.clock.now()) ? last.id : null
+    const [names, costs] = await Promise.all([
+      deps.store.accountNames(
+        sessions.flatMap((x) => [
+          ...(x.decidedBy ? [x.decidedBy] : []),
+          ...(x.analysis ? [x.analysis.by] : []),
+        ]),
+      ),
+      deps.analyzer.costs(sessions.map((x) => analysisRef(x.id))),
+    ])
+    const proposalView = (p: Proposal): ProposalView => {
+      const people = p.field === 'interviewees' || p.field === 'interviewers'
+      const file = p.field === 'attachment' ? fileById.get(p.value.fileId) : undefined
+      return {
+        field: p.field,
+        people: people ? p.value.map((v) => ({ name: v.name, memberId: v.memberId })) : null,
+        text: p.field === 'date' || p.field === 'language' || p.field === 'name' ? p.value : null,
+        attachment:
+          p.field === 'attachment' && file ? { ...fileView(file), reason: p.value.reason } : null,
+        origin: p.origin,
+        quote: p.quote,
+        otherDate: p.otherDate,
+        status: p.status,
+      }
+    }
+    const analysisView = (s: Session): AnalysisView | null => {
+      const a = shownAnalysis(s.analysis, liveRunId)
+      return a
+        ? {
+            state: a.state,
+            failure: a.failure,
+            at: a.at?.toISOString() ?? null,
+            by: { id: a.by, name: names.get(a.by) ?? null },
+            usedAi: a.usedAi,
+            filesChanged: a.state === 'done' && filesChanged(s, fileById),
+            // An attachment proposal whose file left the folder is not shown.
+            proposals: a.proposals
+              .filter((p) => p.field !== 'attachment' || fileById.has(p.value.fileId))
+              .map(proposalView),
+          }
+        : null
+    }
     const view = (s: Session): SessionView => {
       const transcript = s.transcriptFileId ? fileById.get(s.transcriptFileId) : undefined
       const recordings = s.media.flatMap((m) => {
@@ -131,7 +216,23 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
       // Without a transcript, the first recording names and dates the interview.
       const anchor = transcript ?? (recordings[0] ? fileById.get(recordings[0].fileId) : undefined)
       const linked = linkOf(s)
-      const hint = !personDecided(s) && !linked && anchor ? suggestLink(anchor, free) : null
+      // Spec 009: the people and date the analysis found (accepted, else proposed) come first.
+      const proposed = (s.analysis?.proposals ?? []).filter((p) => p.status !== 'rejected')
+      const found = {
+        names: [
+          ...s.roster.filter((r) => r.role === 'interviewee').map((r) => r.name),
+          ...proposed.flatMap((p) =>
+            p.field === 'interviewees' ? p.value.map((v) => v.name) : [],
+          ),
+        ],
+        date:
+          s.interviewDate ??
+          proposed.flatMap((p) =>
+            p.field === 'date' && p.origin !== 'file-date' ? [p.value] : [],
+          )[0] ??
+          null,
+      }
+      const hint = !personDecided(s) && !linked && anchor ? suggestLink(anchor, free, found) : null
       const suggested = hint ? plannedById.get(hint.plannedInterviewId) : undefined
       return {
         id: s.id,
@@ -149,24 +250,65 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
         excludedReason: s.excludedReason,
         decidedBy: s.decidedBy ? { id: s.decidedBy, name: names.get(s.decidedBy) ?? null } : null,
         decidedAt: s.decidedAt?.toISOString() ?? null,
+        interviewDate: s.interviewDate,
+        language: s.language,
+        attachments: s.attachments.flatMap((a) => {
+          const f = fileById.get(a.fileId)
+          return f ? [fileView(f)] : []
+        }),
+        analysis: analysisView(s),
+        cost: costs.get(analysisRef(s.id)) ?? 0,
+        fileNames: fileNamesState(s, files),
         version: s.version,
       }
     }
-    return { sessions, files, planned, held, view }
+    return { sessions, files, planned, held, view, costs }
   }
 
-  const gate = async (accountId: string, studyId: string): Promise<Result<true, Denied>> => {
+  const gate = async (
+    accountId: string,
+    studyId: string,
+  ): Promise<Result<{ anonymised: boolean }, Denied>> => {
     const access = await resolveStudyAccess(deps, accountId, studyId)
     if (access.kind === 'not-found') return err('STUDY_NOT_FOUND')
     if (access.kind !== 'full') return err('FOLDER_ACCESS_REQUIRED')
-    return access.type === 'interviews' ? ok(true) : err('NOT_AN_INTERVIEW_STUDY')
+    return access.type === 'interviews'
+      ? ok({ anonymised: access.anonymised })
+      : err('NOT_AN_INTERVIEW_STUDY')
   }
+
+  /** Interviews whose file names hold a word of an interviewee's name (to rename, FR-013). */
+  const named = (sessions: readonly Session[], fileById: ReadonlyMap<string, InventoryFile>) =>
+    sessions.filter((s) => {
+      const words = [
+        ...s.roster.filter((r) => r.role === 'interviewee').map((r) => r.name),
+        ...(s.analysis?.proposals ?? []).flatMap((p) =>
+          p.field === 'interviewees' ? p.value.map((v) => v.name) : [],
+        ),
+      ].flatMap(nameWords)
+      const ids = [s.transcriptFileId, ...s.media.map((m) => m.fileId)]
+      return ids.some((id) => {
+        const f = id ? fileById.get(id) : undefined
+        const inName = f ? fileWords(f.name) : new Set<string>()
+        return words.some((w) => inName.has(w))
+      })
+    }).length
 
   return {
     fieldwork: async (actor: Actor, studyId: string): Promise<Result<FieldworkView, Denied>> => {
       const allowed = await gate(actor.id, studyId)
       if (!allowed.ok) return allowed
-      const { sessions, files, planned, held, view } = await build(actor.id, studyId, true)
+      const { sessions, files, planned, held, view, costs } = await build(actor.id, studyId, true)
+      const [last, provider] = await Promise.all([
+        deps.store.lastRun(studyId),
+        deps.analyzer.providerOf(actor.id),
+      ])
+      const run = isLive(last, deps.clock.now()) ? last : null
+      const startedByName = run ? await deps.store.accountName(run.startedBy) : null
+      const runSessions = run ? sessions.filter((s) => run.sessionIds.includes(s.id)) : []
+      let analysisCost: number | null = 0
+      for (const c of costs.values())
+        analysisCost = analysisCost === null || c === null ? null : analysisCost + c
       const fileAt = new Map(files.map((f) => [f.id, f.modifiedAt]))
       const at = (s: Session) =>
         fileAt.get(s.transcriptFileId ?? s.media[0]?.fileId ?? '') ?? s.createdAt.toISOString()
@@ -203,6 +345,26 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
           sessions.length >= SESSION_LIMIT
             ? files.filter((f) => f.kind !== 'other' && !used.has(f.id)).length
             : 0,
+        analysisCost,
+        run: run
+          ? {
+              id: run.id,
+              state: run.state,
+              stopRequested: run.stopRequested,
+              total: run.sessionIds.length,
+              done: runSessions.filter(
+                (s) => s.analysis?.runId !== run.id && s.analysis?.state === 'done',
+              ).length,
+              failed: runSessions.filter(
+                (s) => s.analysis?.runId !== run.id && s.analysis?.state === 'failed',
+              ).length,
+              startedBy: { id: run.startedBy, name: startedByName },
+            }
+          : null,
+        anonymised: allowed.value.anonymised,
+        namedFiles: named(sessions, new Map(files.map((f) => [f.id, f]))),
+        consentNeeded:
+          provider !== null && !(await deps.store.hasConsent(actor.id, studyId, provider)),
       })
     },
 

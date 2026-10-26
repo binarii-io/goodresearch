@@ -24,7 +24,12 @@ export const createResearchModule = (deps: {
   teams: TeamDirectory
   teamNames: TeamNames
   /** Lazily bound: the ingestion module is built after this one. */
-  ingestion: () => { gate: StudyActionGate; sourceSummaries: SourceSummaries }
+  ingestion: () => {
+    gate: StudyActionGate
+    sourceSummaries: SourceSummaries
+    /** Spec 009 FR-022: the interview linked to a planned interview follows its changes. */
+    plannedChanged: NonNullable<Parameters<typeof makePreparationCommands>[0]['plannedChanged']>
+  }
 }) => {
   const commandDeps: ResearchCommandDeps = {
     uow: (work) => deps.db.transaction((tx) => work({ projects: drizzleProjectRepository(tx) })),
@@ -59,6 +64,7 @@ export const createResearchModule = (deps: {
       guides: drizzleGuideRepository(deps.db),
       planned: drizzlePlannedInterviewRepository(deps.db),
       gate,
+      plannedChanged: (actor, planned) => deps.ingestion().plannedChanged(actor, planned),
     }),
     preparationQueries,
   }

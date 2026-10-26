@@ -16,6 +16,7 @@ import {
   SaveInterviewGuide,
   StudyDetail,
   StudyParams,
+  StudySettings,
   StudySummary,
   UpdatePlannedInterview,
   UpdateProjectGoal,
@@ -256,6 +257,30 @@ export const registerResearchRoutes = (
       reply(
         res,
         await h.studies.renameStudy({
+          actor: request.account,
+          studyId: request.params.studyId,
+          ...request.body,
+        }),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.patch(
+    '/api/studies/:studyId/settings',
+    {
+      ...secured,
+      schema: {
+        operationId: 'updateStudySettings',
+        tags: studyTags,
+        params: StudyParams,
+        body: StudySettings,
+        response: { 200: VersionAck },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.studies.setAnonymisation({
           actor: request.account,
           studyId: request.params.studyId,
           ...request.body,

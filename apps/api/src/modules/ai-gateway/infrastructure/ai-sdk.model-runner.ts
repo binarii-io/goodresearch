@@ -6,6 +6,7 @@ import {
   generateText,
   type LanguageModel,
   type ModelMessage,
+  NoObjectGeneratedError,
   Output,
   stepCountIs,
   streamText,
@@ -142,8 +143,10 @@ export const createAiSdkRunner = (options: {
   google: { clientId: string; clientSecret: string } | null
   /** Tests: replaces the network. */
   fetch?: typeof fetch
+  log?: { warn(object: object, message: string): void }
 }): ModelRunner => {
   const fake = createFakeRunner()
+  const log = options.log ?? { warn: () => undefined }
   const fetchOption = options.fetch ? { fetch: options.fetch } : {}
   // One OAuth client per Google grant, so access tokens are reused until they expire.
   const authClients = new Map<string, OAuth2Client>()
@@ -211,9 +214,33 @@ export const createAiSdkRunner = (options: {
           abortSignal: AbortSignal.timeout(timeoutMs),
         })
         // Never trust model output (AGENTS.md): validated again with the caller's schema.
-        return { object: request.schema.parse(result.output), usage: usageOf(result.usage) }
+        const parsed = request.schema.safeParse(result.output)
+        if (parsed.success) return { object: parsed.data, usage: usageOf(result.usage) }
+        log.warn(
+          { kind: 'invalid-output', fields: parsed.error.issues.map((i) => i.path.join('.')) },
+          'model answer does not fit the schema',
+        )
+        throw new ProviderCallError('UNKNOWN', usageOf(result.usage))
       } catch (error) {
-        throw toProviderError(error)
+        // Why it failed, never what was said (no prompt or answer in logs).
+        if (NoObjectGeneratedError.isInstance(error)) {
+          log.warn(
+            {
+              kind: 'no-object',
+              finishReason: error.finishReason ?? null,
+              cause: error.cause instanceof Error ? error.cause.name : null,
+            },
+            'model answer is not the object asked for',
+          )
+          throw new ProviderCallError('UNKNOWN', error.usage ? usageOf(error.usage) : null)
+        }
+        const failure = toProviderError(error)
+        if (failure.failure === 'UNKNOWN' && !(error instanceof ProviderCallError))
+          log.warn(
+            { kind: error instanceof Error ? error.name : typeof error },
+            'model call failed',
+          )
+        throw failure
       }
     },
 
