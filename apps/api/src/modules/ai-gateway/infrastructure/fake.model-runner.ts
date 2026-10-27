@@ -29,6 +29,60 @@ const distance = (a: string, b: string): number => {
   return row[b.length] ?? 0
 }
 
+/** The test provider's cleaning of one chunk (spec 011). */
+const cleaningAnswer = (prompt: string) => {
+  const turns = [...prompt.matchAll(/^(t\d+)( \(context\))? — [^:\n]*: (.*)$/gm)]
+    .filter((m) => !m[2])
+    .map((m) => ({ id: m[1] ?? '', text: m[3] ?? '' }))
+  const corrections: {
+    turn: string
+    kind: 'transcription'
+    original: string
+    before: null
+    replacement: string
+    reason: string | null
+    confidence: 'high' | 'low'
+  }[] = turns
+    .filter((t) => /\beating\b/.test(t.text))
+    .map((t) => ({
+      turn: t.id,
+      kind: 'transcription',
+      original: 'eating',
+      before: null,
+      replacement: 'meeting',
+      reason: 'The speaker talks about a meeting.',
+      confidence: 'high',
+    }))
+  const first = turns[0]
+  if (first)
+    corrections.push(
+      {
+        turn: first.id,
+        kind: 'transcription',
+        original: 'words not in this turn',
+        before: null,
+        replacement: 'x',
+        reason: null,
+        confidence: 'low',
+      },
+      {
+        turn: first.id,
+        kind: 'transcription',
+        original: first.text.split(' ')[0] ?? '',
+        before: null,
+        replacement: 'one two three four five six seven eight nine ten eleven twelve',
+        reason: null,
+        confidence: 'low',
+      },
+    )
+  const decisions = [...prompt.matchAll(/^(o\d+) in t\d+:/gm)].map((m) => ({
+    occurrence: m[1] ?? '',
+    isTerm: true,
+    reason: 'It fits the context.',
+  }))
+  return { corrections, decisions }
+}
+
 /** The test provider's lexicon: candidates within 2 edits are one term, the known form first. */
 const lexiconAnswer = (prompt: string) => {
   const candidates: { spelling: string; excerpts: string[] }[] = []
@@ -296,6 +350,16 @@ export const createFakeRunner = (): ModelRunner => {
         const parsed = request.schema.safeParse(answer)
         if (!parsed.success) throw new ProviderCallError('UNKNOWN')
         return { object: parsed.data, usage: { inputTokens: 2400, outputTokens: 200 } }
+      }
+      // Spec 011: a cleaning corrects "eating" into "meeting" in each new turn that writes it, says
+      // yes to each place to decide, and adds one correction not in the turn and one of 12 words
+      // (the app must drop both).
+      if (request.prompt?.includes('\n<turns>\n')) {
+        await sleep(500)
+        const answer = cleaningAnswer(request.prompt)
+        const parsed = request.schema.safeParse(answer)
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 6000, outputTokens: 300 } }
       }
       // Only schemas with defaults can be answered without a model.
       const parsed = request.schema.safeParse({})

@@ -75,6 +75,10 @@ describe('placeholders', () => {
     expect(text).toBe('[Person 1] said [Person 1] liked it')
     expect(fromPlaceholders('[Person 1] said', names)).toBe('Sam Example said')
   })
+  it('tells where each placeholder went', () => {
+    const { cuts } = withPlaceholders('Hi Sam, bye', ['Sam Example'])
+    expect(cuts).toEqual([{ start: 3, end: 6, placeholder: '[Person 1]' }])
+  })
 })
 
 describe('nameKey', () => {

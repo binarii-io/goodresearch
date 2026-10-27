@@ -42,6 +42,16 @@ export type StudyFiles = {
   rewriteTable(fileId: string, table: TableModel): Promise<Result<void, FileError>>
   metadata(fileId: string): Promise<Result<FileMeta | null, FileError>>
   renameFile(fileId: string, name: string): Promise<Result<FileMeta | null, FileError>>
+  /** Spec 011: a folder inside the study folder, found again by its id while it is still there. */
+  ensureFolder(name: string, knownId: string | null): Promise<Result<{ id: string }, FileError>>
+  /** A document inside a folder of the study folder. */
+  createDocumentIn(
+    folderId: string,
+    name: string,
+    doc: DocModel,
+  ): Promise<Result<CreatedFile, FileError>>
+  /** The document's revision now; null when it is gone or cannot be opened. */
+  revision(fileId: string): Promise<Result<string | null, FileError>>
 }
 
 export const makeStudyFiles =
@@ -92,5 +102,19 @@ export const makeStudyFiles =
       rewriteTable: (fileId, table) => run(() => documents.rewriteTable(token, fileId, table)),
       metadata: (fileId) => run(() => documents.metadata(token, fileId)),
       renameFile: (fileId, name) => run(() => documents.renameFile(token, fileId, name)),
+      ensureFolder: (name, knownId) =>
+        run(async () => {
+          const known = knownId ? await documents.metadata(token, knownId) : null
+          if (known && !known.trashed && known.parents.includes(folderId)) return { id: known.id }
+          return { id: (await documents.createFolder(token, folderId, name)).id }
+        }),
+      createDocumentIn: (inFolder, name, doc) =>
+        run(() => documents.createDocument(token, inFolder, name, doc)),
+      revision: (fileId) =>
+        run(async () => {
+          const meta = await documents.metadata(token, fileId)
+          if (!meta || meta.trashed) return null
+          return (await documents.readDocument(token, fileId)).revision
+        }),
     })
   }

@@ -134,9 +134,9 @@ export const createInMemoryStore = () => {
         .filter((r) => r.studyId === studyId)
         .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime() || b.id.localeCompare(a.id)),
     accountNames: async (ids) => new Map(ids.map((id) => [id, `Name of ${id}`])),
-    hasConsent: async (a, s, p) => consents.has(`${a}/${s}/${p}`),
-    giveConsent: async (a, s, p) => {
-      consents.add(`${a}/${s}/${p}`)
+    hasConsent: async (a, s, p, purpose = 'lexicon') => consents.has(`${a}/${s}/${p}/${purpose}`),
+    giveConsent: async (a, s, p, _at, purpose = 'lexicon') => {
+      consents.add(`${a}/${s}/${p}/${purpose}`)
     },
   }
   return { store, transcripts, terms, occurrences, runs, verdicts }

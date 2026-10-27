@@ -38,7 +38,7 @@ const DEMO_TEXTS: Record<string, string> = {
     'Robin Sample: Hello, and thanks for taking the time to talk with us today.',
     'Casey Test: Thanks for having me, it is a pleasure.',
     'Robin Sample: So what do you think about the way you plan your week?',
-    'Casey Test: Well, I keep a paper list on the fridge and I update it every evening.',
+    'Casey Test: Well, I keep a paper list on the fridge and I update it after the eating with my team.',
     'Casey Test: My team tried Gooresearch too, and the NPS is good. Hmm.',
   ].join('\n'),
   'dev-transcript-3': [

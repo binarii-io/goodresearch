@@ -286,10 +286,12 @@ export function LexiconTable({
               const no = term.occurrences.reduce((a, o) => a + o.no, 0)
               const pending = openVariants(term)
               return (
-                <TableRow key={term.id}>
-                  <TableCell className="max-w-80 align-top">
-                    <span className="grid gap-1">
-                      <span className="font-medium">
+                // The whole row opens the term (its "Change" button is the keyboard way).
+                <TableRow key={term.id} className="cursor-pointer" onClick={() => setEditing(term)}>
+                  <TableCell className="align-top">
+                    {/* A table cell ignores a width limit: the block inside carries it. */}
+                    <span className="grid min-w-0 max-w-80 gap-1">
+                      <span className="truncate font-medium">
                         {term.kind === 'suspect' && term.correction
                           ? t`${term.form} → ${term.correction}`
                           : term.form}
@@ -303,7 +305,12 @@ export function LexiconTable({
                         ) : null}
                       </span>
                       {term.definition ? (
-                        <span className="text-muted-foreground text-xs">{term.definition}</span>
+                        <span
+                          className="truncate text-muted-foreground text-xs"
+                          title={term.definition}
+                        >
+                          {term.definition}
+                        </span>
                       ) : null}
                     </span>
                   </TableCell>
@@ -344,7 +351,8 @@ export function LexiconTable({
                       ) : null}
                     </span>
                   </TableCell>
-                  <TableCell className="align-top">
+                  {/* Its buttons and dialogs are not part of the row's click (portals bubble in React). */}
+                  <TableCell className="align-top" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-1">
                       {term.status === 'proposed' || term.status === 'rejected' ? null : (
                         <Badge variant="secondary">{i18n._(TERM_STATUSES[term.status])}</Badge>

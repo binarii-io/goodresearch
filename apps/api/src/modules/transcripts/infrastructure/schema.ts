@@ -121,16 +121,18 @@ export const transcriptsLexiconRuns = pgTable(
   ],
 )
 
-/** A person agreed that excerpts go to their AI provider for this study (FR-016). */
+/** A person agreed that text goes to their AI provider for this study, for one purpose. */
 export const transcriptsConsents = pgTable(
   'transcripts_consents',
   {
     accountId: text('account_id').notNull(),
     studyId: text('study_id').notNull(),
     provider: text('provider').notNull(),
+    /** `lexicon`: excerpts (spec 010); `cleaning`: the full text, names replaced (spec 011). */
+    purpose: text('purpose').notNull().default('lexicon'),
     givenAt: timestamp('given_at', { withTimezone: true }).notNull(),
   },
-  (t) => [primaryKey({ columns: [t.accountId, t.studyId, t.provider] })],
+  (t) => [primaryKey({ columns: [t.accountId, t.studyId, t.provider, t.purpose] })],
 )
 
 /** A person's yes / no on one occurrence of a term (spec 010), kept across readings. */
@@ -152,5 +154,162 @@ export const transcriptsVerdicts = pgTable(
   (t) => [
     primaryKey({ columns: [t.termId, t.segmentId, t.offset] }),
     index('transcripts_verdicts_study_idx').on(t.studyId),
+  ],
+)
+
+// Spec 011 — Cleaning. Every row goes with the imported text of its interview.
+
+const ofTranscript = () =>
+  text('session_id')
+    .notNull()
+    .references(() => transcriptsTranscripts.sessionId, { onDelete: 'cascade' })
+
+/** The AI's corrections and a person's own (sources `ai-other`, `person`): research R2. */
+export const transcriptsCorrections = pgTable(
+  'transcripts_corrections',
+  {
+    id: text('id').primaryKey(),
+    studyId: text('study_id').notNull(),
+    sessionId: ofTranscript(),
+    segmentId: text('segment_id').notNull(),
+    target: text('target').notNull(),
+    offset: integer('offset').notNull(),
+    length: integer('length').notNull(),
+    original: text('original').notNull(),
+    replacement: text('replacement').notNull(),
+    edited: text('edited'),
+    kind: text('kind').notNull(),
+    source: text('source').notNull(),
+    reason: text('reason'),
+    confidence: text('confidence'),
+    status: text('status').notNull(),
+    runId: text('run_id'),
+    decidedBy: text('decided_by'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    version: integer('version').notNull().default(1),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    index('transcripts_corrections_session_idx').on(t.sessionId),
+    uniqueIndex('transcripts_corrections_same_idx').on(
+      t.sessionId,
+      t.segmentId,
+      t.target,
+      t.offset,
+      t.original,
+      t.replacement,
+    ),
+  ],
+)
+
+/** The AI's yes / no on a case-by-case occurrence without verdict. */
+export const transcriptsAiSuggestions = pgTable(
+  'transcripts_ai_suggestions',
+  {
+    termId: text('term_id')
+      .notNull()
+      .references(() => transcriptsLexiconTerms.id, { onDelete: 'cascade' }),
+    sessionId: ofTranscript(),
+    segmentId: text('segment_id').notNull(),
+    offset: integer('offset').notNull(),
+    isTerm: boolean('is_term').notNull(),
+    reason: text('reason'),
+    runId: text('run_id').notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.termId, t.segmentId, t.offset] }),
+    index('transcripts_ai_suggestions_session_idx').on(t.sessionId),
+  ],
+)
+
+/** A person's decision on a computed name correction, by its key. */
+export const transcriptsCorrectionDecisions = pgTable(
+  'transcripts_correction_decisions',
+  {
+    sessionId: ofTranscript(),
+    key: text('key').notNull(),
+    status: text('status').notNull(),
+    edited: text('edited'),
+    decidedBy: text('decided_by').notNull(),
+    decidedAt: timestamp('decided_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.sessionId, t.key] })],
+)
+
+/** One row per cleaned interview: what the AI has read, and the anonymisation it ran with. */
+export const transcriptsCleanings = pgTable('transcripts_cleanings', {
+  sessionId: ofTranscript().primaryKey(),
+  studyId: text('study_id').notNull(),
+  aiReadSegments: jsonb('ai_read_segments').$type<string[]>().notNull().default([]),
+  anonymised: boolean('anonymised').notNull(),
+  lastRunId: text('last_run_id'),
+  cleanedAt: timestamp('cleaned_at', { withTimezone: true }).notNull(),
+})
+
+/** The validated clean versions of an interview, numbered. */
+export const transcriptsCleanVersions = pgTable(
+  'transcripts_clean_versions',
+  {
+    sessionId: ofTranscript(),
+    number: integer('number').notNull(),
+    segments: jsonb('segments').$type<Segment[]>().notNull(),
+    rawImportedAt: timestamp('raw_imported_at', { withTimezone: true }).notNull(),
+    anonymised: boolean('anonymised').notNull(),
+    fingerprint: text('fingerprint').notNull(),
+    createdBy: text('created_by').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.sessionId, t.number] })],
+)
+
+/** The Drive document of an interview's clean version. */
+export const transcriptsCleanPublications = pgTable('transcripts_clean_publications', {
+  sessionId: ofTranscript().primaryKey(),
+  fileId: text('file_id').notNull(),
+  fileName: text('file_name').notNull(),
+  webLink: text('web_link').notNull(),
+  versionNumber: integer('version_number').notNull(),
+  revision: text('revision'),
+  publishedBy: text('published_by').notNull(),
+  publishedAt: timestamp('published_at', { withTimezone: true }).notNull(),
+})
+
+/** The study's "Clean transcripts" folder, found by its id. */
+export const transcriptsCleanFolders = pgTable('transcripts_clean_folders', {
+  studyId: text('study_id').primaryKey(),
+  folderId: text('folder_id').notNull(),
+  name: text('name').notNull(),
+})
+
+type StoredProgress = {
+  sessionId: string
+  state: 'waiting' | 'cleaning' | 'done' | 'failed'
+  chunks: number
+  chunksDone: number
+  failure?: string
+}
+
+/** "Clean transcripts" over a study: one unfinished at a time per study. */
+export const transcriptsCorrectionRuns = pgTable(
+  'transcripts_correction_runs',
+  {
+    id: text('id').primaryKey(),
+    studyId: text('study_id').notNull(),
+    teamId: text('team_id').notNull(),
+    startedBy: text('started_by').notNull(),
+    mode: text('mode').notNull(),
+    sessions: jsonb('sessions').$type<StoredProgress[]>().notNull(),
+    stopRequested: boolean('stop_requested').notNull().default(false),
+    leftOut: integer('left_out').notNull().default(0),
+    failure: text('failure'),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    heartbeatAt: timestamp('heartbeat_at', { withTimezone: true }).notNull(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex('transcripts_correction_runs_open_idx')
+      .on(t.studyId)
+      .where(sql`${t.finishedAt} is null`),
+    index('transcripts_correction_runs_study_idx').on(t.studyId, t.startedAt),
   ],
 )

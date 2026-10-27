@@ -190,6 +190,13 @@
       "when": 1793029468948,
       "tag": "0026_transcripts_read_at",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1793033391936,
+      "tag": "0027_transcript_cleaning",
+      "breakpoints": true
     }
   ]
 }

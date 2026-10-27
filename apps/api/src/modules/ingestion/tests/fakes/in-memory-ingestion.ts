@@ -282,9 +282,14 @@ export class InMemoryIngestionStore implements IngestionStore {
     this.sessions.set(sessionId, { ...current, analysis, version: expected + 1 })
     return 'saved' as const
   }
-  async ensurePseudonyms(studyId: string, needed: readonly { key: string; date: string | null }[]) {
+  async ensurePseudonyms(
+    studyId: string,
+    needed: readonly { key: string; date: string | null }[],
+    _now?: Date,
+    prefix = 'P',
+  ) {
     const codes = this.pseudonyms.get(studyId) ?? new Map<string, string>()
-    for (const f of assignPseudonyms(codes, needed)) codes.set(f.key, f.code)
+    for (const f of assignPseudonyms(codes, needed, prefix)) codes.set(f.key, f.code)
     this.pseudonyms.set(studyId, codes)
     return new Map(codes)
   }

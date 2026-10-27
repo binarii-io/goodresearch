@@ -91,6 +91,10 @@ export class InMemoryDriveDocuments implements DriveDocuments {
     return { id, webViewLink: `https://drive.example.test/file/${id}` } satisfies CreatedFile
   }
 
+  async createFolder(refreshToken: string, parentId: string, name: string) {
+    return this.#create(refreshToken, parentId, name, {})
+  }
+
   async createDocument(refreshToken: string, folderId: string, name: string, doc: DocModel) {
     return this.#create(refreshToken, folderId, name, { doc: structuredClone(doc) })
   }

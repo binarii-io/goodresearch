@@ -80,6 +80,8 @@ export class DriveCannotEdit extends Error {
 }
 
 export interface DriveDocuments {
+  /** A new folder inside `parentId` (spec 011: the clean transcripts). */
+  createFolder(refreshToken: string, parentId: string, name: string): Promise<CreatedFile>
   createDocument(
     refreshToken: string,
     folderId: string,

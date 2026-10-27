@@ -69,11 +69,22 @@ msgstr "{0} accepted"
 msgid "{0} accepted, {1} left to decide"
 msgstr "{0} accepted, {1} left to decide"
 
+#. placeholder {0}: data.run.leftOut
+#: src/features/enrichment/cleaning-table.tsx
+msgid "{0} AI corrections were left out by the app's checks (not found in the turn, too long, or on a name)."
+msgstr "{0} AI corrections were left out by the app's checks (not found in the turn, too long, or on a name)."
+
 #. placeholder {0}: result.applied
 #. placeholder {1}: result.rejected
 #: src/features/preparation/drive-review.tsx
 msgid "{0} applied, {1} rejected"
 msgstr "{0} applied, {1} rejected"
+
+#. placeholder {0}: data.counts.clean
+#. placeholder {1}: data.interviews.length
+#: src/features/enrichment/cleaning-table.tsx
+msgid "{0} clean of {1}"
+msgstr "{0} clean of {1}"
 
 #. placeholder {0}: o.yes
 #. placeholder {1}: o.no
@@ -106,6 +117,17 @@ msgstr "{0} interviews will be analyzed: never analyzed, incomplete, or whose fi
 msgid "{0} interviews will be read: never read, or whose transcript changed in Drive."
 msgstr "{0} interviews will be read: never read, or whose transcript changed in Drive."
 
+#. placeholder {0}: e.interviews
+#. placeholder {1}: e.chunks
+#: src/features/enrichment/cleaning-table.tsx
+msgid "{0} interviews, about {1} parts for the AI: about {cost} with your AI provider."
+msgstr "{0} interviews, about {1} parts for the AI: about {cost} with your AI provider."
+
+#. placeholder {0}: e.interviews
+#: src/features/enrichment/cleaning-table.tsx
+msgid "{0} interviews, no cost."
+msgstr "{0} interviews, no cost."
+
 #. placeholder {0}: v.ids.length
 #: src/features/preparation/drive-review.tsx
 msgid "{0} items in a new order"
@@ -137,6 +159,13 @@ msgstr "{0} still to validate in Fieldwork"
 #: src/features/enrichment/lexicon-table.tsx
 msgid "{0} terms"
 msgstr "{0} terms"
+
+#. placeholder {0}: data.counts.toDecide
+#. placeholder {1}: data.counts.accepted
+#. placeholder {2}: data.counts.rejected
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "{0} to decide · {1} accepted · {2} rejected"
+msgstr "{0} to decide · {1} accepted · {2} rejected"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{audios, plural, one {# audio} other {# audio}}"
@@ -244,6 +273,10 @@ msgstr "3 · Enrichment"
 msgid "4 · Analysis"
 msgstr "4 · Analysis"
 
+#: src/features/workspace/errors.ts
+msgid "A correction is at most 200 characters."
+msgstr "A correction is at most 200 characters."
+
 #: src/features/preparation/preparation-tab.tsx
 msgid "a deleted account"
 msgstr "a deleted account"
@@ -259,6 +292,10 @@ msgstr "A follow-up has more than 600 characters."
 #: src/features/preparation/guide-editor.tsx
 msgid "A hypothesis has more than 600 characters."
 msgstr "A hypothesis has more than 600 characters."
+
+#: src/features/workspace/errors.ts
+msgid "A lexicon correction is changed in the lexicon, on its term."
+msgstr "A lexicon correction is changed in the lexicon, on its term."
 
 #: src/features/research/create-project-dialog.tsx
 msgid "A project holds one research question and belongs to a team."
@@ -296,9 +333,16 @@ msgstr "about the future"
 msgid "About you"
 msgstr "About you"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Accept"
 msgstr "Accept"
+
+#. placeholder {0}: c.original
+#. placeholder {1}: c.replacement
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Accept “{0}” → “{1}”"
+msgstr "Accept “{0}” → “{1}”"
 
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/proposals.tsx
@@ -306,7 +350,9 @@ msgstr "Accept"
 msgid "Accept all"
 msgstr "Accept all"
 
+#. placeholder {0}: shown.length
 #. placeholder {0}: terms.length
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Accept all shown ({0})"
 msgstr "Accept all shown ({0})"
@@ -340,6 +386,10 @@ msgstr "Accepted"
 #: src/features/preparation/drive-review.tsx
 msgid "Accepted changes are applied to the app; rejected ones are replaced in Drive at the next update."
 msgstr "Accepted changes are applied to the app; rejected ones are replaced in Drive at the next update."
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Accepted corrections"
+msgstr "Accepted corrections"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Accepted terms"
@@ -381,6 +431,7 @@ msgstr "Account reactivated"
 msgid "Acronym"
 msgstr "Acronym"
 
+#: src/features/enrichment/cleaning-table.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/preparation/schedule.tsx
 msgid "Actions"
@@ -390,10 +441,18 @@ msgstr "Actions"
 msgid "Active"
 msgstr "Active"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Add"
+msgstr "Add"
+
 #. placeholder {0}: scheduleEntryOf(s)?.interviewee ?? ''
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Add {0} to the schedule"
 msgstr "Add {0} to the schedule"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Add a correction"
+msgstr "Add a correction"
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Add a person"
@@ -442,6 +501,10 @@ msgstr "Admin"
 msgid "Agree and analyze"
 msgstr "Agree and analyze"
 
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Agree and clean"
+msgstr "Agree and clean"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Agree and find terms"
 msgstr "Agree and find terms"
@@ -449,6 +512,14 @@ msgstr "Agree and find terms"
 #: src/features/workspace/errors.ts
 msgid "Agree to send excerpts to your AI provider first."
 msgstr "Agree to send excerpts to your AI provider first."
+
+#: src/features/workspace/errors.ts
+msgid "Agree to send the transcripts to your AI provider first."
+msgstr "Agree to send the transcripts to your AI provider first."
+
+#: src/features/enrichment/labels.ts
+msgid "AI"
+msgstr "AI"
 
 #: src/routes/setup.ai-provider.tsx
 msgid "AI is not configured on this instance."
@@ -459,6 +530,11 @@ msgstr "AI is not configured on this instance."
 msgid "AI provider"
 msgstr "AI provider"
 
+#: src/features/enrichment/labels.ts
+msgid "AI, from the lexicon"
+msgstr "AI, from the lexicon"
+
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "All"
@@ -477,10 +553,15 @@ msgstr "All categories"
 msgid "All groups"
 msgstr "All groups"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/ingestion/source-panel.tsx
 msgid "All kinds"
 msgstr "All kinds"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "All sources"
+msgstr "All sources"
 
 #: src/features/fieldwork/proposals.tsx
 msgid "Allow editing in Drive"
@@ -493,6 +574,14 @@ msgstr "Already set"
 #: src/features/fieldwork/analysis.tsx
 msgid "Also analyze again the interviews already analyzed"
 msgstr "Also analyze again the interviews already analyzed"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Also clean again the interviews already cleaned"
+msgstr "Also clean again the interviews already cleaned"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Also finds misheard words the lexicon does not know, and wrong speakers."
+msgstr "Also finds misheard words the lexicon does not know, and wrong speakers."
 
 #. placeholder {0}: term.otherStudies
 #: src/features/enrichment/lexicon-table.tsx
@@ -578,6 +667,10 @@ msgstr "Anonymisation off"
 msgid "Anonymisation on"
 msgstr "Anonymisation on"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Anonymised: names become pseudonyms"
+msgstr "Anonymised: names become pseudonyms"
+
 #. placeholder {0}: p.otherDate
 #: src/features/fieldwork/proposals.tsx
 msgid "another date found: {0}"
@@ -590,6 +683,10 @@ msgstr "Another folder replaces the inventory and discards the {interviews} inte
 #: src/features/workspace/errors.ts
 msgid "Another term of the lexicon already has this form: merge them instead."
 msgstr "Another term of the lexicon already has this form: merge them instead."
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Any confidence"
+msgstr "Any confidence"
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "API key"
@@ -692,6 +789,10 @@ msgstr "Back to research projects"
 msgid "Back to review"
 msgstr "Back to review"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Back to the interviews"
+msgstr "Back to the interviews"
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Back to the project"
 msgstr "Back to the project"
@@ -731,7 +832,9 @@ msgid "by the app: its transcript was found"
 msgstr "by the app: its transcript was found"
 
 #: src/features/assistant/panel.tsx
+#: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/fieldwork/analysis.tsx
@@ -777,6 +880,10 @@ msgstr "Change the planned interview"
 msgid "Change the research goal"
 msgstr "Change the research goal"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Change the speaker of this turn"
+msgstr "Change the speaker of this turn"
+
 #. placeholder {0}: term.form
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Change: {0}"
@@ -790,6 +897,7 @@ msgstr "Change: {label}"
 msgid "Changed"
 msgstr "Changed"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Changed in Drive"
 msgstr "Changed in Drive"
@@ -871,10 +979,84 @@ msgstr "chosen by a person"
 msgid "Claude models with an API key from your Anthropic account."
 msgstr "Claude models with an API key from your Anthropic account."
 
+#: src/features/enrichment/cleaning-table.tsx
+#: src/features/enrichment/labels.ts
+msgid "Clean"
+msgstr "Clean"
+
+#. placeholder {0}: interview.title
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Clean “{0}”?"
+msgstr "Clean “{0}”?"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Clean again"
+msgstr "Clean again"
+
+#. placeholder {0}: interview.title
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Clean again: {0}"
+msgstr "Clean again: {0}"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Clean the transcripts?"
+msgstr "Clean the transcripts?"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Clean transcripts"
+msgstr "Clean transcripts"
+
+#. placeholder {0}: latest.number
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "clean version {0}"
+msgstr "clean version {0}"
+
+#. placeholder {0}: r.number
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Clean version {0} validated."
+msgstr "Clean version {0} validated."
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Clean version to validate"
+msgstr "Clean version to validate"
+
+#. placeholder {0}: interview.title
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Clean: {0}"
+msgstr "Clean: {0}"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Cleaned on"
+msgstr "Cleaned on"
+
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Cleaning"
+msgstr "Cleaning"
+
+#. placeholder {0}: clean.counts.toDecide
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Cleaning ({0} to decide)"
+msgstr "Cleaning ({0} to decide)"
+
+#. placeholder {0}: run.done + run.failed
+#. placeholder {1}: run.total
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Cleaning: {0} of {1} interviews"
+msgstr "Cleaning: {0} of {1} interviews"
+
+#. placeholder {0}: run.chunksDone
+#. placeholder {1}: run.chunks
+#. placeholder {2}: run.done + run.failed
+#. placeholder {3}: run.total
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Cleaning: part {0} of {1}, {2} of {3} interviews"
+msgstr "Cleaning: part {0} of {1}, {2} of {3} interviews"
+
 #: src/features/ingestion/folder-button.tsx
 msgid "Click to change"
 msgstr "Click to change"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/fieldwork/proposals.tsx
 #: src/features/fieldwork/session-dialog.tsx
@@ -911,6 +1093,10 @@ msgstr "Columns of the sheet"
 #: src/features/research/study-list.tsx
 msgid "coming later"
 msgstr "coming later"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Confidence"
+msgstr "Confidence"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Confirm"
@@ -975,10 +1161,40 @@ msgstr "Conversation title"
 msgid "Conversations"
 msgstr "Conversations"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Correction"
+msgstr "Correction"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Corrections of this turn"
+msgstr "Corrections of this turn"
+
+#: src/features/enrichment/labels.ts
+msgid "Corrections to decide"
+msgstr "Corrections to decide"
+
+#. placeholder {0}: i.toDecide
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Corrections to decide ({0})"
+msgstr "Corrections to decide ({0})"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Cost"
+msgstr "Cost"
+
 #. placeholder {0}: data.analysisCost === null ? t`unknown` : money(data.analysisCost)
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Cost of the analyses: {0}"
 msgstr "Cost of the analyses: {0}"
+
+#. placeholder {0}: money(data.cost)
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Cost of the cleanings: {0}"
+msgstr "Cost of the cleanings: {0}"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Cost of the cleanings: unknown"
+msgstr "Cost of the cleanings: unknown"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Cost of the readings"
@@ -993,6 +1209,15 @@ msgstr "Cost of this conversation: {total}. Last message: {last}."
 msgid "cost unknown"
 msgstr "cost unknown"
 
+#. placeholder {0}: money(data.cost)
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Cost: {0}"
+msgstr "Cost: {0}"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Cost: unknown"
+msgstr "Cost: unknown"
+
 #: src/features/ai/provider-forms.tsx
 msgid "Could not be verified"
 msgstr "Could not be verified"
@@ -1000,6 +1225,10 @@ msgstr "Could not be verified"
 #: src/features/fieldwork/analysis.tsx
 msgid "Counting the interviews to analyze…"
 msgstr "Counting the interviews to analyze…"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Counting the interviews to clean…"
+msgstr "Counting the interviews to clean…"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Counting the interviews to read…"
@@ -1067,6 +1296,19 @@ msgstr "Deactivate"
 msgid "Deactivated"
 msgstr "Deactivated"
 
+#: src/features/workspace/errors.ts
+msgid "Decide every correction before validating the clean version."
+msgstr "Decide every correction before validating the clean version."
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Decide every correction to validate."
+msgstr "Decide every correction to validate."
+
+#. placeholder {0}: c.decidedBy.name
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "decided by {0}"
+msgstr "decided by {0}"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Decided terms stay as they are; new spellings are proposed on them."
 msgstr "Decided terms stay as they are; new spellings are proposed on them."
@@ -1075,6 +1317,10 @@ msgstr "Decided terms stay as they are; new spellings are proposed on them."
 #: src/features/preparation/drive-review.tsx
 msgid "Decision"
 msgstr "Decision"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Decisions already made stay as they are."
+msgstr "Decisions already made stay as they are."
 
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Definition"
@@ -1154,6 +1400,15 @@ msgstr "Detach folder"
 #: src/features/ingestion/source-panel.tsx
 msgid "Detach this folder?"
 msgstr "Detach this folder?"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Details"
+msgstr "Details"
+
+#. placeholder {0}: c.original
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Details of “{0}”"
+msgstr "Details of “{0}”"
 
 #: src/features/ai/labels.ts
 msgid "Development only: keys starting with \"test-ok\" work."
@@ -1279,9 +1534,25 @@ msgstr "Enter to save, Escape to cancel"
 msgid "Enter who you will interview."
 msgstr "Enter who you will interview."
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Every correction is decided. One step left: validate the clean version, the one Analysis will read."
+msgstr "Every correction is decided. One step left: validate the clean version, the one Analysis will read."
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Every correction the AI proposes waits for a person's decision."
+msgstr "Every correction the AI proposes waits for a person's decision."
+
 #: src/features/fieldwork/analysis.tsx
 msgid "Every interview is already analyzed. Tick the box below to analyze them again."
 msgstr "Every interview is already analyzed. Tick the box below to analyze them again."
+
+#: src/features/workspace/errors.ts
+msgid "Every interview is already cleaned."
+msgstr "Every interview is already cleaned."
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Every interview is already cleaned. Tick the box below to clean them again."
+msgstr "Every interview is already cleaned. Tick the box below to clean them again."
 
 #: src/features/workspace/errors.ts
 msgid "Every interview is already read."
@@ -1591,9 +1862,21 @@ msgstr "Help me design the interview guide for this study."
 msgid "Help me improve the interview guide of this study."
 msgstr "Help me improve the interview guide of this study."
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Hidden by another correction here"
+msgstr "Hidden by another correction here"
+
 #: src/features/fieldwork/labels.ts
 msgid "high confidence"
 msgstr "high confidence"
+
+#: src/features/enrichment/labels.ts
+msgid "High confidence"
+msgstr "High confidence"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "How to clean"
+msgstr "How to clean"
 
 #: src/features/preparation/best-practices.tsx
 msgid "How to run a neutral interview: phases, questions, follow-ups, biases, what is measured."
@@ -1626,6 +1909,7 @@ msgstr "In sync"
 msgid "In the app"
 msgstr "In the app"
 
+#: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/session-dialog.tsx
@@ -1755,6 +2039,16 @@ msgstr "Invited"
 msgid "it could not be started; try again in a moment"
 msgstr "it could not be started; try again in a moment"
 
+#. placeholder {0}: c.replacement
+#. placeholder {1}: c.term?.form ?? c.replacement
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "It reads “{0}”, from the term “{1}” of the lexicon. Accept or reject it here; to change its form, edit the term in the lexicon."
+msgstr "It reads “{0}”, from the term “{1}” of the lexicon. Accept or reject it here; to change its form, edit the term in the lexicon."
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "It should read"
+msgstr "It should read"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "it stopped before the end; refresh to run it again"
 msgstr "it stopped before the end; refresh to run it again"
@@ -1796,6 +2090,7 @@ msgstr "Keep the app's"
 msgid "kept"
 msgstr "kept"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/ingestion/source-panel.tsx
@@ -1838,14 +2133,31 @@ msgstr "Last sign-in"
 msgid "Last successful check"
 msgstr "Last successful check"
 
+#. placeholder {0}: money(data.lastRunCost)
+#: src/features/enrichment/cleaning-table.tsx
+msgid "last: {0}"
+msgstr "last: {0}"
+
 #: src/features/workspace/errors.ts
 msgid "Let goodresearch edit your Drive files first."
 msgstr "Let goodresearch edit your Drive files first."
+
+#: src/features/enrichment/labels.ts
+msgid "Lexicon"
+msgstr "Lexicon"
 
 #. placeholder {0}: data.counts.toDecide
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Lexicon ({0} to decide)"
 msgstr "Lexicon ({0} to decide)"
+
+#: src/features/enrichment/labels.ts
+msgid "Lexicon changed"
+msgstr "Lexicon changed"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Lexicon only"
+msgstr "Lexicon only"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Link of the Drive folder"
@@ -1875,6 +2187,10 @@ msgstr "Looking at: this page"
 msgid "low confidence"
 msgstr "low confidence"
 
+#: src/features/enrichment/labels.ts
+msgid "Low confidence"
+msgstr "Low confidence"
+
 #: src/features/workspace/app-sidebar.tsx
 msgid "Main"
 msgstr "Main"
@@ -1898,6 +2214,10 @@ msgstr "Media"
 #: src/features/fieldwork/labels.ts
 msgid "medium confidence"
 msgstr "medium confidence"
+
+#: src/features/enrichment/labels.ts
+msgid "Medium confidence"
+msgstr "Medium confidence"
 
 #: src/features/workspace/account-menu.tsx
 #: src/features/workspace/member-labels.ts
@@ -1985,6 +2305,7 @@ msgid "Move the link here?"
 msgstr "Move the link here?"
 
 #: src/features/assistant/proposal-card.tsx
+#: src/features/enrichment/labels.ts
 #: src/features/ingestion/source-panel.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
@@ -2075,6 +2396,10 @@ msgstr "No change to review."
 msgid "No conversation yet."
 msgstr "No conversation yet."
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "No correction matches these filters."
+msgstr "No correction matches these filters."
+
 #: src/features/research/study-list.tsx
 msgid "No folder yet"
 msgstr "No folder yet"
@@ -2098,6 +2423,10 @@ msgstr "no planned interview matches"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "No recording found for this interview."
 msgstr "No recording found for this interview."
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "No speaker"
+msgstr "No speaker"
 
 #: src/features/research/study-list.tsx
 msgid "No study yet. A study collects evidence for this project, for example a series of interviews."
@@ -2148,6 +2477,10 @@ msgstr "None"
 msgid "Not applied"
 msgstr "Not applied"
 
+#: src/features/enrichment/labels.ts
+msgid "Not cleaned"
+msgstr "Not cleaned"
+
 #: src/routes/_authenticated/sources.tsx
 msgid "Not connected. You will be asked to connect when you attach a folder to a study."
 msgstr "Not connected. You will be asked to connect when you attach a folder to a study."
@@ -2196,9 +2529,17 @@ msgstr "Notes"
 msgid "Nothing is created or changed in your Drive unless you publish a study's preparation, which asks separately for editing. Nothing is ever deleted. You can disconnect at any time from Connected sources."
 msgstr "Nothing is created or changed in your Drive unless you publish a study's preparation, which asks separately for editing. Nothing is ever deleted. You can disconnect at any time from Connected sources."
 
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Nothing is sent, no cost."
+msgstr "Nothing is sent, no cost."
+
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Nothing to decide. Find terms to read new interviews, or see the accepted terms."
 msgstr "Nothing to decide. Find terms to read new interviews, or see the accepted terms."
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "now:"
+msgstr "now:"
 
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
@@ -2234,6 +2575,10 @@ msgstr "Only terms of the same language can be merged."
 msgid "Only the names change: no file is moved, copied or deleted."
 msgstr "Only the names change: no file is moved, copied or deleted."
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Only turns with corrections"
+msgstr "Only turns with corrections"
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Open"
 msgstr "Open"
@@ -2258,9 +2603,15 @@ msgstr "Open a study"
 msgid "Open Google account permissions"
 msgstr "Open Google account permissions"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-publishing.tsx
 msgid "Open in Drive"
 msgstr "Open in Drive"
+
+#. placeholder {0}: i.published.versionNumber
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Open in Drive (version {0})"
+msgstr "Open in Drive (version {0})"
 
 #. placeholder {0}: i18n._(KINDS[kind])
 #: src/features/preparation/drive-publishing.tsx
@@ -2339,6 +2690,10 @@ msgstr "Other"
 #: src/features/fieldwork/labels.ts
 msgid "Other language"
 msgstr "Other language"
+
+#: src/features/enrichment/labels.ts
+msgid "Out of date in Drive"
+msgstr "Out of date in Drive"
 
 #: src/features/preparation/drive-publishing.tsx
 msgid "Out of date: changed in the app"
@@ -2469,13 +2824,32 @@ msgstr "Proposed, or with new spellings"
 msgid "Provider"
 msgstr "Provider"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-publishing.tsx
 msgid "Publish to Drive"
 msgstr "Publish to Drive"
 
+#: src/features/enrichment/labels.ts
+msgid "Published"
+msgstr "Published"
+
+#. placeholder {0}: data.folder.name
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Published clean transcripts go to the folder “{0}” of the study folder."
+msgstr "Published clean transcripts go to the folder “{0}” of the study folder."
+
+#. placeholder {0}: r.versionNumber
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Published in Drive (version {0})."
+msgstr "Published in Drive (version {0})."
+
 #: src/features/preparation/drive-publishing.tsx
 msgid "Published to Drive"
 msgstr "Published to Drive"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Publishing…"
+msgstr "Publishing…"
 
 #: src/features/preparation/guide-view.tsx
 msgid "Q{n}"
@@ -2554,9 +2928,16 @@ msgstr "Refreshing…"
 msgid "Region"
 msgstr "Region"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Reject"
 msgstr "Reject"
+
+#. placeholder {0}: c.original
+#. placeholder {1}: c.replacement
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Reject “{0}” → “{1}”"
+msgstr "Reject “{0}” → “{1}”"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Reject all"
@@ -2668,6 +3049,10 @@ msgstr "Reopen: {0}"
 msgid "Replace folder"
 msgstr "Replace folder"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Replace it"
+msgstr "Replace it"
+
 #: src/features/preparation/drive-publishing.tsx
 msgid "Replace the Drive version"
 msgstr "Replace the Drive version"
@@ -2758,6 +3143,10 @@ msgstr "same time"
 msgid "Save"
 msgstr "Save"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Save the edit"
+msgstr "Save the edit"
+
 #: src/features/preparation/guide-editor.tsx
 msgid "Save the guide"
 msgstr "Save the guide"
@@ -2811,6 +3200,10 @@ msgstr "Send"
 msgid "Send the beginning of the transcript to your AI provider?"
 msgstr "Send the beginning of the transcript to your AI provider?"
 
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Set up your AI provider first, or choose \"Lexicon only\"."
+msgstr "Set up your AI provider first, or choose \"Lexicon only\"."
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Set up your AI provider first: it groups the spellings and explains the terms."
 msgstr "Set up your AI provider first: it groups the spellings and explains the terms."
@@ -2818,6 +3211,10 @@ msgstr "Set up your AI provider first: it groups the spellings and explains the 
 #: src/features/workspace/errors.ts
 msgid "Set up your AI provider first."
 msgstr "Set up your AI provider first."
+
+#: src/features/enrichment/labels.ts
+msgid "Set up your AI provider to clean with the AI."
+msgstr "Set up your AI provider to clean with the AI."
 
 #: src/features/enrichment/labels.ts
 msgid "Set up your AI provider to find the terms."
@@ -2869,6 +3266,10 @@ msgstr "Skip to content"
 msgid "Some fields are not valid."
 msgstr "Some fields are not valid."
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Someone changed this document in Drive since it was published. Updating it replaces those changes with the clean version; the app does not bring them back."
+msgstr "Someone changed this document in Drive since it was published. Updating it replaces those changes with the clean version; the app does not bring them back."
+
 #: src/features/workspace/errors.ts
 msgid "Someone changed this in the meantime. Reload to see the latest version."
 msgstr "Someone changed this in the meantime. Reload to see the latest version."
@@ -2877,20 +3278,38 @@ msgstr "Someone changed this in the meantime. Reload to see the latest version."
 msgid "Something went wrong. Please try again."
 msgstr "Something went wrong. Please try again."
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Source"
+msgstr "Source"
+
 #: src/routes/_authenticated/sources.tsx
 msgid "Sources goodresearch reads with your own permission. They are separate from signing in."
 msgstr "Sources goodresearch reads with your own permission. They are separate from signing in."
+
+#: src/features/enrichment/labels.ts
+msgid "Speaker"
+msgstr "Speaker"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Speaker:"
+msgstr "Speaker:"
 
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Spellings found"
 msgstr "Spellings found"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Spoken by"
+msgstr "Spoken by"
+
+#: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "State"
 msgstr "State"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/session-dialog.tsx
@@ -2900,6 +3319,7 @@ msgid "Status"
 msgstr "Status"
 
 #: src/features/assistant/panel.tsx
+#: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/analysis.tsx
 msgid "Stop"
@@ -2959,6 +3379,15 @@ msgstr "Summary, not a transcript"
 msgid "Survey"
 msgstr "Survey"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Take back"
+msgstr "Take back"
+
+#. placeholder {0}: c.original
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Take back the decision on “{0}”"
+msgstr "Take back the decision on “{0}”"
+
 #: src/features/preparation/drive-review.tsx
 msgid "Take Drive's"
 msgstr "Take Drive's"
@@ -3007,6 +3436,10 @@ msgstr "Term: {0}"
 msgid "Terms are already being found for this study."
 msgstr "Terms are already being found for this study."
 
+#: src/features/workspace/errors.ts
+msgid "Terms are being found or transcripts cleaned for this study: wait until it ends."
+msgstr "Terms are being found or transcripts cleaned for this study: wait until it ends."
+
 #. placeholder {0}: interviewTitle ?? ''
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Terms found in: {0}"
@@ -3043,12 +3476,20 @@ msgid "The account has no credit or quota left."
 msgstr "The account has no credit or quota left."
 
 #: src/features/enrichment/labels.ts
+msgid "The AI answer could not be used: some corrections may be missing, try again."
+msgstr "The AI answer could not be used: some corrections may be missing, try again."
+
+#: src/features/enrichment/labels.ts
 msgid "The AI answer could not be used: some terms may be missing, try again."
 msgstr "The AI answer could not be used: some terms may be missing, try again."
 
 #: src/features/fieldwork/labels.ts
 msgid "The AI answer could not be used: try again."
 msgstr "The AI answer could not be used: try again."
+
+#: src/features/enrichment/labels.ts
+msgid "The AI provider returned an error or took too long: some corrections may be missing, try again."
+msgstr "The AI provider returned an error or took too long: some corrections may be missing, try again."
 
 #: src/features/enrichment/labels.ts
 msgid "The AI provider returned an error or took too long: some terms may be missing, try again."
@@ -3074,6 +3515,10 @@ msgstr "The app cannot read this file format: only the file names were used."
 msgid "The app cannot read this file format."
 msgstr "The app cannot read this file format."
 
+#: src/features/enrichment/cleaning-table.tsx
+msgid "The app first applies the lexicon itself, at no cost. The AI then reads each transcript in full and proposes corrections: you decide each one."
+msgstr "The app first applies the lexicon itself, at no cost. The AI then reads each transcript in full and proposes corrections: you decide each one."
+
 #: src/features/preparation/preparation-tab.tsx
 msgid "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
 msgstr "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
@@ -3085,6 +3530,14 @@ msgstr "The best practices are not brought back: the next update replaces this."
 #: src/features/ai/labels.ts
 msgid "The check did not work for an unexpected reason."
 msgstr "The check did not work for an unexpected reason."
+
+#: src/features/enrichment/labels.ts
+msgid "The cleaning was interrupted: clean the transcripts again."
+msgstr "The cleaning was interrupted: clean the transcripts again."
+
+#: src/features/workspace/errors.ts
+msgid "The document was changed in Drive since it was published."
+msgstr "The document was changed in Drive since it was published."
 
 #: src/features/ingestion/folder-button.tsx
 msgid "The Drive folder the interviews come from."
@@ -3167,6 +3620,10 @@ msgstr "The name and email are erased for good and the person can no longer sign
 msgid "The names and titles proposed for the interviews use a pseudonym (P01, P02…) instead of the interviewee's name. Before the beginning of a transcript goes to the AI, the names the app knows (schedule, people of the interview, team) are replaced; names it does not know stay in the text. Replacing every name inside the transcripts comes with the cleaning phase."
 msgstr "The names and titles proposed for the interviews use a pseudonym (P01, P02…) instead of the interviewee's name. Before the beginning of a transcript goes to the AI, the names the app knows (schedule, people of the interview, team) are replaced; names it does not know stay in the text. Replacing every name inside the transcripts comes with the cleaning phase."
 
+#: src/features/enrichment/cleaning-table.tsx
+msgid "The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending."
+msgstr "The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending."
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending. No transcript is sent in full."
 msgstr "The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending. No transcript is sent in full."
@@ -3232,6 +3689,14 @@ msgstr "Theme"
 msgid "Theme 1"
 msgstr "Theme 1"
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "These words are in the turn more than once: add a word before or after them."
+msgstr "These words are in the turn more than once: add a word before or after them."
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "These words are not in the turn (copy them exactly)."
+msgstr "These words are not in the turn (copy them exactly)."
+
 #: src/features/assistant/panel.tsx
 msgid "Thinking…"
 msgstr "Thinking…"
@@ -3252,6 +3717,10 @@ msgstr "This conversation does not exist any more."
 msgid "This conversation: {total}"
 msgstr "This conversation: {total}"
 
+#: src/features/workspace/errors.ts
+msgid "This correction is no longer there: the transcript or the lexicon changed."
+msgstr "This correction is no longer there: the transcript or the lexicon changed."
+
 #: src/features/fieldwork/labels.ts
 msgid "This file is a summary, not a transcript: the app excluded it. Reopen it if it is an interview."
 msgstr "This file is a summary, not a transcript: the app excluded it. Reopen it if it is an interview."
@@ -3264,9 +3733,17 @@ msgstr "This folder does not exist or your Google account cannot open it."
 msgid "This Google Cloud project does not exist or your account cannot open it."
 msgstr "This Google Cloud project does not exist or your account cannot open it."
 
+#: src/features/enrichment/cleaning-table.tsx
+msgid "This interview has no transcript to clean."
+msgstr "This interview has no transcript to clean."
+
 #: src/features/enrichment/labels.ts
 msgid "This interview has no transcript."
 msgstr "This interview has no transcript."
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "This interview is cleaned again in full. Decisions already made stay as they are."
+msgstr "This interview is cleaned again in full. Decisions already made stay as they are."
 
 #: src/features/workspace/errors.ts
 msgid "This interview is no longer in the folder's list."
@@ -3364,6 +3841,10 @@ msgstr "This team still has projects. Move them to another team first."
 msgid "This term is no longer in the lexicon."
 msgstr "This term is no longer in the lexicon."
 
+#: src/features/workspace/errors.ts
+msgid "This text is not in the turn any more."
+msgstr "This text is not in the turn any more."
+
 #: src/features/enrichment/labels.ts
 msgid "This transcript is too long to be read (more than 400,000 characters)."
 msgstr "This transcript is too long to be read (more than 400,000 characters)."
@@ -3376,6 +3857,14 @@ msgstr "Title"
 #: src/features/assistant/panel.tsx
 msgid "Title saved"
 msgstr "Title saved"
+
+#: src/features/enrichment/labels.ts
+msgid "To clean again"
+msgstr "To clean again"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "To clean with the AI, the full text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
+msgstr "To clean with the AI, the full text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
 
 #: src/features/preparation/labels.ts
 msgid "To contact"
@@ -3444,6 +3933,10 @@ msgstr "Try again in a moment."
 msgid "Try again; if it keeps failing, contact the person who deployed goodresearch."
 msgstr "Try again; if it keeps failing, contact the person who deployed goodresearch."
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Turns of the transcript"
+msgstr "Turns of the transcript"
+
 #: src/features/preparation/labels.ts
 msgid "two questions in one"
 msgstr "two questions in one"
@@ -3461,6 +3954,7 @@ msgid "Unavailable in Drive"
 msgstr "Unavailable in Drive"
 
 #: src/features/assistant/cost.tsx
+#: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/analysis.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -3471,6 +3965,7 @@ msgstr "unknown"
 msgid "unknown status"
 msgstr "unknown status"
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-publishing.tsx
 msgid "Update in Drive"
 msgstr "Update in Drive"
@@ -3515,6 +4010,14 @@ msgstr "Validate"
 msgid "Validate interviews in Fieldwork first: only validated interviews are read."
 msgstr "Validate interviews in Fieldwork first: only validated interviews are read."
 
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Validate the clean version"
+msgstr "Validate the clean version"
+
+#: src/features/workspace/errors.ts
+msgid "Validate the clean version before publishing it."
+msgstr "Validate the clean version before publishing it."
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/labels.ts
 msgid "Validated"
@@ -3555,6 +4058,10 @@ msgstr "Waiting for analysis"
 #: src/features/preparation/labels.ts
 msgid "Warm-up questions"
 msgstr "Warm-up questions"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "was:"
+msgstr "was:"
 
 #: src/routes/_authenticated/welcome.tsx
 msgid "Welcome to goodresearch"
@@ -3613,6 +4120,10 @@ msgstr "With a transcript"
 msgid "with the AI"
 msgstr "with the AI"
 
+#: src/features/enrichment/cleaning-table.tsx
+msgid "With the lexicon and the AI"
+msgstr "With the lexicon and the AI"
+
 #: src/features/fieldwork/labels.ts
 msgid "within 15 minutes"
 msgstr "within 15 minutes"
@@ -3621,6 +4132,10 @@ msgstr "within 15 minutes"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Without transcript ({0})"
 msgstr "Without transcript ({0})"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Words written"
+msgstr "Words written"
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Working"
@@ -3638,6 +4153,14 @@ msgstr "Write it myself"
 #: src/features/preparation/drive-review.tsx
 msgid "Write the final text"
 msgstr "Write the final text"
+
+#: src/features/workspace/errors.ts
+msgid "Write what it should read."
+msgstr "Write what it should read."
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Written:"
+msgstr "Written:"
 
 #: src/routes/_authenticated/teams.tsx
 msgid "You are not in any team yet."
@@ -3690,3 +4213,7 @@ msgstr "Your AI provider needs your attention."
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Your key or Google access is deleted from goodresearch. You will be asked to choose a provider again before using the app."
 msgstr "Your key or Google access is deleted from goodresearch. You will be asked to choose a provider again before using the app."
+
+#: src/features/enrichment/labels.ts
+msgid "Yours"
+msgstr "Yours"

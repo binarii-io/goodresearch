@@ -1,5 +1,6 @@
 import { err, ok, type Result } from '@goodresearch/shared'
 import { DriveConnectionLost, TranscriptUnreadable } from '../domain/drive-gateway.ts'
+import { nameKey } from '../domain/pseudonyms.ts'
 import { splitNames } from '../domain/session.ts'
 import { resolveStudyAccess } from './access.ts'
 import { readRefreshToken } from './connection.ts'
@@ -114,6 +115,56 @@ export const makeEnrichmentSources = (deps: IngestionDeps) => {
           }
         }
       }
+    },
+
+    /**
+     * Spec 011 research R5: the people of the study's validated interviews with their codes —
+     * interviewees their pseudonym (`P01`…), interviewers their own code (`I01`…), both numbered
+     * once per study in the order of interview dates. Codes are given only with `assign` (a
+     * cleaning run, a validation); reads see those given already. Null without access.
+     */
+    cleaningNames: async (
+      accountId: string,
+      studyId: string,
+      options: { assign: boolean },
+    ): Promise<{
+      anonymised: boolean
+      people: Record<string, { name: string; role: 'interviewer' | 'interviewee'; code: string }[]>
+    } | null> => {
+      const access = await visible(accountId, studyId)
+      if (!access) return null
+      const sessions = await deps.store.listSessions(studyId)
+      const keyOf = (role: 'interviewer' | 'interviewee', name: string) =>
+        role === 'interviewer' ? `interviewer:${nameKey(name)}` : nameKey(name)
+      const needed = (role: 'interviewer' | 'interviewee') =>
+        options.assign
+          ? sessions.flatMap((s) =>
+              s.roster
+                .filter((r) => r.role === role)
+                .map((r) => ({ key: keyOf(role, r.name), date: s.interviewDate })),
+            )
+          : []
+      const now = deps.clock.now()
+      // Nothing needed: a read of the codes given already.
+      const interviewees = await deps.store.ensurePseudonyms(studyId, needed('interviewee'), now)
+      const interviewers = await deps.store.ensurePseudonyms(
+        studyId,
+        needed('interviewer'),
+        now,
+        'I',
+      )
+      const people: Record<
+        string,
+        { name: string; role: 'interviewer' | 'interviewee'; code: string }[]
+      > = {}
+      for (const s of sessions.filter((x) => x.state === 'validated'))
+        people[s.id] = s.roster.flatMap((r) => {
+          const code = (r.role === 'interviewer' ? interviewers : interviewees).get(
+            keyOf(r.role, r.name),
+          )
+          return code ? [{ name: r.name, role: r.role, code }] : []
+        })
+      return { anonymised: access.anonymised, people }
     },
 
     /** The names of the study's rosters, schedule and team members; empty without access. */

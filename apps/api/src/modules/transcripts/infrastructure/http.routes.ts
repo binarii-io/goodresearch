@@ -20,13 +20,18 @@ import {
 import type { FastifyInstance, preHandlerAsyncHookHandler } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { reply } from '#platform/http/result.ts'
+import type { CleaningCommands } from '../application/commands/cleaning-commands.ts'
 import type { LexiconCommands } from '../application/commands/lexicon-commands.ts'
+import type { CleaningQueries } from '../application/queries/cleaning-queries.ts'
 import type { EnrichmentQueries } from '../application/queries/enrichment-queries.ts'
 import type { LexiconTerm as Term } from '../domain/lexicon-term.ts'
+import { registerCleaningRoutes } from './cleaning.routes.ts'
 
 export type TranscriptsHandlers = {
   readonly lexicon: LexiconCommands
   readonly queries: EnrichmentQueries
+  readonly cleaning: CleaningCommands
+  readonly cleaningQueries: CleaningQueries
 }
 
 /** Spec 010 routes: the Enrichment tab, the lexicon readings and the decisions on terms. */
@@ -35,6 +40,11 @@ export const registerTranscriptsRoutes = (
   deps: { guard: preHandlerAsyncHookHandler; handlers: TranscriptsHandlers },
 ): void => {
   const { lexicon, queries } = deps.handlers
+  registerCleaningRoutes(app, {
+    guard: deps.guard,
+    cleaning: deps.handlers.cleaning,
+    queries: deps.handlers.cleaningQueries,
+  })
   const api = app.withTypeProvider<ZodTypeProvider>()
   const secured = { preHandler: deps.guard }
   const tags = ['enrichment']

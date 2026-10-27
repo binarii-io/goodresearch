@@ -88,7 +88,12 @@ export const PLACEHOLDER = /\[Person \d+\]/g
 export const withPlaceholders = (
   text: string,
   names: readonly string[],
-): { text: string; names: ReadonlyMap<string, string> } => {
+): {
+  text: string
+  names: ReadonlyMap<string, string>
+  /** Where each placeholder went, in the text given: to map offsets back (spec 011). */
+  cuts: readonly { start: number; end: number; placeholder: string }[]
+} => {
   const people = [...new Set(names.map((n) => n.trim()).filter((n) => n.length > 0))]
   const placeholders = new Map<string, string>()
   const patterns: { words: string[]; placeholder: string }[] = []
@@ -121,7 +126,7 @@ export const withPlaceholders = (
     out += text.slice(at, c.start) + c.placeholder
     at = c.end
   }
-  return { text: out + text.slice(at), names: placeholders }
+  return { text: out + text.slice(at), names: placeholders, cuts }
 }
 
 /** The AI's answer with the placeholders turned back into the names (they stay in the app). */

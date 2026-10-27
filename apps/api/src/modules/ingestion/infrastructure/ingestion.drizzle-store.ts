@@ -586,22 +586,33 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
     return rows.length ? 'saved' : 'stale'
   },
 
-  ensurePseudonyms: async (studyId, needed, now) =>
-    db.transaction(async (tx) => {
+  ensurePseudonyms: async (studyId, needed, now, prefix = 'P') => {
+    // Nothing to give: a plain read, no lock and no write (spec 011 queries).
+    if (needed.length === 0)
+      return new Map(
+        (
+          await db
+            .select({ key: ingestionPseudonyms.nameKey, code: ingestionPseudonyms.code })
+            .from(ingestionPseudonyms)
+            .where(eq(ingestionPseudonyms.studyId, studyId))
+        ).map((r) => [r.key, r.code]),
+      )
+    return db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`pseudonyms:${studyId}`}))`)
       const rows = await tx
         .select({ key: ingestionPseudonyms.nameKey, code: ingestionPseudonyms.code })
         .from(ingestionPseudonyms)
         .where(eq(ingestionPseudonyms.studyId, studyId))
       const codes = new Map(rows.map((r) => [r.key, r.code]))
-      const fresh = assignPseudonyms(codes, needed)
+      const fresh = assignPseudonyms(codes, needed, prefix)
       if (fresh.length)
         await tx
           .insert(ingestionPseudonyms)
           .values(fresh.map((f) => ({ studyId, nameKey: f.key, code: f.code, createdAt: now })))
       for (const f of fresh) codes.set(f.key, f.code)
       return codes
-    }),
+    })
+  },
 
   hasConsent: async (accountId, studyId, provider) => {
     const [row] = await db

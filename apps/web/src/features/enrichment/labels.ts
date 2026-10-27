@@ -1,4 +1,9 @@
-import type { EnrichmentInterview, LexiconTerm } from '@goodresearch/api-client'
+import type {
+  CleaningInterview,
+  Correction,
+  EnrichmentInterview,
+  LexiconTerm,
+} from '@goodresearch/api-client'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 
@@ -70,4 +75,55 @@ export const LANGUAGES: Record<LexiconTerm['language'], MessageDescriptor> = {
 export const TERM_SCOPES: Record<LexiconTerm['scope'], MessageDescriptor> = {
   global: msg`Everywhere`,
   'case-by-case': msg`Case by case`,
+}
+
+/** Spec 011: where each validated interview stands in Cleaning. */
+export const CLEANING_STATES: Record<CleaningInterview['state'], MessageDescriptor> = {
+  'no-transcript': msg`No transcript`,
+  'not-cleaned': msg`Not cleaned`,
+  'to-redo': msg`To clean again`,
+  'to-decide': msg`Corrections to decide`,
+  'lexicon-changed': msg`Lexicon changed`,
+  clean: msg`Clean`,
+  published: msg`Published`,
+  'out-of-date': msg`Out of date in Drive`,
+}
+
+export const CLEANING_FAILURES: Record<
+  NonNullable<CleaningInterview['failure']>,
+  MessageDescriptor
+> = {
+  ...LEXICON_FAILURES,
+  INTERRUPTED: msg`The cleaning was interrupted: clean the transcripts again.`,
+  AI_PROVIDER_REQUIRED: msg`Set up your AI provider to clean with the AI.`,
+  AI_FAILED: msg`The AI provider returned an error or took too long: some corrections may be missing, try again.`,
+  INVALID_ANSWER: msg`The AI answer could not be used: some corrections may be missing, try again.`,
+}
+
+export const CORRECTION_SOURCES: Record<Correction['source'], MessageDescriptor> = {
+  person: msg`Yours`,
+  lexicon: msg`Lexicon`,
+  name: msg`Name`,
+  'ai-lexicon': msg`AI, from the lexicon`,
+  'ai-other': msg`AI`,
+}
+
+export const CORRECTION_KINDS: Record<Correction['kind'], MessageDescriptor> = {
+  term: msg`Term`,
+  transcription: msg`Transcription error`,
+  speaker: msg`Speaker`,
+  name: msg`Name`,
+}
+
+export const CORRECTION_STATUSES: Record<Correction['status'], MessageDescriptor> = {
+  proposed: msg`To decide`,
+  accepted: msg`Accepted`,
+  edited: msg`Edited`,
+  rejected: msg`Rejected`,
+}
+
+export const CONFIDENCES: Record<NonNullable<Correction['confidence']>, MessageDescriptor> = {
+  high: msg`High confidence`,
+  medium: msg`Medium confidence`,
+  low: msg`Low confidence`,
 }

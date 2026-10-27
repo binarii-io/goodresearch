@@ -304,6 +304,15 @@ describe('pseudonyms', () => {
       { key: 'zoe', code: 'P05' },
     ])
   })
+  it('numbers interviewers apart, with their own prefix (spec 011)', () => {
+    const existing = new Map([
+      ['sam example', 'P02'],
+      ['interviewer:lee', 'I01'],
+    ])
+    expect(assignPseudonyms(existing, [{ key: 'interviewer:ana', date: null }], 'I')).toEqual([
+      { key: 'interviewer:ana', code: 'I02' },
+    ])
+  })
 })
 
 describe('rule proposals', () => {

@@ -67,6 +67,7 @@ export type StartError =
   | 'AI_PROVIDER_REQUIRED'
   | 'LEXICON_CONSENT_REQUIRED'
   | 'LEXICON_RUNNING'
+  | 'ENRICHMENT_RUNNING'
 
 export type DecideError =
   | 'STUDY_NOT_FOUND'
@@ -158,6 +159,8 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
       if (!options.consent) return err('LEXICON_CONSENT_REQUIRED')
       await deps.store.giveConsent(actor.id, studyId, provider, now())
     }
+    // One Enrichment run per study (spec 011 research R6): a live cleaning blocks a reading.
+    if (await deps.otherRunLive?.(studyId)) return err('ENRICHMENT_RUNNING')
     const open = await deps.store.openRun(studyId)
     if (open) {
       if (isLive(open, now())) return err('LEXICON_RUNNING')
@@ -221,7 +224,7 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
 
   /** Imports one session's transcript as its raw version, keeping the ids of unchanged turns. */
   const importOne = async (
-    run: LexiconRun,
+    run: { readonly startedBy: string; readonly studyId: string },
     session: SourceSession,
   ): Promise<{ transcript: Transcript | null; failure: LexiconFailure | null }> => {
     const previous = await deps.store.getTranscript(session.id)
@@ -543,7 +546,19 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     return ok({ done, changed: terms.length - done })
   }
 
-  return { estimate, startRun, stopRun, runJob, decide, merge, decideMany, judge, recount }
+  return {
+    estimate,
+    startRun,
+    stopRun,
+    runJob,
+    decide,
+    merge,
+    decideMany,
+    judge,
+    recount,
+    importTranscript: importOne,
+    liveRun: async (studyId: string) => isLive(await deps.store.openRun(studyId), now()),
+  }
 }
 
 export type LexiconCommands = ReturnType<typeof makeLexiconCommands>

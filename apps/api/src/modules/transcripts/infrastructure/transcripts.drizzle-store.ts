@@ -400,7 +400,7 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
       return new Map(rows.filter((r) => r.status !== 'deleted').map((r) => [r.id, r.name]))
     },
 
-    hasConsent: async (accountId, studyId, provider) => {
+    hasConsent: async (accountId, studyId, provider, purpose = 'lexicon') => {
       const [row] = await db
         .select({ n: count() })
         .from(transcriptsConsents)
@@ -409,15 +409,16 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
             eq(transcriptsConsents.accountId, accountId),
             eq(transcriptsConsents.studyId, studyId),
             eq(transcriptsConsents.provider, provider),
+            eq(transcriptsConsents.purpose, purpose),
           ),
         )
       return (row?.n ?? 0) > 0
     },
 
-    giveConsent: async (accountId, studyId, provider, at) => {
+    giveConsent: async (accountId, studyId, provider, at, purpose = 'lexicon') => {
       await db
         .insert(transcriptsConsents)
-        .values({ accountId, studyId, provider, givenAt: at })
+        .values({ accountId, studyId, provider, purpose, givenAt: at })
         .onConflictDoNothing()
     },
   }

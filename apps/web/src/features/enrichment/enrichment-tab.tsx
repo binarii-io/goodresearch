@@ -4,6 +4,7 @@ import {
   getGetEnrichmentQueryKey,
   getListLexiconQueryKey,
   useEstimateLexiconRun,
+  useGetCleaning,
   useGetEnrichment,
   useStartLexiconRun,
   useStopLexiconRun,
@@ -49,6 +50,8 @@ import { useEffect, useId, useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
+import { CleaningTable, cleaning } from './cleaning-table.tsx'
+import { InterviewCleaningView } from './interview-cleaning.tsx'
 import { ENRICHMENT_STATES, LEXICON_FAILURES, READING_STATES } from './labels.ts'
 import { LexiconTable } from './lexicon-table.tsx'
 
@@ -56,8 +59,8 @@ import { LexiconTable } from './lexicon-table.tsx'
 const reading = (data: Enrichment | undefined) => !!data?.run && !data.run.finished
 
 /**
- * The Enrichment phase (spec 010): the validated interviews, the team lexicon found in them and
- * what its readings cost. Cleaning (spec 011) comes next in this phase.
+ * The Enrichment phase: the validated interviews, the team lexicon found in them (spec 010), the
+ * cleaning of their transcripts (spec 011), and what each step costs.
  */
 export function EnrichmentTab({ studyId }: { studyId: string }) {
   const { t, i18n } = useLingui()
@@ -68,6 +71,13 @@ export function EnrichmentTab({ studyId }: { studyId: string }) {
       refetchInterval: (query) => (reading(query.state.data) ? 2000 : false),
     },
   })
+  const cleaningView = useGetCleaning(studyId, {
+    query: {
+      refetchOnMount: 'always',
+      refetchInterval: (query) => (cleaning(query.state.data) ? 2000 : false),
+    },
+  })
+  const [reviewing, setReviewing] = useState<string | null>(null)
   const queryClient = useQueryClient()
   // A reading that ends brings new terms: the lexicon is read again.
   const finishedRun = enrichment.data?.run?.finished ? enrichment.data.run.id : null
@@ -97,6 +107,15 @@ export function EnrichmentTab({ studyId }: { studyId: string }) {
         </p>
       </div>
     )
+  if (reviewing)
+    return (
+      <InterviewCleaningView
+        studyId={studyId}
+        sessionId={reviewing}
+        onBack={() => setReviewing(null)}
+      />
+    )
+  const clean = cleaningView.data
   return (
     <div className="grid gap-6">
       <Overview data={data} />
@@ -105,16 +124,19 @@ export function EnrichmentTab({ studyId }: { studyId: string }) {
           <TabsList aria-label={t`Enrichment`}>
             <TabsTrigger value="lexicon">{t`Lexicon (${data.counts.toDecide} to decide)`}</TabsTrigger>
             <TabsTrigger value="interviews">{t`Interviews (${data.interviews.length})`}</TabsTrigger>
+            <TabsTrigger value="cleaning">
+              {clean ? t`Cleaning (${clean.counts.toDecide} to decide)` : t`Cleaning`}
+            </TabsTrigger>
           </TabsList>
-          <FindTerms studyId={studyId} data={data} />
+          {tab === 'cleaning' ? null : <FindTerms studyId={studyId} data={data} />}
         </div>
-        {data.run?.finished && data.run.failure ? (
+        {tab !== 'cleaning' && data.run?.finished && data.run.failure ? (
           <p className="flex items-center gap-2 text-sm" role="status">
             <TriangleAlertIcon aria-hidden className="size-4 text-highlight-soft-foreground" />
             {i18n._(LEXICON_FAILURES[data.run.failure])}
           </p>
         ) : null}
-        {data.run?.finished && data.run.leftOut > 0 ? (
+        {tab !== 'cleaning' && data.run?.finished && data.run.leftOut > 0 ? (
           <p className="text-muted-foreground text-sm">
             {t`${data.run.leftOut} rarer words were left out of the last reading (at most 300 per reading).`}
           </p>
@@ -135,6 +157,13 @@ export function EnrichmentTab({ studyId }: { studyId: string }) {
               setTab('lexicon')
             }}
           />
+        </TabsContent>
+        <TabsContent value="cleaning">
+          {clean ? (
+            <CleaningTable studyId={studyId} data={clean} onOpen={setReviewing} />
+          ) : (
+            <Skeleton className="h-40 w-full" />
+          )}
         </TabsContent>
       </Tabs>
     </div>
@@ -331,10 +360,18 @@ function Interviews({ data, onTerms }: { data: Enrichment; onTerms: (sessionId: 
       </TableHeader>
       <TableBody>
         {data.interviews.map((i) => (
-          <TableRow key={i.sessionId}>
+          // A row with terms to decide opens them, the whole row (its button is the keyboard way).
+          <TableRow
+            key={i.sessionId}
+            className={i.state === 'to-decide' ? 'cursor-pointer' : undefined}
+            onClick={i.state === 'to-decide' ? () => onTerms(i.sessionId) : undefined}
+          >
             <TableCell>
-              <span className="grid">
-                <span className="font-medium">{i.title}</span>
+              <span className="grid min-w-0 max-w-80">
+                {/* Long names are cut with an ellipsis; the full name shows on hover. */}
+                <span className="truncate font-medium" title={i.title}>
+                  {i.title}
+                </span>
                 {i.interviewDate ? (
                   <span className="text-muted-foreground text-xs">
                     {day.format(new Date(`${i.interviewDate}T12:00:00Z`))}

@@ -242,6 +242,8 @@ export interface IngestionStore {
     studyId: string,
     needed: readonly { key: string; date: string | null }[],
     now: Date,
+    /** `P` for interviewees; `I` for interviewers (spec 011), keyed `interviewer:<nameKey>`. */
+    prefix?: string,
   ): Promise<ReadonlyMap<string, string>>
   hasConsent(accountId: string, studyId: string, provider: string): Promise<boolean>
   saveConsent(accountId: string, studyId: string, provider: string, now: Date): Promise<void>

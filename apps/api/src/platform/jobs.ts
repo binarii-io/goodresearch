@@ -8,6 +8,8 @@ export const QUEUES = {
   analysis: 'ingestion.analysis',
   /** One lexicon reading per study at a time (spec 010, `exclusive` keyed by study id). */
   lexicon: 'transcripts.lexicon',
+  /** One cleaning per study at a time (spec 011, `exclusive` keyed by study id). */
+  cleaning: 'transcripts.cleaning',
 } as const
 
 export type JobQueue = {
@@ -35,6 +37,11 @@ export const createQueues = async (boss: PgBoss): Promise<void> => {
     policy: 'exclusive',
     retryLimit: 0,
     expireInSeconds: 60 * 60,
+  })
+  await boss.createQueue(QUEUES.cleaning, {
+    policy: 'exclusive',
+    retryLimit: 0,
+    expireInSeconds: 120 * 60,
   })
 }
 

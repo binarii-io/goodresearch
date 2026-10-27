@@ -288,6 +288,9 @@ export const createGoogleDocuments = (options: {
   }
 
   const adapter: DriveDocuments = {
+    createFolder: async (token, parentId, name) =>
+      createFile(token, parentId, name, 'application/vnd.google-apps.folder'),
+
     createDocument: async (token, folderId, name, doc) => {
       const file = await createFile(token, folderId, name, DOC_MIME)
       // Once the file exists it is returned even if filling it fails: the caller tracks it and

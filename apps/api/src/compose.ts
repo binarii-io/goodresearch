@@ -15,6 +15,7 @@ import {
 import { createPublishingModule, registerPublishingRoutes } from './modules/publishing/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
 import {
+  createCleaningAi,
   createLexiconAi,
   createTranscriptsModule,
   registerTranscriptsRoutes,
@@ -143,6 +144,38 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       estimateCost: (...args) => bound(ai).estimateCost(...args),
       studyCosts: (refs) => bound(ai).studyCosts(refs),
     }),
+    cleaningAi: createCleaningAi({ gateway: () => bound(ai).gateway }),
+    cleaningNames: enrichment.cleaningNames,
+    // Spec 011: the clean transcripts go to a subfolder, with the person's own write access.
+    cleanFiles: async (accountId, studyId) => {
+      const files = await ingestion.studyFiles(accountId, studyId, 'write')
+      if (!files.ok) return files
+      const f = files.value
+      return {
+        ok: true,
+        value: {
+          ensureFolder: f.ensureFolder,
+          createDocument: f.createDocumentIn,
+          revision: f.revision,
+          rewriteDocument: f.rewriteDocument,
+          metadata: async (fileId) => {
+            const meta = await f.metadata(fileId)
+            return meta.ok && meta.value
+              ? {
+                  ok: true,
+                  value: {
+                    trashed: meta.value.trashed,
+                    parents: meta.value.parents,
+                    webViewLink: meta.value.webViewLink,
+                  },
+                }
+              : meta.ok
+                ? { ok: true, value: null }
+                : meta
+          },
+        },
+      }
+    },
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
   })
   const r = research.handlers

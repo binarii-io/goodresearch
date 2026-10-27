@@ -24,11 +24,24 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddCorrectionInput,
+  BulkCorrectionsInput,
+  BulkCorrectionsResult,
   BulkDecisionInput,
   BulkResult,
+  CleanPublished,
+  CleanVersionCreated,
+  Cleaning,
+  CleaningEstimate,
+  CleaningRunStarted,
+  CorrectionAdded,
+  DecideCorrectionInput,
   DecideTermInput,
   Enrichment,
+  EstimateCleaningRunParams,
   EstimateLexiconRunParams,
+  GetInterviewCleaningParams,
+  InterviewCleaning,
   JudgeOccurrenceInput,
   LexiconEstimate,
   LexiconPage,
@@ -36,8 +49,11 @@ import type {
   LexiconTerm,
   ListLexiconParams,
   MergeTermsInput,
+  PublishCleanInput,
+  StartCleaningRunInput,
   StartLexiconRunInput,
-  TermOccurrences
+  TermOccurrences,
+  ValidateCleanInput
 } from '../../model';
 
 import { apiFetch } from '../../../fetcher.ts';
@@ -66,7 +82,900 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getGetEnrichmentUrl = (studyId: string,) => {
+export const getGetCleaningUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/cleaning`
+}
+
+export const getCleaning = async (studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<Cleaning> => {
+
+  return apiFetch<Cleaning>(getGetCleaningUrl(studyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCleaningQueryKey = (studyId: string,) => {
+    return [
+    `/api/studies/${studyId}/cleaning`
+    ] as const;
+    }
+
+
+export const getGetCleaningQueryOptions = <TData = Awaited<ReturnType<typeof getCleaning>>, TError = unknown>(studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCleaning>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCleaningQueryKey(studyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCleaning>>> = ({ signal }) => getCleaning(studyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCleaning>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCleaningQueryResult = NonNullable<Awaited<ReturnType<typeof getCleaning>>>
+export type GetCleaningQueryError = unknown
+
+
+export function useGetCleaning<TData = Awaited<ReturnType<typeof getCleaning>>, TError = unknown>(
+ studyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCleaning>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCleaning>>,
+          TError,
+          Awaited<ReturnType<typeof getCleaning>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCleaning<TData = Awaited<ReturnType<typeof getCleaning>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCleaning>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCleaning>>,
+          TError,
+          Awaited<ReturnType<typeof getCleaning>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCleaning<TData = Awaited<ReturnType<typeof getCleaning>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCleaning>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCleaning<TData = Awaited<ReturnType<typeof getCleaning>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCleaning>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCleaningQueryOptions(studyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getEstimateCleaningRunUrl = (studyId: string,
+    params: EstimateCleaningRunParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/studies/${studyId}/cleaning-runs/estimate?${stringifiedParams}` : `/api/studies/${studyId}/cleaning-runs/estimate`
+}
+
+export const estimateCleaningRun = async (studyId: string,
+    params: EstimateCleaningRunParams, options?: Parameters<typeof apiFetch>[1]): Promise<CleaningEstimate> => {
+
+  return apiFetch<CleaningEstimate>(getEstimateCleaningRunUrl(studyId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getEstimateCleaningRunQueryKey = (studyId: string,
+    params?: EstimateCleaningRunParams,) => {
+    return [
+    `/api/studies/${studyId}/cleaning-runs/estimate`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getEstimateCleaningRunQueryOptions = <TData = Awaited<ReturnType<typeof estimateCleaningRun>>, TError = unknown>(studyId: string,
+    params: EstimateCleaningRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateCleaningRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getEstimateCleaningRunQueryKey(studyId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof estimateCleaningRun>>> = ({ signal }) => estimateCleaningRun(studyId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof estimateCleaningRun>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type EstimateCleaningRunQueryResult = NonNullable<Awaited<ReturnType<typeof estimateCleaningRun>>>
+export type EstimateCleaningRunQueryError = unknown
+
+
+export function useEstimateCleaningRun<TData = Awaited<ReturnType<typeof estimateCleaningRun>>, TError = unknown>(
+ studyId: string,
+    params: EstimateCleaningRunParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateCleaningRun>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof estimateCleaningRun>>,
+          TError,
+          Awaited<ReturnType<typeof estimateCleaningRun>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEstimateCleaningRun<TData = Awaited<ReturnType<typeof estimateCleaningRun>>, TError = unknown>(
+ studyId: string,
+    params: EstimateCleaningRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateCleaningRun>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof estimateCleaningRun>>,
+          TError,
+          Awaited<ReturnType<typeof estimateCleaningRun>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEstimateCleaningRun<TData = Awaited<ReturnType<typeof estimateCleaningRun>>, TError = unknown>(
+ studyId: string,
+    params: EstimateCleaningRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateCleaningRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useEstimateCleaningRun<TData = Awaited<ReturnType<typeof estimateCleaningRun>>, TError = unknown>(
+ studyId: string,
+    params: EstimateCleaningRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateCleaningRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getEstimateCleaningRunQueryOptions(studyId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getStartCleaningRunUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/cleaning-runs`
+}
+
+export const startCleaningRun = async (studyId: string,
+    startCleaningRunInput: StartCleaningRunInput, options?: Parameters<typeof apiFetch>[1]): Promise<CleaningRunStarted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CleaningRunStarted>(getStartCleaningRunUrl(studyId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(startCleaningRunInput)
+  }
+);}
+
+
+
+
+
+export const getStartCleaningRunMutationKey = () => ['startCleaningRun'] as const;
+
+export const getStartCleaningRunMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCleaningRun>>, TError,StartCleaningRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startCleaningRun>>, TError,StartCleaningRunMutationVariables, TContext> => {
+
+const mutationKey = getStartCleaningRunMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startCleaningRun>>, StartCleaningRunMutationVariables> = (props) => {
+          const {studyId,data} = props ?? {};
+
+          return  startCleaningRun(studyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartCleaningRunMutationResult = NonNullable<Awaited<ReturnType<typeof startCleaningRun>>>
+    export type StartCleaningRunMutationBody = StartCleaningRunInput
+    export type StartCleaningRunMutationError = unknown
+    export type StartCleaningRunMutationVariables = {studyId: string;data: StartCleaningRunInput}
+
+    export const useStartCleaningRun = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCleaningRun>>, TError,StartCleaningRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startCleaningRun>>,
+        TError,
+        StartCleaningRunMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartCleaningRunMutationOptions(options), queryClient);
+    }
+    export const getStopCleaningRunUrl = (studyId: string,
+    runId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/cleaning-runs/${runId}/stop`
+}
+
+export const stopCleaningRun = async (studyId: string,
+    runId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getStopCleaningRunUrl(studyId,runId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getStopCleaningRunMutationKey = () => ['stopCleaningRun'] as const;
+
+export const getStopCleaningRunMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopCleaningRun>>, TError,StopCleaningRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof stopCleaningRun>>, TError,StopCleaningRunMutationVariables, TContext> => {
+
+const mutationKey = getStopCleaningRunMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stopCleaningRun>>, StopCleaningRunMutationVariables> = (props) => {
+          const {studyId,runId} = props ?? {};
+
+          return  stopCleaningRun(studyId,runId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StopCleaningRunMutationResult = NonNullable<Awaited<ReturnType<typeof stopCleaningRun>>>
+
+    export type StopCleaningRunMutationError = unknown
+    export type StopCleaningRunMutationVariables = {studyId: string;runId: string}
+
+    export const useStopCleaningRun = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopCleaningRun>>, TError,StopCleaningRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stopCleaningRun>>,
+        TError,
+        StopCleaningRunMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStopCleaningRunMutationOptions(options), queryClient);
+    }
+    export const getGetInterviewCleaningUrl = (studyId: string,
+    sessionId: string,
+    params?: GetInterviewCleaningParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/studies/${studyId}/cleaning/${sessionId}?${stringifiedParams}` : `/api/studies/${studyId}/cleaning/${sessionId}`
+}
+
+export const getInterviewCleaning = async (studyId: string,
+    sessionId: string,
+    params?: GetInterviewCleaningParams, options?: Parameters<typeof apiFetch>[1]): Promise<InterviewCleaning> => {
+
+  return apiFetch<InterviewCleaning>(getGetInterviewCleaningUrl(studyId,sessionId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInterviewCleaningQueryKey = (studyId: string,
+    sessionId: string,
+    params?: GetInterviewCleaningParams,) => {
+    return [
+    `/api/studies/${studyId}/cleaning/${sessionId}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetInterviewCleaningQueryOptions = <TData = Awaited<ReturnType<typeof getInterviewCleaning>>, TError = unknown>(studyId: string,
+    sessionId: string,
+    params?: GetInterviewCleaningParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInterviewCleaning>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInterviewCleaningQueryKey(studyId,sessionId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInterviewCleaning>>> = ({ signal }) => getInterviewCleaning(studyId,sessionId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined && sessionId !== null && sessionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInterviewCleaning>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetInterviewCleaningQueryResult = NonNullable<Awaited<ReturnType<typeof getInterviewCleaning>>>
+export type GetInterviewCleaningQueryError = unknown
+
+
+export function useGetInterviewCleaning<TData = Awaited<ReturnType<typeof getInterviewCleaning>>, TError = unknown>(
+ studyId: string,
+    sessionId: string,
+    params: undefined |  GetInterviewCleaningParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInterviewCleaning>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInterviewCleaning>>,
+          TError,
+          Awaited<ReturnType<typeof getInterviewCleaning>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInterviewCleaning<TData = Awaited<ReturnType<typeof getInterviewCleaning>>, TError = unknown>(
+ studyId: string,
+    sessionId: string,
+    params?: GetInterviewCleaningParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInterviewCleaning>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInterviewCleaning>>,
+          TError,
+          Awaited<ReturnType<typeof getInterviewCleaning>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetInterviewCleaning<TData = Awaited<ReturnType<typeof getInterviewCleaning>>, TError = unknown>(
+ studyId: string,
+    sessionId: string,
+    params?: GetInterviewCleaningParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInterviewCleaning>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetInterviewCleaning<TData = Awaited<ReturnType<typeof getInterviewCleaning>>, TError = unknown>(
+ studyId: string,
+    sessionId: string,
+    params?: GetInterviewCleaningParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getInterviewCleaning>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetInterviewCleaningQueryOptions(studyId,sessionId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getDecideCorrectionUrl = (studyId: string,
+    sessionId: string,
+    key: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/cleaning/${sessionId}/corrections/${key}`
+}
+
+export const decideCorrection = async (studyId: string,
+    sessionId: string,
+    key: string,
+    decideCorrectionInput: DecideCorrectionInput, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getDecideCorrectionUrl(studyId,sessionId,key),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(decideCorrectionInput)
+  }
+);}
+
+
+
+
+
+export const getDecideCorrectionMutationKey = () => ['decideCorrection'] as const;
+
+export const getDecideCorrectionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideCorrection>>, TError,DecideCorrectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideCorrection>>, TError,DecideCorrectionMutationVariables, TContext> => {
+
+const mutationKey = getDecideCorrectionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideCorrection>>, DecideCorrectionMutationVariables> = (props) => {
+          const {studyId,sessionId,key,data} = props ?? {};
+
+          return  decideCorrection(studyId,sessionId,key,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideCorrectionMutationResult = NonNullable<Awaited<ReturnType<typeof decideCorrection>>>
+    export type DecideCorrectionMutationBody = DecideCorrectionInput
+    export type DecideCorrectionMutationError = unknown
+    export type DecideCorrectionMutationVariables = {studyId: string;sessionId: string;key: string;data: DecideCorrectionInput}
+
+    export const useDecideCorrection = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideCorrection>>, TError,DecideCorrectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof decideCorrection>>,
+        TError,
+        DecideCorrectionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideCorrectionMutationOptions(options), queryClient);
+    }
+    export const getAddCorrectionUrl = (studyId: string,
+    sessionId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/cleaning/${sessionId}/corrections`
+}
+
+export const addCorrection = async (studyId: string,
+    sessionId: string,
+    addCorrectionInput: AddCorrectionInput, options?: Parameters<typeof apiFetch>[1]): Promise<CorrectionAdded> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CorrectionAdded>(getAddCorrectionUrl(studyId,sessionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(addCorrectionInput)
+  }
+);}
+
+
+
+
+
+export const getAddCorrectionMutationKey = () => ['addCorrection'] as const;
+
+export const getAddCorrectionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addCorrection>>, TError,AddCorrectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addCorrection>>, TError,AddCorrectionMutationVariables, TContext> => {
+
+const mutationKey = getAddCorrectionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addCorrection>>, AddCorrectionMutationVariables> = (props) => {
+          const {studyId,sessionId,data} = props ?? {};
+
+          return  addCorrection(studyId,sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddCorrectionMutationResult = NonNullable<Awaited<ReturnType<typeof addCorrection>>>
+    export type AddCorrectionMutationBody = AddCorrectionInput
+    export type AddCorrectionMutationError = unknown
+    export type AddCorrectionMutationVariables = {studyId: string;sessionId: string;data: AddCorrectionInput}
+
+    export const useAddCorrection = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addCorrection>>, TError,AddCorrectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addCorrection>>,
+        TError,
+        AddCorrectionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddCorrectionMutationOptions(options), queryClient);
+    }
+    export const getDecideCorrectionsUrl = (studyId: string,
+    sessionId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/cleaning/${sessionId}/decisions`
+}
+
+export const decideCorrections = async (studyId: string,
+    sessionId: string,
+    bulkCorrectionsInput: BulkCorrectionsInput, options?: Parameters<typeof apiFetch>[1]): Promise<BulkCorrectionsResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<BulkCorrectionsResult>(getDecideCorrectionsUrl(studyId,sessionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(bulkCorrectionsInput)
+  }
+);}
+
+
+
+
+
+export const getDecideCorrectionsMutationKey = () => ['decideCorrections'] as const;
+
+export const getDecideCorrectionsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideCorrections>>, TError,DecideCorrectionsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideCorrections>>, TError,DecideCorrectionsMutationVariables, TContext> => {
+
+const mutationKey = getDecideCorrectionsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideCorrections>>, DecideCorrectionsMutationVariables> = (props) => {
+          const {studyId,sessionId,data} = props ?? {};
+
+          return  decideCorrections(studyId,sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideCorrectionsMutationResult = NonNullable<Awaited<ReturnType<typeof decideCorrections>>>
+    export type DecideCorrectionsMutationBody = BulkCorrectionsInput
+    export type DecideCorrectionsMutationError = unknown
+    export type DecideCorrectionsMutationVariables = {studyId: string;sessionId: string;data: BulkCorrectionsInput}
+
+    export const useDecideCorrections = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideCorrections>>, TError,DecideCorrectionsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof decideCorrections>>,
+        TError,
+        DecideCorrectionsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideCorrectionsMutationOptions(options), queryClient);
+    }
+    export const getValidateCleanUrl = (studyId: string,
+    sessionId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/cleaning/${sessionId}/versions`
+}
+
+export const validateClean = async (studyId: string,
+    sessionId: string,
+    validateCleanInput: ValidateCleanInput, options?: Parameters<typeof apiFetch>[1]): Promise<CleanVersionCreated> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CleanVersionCreated>(getValidateCleanUrl(studyId,sessionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(validateCleanInput)
+  }
+);}
+
+
+
+
+
+export const getValidateCleanMutationKey = () => ['validateClean'] as const;
+
+export const getValidateCleanMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateClean>>, TError,ValidateCleanMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof validateClean>>, TError,ValidateCleanMutationVariables, TContext> => {
+
+const mutationKey = getValidateCleanMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof validateClean>>, ValidateCleanMutationVariables> = (props) => {
+          const {studyId,sessionId,data} = props ?? {};
+
+          return  validateClean(studyId,sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ValidateCleanMutationResult = NonNullable<Awaited<ReturnType<typeof validateClean>>>
+    export type ValidateCleanMutationBody = ValidateCleanInput
+    export type ValidateCleanMutationError = unknown
+    export type ValidateCleanMutationVariables = {studyId: string;sessionId: string;data: ValidateCleanInput}
+
+    export const useValidateClean = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateClean>>, TError,ValidateCleanMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof validateClean>>,
+        TError,
+        ValidateCleanMutationVariables,
+        TContext
+      > => {
+      return useMutation(getValidateCleanMutationOptions(options), queryClient);
+    }
+    export const getPublishCleanUrl = (studyId: string,
+    sessionId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/cleaning/${sessionId}/publish`
+}
+
+export const publishClean = async (studyId: string,
+    sessionId: string,
+    publishCleanInput: PublishCleanInput, options?: Parameters<typeof apiFetch>[1]): Promise<CleanPublished> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<CleanPublished>(getPublishCleanUrl(studyId,sessionId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(publishCleanInput)
+  }
+);}
+
+
+
+
+
+export const getPublishCleanMutationKey = () => ['publishClean'] as const;
+
+export const getPublishCleanMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishClean>>, TError,PublishCleanMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof publishClean>>, TError,PublishCleanMutationVariables, TContext> => {
+
+const mutationKey = getPublishCleanMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof publishClean>>, PublishCleanMutationVariables> = (props) => {
+          const {studyId,sessionId,data} = props ?? {};
+
+          return  publishClean(studyId,sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PublishCleanMutationResult = NonNullable<Awaited<ReturnType<typeof publishClean>>>
+    export type PublishCleanMutationBody = PublishCleanInput
+    export type PublishCleanMutationError = unknown
+    export type PublishCleanMutationVariables = {studyId: string;sessionId: string;data: PublishCleanInput}
+
+    export const usePublishClean = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishClean>>, TError,PublishCleanMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof publishClean>>,
+        TError,
+        PublishCleanMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPublishCleanMutationOptions(options), queryClient);
+    }
+    export const getGetEnrichmentUrl = (studyId: string,) => {
 
 
 

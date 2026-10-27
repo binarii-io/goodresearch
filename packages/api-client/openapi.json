@@ -1325,506 +1325,6 @@
           "language"
         ]
       },
-      "ProblemInput": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "status": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "code": {
-            "type": "string",
-            "enum": [
-              "UNAUTHENTICATED",
-              "FORBIDDEN",
-              "VALIDATION",
-              "PROJECT_NOT_FOUND",
-              "TEAM_NOT_FOUND",
-              "MEMBER_NOT_FOUND",
-              "VERSION_CONFLICT",
-              "TEAM_NAME_TAKEN",
-              "TEAM_HAS_PROJECTS",
-              "LAST_ADMIN",
-              "ACCOUNT_DELETED",
-              "CONFIRMATION_MISMATCH",
-              "NOT_FOUND",
-              "INTERNAL",
-              "STUDY_NOT_FOUND",
-              "FOLDER_ACCESS_REQUIRED",
-              "NOT_A_DRIVE_FOLDER_LINK",
-              "FOLDER_NOT_FOUND",
-              "DRIVE_NOT_CONNECTED",
-              "DRIVE_NOT_CONFIGURED",
-              "INVENTORY_RUNNING",
-              "DRIVE_UNAVAILABLE",
-              "AI_PROVIDER_NOT_OFFERED",
-              "AI_CHECK_FAILED",
-              "AI_PROVIDER_REQUIRED",
-              "GOOGLE_NOT_CONFIGURED",
-              "GOOGLE_GRANT_REQUIRED",
-              "CONVERSATION_NOT_FOUND",
-              "PROPOSAL_NOT_FOUND",
-              "PROPOSAL_DECIDED",
-              "PLANNED_INTERVIEW_NOT_FOUND",
-              "SCHEDULE_FULL",
-              "NOT_AN_INTERVIEW_STUDY",
-              "DRIVE_WRITE_REQUIRED",
-              "ALREADY_PUBLISHED",
-              "NO_SOURCE_FOLDER",
-              "DRIVE_CHANGES_PENDING",
-              "DRIVE_CHANGED_MEANWHILE",
-              "DRIVE_CANNOT_EDIT",
-              "PUBLICATION_NOT_FOUND",
-              "SESSION_NOT_FOUND",
-              "SESSION_DECIDED",
-              "INVALID_TRANSITION",
-              "PLANNED_INTERVIEW_LINKED",
-              "MEDIA_UNAVAILABLE",
-              "LINKED_TO_DECIDED_SESSION",
-              "ANALYSIS_CONSENT_REQUIRED",
-              "ANALYSIS_RUNNING",
-              "NOTHING_TO_ANALYZE",
-              "NAME_NOT_ACCEPTED",
-              "NO_VALIDATED_INTERVIEW",
-              "NOTHING_TO_READ",
-              "LEXICON_CONSENT_REQUIRED",
-              "LEXICON_RUNNING",
-              "TERM_NOT_FOUND",
-              "TERM_EXISTS",
-              "CORRECTION_REQUIRED",
-              "MERGE_ITSELF",
-              "LANGUAGE_DIFFERS",
-              "OCCURRENCE_NOT_FOUND"
-            ]
-          },
-          "detail": {
-            "type": "object",
-            "propertyNames": {
-              "type": "string"
-            },
-            "additionalProperties": {}
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "path": {
-                  "type": "string"
-                },
-                "message": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "path",
-                "message"
-              ]
-            }
-          },
-          "requestId": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "type",
-          "title",
-          "status",
-          "code"
-        ]
-      },
-      "StudySourceViewInput": {
-        "type": "object",
-        "properties": {
-          "access": {
-            "type": "string",
-            "enum": [
-              "full",
-              "no-folder-access",
-              "drive-not-connected",
-              "drive-unavailable"
-            ]
-          },
-          "driveConfigured": {
-            "type": "boolean"
-          },
-          "folderOwner": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "source": {
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "folderId": {
-                    "type": "string"
-                  },
-                  "folderName": {
-                    "type": "string"
-                  },
-                  "ownerName": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  },
-                  "webViewLink": {
-                    "type": "string"
-                  },
-                  "attachedBy": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                      },
-                      "name": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "name"
-                    ]
-                  },
-                  "attachedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "inventory": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "never",
-                          "running",
-                          "done",
-                          "failed"
-                        ]
-                      },
-                      "startedAt": {
-                        "anyOf": [
-                          {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "finishedAt": {
-                        "anyOf": [
-                          {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "runBy": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "format": "uuid",
-                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                              },
-                              "name": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name"
-                            ]
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "progress": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "folders": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "files": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              }
-                            },
-                            "required": [
-                              "folders",
-                              "files"
-                            ]
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "failure": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "lastSuccessAt": {
-                        "anyOf": [
-                          {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "outdated": {
-                        "type": "boolean"
-                      },
-                      "totals": {
-                        "type": "object",
-                        "properties": {
-                          "byKind": {
-                            "type": "object",
-                            "properties": {
-                              "transcript": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "media": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "other": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              }
-                            },
-                            "required": [
-                              "transcript",
-                              "media",
-                              "other"
-                            ]
-                          },
-                          "byGroup": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "group": {
-                                  "type": "string"
-                                },
-                                "count": {
-                                  "type": "integer",
-                                  "minimum": -9007199254740991,
-                                  "maximum": 9007199254740991
-                                }
-                              },
-                              "required": [
-                                "group",
-                                "count"
-                              ]
-                            }
-                          }
-                        },
-                        "required": [
-                          "byKind",
-                          "byGroup"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "status",
-                      "startedAt",
-                      "finishedAt",
-                      "runBy",
-                      "progress",
-                      "failure",
-                      "lastSuccessAt",
-                      "outdated",
-                      "totals"
-                    ]
-                  }
-                },
-                "required": [
-                  "folderId",
-                  "folderName",
-                  "ownerName",
-                  "webViewLink",
-                  "attachedBy",
-                  "attachedAt",
-                  "inventory"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "access",
-          "driveConfigured",
-          "folderOwner",
-          "source"
-        ]
-      },
-      "InventoryFileInput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "transcript",
-              "media",
-              "other"
-            ]
-          },
-          "group": {
-            "type": "string"
-          },
-          "mimeType": {
-            "type": "string"
-          },
-          "size": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "modifiedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "webViewLink": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "kind",
-          "group",
-          "mimeType",
-          "size",
-          "modifiedAt",
-          "webViewLink"
-        ]
-      },
-      "AttachFolderInput": {
-        "type": "object",
-        "properties": {
-          "link": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 2000
-          }
-        },
-        "required": [
-          "link"
-        ]
-      },
-      "MySourceInput": {
-        "type": "object",
-        "properties": {
-          "connector": {
-            "type": "string",
-            "const": "google-drive"
-          },
-          "configured": {
-            "type": "boolean"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "connected",
-              "lost",
-              "none"
-            ]
-          },
-          "externalAccount": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "connectedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "canWrite": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "connector",
-          "configured",
-          "status",
-          "externalAccount",
-          "connectedAt",
-          "canWrite"
-        ]
-      },
       "RosterEntryInput": {
         "type": "object",
         "properties": {
@@ -3172,6 +2672,1468 @@
         },
         "required": [
           "results"
+        ]
+      },
+      "CleaningInterviewInput": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "interviewDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "no-transcript",
+              "not-cleaned",
+              "to-redo",
+              "to-decide",
+              "lexicon-changed",
+              "clean",
+              "published",
+              "out-of-date"
+            ]
+          },
+          "toDecide": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accepted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "cleanedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "FILE_NOT_FOUND",
+                  "DRIVE_NOT_CONNECTED",
+                  "DRIVE_UNAVAILABLE",
+                  "UNREADABLE_FORMAT",
+                  "TOO_LONG",
+                  "NO_TRANSCRIPT",
+                  "INTERRUPTED",
+                  "AI_PROVIDER_REQUIRED",
+                  "AI_FAILED",
+                  "INVALID_ANSWER"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "published": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "webLink": {
+                    "type": "string"
+                  },
+                  "versionNumber": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "webLink",
+                  "versionNumber"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "sessionId",
+          "title",
+          "interviewDate",
+          "state",
+          "toDecide",
+          "accepted",
+          "cleanedAt",
+          "cost",
+          "failure",
+          "published"
+        ]
+      },
+      "CleaningRunViewInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "lexicon",
+              "ai"
+            ]
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "done": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "chunks": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "chunksDone": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "leftOut": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "FILE_NOT_FOUND",
+                  "DRIVE_NOT_CONNECTED",
+                  "DRIVE_UNAVAILABLE",
+                  "UNREADABLE_FORMAT",
+                  "TOO_LONG",
+                  "NO_TRANSCRIPT",
+                  "INTERRUPTED",
+                  "AI_PROVIDER_REQUIRED",
+                  "AI_FAILED",
+                  "INVALID_ANSWER"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "startedBy": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          },
+          "finished": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "total",
+          "done",
+          "failed",
+          "chunks",
+          "chunksDone",
+          "leftOut",
+          "failure",
+          "startedBy",
+          "finished"
+        ]
+      },
+      "CleaningInput": {
+        "type": "object",
+        "properties": {
+          "interviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleaningInterviewInput"
+            }
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "clean": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "toDecide": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "clean",
+              "toDecide"
+            ]
+          },
+          "run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CleaningRunViewInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastRunCost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "consentNeeded": {
+            "type": "boolean"
+          },
+          "anonymised": {
+            "type": "boolean"
+          },
+          "folder": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "interviews",
+          "counts",
+          "run",
+          "lastRunCost",
+          "cost",
+          "consentNeeded",
+          "anonymised",
+          "folder"
+        ]
+      },
+      "CleaningEstimateInput": {
+        "type": "object",
+        "properties": {
+          "interviews": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "chunks": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "consentNeeded": {
+            "type": "boolean"
+          },
+          "aiConnected": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "interviews",
+          "chunks",
+          "cost",
+          "consentNeeded",
+          "aiConnected"
+        ]
+      },
+      "StartCleaningRunInput": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "lexicon",
+              "ai"
+            ]
+          },
+          "all": {
+            "type": "boolean"
+          },
+          "consent": {
+            "type": "boolean"
+          },
+          "sessionIds": {
+            "minItems": 1,
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "all",
+          "consent"
+        ]
+      },
+      "CleaningRunStartedInput": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "runId"
+        ]
+      },
+      "CorrectionInput": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "segmentId": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "text",
+              "speaker"
+            ]
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "length": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "original": {
+            "type": "string"
+          },
+          "replacement": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "term",
+              "transcription",
+              "speaker",
+              "name"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "person",
+              "lexicon",
+              "name",
+              "ai-lexicon",
+              "ai-other"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "accepted",
+              "edited",
+              "rejected"
+            ]
+          },
+          "term": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "form": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "form"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decidedBy": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decidedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overridden": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "segmentId",
+          "target",
+          "offset",
+          "length",
+          "original",
+          "replacement",
+          "kind",
+          "source",
+          "reason",
+          "confidence",
+          "status",
+          "term",
+          "decidedBy",
+          "decidedAt",
+          "version",
+          "overridden"
+        ]
+      },
+      "CleaningTurnInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "speaker": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "corrections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CorrectionInput"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "speaker",
+          "start",
+          "text",
+          "corrections"
+        ]
+      },
+      "InterviewCleaningInput": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr",
+              "other"
+            ]
+          },
+          "anonymised": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "no-transcript",
+              "not-cleaned",
+              "to-redo",
+              "to-decide",
+              "lexicon-changed",
+              "clean",
+              "published",
+              "out-of-date"
+            ]
+          },
+          "fingerprint": {
+            "type": "string"
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "speakers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "turns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleaningTurnInput"
+            }
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "toDecide": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "accepted": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "rejected": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "toDecide",
+              "accepted",
+              "rejected"
+            ]
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "createdBy": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              },
+              "required": [
+                "number",
+                "createdAt",
+                "createdBy"
+              ]
+            }
+          },
+          "published": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "webLink": {
+                    "type": "string"
+                  },
+                  "versionNumber": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "webLink",
+                  "versionNumber"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "sessionId",
+          "title",
+          "language",
+          "anonymised",
+          "state",
+          "fingerprint",
+          "cost",
+          "speakers",
+          "turns",
+          "counts",
+          "versions",
+          "published"
+        ]
+      },
+      "DecideCorrectionInput": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "reject",
+              "edit",
+              "reopen"
+            ]
+          },
+          "replacement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "AddCorrectionInput": {
+        "type": "object",
+        "properties": {
+          "segmentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "text",
+              "speaker"
+            ]
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "length": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 2000
+          },
+          "original": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "replacement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "segmentId",
+          "target",
+          "offset",
+          "length",
+          "original",
+          "replacement"
+        ]
+      },
+      "CorrectionAddedInput": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "key"
+        ]
+      },
+      "BulkCorrectionsInput": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "reject"
+            ]
+          },
+          "keys": {
+            "minItems": 1,
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        },
+        "required": [
+          "decision",
+          "keys"
+        ]
+      },
+      "BulkCorrectionsResultInput": {
+        "type": "object",
+        "properties": {
+          "decided": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "decided"
+        ]
+      },
+      "ValidateCleanInput": {
+        "type": "object",
+        "properties": {
+          "fingerprint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "fingerprint"
+        ]
+      },
+      "CleanVersionCreatedInput": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "number"
+        ]
+      },
+      "PublishCleanInput": {
+        "type": "object",
+        "properties": {
+          "overwrite": {
+            "type": "boolean"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr"
+            ]
+          }
+        },
+        "required": [
+          "overwrite",
+          "language"
+        ]
+      },
+      "CleanPublishedInput": {
+        "type": "object",
+        "properties": {
+          "webLink": {
+            "type": "string"
+          },
+          "versionNumber": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "webLink",
+          "versionNumber"
+        ]
+      },
+      "ProblemInput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "UNAUTHENTICATED",
+              "FORBIDDEN",
+              "VALIDATION",
+              "PROJECT_NOT_FOUND",
+              "TEAM_NOT_FOUND",
+              "MEMBER_NOT_FOUND",
+              "VERSION_CONFLICT",
+              "TEAM_NAME_TAKEN",
+              "TEAM_HAS_PROJECTS",
+              "LAST_ADMIN",
+              "ACCOUNT_DELETED",
+              "CONFIRMATION_MISMATCH",
+              "NOT_FOUND",
+              "INTERNAL",
+              "STUDY_NOT_FOUND",
+              "FOLDER_ACCESS_REQUIRED",
+              "NOT_A_DRIVE_FOLDER_LINK",
+              "FOLDER_NOT_FOUND",
+              "DRIVE_NOT_CONNECTED",
+              "DRIVE_NOT_CONFIGURED",
+              "INVENTORY_RUNNING",
+              "DRIVE_UNAVAILABLE",
+              "AI_PROVIDER_NOT_OFFERED",
+              "AI_CHECK_FAILED",
+              "AI_PROVIDER_REQUIRED",
+              "GOOGLE_NOT_CONFIGURED",
+              "GOOGLE_GRANT_REQUIRED",
+              "CONVERSATION_NOT_FOUND",
+              "PROPOSAL_NOT_FOUND",
+              "PROPOSAL_DECIDED",
+              "PLANNED_INTERVIEW_NOT_FOUND",
+              "SCHEDULE_FULL",
+              "NOT_AN_INTERVIEW_STUDY",
+              "DRIVE_WRITE_REQUIRED",
+              "ALREADY_PUBLISHED",
+              "NO_SOURCE_FOLDER",
+              "DRIVE_CHANGES_PENDING",
+              "DRIVE_CHANGED_MEANWHILE",
+              "DRIVE_CANNOT_EDIT",
+              "PUBLICATION_NOT_FOUND",
+              "SESSION_NOT_FOUND",
+              "SESSION_DECIDED",
+              "INVALID_TRANSITION",
+              "PLANNED_INTERVIEW_LINKED",
+              "MEDIA_UNAVAILABLE",
+              "LINKED_TO_DECIDED_SESSION",
+              "ANALYSIS_CONSENT_REQUIRED",
+              "ANALYSIS_RUNNING",
+              "NOTHING_TO_ANALYZE",
+              "NAME_NOT_ACCEPTED",
+              "NO_VALIDATED_INTERVIEW",
+              "NOTHING_TO_READ",
+              "LEXICON_CONSENT_REQUIRED",
+              "LEXICON_RUNNING",
+              "TERM_NOT_FOUND",
+              "TERM_EXISTS",
+              "CORRECTION_REQUIRED",
+              "MERGE_ITSELF",
+              "LANGUAGE_DIFFERS",
+              "OCCURRENCE_NOT_FOUND",
+              "ENRICHMENT_RUNNING",
+              "CLEANING_CONSENT_REQUIRED",
+              "NOTHING_TO_CLEAN",
+              "CORRECTION_NOT_FOUND",
+              "EDIT_NOT_ALLOWED",
+              "REPLACEMENT_TOO_LONG",
+              "REPLACEMENT_REQUIRED",
+              "ORIGINAL_NOT_FOUND",
+              "CORRECTIONS_TO_DECIDE",
+              "NOT_CLEAN",
+              "DRIVE_CHANGED"
+            ]
+          },
+          "detail": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "message"
+              ]
+            }
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code"
+        ]
+      },
+      "StudySourceViewInput": {
+        "type": "object",
+        "properties": {
+          "access": {
+            "type": "string",
+            "enum": [
+              "full",
+              "no-folder-access",
+              "drive-not-connected",
+              "drive-unavailable"
+            ]
+          },
+          "driveConfigured": {
+            "type": "boolean"
+          },
+          "folderOwner": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string"
+                  },
+                  "folderName": {
+                    "type": "string"
+                  },
+                  "ownerName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "webViewLink": {
+                    "type": "string"
+                  },
+                  "attachedBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ]
+                  },
+                  "attachedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "inventory": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "never",
+                          "running",
+                          "done",
+                          "failed"
+                        ]
+                      },
+                      "startedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "finishedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "runBy": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "progress": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "folders": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "files": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "folders",
+                              "files"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "failure": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "lastSuccessAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "outdated": {
+                        "type": "boolean"
+                      },
+                      "totals": {
+                        "type": "object",
+                        "properties": {
+                          "byKind": {
+                            "type": "object",
+                            "properties": {
+                              "transcript": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "media": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "other": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "transcript",
+                              "media",
+                              "other"
+                            ]
+                          },
+                          "byGroup": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "group": {
+                                  "type": "string"
+                                },
+                                "count": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "group",
+                                "count"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "byKind",
+                          "byGroup"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "startedAt",
+                      "finishedAt",
+                      "runBy",
+                      "progress",
+                      "failure",
+                      "lastSuccessAt",
+                      "outdated",
+                      "totals"
+                    ]
+                  }
+                },
+                "required": [
+                  "folderId",
+                  "folderName",
+                  "ownerName",
+                  "webViewLink",
+                  "attachedBy",
+                  "attachedAt",
+                  "inventory"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "access",
+          "driveConfigured",
+          "folderOwner",
+          "source"
+        ]
+      },
+      "InventoryFileInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "transcript",
+              "media",
+              "other"
+            ]
+          },
+          "group": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "size": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "modifiedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "webViewLink": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "group",
+          "mimeType",
+          "size",
+          "modifiedAt",
+          "webViewLink"
+        ]
+      },
+      "AttachFolderInput": {
+        "type": "object",
+        "properties": {
+          "link": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "link"
+        ]
+      },
+      "MySourceInput": {
+        "type": "object",
+        "properties": {
+          "connector": {
+            "type": "string",
+            "const": "google-drive"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "connected",
+              "lost",
+              "none"
+            ]
+          },
+          "externalAccount": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "connectedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canWrite": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "connector",
+          "configured",
+          "status",
+          "externalAccount",
+          "connectedAt",
+          "canWrite"
         ]
       },
       "EnrichmentInterviewInput": {
@@ -6440,520 +7402,6 @@
         ],
         "additionalProperties": false
       },
-      "Problem": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "status": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "code": {
-            "type": "string",
-            "enum": [
-              "UNAUTHENTICATED",
-              "FORBIDDEN",
-              "VALIDATION",
-              "PROJECT_NOT_FOUND",
-              "TEAM_NOT_FOUND",
-              "MEMBER_NOT_FOUND",
-              "VERSION_CONFLICT",
-              "TEAM_NAME_TAKEN",
-              "TEAM_HAS_PROJECTS",
-              "LAST_ADMIN",
-              "ACCOUNT_DELETED",
-              "CONFIRMATION_MISMATCH",
-              "NOT_FOUND",
-              "INTERNAL",
-              "STUDY_NOT_FOUND",
-              "FOLDER_ACCESS_REQUIRED",
-              "NOT_A_DRIVE_FOLDER_LINK",
-              "FOLDER_NOT_FOUND",
-              "DRIVE_NOT_CONNECTED",
-              "DRIVE_NOT_CONFIGURED",
-              "INVENTORY_RUNNING",
-              "DRIVE_UNAVAILABLE",
-              "AI_PROVIDER_NOT_OFFERED",
-              "AI_CHECK_FAILED",
-              "AI_PROVIDER_REQUIRED",
-              "GOOGLE_NOT_CONFIGURED",
-              "GOOGLE_GRANT_REQUIRED",
-              "CONVERSATION_NOT_FOUND",
-              "PROPOSAL_NOT_FOUND",
-              "PROPOSAL_DECIDED",
-              "PLANNED_INTERVIEW_NOT_FOUND",
-              "SCHEDULE_FULL",
-              "NOT_AN_INTERVIEW_STUDY",
-              "DRIVE_WRITE_REQUIRED",
-              "ALREADY_PUBLISHED",
-              "NO_SOURCE_FOLDER",
-              "DRIVE_CHANGES_PENDING",
-              "DRIVE_CHANGED_MEANWHILE",
-              "DRIVE_CANNOT_EDIT",
-              "PUBLICATION_NOT_FOUND",
-              "SESSION_NOT_FOUND",
-              "SESSION_DECIDED",
-              "INVALID_TRANSITION",
-              "PLANNED_INTERVIEW_LINKED",
-              "MEDIA_UNAVAILABLE",
-              "LINKED_TO_DECIDED_SESSION",
-              "ANALYSIS_CONSENT_REQUIRED",
-              "ANALYSIS_RUNNING",
-              "NOTHING_TO_ANALYZE",
-              "NAME_NOT_ACCEPTED",
-              "NO_VALIDATED_INTERVIEW",
-              "NOTHING_TO_READ",
-              "LEXICON_CONSENT_REQUIRED",
-              "LEXICON_RUNNING",
-              "TERM_NOT_FOUND",
-              "TERM_EXISTS",
-              "CORRECTION_REQUIRED",
-              "MERGE_ITSELF",
-              "LANGUAGE_DIFFERS",
-              "OCCURRENCE_NOT_FOUND"
-            ]
-          },
-          "detail": {
-            "type": "object",
-            "propertyNames": {
-              "type": "string"
-            },
-            "additionalProperties": {}
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "path": {
-                  "type": "string"
-                },
-                "message": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "path",
-                "message"
-              ],
-              "additionalProperties": false
-            }
-          },
-          "requestId": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "type",
-          "title",
-          "status",
-          "code"
-        ],
-        "additionalProperties": false
-      },
-      "StudySourceView": {
-        "type": "object",
-        "properties": {
-          "access": {
-            "type": "string",
-            "enum": [
-              "full",
-              "no-folder-access",
-              "drive-not-connected",
-              "drive-unavailable"
-            ]
-          },
-          "driveConfigured": {
-            "type": "boolean"
-          },
-          "folderOwner": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "source": {
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "folderId": {
-                    "type": "string"
-                  },
-                  "folderName": {
-                    "type": "string"
-                  },
-                  "ownerName": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  },
-                  "webViewLink": {
-                    "type": "string"
-                  },
-                  "attachedBy": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                      },
-                      "name": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "name"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "attachedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "inventory": {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "never",
-                          "running",
-                          "done",
-                          "failed"
-                        ]
-                      },
-                      "startedAt": {
-                        "anyOf": [
-                          {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "finishedAt": {
-                        "anyOf": [
-                          {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "runBy": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "format": "uuid",
-                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                              },
-                              "name": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name"
-                            ],
-                            "additionalProperties": false
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "progress": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "folders": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "files": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              }
-                            },
-                            "required": [
-                              "folders",
-                              "files"
-                            ],
-                            "additionalProperties": false
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "failure": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "lastSuccessAt": {
-                        "anyOf": [
-                          {
-                            "type": "string",
-                            "format": "date-time",
-                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "outdated": {
-                        "type": "boolean"
-                      },
-                      "totals": {
-                        "type": "object",
-                        "properties": {
-                          "byKind": {
-                            "type": "object",
-                            "properties": {
-                              "transcript": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "media": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              },
-                              "other": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991
-                              }
-                            },
-                            "required": [
-                              "transcript",
-                              "media",
-                              "other"
-                            ],
-                            "additionalProperties": false
-                          },
-                          "byGroup": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "group": {
-                                  "type": "string"
-                                },
-                                "count": {
-                                  "type": "integer",
-                                  "minimum": -9007199254740991,
-                                  "maximum": 9007199254740991
-                                }
-                              },
-                              "required": [
-                                "group",
-                                "count"
-                              ],
-                              "additionalProperties": false
-                            }
-                          }
-                        },
-                        "required": [
-                          "byKind",
-                          "byGroup"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "required": [
-                      "status",
-                      "startedAt",
-                      "finishedAt",
-                      "runBy",
-                      "progress",
-                      "failure",
-                      "lastSuccessAt",
-                      "outdated",
-                      "totals"
-                    ],
-                    "additionalProperties": false
-                  }
-                },
-                "required": [
-                  "folderId",
-                  "folderName",
-                  "ownerName",
-                  "webViewLink",
-                  "attachedBy",
-                  "attachedAt",
-                  "inventory"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "access",
-          "driveConfigured",
-          "folderOwner",
-          "source"
-        ],
-        "additionalProperties": false
-      },
-      "InventoryFile": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "transcript",
-              "media",
-              "other"
-            ]
-          },
-          "group": {
-            "type": "string"
-          },
-          "mimeType": {
-            "type": "string"
-          },
-          "size": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "modifiedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "webViewLink": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "kind",
-          "group",
-          "mimeType",
-          "size",
-          "modifiedAt",
-          "webViewLink"
-        ],
-        "additionalProperties": false
-      },
-      "AttachFolder": {
-        "type": "object",
-        "properties": {
-          "link": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 2000
-          }
-        },
-        "required": [
-          "link"
-        ],
-        "additionalProperties": false
-      },
-      "MySource": {
-        "type": "object",
-        "properties": {
-          "connector": {
-            "type": "string",
-            "const": "google-drive"
-          },
-          "configured": {
-            "type": "boolean"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "connected",
-              "lost",
-              "none"
-            ]
-          },
-          "externalAccount": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "connectedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "canWrite": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "connector",
-          "configured",
-          "status",
-          "externalAccount",
-          "connectedAt",
-          "canWrite"
-        ],
-        "additionalProperties": false
-      },
       "RosterEntry": {
         "type": "object",
         "properties": {
@@ -8336,6 +8784,1510 @@
         },
         "required": [
           "results"
+        ],
+        "additionalProperties": false
+      },
+      "CleaningInterview": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "interviewDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "no-transcript",
+              "not-cleaned",
+              "to-redo",
+              "to-decide",
+              "lexicon-changed",
+              "clean",
+              "published",
+              "out-of-date"
+            ]
+          },
+          "toDecide": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accepted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "cleanedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "FILE_NOT_FOUND",
+                  "DRIVE_NOT_CONNECTED",
+                  "DRIVE_UNAVAILABLE",
+                  "UNREADABLE_FORMAT",
+                  "TOO_LONG",
+                  "NO_TRANSCRIPT",
+                  "INTERRUPTED",
+                  "AI_PROVIDER_REQUIRED",
+                  "AI_FAILED",
+                  "INVALID_ANSWER"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "published": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "webLink": {
+                    "type": "string"
+                  },
+                  "versionNumber": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "webLink",
+                  "versionNumber"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "sessionId",
+          "title",
+          "interviewDate",
+          "state",
+          "toDecide",
+          "accepted",
+          "cleanedAt",
+          "cost",
+          "failure",
+          "published"
+        ],
+        "additionalProperties": false
+      },
+      "CleaningRunView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "lexicon",
+              "ai"
+            ]
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "done": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "chunks": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "chunksDone": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "leftOut": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "FILE_NOT_FOUND",
+                  "DRIVE_NOT_CONNECTED",
+                  "DRIVE_UNAVAILABLE",
+                  "UNREADABLE_FORMAT",
+                  "TOO_LONG",
+                  "NO_TRANSCRIPT",
+                  "INTERRUPTED",
+                  "AI_PROVIDER_REQUIRED",
+                  "AI_FAILED",
+                  "INVALID_ANSWER"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "startedBy": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "finished": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "total",
+          "done",
+          "failed",
+          "chunks",
+          "chunksDone",
+          "leftOut",
+          "failure",
+          "startedBy",
+          "finished"
+        ],
+        "additionalProperties": false
+      },
+      "Cleaning": {
+        "type": "object",
+        "properties": {
+          "interviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleaningInterview"
+            }
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "clean": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "toDecide": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "clean",
+              "toDecide"
+            ],
+            "additionalProperties": false
+          },
+          "run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CleaningRunView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastRunCost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "consentNeeded": {
+            "type": "boolean"
+          },
+          "anonymised": {
+            "type": "boolean"
+          },
+          "folder": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "interviews",
+          "counts",
+          "run",
+          "lastRunCost",
+          "cost",
+          "consentNeeded",
+          "anonymised",
+          "folder"
+        ],
+        "additionalProperties": false
+      },
+      "CleaningEstimate": {
+        "type": "object",
+        "properties": {
+          "interviews": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "chunks": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "consentNeeded": {
+            "type": "boolean"
+          },
+          "aiConnected": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "interviews",
+          "chunks",
+          "cost",
+          "consentNeeded",
+          "aiConnected"
+        ],
+        "additionalProperties": false
+      },
+      "StartCleaningRun": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "lexicon",
+              "ai"
+            ]
+          },
+          "all": {
+            "type": "boolean"
+          },
+          "consent": {
+            "type": "boolean"
+          },
+          "sessionIds": {
+            "minItems": 1,
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "all",
+          "consent"
+        ],
+        "additionalProperties": false
+      },
+      "CleaningRunStarted": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "runId"
+        ],
+        "additionalProperties": false
+      },
+      "Correction": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "segmentId": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "text",
+              "speaker"
+            ]
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "length": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "original": {
+            "type": "string"
+          },
+          "replacement": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "term",
+              "transcription",
+              "speaker",
+              "name"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "person",
+              "lexicon",
+              "name",
+              "ai-lexicon",
+              "ai-other"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "accepted",
+              "edited",
+              "rejected"
+            ]
+          },
+          "term": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "form": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "form"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decidedBy": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decidedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overridden": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "segmentId",
+          "target",
+          "offset",
+          "length",
+          "original",
+          "replacement",
+          "kind",
+          "source",
+          "reason",
+          "confidence",
+          "status",
+          "term",
+          "decidedBy",
+          "decidedAt",
+          "version",
+          "overridden"
+        ],
+        "additionalProperties": false
+      },
+      "CleaningTurn": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "speaker": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "corrections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Correction"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "speaker",
+          "start",
+          "text",
+          "corrections"
+        ],
+        "additionalProperties": false
+      },
+      "InterviewCleaning": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr",
+              "other"
+            ]
+          },
+          "anonymised": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "no-transcript",
+              "not-cleaned",
+              "to-redo",
+              "to-decide",
+              "lexicon-changed",
+              "clean",
+              "published",
+              "out-of-date"
+            ]
+          },
+          "fingerprint": {
+            "type": "string"
+          },
+          "cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "speakers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "turns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleaningTurn"
+            }
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "toDecide": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "accepted": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "rejected": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "toDecide",
+              "accepted",
+              "rejected"
+            ],
+            "additionalProperties": false
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "createdBy": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "number",
+                "createdAt",
+                "createdBy"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "published": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "webLink": {
+                    "type": "string"
+                  },
+                  "versionNumber": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "webLink",
+                  "versionNumber"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "sessionId",
+          "title",
+          "language",
+          "anonymised",
+          "state",
+          "fingerprint",
+          "cost",
+          "speakers",
+          "turns",
+          "counts",
+          "versions",
+          "published"
+        ],
+        "additionalProperties": false
+      },
+      "DecideCorrection": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "reject",
+              "edit",
+              "reopen"
+            ]
+          },
+          "replacement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "additionalProperties": false
+      },
+      "AddCorrection": {
+        "type": "object",
+        "properties": {
+          "segmentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "text",
+              "speaker"
+            ]
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "length": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 2000
+          },
+          "original": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "replacement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "segmentId",
+          "target",
+          "offset",
+          "length",
+          "original",
+          "replacement"
+        ],
+        "additionalProperties": false
+      },
+      "CorrectionAdded": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "additionalProperties": false
+      },
+      "BulkCorrections": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "reject"
+            ]
+          },
+          "keys": {
+            "minItems": 1,
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        },
+        "required": [
+          "decision",
+          "keys"
+        ],
+        "additionalProperties": false
+      },
+      "BulkCorrectionsResult": {
+        "type": "object",
+        "properties": {
+          "decided": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "decided"
+        ],
+        "additionalProperties": false
+      },
+      "ValidateClean": {
+        "type": "object",
+        "properties": {
+          "fingerprint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "fingerprint"
+        ],
+        "additionalProperties": false
+      },
+      "CleanVersionCreated": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "number"
+        ],
+        "additionalProperties": false
+      },
+      "PublishClean": {
+        "type": "object",
+        "properties": {
+          "overwrite": {
+            "type": "boolean"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr"
+            ]
+          }
+        },
+        "required": [
+          "overwrite",
+          "language"
+        ],
+        "additionalProperties": false
+      },
+      "CleanPublished": {
+        "type": "object",
+        "properties": {
+          "webLink": {
+            "type": "string"
+          },
+          "versionNumber": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "webLink",
+          "versionNumber"
+        ],
+        "additionalProperties": false
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "UNAUTHENTICATED",
+              "FORBIDDEN",
+              "VALIDATION",
+              "PROJECT_NOT_FOUND",
+              "TEAM_NOT_FOUND",
+              "MEMBER_NOT_FOUND",
+              "VERSION_CONFLICT",
+              "TEAM_NAME_TAKEN",
+              "TEAM_HAS_PROJECTS",
+              "LAST_ADMIN",
+              "ACCOUNT_DELETED",
+              "CONFIRMATION_MISMATCH",
+              "NOT_FOUND",
+              "INTERNAL",
+              "STUDY_NOT_FOUND",
+              "FOLDER_ACCESS_REQUIRED",
+              "NOT_A_DRIVE_FOLDER_LINK",
+              "FOLDER_NOT_FOUND",
+              "DRIVE_NOT_CONNECTED",
+              "DRIVE_NOT_CONFIGURED",
+              "INVENTORY_RUNNING",
+              "DRIVE_UNAVAILABLE",
+              "AI_PROVIDER_NOT_OFFERED",
+              "AI_CHECK_FAILED",
+              "AI_PROVIDER_REQUIRED",
+              "GOOGLE_NOT_CONFIGURED",
+              "GOOGLE_GRANT_REQUIRED",
+              "CONVERSATION_NOT_FOUND",
+              "PROPOSAL_NOT_FOUND",
+              "PROPOSAL_DECIDED",
+              "PLANNED_INTERVIEW_NOT_FOUND",
+              "SCHEDULE_FULL",
+              "NOT_AN_INTERVIEW_STUDY",
+              "DRIVE_WRITE_REQUIRED",
+              "ALREADY_PUBLISHED",
+              "NO_SOURCE_FOLDER",
+              "DRIVE_CHANGES_PENDING",
+              "DRIVE_CHANGED_MEANWHILE",
+              "DRIVE_CANNOT_EDIT",
+              "PUBLICATION_NOT_FOUND",
+              "SESSION_NOT_FOUND",
+              "SESSION_DECIDED",
+              "INVALID_TRANSITION",
+              "PLANNED_INTERVIEW_LINKED",
+              "MEDIA_UNAVAILABLE",
+              "LINKED_TO_DECIDED_SESSION",
+              "ANALYSIS_CONSENT_REQUIRED",
+              "ANALYSIS_RUNNING",
+              "NOTHING_TO_ANALYZE",
+              "NAME_NOT_ACCEPTED",
+              "NO_VALIDATED_INTERVIEW",
+              "NOTHING_TO_READ",
+              "LEXICON_CONSENT_REQUIRED",
+              "LEXICON_RUNNING",
+              "TERM_NOT_FOUND",
+              "TERM_EXISTS",
+              "CORRECTION_REQUIRED",
+              "MERGE_ITSELF",
+              "LANGUAGE_DIFFERS",
+              "OCCURRENCE_NOT_FOUND",
+              "ENRICHMENT_RUNNING",
+              "CLEANING_CONSENT_REQUIRED",
+              "NOTHING_TO_CLEAN",
+              "CORRECTION_NOT_FOUND",
+              "EDIT_NOT_ALLOWED",
+              "REPLACEMENT_TOO_LONG",
+              "REPLACEMENT_REQUIRED",
+              "ORIGINAL_NOT_FOUND",
+              "CORRECTIONS_TO_DECIDE",
+              "NOT_CLEAN",
+              "DRIVE_CHANGED"
+            ]
+          },
+          "detail": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code"
+        ],
+        "additionalProperties": false
+      },
+      "StudySourceView": {
+        "type": "object",
+        "properties": {
+          "access": {
+            "type": "string",
+            "enum": [
+              "full",
+              "no-folder-access",
+              "drive-not-connected",
+              "drive-unavailable"
+            ]
+          },
+          "driveConfigured": {
+            "type": "boolean"
+          },
+          "folderOwner": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string"
+                  },
+                  "folderName": {
+                    "type": "string"
+                  },
+                  "ownerName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "webViewLink": {
+                    "type": "string"
+                  },
+                  "attachedBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "attachedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "inventory": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "never",
+                          "running",
+                          "done",
+                          "failed"
+                        ]
+                      },
+                      "startedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "finishedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "runBy": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "progress": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "folders": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "files": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "folders",
+                              "files"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "failure": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "lastSuccessAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "outdated": {
+                        "type": "boolean"
+                      },
+                      "totals": {
+                        "type": "object",
+                        "properties": {
+                          "byKind": {
+                            "type": "object",
+                            "properties": {
+                              "transcript": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "media": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "other": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "transcript",
+                              "media",
+                              "other"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "byGroup": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "group": {
+                                  "type": "string"
+                                },
+                                "count": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "group",
+                                "count"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "byKind",
+                          "byGroup"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "startedAt",
+                      "finishedAt",
+                      "runBy",
+                      "progress",
+                      "failure",
+                      "lastSuccessAt",
+                      "outdated",
+                      "totals"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "folderId",
+                  "folderName",
+                  "ownerName",
+                  "webViewLink",
+                  "attachedBy",
+                  "attachedAt",
+                  "inventory"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "access",
+          "driveConfigured",
+          "folderOwner",
+          "source"
+        ],
+        "additionalProperties": false
+      },
+      "InventoryFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "transcript",
+              "media",
+              "other"
+            ]
+          },
+          "group": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "size": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "modifiedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "webViewLink": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "group",
+          "mimeType",
+          "size",
+          "modifiedAt",
+          "webViewLink"
+        ],
+        "additionalProperties": false
+      },
+      "AttachFolder": {
+        "type": "object",
+        "properties": {
+          "link": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "link"
+        ],
+        "additionalProperties": false
+      },
+      "MySource": {
+        "type": "object",
+        "properties": {
+          "connector": {
+            "type": "string",
+            "const": "google-drive"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "connected",
+              "lost",
+              "none"
+            ]
+          },
+          "externalAccount": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "connectedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canWrite": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "connector",
+          "configured",
+          "status",
+          "externalAccount",
+          "connectedAt",
+          "canWrite"
         ],
         "additionalProperties": false
       },
@@ -12659,6 +14611,554 @@
         "responses": {
           "200": {
             "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning": {
+      "get": {
+        "operationId": "getCleaning",
+        "tags": [
+          "enrichment"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cleaning"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning-runs/estimate": {
+      "get": {
+        "operationId": "estimateCleaningRun",
+        "tags": [
+          "enrichment"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "lexicon",
+                "ai"
+              ]
+            },
+            "in": "query",
+            "name": "mode",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "sessionId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "in": "query",
+            "name": "all",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleaningEstimate"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning-runs": {
+      "post": {
+        "operationId": "startCleaningRun",
+        "tags": [
+          "enrichment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartCleaningRunInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleaningRunStarted"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning-runs/{runId}/stop": {
+      "post": {
+        "operationId": "stopCleaningRun",
+        "tags": [
+          "enrichment"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "runId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning/{sessionId}": {
+      "get": {
+        "operationId": "getInterviewCleaning",
+        "tags": [
+          "enrichment"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "to-decide",
+                "accepted",
+                "rejected",
+                "all"
+              ]
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "person",
+                "lexicon",
+                "name",
+                "ai-lexicon",
+                "ai-other"
+              ]
+            },
+            "in": "query",
+            "name": "source",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "term",
+                "transcription",
+                "speaker",
+                "name"
+              ]
+            },
+            "in": "query",
+            "name": "kind",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            },
+            "in": "query",
+            "name": "confidence",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "in": "query",
+            "name": "onlyCorrected",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewCleaning"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning/{sessionId}/corrections/{key}": {
+      "put": {
+        "operationId": "decideCorrection",
+        "tags": [
+          "enrichment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideCorrectionInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "in": "path",
+            "name": "key",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning/{sessionId}/corrections": {
+      "post": {
+        "operationId": "addCorrection",
+        "tags": [
+          "enrichment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCorrectionInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionAdded"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning/{sessionId}/decisions": {
+      "post": {
+        "operationId": "decideCorrections",
+        "tags": [
+          "enrichment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkCorrectionsInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkCorrectionsResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning/{sessionId}/versions": {
+      "post": {
+        "operationId": "validateClean",
+        "tags": [
+          "enrichment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateCleanInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanVersionCreated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning/{sessionId}/publish": {
+      "post": {
+        "operationId": "publishClean",
+        "tags": [
+          "enrichment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishCleanInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanPublished"
+                }
+              }
+            }
           }
         }
       }
