@@ -20,6 +20,11 @@ import {
 import { createPublishingModule, registerPublishingRoutes } from './modules/publishing/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
 import {
+  createInsightsAi,
+  createSynthesisModule,
+  registerSynthesisRoutes,
+} from './modules/synthesis/index.ts'
+import {
   createCleaningAi,
   createLexiconAi,
   createTranscriptsModule,
@@ -226,6 +231,44 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     }),
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
   })
+  const evidenceReads = evidence.reads
+  // Spec 013: the project's insights read the accepted facts of its studies through Evidence.
+  const synthesis = createSynthesisModule({
+    db: infra.db,
+    clock,
+    sources: {
+      project: async (accountId, projectId) => {
+        const project = await r.queries.getProject(accountId, projectId)
+        return project ? { teamId: project.team.id, goal: project.goal } : null
+      },
+      // A study with a folder is open only to people whose access was confirmed (spec 002 FR-010a).
+      studies: async (accountId, projectId) =>
+        ((await r.studyQueries.listStudies(accountId, projectId)) ?? []).map((s) => ({
+          id: s.id,
+          name: s.name,
+          access: !s.hasFolder || s.folderName !== null,
+        })),
+      themes: async (accountId, studyId) => {
+        const guide = await r.preparationQueries.getGuide(accountId, studyId)
+        const sections = guide.ok && guide.value ? guide.value.content.sections : []
+        return sections.filter((s) => s.kind === 'theme').map((s) => ({ id: s.id, title: s.title }))
+      },
+      facts: (studyIds) => evidenceReads.projectFacts(studyIds),
+      factsByIds: (ids) => evidenceReads.factsByIds(ids),
+      knownNames: async (accountId, studyId) => [
+        ...(await enrichment.knownNames(accountId, studyId)),
+        ...(await transcripts.personNames(accountId, studyId)),
+      ],
+      language: async (accountId) =>
+        (await workspace.handlers.getMe(accountId))?.language === 'fr' ? 'fr' : 'en',
+    },
+    ai: createInsightsAi({
+      gateway: () => bound(ai).gateway,
+      estimateCost: (...args) => bound(ai).estimateCost(...args),
+      studyCosts: (refs) => bound(ai).studyCosts(refs),
+    }),
+    enqueue: (queue, data, options) => jobs.send(queue, data, options),
+  })
   // Results of research commands, as the assistant reads them (`ok` + id, or an error code).
   const outcome = <T extends object>(
     result: { ok: true; value: T } | { ok: false; error: string },
@@ -323,6 +366,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     publishing,
     transcripts,
     evidence,
+    synthesis,
   }
 }
 
@@ -343,6 +387,7 @@ export const composeApp = async (
     publishing,
     transcripts,
     evidence,
+    synthesis,
   } = modules
   const auth = createAuth({
     config,
@@ -366,6 +411,7 @@ export const composeApp = async (
       registerPublishingRoutes(instance, { guard, handlers: publishing.handlers })
       registerTranscriptsRoutes(instance, { guard, handlers: transcripts.handlers })
       registerEvidenceRoutes(instance, { guard, handlers: evidence.handlers })
+      registerSynthesisRoutes(instance, { guard, handlers: synthesis.handlers })
     },
   })
   return { app, auth, modules }

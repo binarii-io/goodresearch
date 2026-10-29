@@ -225,6 +225,27 @@
       "when": 1793276542166,
       "tag": "0031_facts_reading_stops",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793282106503,
+      "tag": "0032_project_insights",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793287163467,
+      "tag": "0033_insights_with_proposed_facts",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793293651889,
+      "tag": "0034_insight_pending_translation",
+      "breakpoints": true
     }
   ]
 }

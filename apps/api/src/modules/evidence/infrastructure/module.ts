@@ -6,6 +6,7 @@ import { makeAnalysisCommands } from '../application/commands/analysis-commands.
 import { makeFactCommands } from '../application/commands/fact-commands.ts'
 import type { AnalysisSources, EvidenceDeps, FactsAi } from '../application/ports.ts'
 import { makeAnalysisQueries } from '../application/queries/analysis-queries.ts'
+import { makeSynthesisReads } from '../application/queries/synthesis-reads.ts'
 import { isFactsRunLive } from '../domain/analysis-run.ts'
 import { createEvidenceStore } from './evidence.drizzle-store.ts'
 import type { EvidenceHandlers } from './http.routes.ts'
@@ -71,5 +72,7 @@ export const createEvidenceModule = (deps: {
   /** A "Find facts" of the study is running: the Enrichment runs wait (FR-012). */
   const factsLive = async (studyId: string) =>
     isFactsRunLive(await store.openRun(studyId), deps.clock.now())
-  return { handlers, jobs, factsLive }
+  /** The facts the project's insights read (spec 013 research R1). */
+  const reads = makeSynthesisReads(store)
+  return { handlers, jobs, factsLive, reads }
 }

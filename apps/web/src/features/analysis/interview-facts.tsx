@@ -96,7 +96,7 @@ export function InterviewFactsView({
   const view = useGetInterviewFacts(studyId, sessionId, { query: { refetchOnMount: 'always' } })
   const refresh = useRefreshFacts(studyId, sessionId)
   const accept = useAcceptFacts()
-  const [status, setStatus] = useState<Status>('to-decide')
+  const [status, setStatus] = useState<Status>('all')
   const [theme, setTheme] = useState(ALL)
   const [polarity, setPolarity] = useState(ALL)
   const [selected, setSelected] = useState<string | null>(null)
@@ -226,10 +226,10 @@ export function InterviewFactsView({
               onChange={(v) => setStatus(v as Status)}
               className="w-32"
               options={[
+                { value: 'all', label: t`All` },
                 { value: 'to-decide', label: t`To decide` },
                 { value: 'accepted', label: t`Accepted` },
                 { value: 'rejected', label: t`Rejected` },
-                { value: 'all', label: t`All` },
               ]}
             />
             <Choice

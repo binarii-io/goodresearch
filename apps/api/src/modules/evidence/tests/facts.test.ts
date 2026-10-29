@@ -5,7 +5,6 @@ import {
   createFact,
   decideFact,
   type Fact,
-  holdsName,
   isRepeated,
   isReproposal,
 } from '../domain/facts.ts'
@@ -30,14 +29,6 @@ const answer = (over: Partial<Parameters<typeof checkFacts>[0][number]> = {}) =>
   theme: 's1',
   verbatims: ['v1', 'v2'],
   ...over,
-})
-
-describe('holdsName', () => {
-  it('finds a known name, a word of it, or a placeholder', () => {
-    expect(holdsName('Sam finds it hard', names)).toBe(true)
-    expect(holdsName('The participant asked [Person 2]', names)).toBe(true)
-    expect(holdsName('The participant finds it hard', names)).toBe(false)
-  })
 })
 
 describe('checkFacts (FR-006)', () => {

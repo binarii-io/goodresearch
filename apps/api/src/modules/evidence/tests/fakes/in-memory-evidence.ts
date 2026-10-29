@@ -79,6 +79,8 @@ export const inMemoryEvidenceStore = () => {
     factsOf: async (sessionId) => [...facts.values()].filter((f) => f.sessionId === sessionId),
     factsOfStudy: async (studyId) => [...facts.values()].filter((f) => f.studyId === studyId),
     getFact: async (id) => facts.get(id) ?? null,
+    factsByIds: async (ids) => ids.flatMap((id) => facts.get(id) ?? []),
+    verbatimsByIds: async (ids) => ids.flatMap((id) => verbatims.get(id) ?? []),
     replaceReading: async (input) => {
       const mine = [...facts.values()].filter((f) => f.sessionId === input.sessionId)
       for (const f of mine) if (f.status === 'proposed') facts.delete(f.id)

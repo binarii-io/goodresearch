@@ -138,11 +138,12 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 
 ### 7. Synthesis
 
-- **Insight** — project-level finding: `theme`, `statement`, `description`, counter-evidence, minority view, status. Links to facts with a role (`support | counter | removed`) and origin (`ai | manual`).
-  - Only known fact ids may be cited; an insight without valid support is dropped.
-  - **ConfidencePolicy**: panel = participants with facts in the project. High ≥ max(5, 30% of panel) participants AND ≥3 teams AND no team >50%; Medium ≥3 participants; Low otherwise; counter-evidence from ≥50% as many participants lowers one level.
+- **Insight** (spec 013) — project-level finding over the **accepted facts** of the project's studies (and, on request, those still to decide, shown "to validate" and counted once accepted): theme, statement and description (English and French), counter-evidence, minority view, origin (`ai | person`), status (`proposed | validated | edited | rejected`). Links to facts with a **role** (`support | counter`, one per fact) and a **state** (`counted`; `suggested`: added by a run to a decided insight, counted once a person accepts it; `unlinked`: removed by a person, never linked again by a run). Each link keeps the fact as it was (snapshot); a fact rejected, deleted, outside the project or changed since shows **Evidence changed** until a person marks it **Reviewed**.
+  - Only known fact refs may be cited; an insight without valid support is dropped; at most 25 new insights per run; a run never changes a decided insight's texts.
+  - **ConfidencePolicy**: panel = participants (one roster person of one study) with accepted facts in the project. High ≥ max(5, 30% of panel) supporting participants; Medium ≥3; Low otherwise; counter-evidence from ≥50% as many participants lowers one level. The prototype's team condition (≥3 teams, no team >50%) comes back with participant profiles.
   - **PolarityPolicy**: neutral if polarised facts <30%; positive/negative if ≥60% of polarised; mixed otherwise.
-  - Themes come from the guide sections (+ "Other"); free themes without guide.
+  - Themes come from the guides' theme sections, merged by title across studies (+ "Other").
+- **InsightRun** (spec 013) — one "Find insights" over a project: studies and scope chosen (`all` or facts not yet in an insight), calls done of total, stopped or finished, cost; one at a time per project.
 - **Recommendation** — `action`, `rationale`, `kind` (`build | test | investigate`), `impact`/`effort` (H/M/L), `successMeasure`, `owner`, status, links to insights. A `build` backed only by low-confidence insights becomes `test`. **PriorityPolicy** = impact×2 − effort.
 - **KeyTakeaways** — the project's 2–4 sentence summary (one per project, referenced by project ID). AI may draft, never saved automatically.
 
@@ -255,6 +256,11 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Insight | Insight | Common term in French UX research |
 | Confidence (high / medium / low) | Confiance (élevée / moyenne / faible) | |
 | Counter-evidence | Contre-exemples | |
+| Minority view | Point de vue minoritaire | Spec 013 |
+| Polarity of an insight: mixed | Mitigé | Spec 013, computed by the app |
+| Supports / Goes against (a fact's role) | Soutient / Va contre | Spec 013 |
+| Evidence changed / Reviewed | Preuves modifiées / Vérifié | Spec 013 |
+| Find insights | Trouver des insights | |
 | Recommendation | Recommandation | |
 | Kind: build / test / investigate | Type : construire / tester / investiguer | |
 | Impact / Effort | Impact / Effort | |

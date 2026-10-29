@@ -185,6 +185,9 @@ export type EvidenceStore = {
   verbatimsOfStudy(studyId: string): Promise<StoredVerbatim[]>
   factsOf(sessionId: string): Promise<Fact[]>
   factsOfStudy(studyId: string): Promise<Fact[]>
+  /** Facts by id, any status; absent ids are skipped. */
+  factsByIds(ids: readonly string[]): Promise<Fact[]>
+  verbatimsByIds(ids: readonly string[]): Promise<StoredVerbatim[]>
   getFact(id: string): Promise<Fact | null>
   /**
    * Research R7, in one transaction: drops the interview's facts still proposed and its AI

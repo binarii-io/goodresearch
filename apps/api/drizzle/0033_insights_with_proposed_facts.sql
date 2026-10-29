@@ -1,0 +1,1 @@
+ALTER TABLE "synthesis_runs" ADD COLUMN "with_proposed" boolean DEFAULT false NOT NULL;

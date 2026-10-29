@@ -1,0 +1,1 @@
+ALTER TABLE "synthesis_insights" ADD COLUMN "pending_translation" jsonb;

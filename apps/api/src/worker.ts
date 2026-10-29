@@ -20,6 +20,7 @@ await registerHandlers(boss, [
   ...modules.ingestion.jobs,
   ...modules.transcripts.jobs,
   ...modules.evidence.jobs,
+  ...modules.synthesis.jobs,
 ])
 console.log('worker started')
 

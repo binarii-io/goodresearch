@@ -1,4 +1,4 @@
-import { err, fold, ok, PLACEHOLDER, type Result, words } from '@goodresearch/shared'
+import { err, holdsName, ok, type Result, sharedWords } from '@goodresearch/shared'
 
 /** FR-006: a statement is short and neutral, in English and French. */
 export const STATEMENT_MAX = 200
@@ -35,18 +35,6 @@ export type FactError =
   | 'NAME_IN_STATEMENT'
   | 'VERSION_CONFLICT'
   | 'VALIDATION'
-
-const keysOf = (text: string) => words(text).map((w) => fold(w.text))
-
-/** A known person's name, a word of it (3 letters or more), or a placeholder (FR-006). */
-export const holdsName = (text: string, names: readonly string[]): boolean => {
-  if (new RegExp(PLACEHOLDER.source).test(text)) return true
-  const keys = new Set(keysOf(text))
-  return names.some((name) => {
-    const nameKeys = keysOf(name)
-    return nameKeys.length > 0 && nameKeys.some((k) => k.length >= 3 && keys.has(k))
-  })
-}
 
 const validStatement = (s: string) => s.trim().length >= 1 && s.trim().length <= STATEMENT_MAX
 
@@ -96,13 +84,6 @@ export const checkFacts = (
   return { kept, leftOut }
 }
 
-const shareOf = (candidate: string, decided: string) => {
-  const mine = [...new Set(keysOf(candidate).filter((k) => k.length >= 3))]
-  if (mine.length === 0) return 0
-  const theirs = new Set(keysOf(decided))
-  return mine.filter((k) => theirs.has(k)).length / mine.length
-}
-
 /**
  * Research R7, constitution IV: a fact the AI proposes again — its verbatims are all those of a
  * decided fact, or its statement shares 60% of its words with one (in either language).
@@ -114,8 +95,8 @@ export const isReproposal = (
   decided.some(
     (d) =>
       candidate.verbatimIds.every((v) => d.verbatimIds.includes(v)) ||
-      shareOf(candidate.statement.en, d.statement.en) >= SAME_WORDS ||
-      shareOf(candidate.statement.fr, d.statement.fr) >= SAME_WORDS,
+      sharedWords(candidate.statement.en, d.statement.en) >= SAME_WORDS ||
+      sharedWords(candidate.statement.fr, d.statement.fr) >= SAME_WORDS,
   )
 
 /**
@@ -128,8 +109,8 @@ export const isRepeated = (
 ): boolean =>
   proposed.some(
     (p) =>
-      shareOf(candidate.statement.en, p.statement.en) >= SAME_WORDS ||
-      shareOf(candidate.statement.fr, p.statement.fr) >= SAME_WORDS,
+      sharedWords(candidate.statement.en, p.statement.en) >= SAME_WORDS ||
+      sharedWords(candidate.statement.fr, p.statement.fr) >= SAME_WORDS,
   )
 
 /** A person's statement: one language or both; the missing one is translated (research R9). */

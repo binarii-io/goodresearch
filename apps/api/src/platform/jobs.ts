@@ -14,6 +14,10 @@ export const QUEUES = {
   facts: 'evidence.facts',
   /** A fact's statement translated after a person's edit (spec 012 research R9). */
   translate: 'evidence.translate',
+  /** One "Find insights" per project at a time (spec 013, `exclusive` keyed by project id). */
+  insights: 'synthesis.insights',
+  /** An insight's texts translated after a person's edit (spec 013 research R9). */
+  insightTranslate: 'synthesis.translate',
 } as const
 
 export type JobQueue = {
@@ -53,6 +57,12 @@ export const createQueues = async (boss: PgBoss): Promise<void> => {
     expireInSeconds: 120 * 60,
   })
   await boss.createQueue(QUEUES.translate, { retryLimit: 1, expireInSeconds: 5 * 60 })
+  await boss.createQueue(QUEUES.insights, {
+    policy: 'exclusive',
+    retryLimit: 0,
+    expireInSeconds: 60 * 60,
+  })
+  await boss.createQueue(QUEUES.insightTranslate, { retryLimit: 1, expireInSeconds: 5 * 60 })
 }
 
 export const createJobQueue = (boss: PgBoss): JobQueue => ({

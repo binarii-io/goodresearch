@@ -238,6 +238,14 @@ describe('Verbatims and facts on PostgreSQL (spec 012)', () => {
       decision: 'reject',
       version: edited.version,
     })
+    // A decision never moves a fact in the list: the oldest first, whatever was saved last.
+    const createdId = created.json<{ id: string }>().id
+    const order = (await call(alex, 'GET', url)).json<Interview>().facts.map((f) => f.id)
+    expect(order).toEqual([edited.id, createdId])
+    const listed = (await call(alex, 'GET', `/api/studies/${studyId}/facts?status=all`)).json<{
+      facts: FactView[]
+    }>()
+    expect(listed.facts.map((f) => f.id)).toEqual([edited.id, createdId])
     await call(alex, 'POST', `/api/studies/${studyId}/facts-runs`, {
       all: true,
       consent: false,

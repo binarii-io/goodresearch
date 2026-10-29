@@ -138,6 +138,41 @@ const factsAnswer = (prompt: string) => {
   }
 }
 
+/**
+ * Spec 013: one insight per theme of the fact lines, supported by its facts that are not positive
+ * and countered by the positive ones, plus a citation of a fact not sent (the app drops it).
+ */
+const insightsAnswer = (prompt: string) => {
+  const body = prompt.split('\n<fact-lines>\n')[1] ?? ''
+  const lines = body
+    .split('\n')
+    .filter((l) => /^f\d+ \| /.test(l))
+    .map((l) => l.split(' | '))
+  const themes = [...new Set(lines.map((l) => l[2] ?? 'other'))]
+  const title = (ref: string) => new RegExp(`^${ref}: (.+)$`, 'm').exec(prompt)?.[1] ?? ref
+  return {
+    insights: themes.map((theme) => ({
+      ref: null,
+      theme,
+      statement: {
+        en: `Participants share a finding about ${title(theme)}`,
+        fr: `Les participants partagent un constat sur ${title(theme)}`,
+      },
+      description: {
+        en: 'What the facts of this theme show.',
+        fr: 'Ce que montrent les faits de ce thème.',
+      },
+      counterEvidence: { en: 'None', fr: 'Aucun' },
+      minorityView: { en: 'None', fr: 'Aucun' },
+      support: [
+        ...lines.filter((l) => l[2] === theme && l[1] !== 'positive').map((l) => l[0] ?? ''),
+        'f999',
+      ],
+      counter: lines.filter((l) => l[2] === theme && l[1] === 'positive').map((l) => l[0] ?? ''),
+    })),
+  }
+}
+
 /** The test provider's lexicon: candidates within 2 edits are one term, the known form first. */
 const lexiconAnswer = (prompt: string) => {
   const candidates: { spelling: string; excerpts: string[] }[] = []
@@ -418,6 +453,26 @@ export const createFakeRunner = (): ModelRunner => {
         const parsed = request.schema.safeParse(factsAnswer(request.prompt))
         if (!parsed.success) throw new ProviderCallError('UNKNOWN')
         return { object: parsed.data, usage: { inputTokens: 2000, outputTokens: 500 } }
+      }
+      if (request.prompt?.includes('\n<fact-lines>\n')) {
+        await sleep(300)
+        const parsed = request.schema.safeParse(insightsAnswer(request.prompt))
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 3000, outputTokens: 800 } }
+      }
+      if (request.prompt?.startsWith('<translate-insight>\n')) {
+        const [, , to, ...rest] = request.prompt.split('\n')
+        const texts = JSON.parse(rest.join('\n')) as Record<string, string>
+        const lang = to?.replace('to: ', '').toUpperCase()
+        const parsed = request.schema.safeParse({
+          statement: null,
+          description: null,
+          counterEvidence: null,
+          minorityView: null,
+          ...Object.fromEntries(Object.entries(texts).map(([k, v]) => [k, `${lang}: ${v}`])),
+        })
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 300, outputTokens: 80 } }
       }
       if (request.prompt?.startsWith('<translate>\n')) {
         const [, , to, ...text] = request.prompt.split('\n')

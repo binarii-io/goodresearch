@@ -31,7 +31,7 @@ export function FactsList({
 }) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
-  const [status, setStatus] = useState<Status>('to-decide')
+  const [status, setStatus] = useState<Status>('all')
   const [theme, setTheme] = useState(ALL)
   const [polarity, setPolarity] = useState(ALL)
   const [participant, setParticipant] = useState(ALL)
@@ -63,10 +63,10 @@ export function FactsList({
           onChange={(v) => filtered(() => setStatus(v as Status))}
           className="w-36"
           options={[
+            { value: 'all', label: t`All` },
             { value: 'to-decide', label: t`To decide` },
             { value: 'accepted', label: t`Accepted` },
             { value: 'rejected', label: t`Rejected` },
-            { value: 'all', label: t`All` },
           ]}
         />
         <Choice

@@ -1,4 +1,4 @@
-import { err, newId, ok, type Result, words } from '@goodresearch/shared'
+import { err, holdsName, newId, ok, type Result, words } from '@goodresearch/shared'
 import { translationRef } from '../../domain/analysis-run.ts'
 import {
   attachVerbatim,
@@ -7,7 +7,6 @@ import {
   type Fact,
   type FactDecision,
   type FactError,
-  holdsName,
   type Polarity,
   STATEMENT_MAX,
   type Theme,

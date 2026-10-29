@@ -57,7 +57,8 @@ const factRow = (f: Fact) => ({
 
 export const createEvidenceStore = (db: Db): EvidenceStore => {
   const factsWhere = async (where: ReturnType<typeof eq>): Promise<Fact[]> => {
-    const rows = await db.select().from(evidenceFacts).where(where)
+    // Creation order (ids are UUID v7): a decision, which rewrites the row, never moves a fact.
+    const rows = await db.select().from(evidenceFacts).where(where).orderBy(evidenceFacts.id)
     if (rows.length === 0) return []
     const links = await db
       .select()
@@ -228,6 +229,17 @@ export const createEvidenceStore = (db: Db): EvidenceStore => {
     factsOf: (sessionId) => factsWhere(eq(evidenceFacts.sessionId, sessionId)),
     factsOfStudy: (studyId) => factsWhere(eq(evidenceFacts.studyId, studyId)),
     getFact: async (id) => (await factsWhere(eq(evidenceFacts.id, id)))[0] ?? null,
+    factsByIds: async (ids) =>
+      ids.length === 0 ? [] : factsWhere(inArray(evidenceFacts.id, [...ids])),
+    verbatimsByIds: async (ids) =>
+      ids.length === 0
+        ? []
+        : (
+            await db
+              .select()
+              .from(evidenceVerbatims)
+              .where(inArray(evidenceVerbatims.id, [...ids]))
+          ).map(verbatimOf),
 
     replaceReading: async ({ sessionId, keep, verbatims, facts, reading }) => {
       await db.transaction(async (tx) => {

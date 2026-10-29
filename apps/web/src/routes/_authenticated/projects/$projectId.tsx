@@ -18,23 +18,32 @@ import {
   SelectValue,
 } from '@goodresearch/ui/components/select'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useId, useState } from 'react'
+import { z } from 'zod'
 import { StudyList } from '../../../features/research/study-list.tsx'
+import { InsightsTab } from '../../../features/synthesis/insights-tab.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useFormatDate } from '../../../features/workspace/format.ts'
 import { useMe } from '../../../features/workspace/me.ts'
 import { NotFound } from '../../../features/workspace/not-found.tsx'
 
 export const Route = createFileRoute('/_authenticated/projects/$projectId')({
+  // Spec 013: the project's tabs, Overview (goal and studies) and Insights.
+  validateSearch: z.object({
+    tab: z.enum(['overview', 'insights']).optional().catch(undefined),
+  }),
   component: ProjectOverview,
 })
 
 function ProjectOverview() {
   const { t, i18n } = useLingui()
   const { projectId } = Route.useParams()
+  const { tab = 'overview' } = Route.useSearch()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const me = useMe()
   const project = useGetProject(projectId)
@@ -67,7 +76,16 @@ function ProjectOverview() {
   const updated = formatDate(p.updatedAt)
 
   return (
-    <article className="grid gap-4">
+    <Tabs
+      value={tab}
+      onValueChange={(value) =>
+        void navigate({
+          to: '.',
+          search: (previous) => ({ ...previous, tab: value === 'overview' ? undefined : value }),
+        })
+      }
+      className="gap-4"
+    >
       <PageBar
         back={<Link to="/" />}
         backLabel={t`Back to research projects`}
@@ -83,6 +101,12 @@ function ProjectOverview() {
               save(() => rename.mutateAsync({ projectId, data: { name, version: p.version } }))
             }
           />
+        }
+        right={
+          <TabsList aria-label={t`Project views`}>
+            <TabsTrigger value="overview">{t`Overview`}</TabsTrigger>
+            <TabsTrigger value="insights">{t`Insights`}</TabsTrigger>
+          </TabsList>
         }
       />
 
@@ -107,62 +131,69 @@ function ProjectOverview() {
         </div>
       ) : null}
 
-      <section
-        aria-labelledby="goal-heading"
-        className="grid gap-3 rounded-lg border bg-[radial-gradient(circle_at_100%_0,color-mix(in_srgb,var(--highlight)_20%,transparent)_0_70px,transparent_71px),linear-gradient(120deg,var(--card)_62%,var(--highlight-soft))] px-[26px] pt-[22px] pb-5"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="goal-heading" className="eyebrow">
-            {t`Research goal`}
-          </h2>
-          <span id={teamLabel} className="sr-only">
-            {t`Team`}
-          </span>
-          <Select
-            value={p.team.id}
-            onValueChange={(teamId) => {
-              if (!teamId || teamId === p.team.id) return
-              void save(() =>
-                move.mutateAsync({ projectId, data: { teamId, version: p.version } }),
-              ).catch(() => undefined)
-            }}
-          >
-            <SelectTrigger
-              aria-labelledby={teamLabel}
-              className="h-auto rounded-full bg-card px-3 py-1.5 font-medium"
+      <TabsContent value="overview" className="grid gap-4">
+        <section
+          aria-labelledby="goal-heading"
+          className="grid gap-3 rounded-lg border bg-[radial-gradient(circle_at_100%_0,color-mix(in_srgb,var(--highlight)_20%,transparent)_0_70px,transparent_71px),linear-gradient(120deg,var(--card)_62%,var(--highlight-soft))] px-[26px] pt-[22px] pb-5"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="goal-heading" className="eyebrow">
+              {t`Research goal`}
+            </h2>
+            <span id={teamLabel} className="sr-only">
+              {t`Team`}
+            </span>
+            <Select
+              value={p.team.id}
+              onValueChange={(teamId) => {
+                if (!teamId || teamId === p.team.id) return
+                void save(() =>
+                  move.mutateAsync({ projectId, data: { teamId, version: p.version } }),
+                ).catch(() => undefined)
+              }}
             >
-              <UsersIcon aria-hidden />
-              <SelectValue>{() => p.team.name}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {me.teams.map((team) => (
-                <SelectItem key={team.id} value={team.id}>
-                  {team.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="max-w-[900px] text-[1.02rem] leading-relaxed">
-          <InlineEdit
-            label={t`Research goal`}
-            value={p.goal}
-            multiline
-            maxLength={10_000}
-            placeholder={t`Describe the research question, objectives and hypotheses.`}
-            savedMessage={t`Goal saved`}
-            editHint={t`Ctrl+Enter to save, Escape to cancel`}
-            onSave={(goal) =>
-              save(() => updateGoal.mutateAsync({ projectId, data: { goal, version: p.version } }))
-            }
-          />
-        </div>
-        <p className="text-muted-foreground text-sm">
-          {t`Created ${created} · Updated ${updated}`}
-        </p>
-      </section>
+              <SelectTrigger
+                aria-labelledby={teamLabel}
+                className="h-auto rounded-full bg-card px-3 py-1.5 font-medium"
+              >
+                <UsersIcon aria-hidden />
+                <SelectValue>{() => p.team.name}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {me.teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="max-w-[900px] text-[1.02rem] leading-relaxed">
+            <InlineEdit
+              label={t`Research goal`}
+              value={p.goal}
+              multiline
+              maxLength={10_000}
+              placeholder={t`Describe the research question, objectives and hypotheses.`}
+              savedMessage={t`Goal saved`}
+              editHint={t`Ctrl+Enter to save, Escape to cancel`}
+              onSave={(goal) =>
+                save(() =>
+                  updateGoal.mutateAsync({ projectId, data: { goal, version: p.version } }),
+                )
+              }
+            />
+          </div>
+          <p className="text-muted-foreground text-sm">
+            {t`Created ${created} · Updated ${updated}`}
+          </p>
+        </section>
 
-      <StudyList projectId={projectId} />
-    </article>
+        <StudyList projectId={projectId} />
+      </TabsContent>
+      <TabsContent value="insights">
+        <InsightsTab projectId={projectId} />
+      </TabsContent>
+    </Tabs>
   )
 }

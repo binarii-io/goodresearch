@@ -3,9 +3,11 @@ import {
   findMatches,
   fold,
   fromPlaceholders,
+  holdsName,
   isAcronym,
   nameKey,
   quoteFound,
+  sharedWords,
   withPlaceholders,
   words,
 } from './text.ts'
@@ -84,5 +86,26 @@ describe('placeholders', () => {
 describe('nameKey', () => {
   it('is the same person whatever case, accents or spaces', () => {
     expect(nameKey(' Élodie  Martin ')).toBe(nameKey('elodie martin'))
+  })
+})
+
+describe('sharedWords', () => {
+  it('is the share of the words of the first text (3 letters or more) found in the second', () => {
+    expect(sharedWords('Teams cannot find the data', 'The data teams cannot reach')).toBe(0.8)
+    expect(sharedWords('a an', 'anything')).toBe(0)
+  })
+  it('ignores case and accents', () => {
+    expect(sharedWords('Équipes données', 'equipes DONNEES')).toBe(1)
+  })
+})
+
+describe('holdsName', () => {
+  it('finds a known name, a word of it, or a placeholder', () => {
+    expect(holdsName('Sam finds it slow', ['Sam Example'])).toBe(true)
+    expect(holdsName('[Person 2] finds it slow', [])).toBe(true)
+    expect(holdsName('It is slow', ['Sam Example'])).toBe(false)
+  })
+  it('ignores words of a name shorter than 3 letters', () => {
+    expect(holdsName('Jo is here', ['Al Jo'])).toBe(false)
   })
 })

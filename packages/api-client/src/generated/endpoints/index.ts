@@ -3,6 +3,7 @@ export * from './analysis/analysis.ts';
 export * from './assistant/assistant.ts';
 export * from './enrichment/enrichment.ts';
 export * from './fieldwork/fieldwork.ts';
+export * from './insights/insights.ts';
 export * from './me/me.ts';
 export * from './members/members.ts';
 export * from './preparation/preparation.ts';

@@ -51,6 +51,8 @@ export function FactCard({
   const decide = useDecideFact()
   const translate = useTranslateFact()
   const { text, note } = statementOf(fact)
+  const accepted = fact.status === 'accepted' || fact.status === 'edited'
+  const rejected = fact.status === 'rejected'
   const act = (decision: 'accept' | 'reject') =>
     void decide
       .mutateAsync({ studyId, factId: fact.id, data: { decision, version: fact.version } })
@@ -136,33 +138,35 @@ export function FactCard({
           </li>
         ))}
       </ul>
-      <div className="flex flex-wrap gap-1">
-        {fact.status === 'accepted' || fact.status === 'edited' ? null : (
+      {/* The decision stays in view: the choice made is highlighted, the other one stays at hand. */}
+      <div className="flex flex-wrap items-center gap-1">
+        <fieldset className="flex gap-1">
+          <legend className="sr-only">{t`Decision`}</legend>
           <Button
             size="xs"
-            variant="outline"
+            variant={accepted ? 'default' : 'outline'}
+            aria-pressed={accepted}
             disabled={decide.isPending}
-            onClick={() => act('accept')}
+            onClick={() => (accepted ? undefined : act('accept'))}
           >
             <CheckIcon aria-hidden />
-            {t`Accept`}
+            {accepted ? t`Accepted` : t`Accept`}
           </Button>
-        )}
+          <Button
+            size="xs"
+            variant={rejected ? 'default' : 'outline'}
+            aria-pressed={rejected}
+            disabled={decide.isPending}
+            onClick={() => (rejected ? undefined : act('reject'))}
+          >
+            <XIcon aria-hidden />
+            {rejected ? t`Rejected` : t`Reject`}
+          </Button>
+        </fieldset>
         <Button size="xs" variant="ghost" onClick={onEdit}>
           <PencilIcon aria-hidden />
           {t`Edit`}
         </Button>
-        {fact.status === 'rejected' ? null : (
-          <Button
-            size="xs"
-            variant="ghost"
-            disabled={decide.isPending}
-            onClick={() => act('reject')}
-          >
-            <XIcon aria-hidden />
-            {t`Reject`}
-          </Button>
-        )}
       </div>
     </article>
   )

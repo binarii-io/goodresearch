@@ -73,6 +73,13 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   SPEAKER_TO_ATTRIBUTE: msg`Say who speaks in this interview first.`,
   FACT_NEEDS_VERBATIM: msg`A fact needs at least one verbatim.`,
   FACT_NOT_FOUND: msg`This fact is no longer there.`,
+  INSIGHT_NOT_FOUND: msg`This insight is no longer there.`,
+  INSIGHT_NEEDS_SUPPORT: msg`An insight needs at least one accepted supporting fact: accept its facts to validate first.`,
+  FACT_NOT_ACCEPTED: msg`This fact was rejected or is no longer in the project.`,
+  INSIGHTS_RUNNING: msg`Insights are already being found for this project.`,
+  INSIGHTS_CONSENT_REQUIRED: msg`Agree to send the facts to your AI provider first.`,
+  NO_FACTS: msg`No fact to read with this choice.`,
+  STUDY_ACCESS_REQUIRED: msg`You cannot open one of the studies chosen.`,
 }
 
 /** One translated sentence for an error code (never technical details). */

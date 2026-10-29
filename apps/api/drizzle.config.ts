@@ -12,6 +12,7 @@ export default defineConfig({
     './src/modules/publishing/infrastructure/schema.ts',
     './src/modules/transcripts/infrastructure/schema.ts',
     './src/modules/evidence/infrastructure/schema.ts',
+    './src/modules/synthesis/infrastructure/schema.ts',
   ],
   out: './drizzle',
   casing: 'snake_case',

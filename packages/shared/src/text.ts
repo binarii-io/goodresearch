@@ -170,3 +170,26 @@ export const languageOf = (text: string): SessionLanguage => {
   if (fr >= 3 && fr >= 2 * en) return 'fr'
   return 'other'
 }
+
+const keysOf = (text: string) => words(text).map((w) => fold(w.text))
+
+/**
+ * The share of the first text's words (3 letters or more) that the second holds, ignoring case
+ * and accents: a statement sharing most of its words with a decided one says the same thing.
+ */
+export const sharedWords = (text: string, other: string): number => {
+  const mine = [...new Set(keysOf(text).filter((k) => k.length >= 3))]
+  if (mine.length === 0) return 0
+  const theirs = new Set(keysOf(other))
+  return mine.filter((k) => theirs.has(k)).length / mine.length
+}
+
+/** A known person's name, a word of it (3 letters or more), or a placeholder. */
+export const holdsName = (text: string, names: readonly string[]): boolean => {
+  if (new RegExp(PLACEHOLDER.source).test(text)) return true
+  const keys = new Set(keysOf(text))
+  return names.some((name) => {
+    const nameKeys = keysOf(name)
+    return nameKeys.length > 0 && nameKeys.some((k) => k.length >= 3 && keys.has(k))
+  })
+}
