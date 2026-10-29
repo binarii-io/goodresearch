@@ -95,6 +95,18 @@ export type VerbatimRequest = {
 
 export type FactRequest = {
   readonly goal: string
+  /**
+   * The interview's facts already there (spec 012 FR-010, update): the AI takes one up by its ref
+   * rather than writing it again; a decided one is never changed.
+   */
+  readonly existing: readonly {
+    readonly ref: string
+    readonly statement: string
+    readonly polarity: Polarity
+    readonly theme: string
+    readonly status: 'decided' | 'to decide'
+    readonly verbatims: readonly string[]
+  }[]
   readonly themes: readonly { readonly id: string; readonly title: string }[]
   readonly verbatims: readonly {
     readonly id: string
@@ -104,6 +116,8 @@ export type FactRequest = {
 }
 
 export type FactAnswer = {
+  /** An existing fact taken up (`F1`…); absent for a new one. */
+  readonly ref?: string | undefined
   readonly statement: { readonly en: string; readonly fr: string }
   readonly polarity: Polarity
   readonly theme: string
@@ -191,7 +205,8 @@ export type EvidenceStore = {
   getFact(id: string): Promise<Fact | null>
   /**
    * Research R7, in one transaction: drops the interview's facts still proposed and its AI
-   * verbatims no decided fact uses (except `keep`), adds the new ones, saves the reading.
+   * verbatims no decided fact uses (except `keep`), adds the new ones, saves the reading. A fact
+   * taken up by the reading but decided meanwhile is left as the person decided it.
    */
   replaceReading(input: {
     readonly sessionId: string

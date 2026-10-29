@@ -10,15 +10,33 @@ import {
   type SynthesisDeps,
   type SynthesisSources,
   type SynthesisStore,
+  type TakeawaysJob,
 } from '../../application/ports.ts'
-import type { InsightRun } from '../../domain/insight-run.ts'
+import type { InsightRun, RecommendationRun } from '../../domain/insight-run.ts'
 import type { Insight, InsightAnswer } from '../../domain/insights.ts'
+import type { Recommendation, RecommendationAnswer } from '../../domain/recommendations.ts'
+import type { Takeaways } from '../../domain/takeaways.ts'
 
 /** The synthesis tables, in memory. */
 export const inMemorySynthesisStore = () => {
   const runs = new Map<string, InsightRun>()
   const insights = new Map<string, Insight>()
   const consents = new Map<string, string>()
+  const recRuns = new Map<string, RecommendationRun>()
+  const recommendations = new Map<string, Recommendation>()
+  const takeaways = new Map<string, Takeaways>()
+  const blank = (projectId: string): Takeaways => ({
+    projectId,
+    text: { en: '', fr: '' },
+    translation: 'done',
+    pendingTranslation: null,
+    savedBy: null,
+    savedAt: null,
+    version: 0,
+    savedOver: null,
+    withProposed: false,
+    draft: { text: null, state: 'none', by: null, at: null, withProposed: false },
+  })
   const store: SynthesisStore = {
     openRun: async (projectId) =>
       [...runs.values()].find((r) => r.projectId === projectId && r.finishedAt === null) ?? null,
@@ -60,13 +78,63 @@ export const inMemorySynthesisStore = () => {
       }
       return { skipped }
     },
+    openRecommendationRun: async (projectId) =>
+      [...recRuns.values()].find((r) => r.projectId === projectId && r.finishedAt === null) ?? null,
+    recommendationRunsOf: async (projectId) =>
+      [...recRuns.values()]
+        .filter((r) => r.projectId === projectId)
+        .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime()),
+    getRecommendationRun: async (id) => recRuns.get(id) ?? null,
+    startRecommendationRun: async (run) => {
+      if ([...recRuns.values()].some((r) => r.projectId === run.projectId && r.finishedAt === null))
+        return false
+      recRuns.set(run.id, run)
+      return true
+    },
+    saveRecommendationRun: async (run) => {
+      const current = recRuns.get(run.id)
+      if (!current || current.finishedAt) return
+      recRuns.set(run.id, { ...run, stopRequested: run.stopRequested || current.stopRequested })
+    },
+    requestRecommendationStop: async (runId) => {
+      const current = recRuns.get(runId)
+      if (current) recRuns.set(runId, { ...current, stopRequested: true })
+    },
+    recommendationsOf: async (projectId) =>
+      [...recommendations.values()].filter((r) => r.projectId === projectId),
+    getRecommendation: async (id) => recommendations.get(id) ?? null,
+    saveRecommendation: async (r, expected) => {
+      const current = recommendations.get(r.id)
+      if (expected === null ? current : current?.version !== expected) return 'stale'
+      recommendations.set(r.id, r)
+      return 'ok'
+    },
+    applyRecommendations: async ({ creates, updates }) => {
+      let skipped = 0
+      for (const r of creates) recommendations.set(r.id, r)
+      for (const u of updates) {
+        if (recommendations.get(u.recommendation.id)?.version !== u.expected) skipped++
+        else recommendations.set(u.recommendation.id, u.recommendation)
+      }
+      return { skipped }
+    },
+    getTakeaways: async (projectId) => takeaways.get(projectId) ?? null,
+    saveTakeaways: async (t, expected) => {
+      const current = takeaways.get(t.projectId) ?? blank(t.projectId)
+      if (current.version !== expected) return 'stale'
+      takeaways.set(t.projectId, { ...t, draft: current.draft })
+      return 'ok'
+    },
+    saveDraft: async (projectId, draft) => {
+      takeaways.set(projectId, { ...(takeaways.get(projectId) ?? blank(projectId)), draft })
+    },
     hasConsent: async (a, p, provider) => consents.get(`${a}|${p}`) === provider,
     giveConsent: async (a, p, provider) => {
       consents.set(`${a}|${p}`, provider)
     },
     accountNames: async (ids) => new Map(ids.map((id) => [id, `Name of ${id}`])),
   }
-  return { store, runs, insights }
+  return { store, runs, insights, recRuns, recommendations, takeaways }
 }
 
 /** The other modules, as Synthesis sees them. */
@@ -109,7 +177,15 @@ export const fakeInsightsAi = () => {
     during: (() => Promise<void>) | null
     /** Replaces the translation of one text. */
     translation: ((field: string, text: string) => string) | null
-  } = { unavailable: false, fail: 0, answer: null, during: null, translation: null }
+    recommendations: RecommendationAnswer[] | null
+  } = {
+    unavailable: false,
+    fail: 0,
+    answer: null,
+    during: null,
+    translation: null,
+    recommendations: null,
+  }
   const ai: InsightsAi = {
     insights: async (_a, ref, request) => {
       requests.push({ kind: 'insights', ref, body: request })
@@ -142,9 +218,50 @@ export const fakeInsightsAi = () => {
       return Object.fromEntries(
         Object.entries(request.texts).map(([k, v]) => [
           k,
-          state.translation ? state.translation(k, v) : `[${request.to}] ${v}`,
+          state.translation ? state.translation(k, v ?? '') : `[${request.to}] ${v}`,
         ]),
       )
+    },
+    recommendations: async (_a, ref, request) => {
+      requests.push({ kind: 'recommendations', ref, body: request })
+      if (state.during) await state.during()
+      if (state.unavailable) throw new AiUnavailable()
+      if (state.recommendations) return state.recommendations
+      // One recommendation per insight line: a build, plus one citing an insight not sent.
+      return [
+        ...request.insights.map((line) => {
+          const parts = line.split(' | ')
+          const ref = parts[0] ?? 'i1'
+          const statement = parts.at(-1) ?? ''
+          return {
+            action: { en: `Act on: ${statement}`, fr: `Agir sur : ${statement}` },
+            rationale: { en: 'Because the insight says so.', fr: "Parce que l'insight le dit." },
+            kind: 'build' as const,
+            impact: 'high' as const,
+            effort: 'medium' as const,
+            successMeasure: { en: 'Fewer issues', fr: 'Moins de problèmes' },
+            insights: [ref],
+          }
+        }),
+        {
+          action: { en: 'Unsupported', fr: 'Sans appui' },
+          rationale: { en: '', fr: '' },
+          kind: 'test' as const,
+          impact: 'low' as const,
+          effort: 'low' as const,
+          successMeasure: { en: '', fr: '' },
+          insights: ['i999'],
+        },
+      ]
+    },
+    takeaways: async (_a, ref, request) => {
+      requests.push({ kind: 'takeaways', ref, body: request })
+      if (state.unavailable) throw new AiUnavailable()
+      return [
+        { en: 'Teams lose time finding data.', fr: 'Les équipes perdent du temps.' },
+        { en: 'About 40% rebuild reports.', fr: 'Environ 40 % refont des rapports.' },
+        { en: 'A shared catalogue would help.', fr: 'Un catalogue partagé aiderait.' },
+      ]
     },
     providerOf: async () => 'anthropic',
     estimate: async (_a, chars) => chars / 1_000_000,
@@ -157,6 +274,8 @@ export const makeDeps = (input: { sources: SynthesisSources; ai: InsightsAi; clo
   const memory = inMemorySynthesisStore()
   const queued: InsightsJob[] = []
   const translations: InsightTranslateJob[] = []
+  const recommendationJobs: InsightsJob[] = []
+  const takeawaysJobs: TakeawaysJob[] = []
   const deps: SynthesisDeps = {
     store: memory.store,
     sources: input.sources,
@@ -170,9 +289,17 @@ export const makeDeps = (input: { sources: SynthesisSources; ai: InsightsAi; clo
       translations.push(job)
       return true
     },
+    enqueueRecommendations: async (job) => {
+      recommendationJobs.push(job)
+      return true
+    },
+    enqueueTakeaways: async (job) => {
+      takeawaysJobs.push(job)
+      return true
+    },
     log: { warn: () => undefined },
   }
-  return { deps, memory, queued, translations }
+  return { deps, memory, queued, translations, recommendationJobs, takeawaysJobs }
 }
 
 /** An accepted fact of study `st`, interview `s-<participant>`. */

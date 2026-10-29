@@ -18,6 +18,10 @@ export const QUEUES = {
   insights: 'synthesis.insights',
   /** An insight's texts translated after a person's edit (spec 013 research R9). */
   insightTranslate: 'synthesis.translate',
+  /** One "Find recommendations" per project at a time (spec 014, `exclusive` keyed by project). */
+  recommendations: 'synthesis.recommendations',
+  /** One key takeaways draft per project at a time (spec 014). */
+  takeaways: 'synthesis.takeaways',
 } as const
 
 export type JobQueue = {
@@ -63,6 +67,16 @@ export const createQueues = async (boss: PgBoss): Promise<void> => {
     expireInSeconds: 60 * 60,
   })
   await boss.createQueue(QUEUES.insightTranslate, { retryLimit: 1, expireInSeconds: 5 * 60 })
+  await boss.createQueue(QUEUES.recommendations, {
+    policy: 'exclusive',
+    retryLimit: 0,
+    expireInSeconds: 30 * 60,
+  })
+  await boss.createQueue(QUEUES.takeaways, {
+    policy: 'exclusive',
+    retryLimit: 0,
+    expireInSeconds: 10 * 60,
+  })
 }
 
 export const createJobQueue = (boss: PgBoss): JobQueue => ({

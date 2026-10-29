@@ -26,6 +26,7 @@ import { useId, useState } from 'react'
 import { z } from 'zod'
 import { StudyList } from '../../../features/research/study-list.tsx'
 import { InsightsTab } from '../../../features/synthesis/insights-tab.tsx'
+import { RecommendationsTab } from '../../../features/synthesis/recommendations-tab.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useFormatDate } from '../../../features/workspace/format.ts'
 import { useMe } from '../../../features/workspace/me.ts'
@@ -34,7 +35,7 @@ import { NotFound } from '../../../features/workspace/not-found.tsx'
 export const Route = createFileRoute('/_authenticated/projects/$projectId')({
   // Spec 013: the project's tabs, Overview (goal and studies) and Insights.
   validateSearch: z.object({
-    tab: z.enum(['overview', 'insights']).optional().catch(undefined),
+    tab: z.enum(['overview', 'insights', 'recommendations']).optional().catch(undefined),
   }),
   component: ProjectOverview,
 })
@@ -106,6 +107,7 @@ function ProjectOverview() {
           <TabsList aria-label={t`Project views`}>
             <TabsTrigger value="overview">{t`Overview`}</TabsTrigger>
             <TabsTrigger value="insights">{t`Insights`}</TabsTrigger>
+            <TabsTrigger value="recommendations">{t`Recommendations`}</TabsTrigger>
           </TabsList>
         }
       />
@@ -193,6 +195,9 @@ function ProjectOverview() {
       </TabsContent>
       <TabsContent value="insights">
         <InsightsTab projectId={projectId} />
+      </TabsContent>
+      <TabsContent value="recommendations">
+        <RecommendationsTab projectId={projectId} />
       </TabsContent>
     </Tabs>
   )

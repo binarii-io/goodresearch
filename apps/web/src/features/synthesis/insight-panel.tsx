@@ -20,8 +20,8 @@ import { InlineEdit } from '@goodresearch/ui/components/inline-edit'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
 import { useLingui } from '@lingui/react/macro'
-import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { keepPreviousData, useQueryClient } from '@tanstack/react-query'
+import { Fragment, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Choice } from '../analysis/choice.tsx'
 import { POLARITIES } from '../analysis/labels.ts'
@@ -34,10 +34,13 @@ import { CONFIDENCE_LEVELS, LINKED_FACTS } from './labels.ts'
 export const useRefreshInsights = (projectId: string) => {
   const queryClient = useQueryClient()
   return async (insightId?: string) => {
-    await queryClient.invalidateQueries({ queryKey: getGetInsightsQueryKey(projectId) })
-    await queryClient.invalidateQueries({ queryKey: getListInsightFactsQueryKey(projectId) })
-    if (insightId)
-      await queryClient.invalidateQueries({ queryKey: getGetInsightQueryKey(projectId, insightId) })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: getGetInsightsQueryKey(projectId) }),
+      queryClient.invalidateQueries({ queryKey: getListInsightFactsQueryKey(projectId) }),
+      insightId
+        ? queryClient.invalidateQueries({ queryKey: getGetInsightQueryKey(projectId, insightId) })
+        : undefined,
+    ])
   }
 }
 
@@ -184,7 +187,11 @@ export function InsightPanel({
   const bilingual = useBilingual()
   const fr = i18n.locale.startsWith('fr')
   const refresh = useRefreshInsights(projectId)
-  const detail = useGetInsight(projectId, insightId)
+  // The one shown stays while the next loads: the pane changes in place, without a flash.
+  const detail = useGetInsight(projectId, insightId, {
+    query: { placeholderData: keepPreviousData },
+  })
+  const switching = detail.isPlaceholderData
   const decide = useDecideInsight()
   const edit = useEditInsight()
   const link = useLinkFact()
@@ -193,8 +200,11 @@ export function InsightPanel({
   const retry = useRetryInsightTranslation()
   const decideFact = useDecideFact()
   const [adding, setAdding] = useState(false)
+  // Another one selected: nothing of the previous one stays open.
+  useEffect(() => setAdding(false), [insightId])
   const i = detail.data
   const busy =
+    switching ||
     decide.isPending ||
     edit.isPending ||
     link.isPending ||
@@ -239,12 +249,14 @@ export function InsightPanel({
   return (
     <section
       aria-label={t`Insight selected`}
-      className="grid content-start gap-4 rounded-lg border bg-card p-4 lg:sticky lg:top-20 lg:max-h-[calc(100svh-8rem)] lg:overflow-y-auto"
+      aria-busy={switching}
+      className={`grid content-start gap-4 rounded-lg border bg-card p-4 transition-opacity duration-150 lg:sticky lg:top-20 lg:max-h-[calc(100svh-8rem)] lg:overflow-y-auto ${switching ? 'opacity-60' : ''}`}
     >
       {!i ? (
         <Skeleton className="h-48 w-full" />
       ) : (
-        <>
+        // Keyed by what is shown: its edits in place start fresh when the next one comes.
+        <Fragment key={i.id}>
           <header className="grid gap-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-1.5">
@@ -494,7 +506,7 @@ export function InsightPanel({
               }
             />
           </section>
-        </>
+        </Fragment>
       )}
     </section>
   )

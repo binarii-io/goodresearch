@@ -27,6 +27,7 @@ import {
   projectOf,
   projectThemes,
 } from '../project.ts'
+import { translationAfter } from '../translation.ts'
 
 export type CommandError = ProjectError | InsightError | 'INSIGHT_NOT_FOUND' | 'VERSION_CONFLICT'
 
@@ -209,8 +210,8 @@ export const makeInsightCommands = (deps: SynthesisDeps) => {
         pending = { from, texts: toTranslate }
         const changes: InsightTexts = { ...texts, theme }
         const next = editInsight(i, changes, await contextOf(accountId, project, factIdsOf(i)))
-        return next.ok && from
-          ? ok({ ...next.value, translation: 'translating' as const, pendingTranslation: waiting })
+        return next.ok
+          ? ok({ ...next.value, ...translationAfter(i, Object.keys(texts), from, waiting) })
           : next
       },
     )

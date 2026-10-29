@@ -22,6 +22,7 @@ import { createResearchModule, registerResearchRoutes } from './modules/research
 import {
   createInsightsAi,
   createSynthesisModule,
+  registerRecommendationRoutes,
   registerSynthesisRoutes,
 } from './modules/synthesis/index.ts'
 import {
@@ -412,6 +413,7 @@ export const composeApp = async (
       registerTranscriptsRoutes(instance, { guard, handlers: transcripts.handlers })
       registerEvidenceRoutes(instance, { guard, handlers: evidence.handlers })
       registerSynthesisRoutes(instance, { guard, handlers: synthesis.handlers })
+      registerRecommendationRoutes(instance, { guard, handlers: synthesis.handlers })
     },
   })
   return { app, auth, modules }

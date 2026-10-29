@@ -1,6 +1,8 @@
 # synthesis
 
-The project-level synthesis (context map #7 Synthesis), first step **insights** (spec 013): findings across the accepted facts of a project's studies, proposed by the AI and decided by a person.
+Every prompt that writes prose (insights, recommendations, takeaways, translations) includes the shared style guide (`WRITING_STYLE` and the register of its kind of text, `@goodresearch/shared`): a human voice, not a robotic one.
+
+The project-level synthesis (context map #7 Synthesis): **insights** (spec 013), findings across the facts of a project's studies; then **recommendations** and the **key takeaways** (spec 014). The AI proposes, a person decides.
 
 - **Sources** (`application/ports.ts` `SynthesisSources`, wired in `compose.ts`): the project and its studies with each person's folder access (research), the guides' theme sections, the accepted facts (`reads.projectFacts` / `reads.factsByIds` of `evidence`, with their participants' codes, never the verbatims' text), the known names, the person's language. Synthesis never reads another module's tables.
 - **Find insights** (`commands/insight-run-commands.ts`, queue `synthesis.insights`, one run per project): the studies chosen (only those the person can open), the scope (`all`, or `unlinked`: facts in no insight) and `withProposed` (also the facts still to decide). `domain/fact-lines.ts` writes one line per fact, `fN | polarity | tN | code | statement` (code `P01`, or `S2-P01` with several studies), in the runner's language; over 40,000 characters, lines are cut by theme (`batches`), 2 calls at once, each with the insights of its themes (`iN`) and the rejected ones' statements to avoid. `domain/insights.ts` `checkInsights` keeps known refs only, drops an insight without support, with an unknown theme, a name or a percentage in its statement, removes the sentences with a percentage from the other texts, and keeps at most 25 new insights (most supporting participants first); `mergeInsights` adds new ones as proposed, replaces the texts and AI links of an insight still proposed, adds only `suggested` links to a decided one, leaves a rejected one and a fact a person unlinked alone, and drops a reproposal (60% of the words, or the same support, of a rejected insight). Each call is saved in one transaction (`applyRun`); an insight a person changed meanwhile is skipped. A call is tried twice; a stop is checked between calls and before keeping an answer; any other failure ends the run as `INTERRUPTED`, and a run whose worker stopped beating shows as interrupted. A guide section named "Other" is the built-in Other.
@@ -9,3 +11,24 @@ The project-level synthesis (context map #7 Synthesis), first step **insights** 
 - **Read models** (`queries/insight-queries.ts`): the tab (cards by theme, filters, counts, the last run, the costs), an insight with its facts grouped by participant, and the paged facts panel (25 per page, search, polarity, theme, study, "not in any insight"); a study the person cannot open shows its facts as counts, without statements.
 - Ledger: tasks `insights`, `insight-translation`; refs `insights:<runId>:<n>` and `insights-translation:<projectId>`; the costs are shown on the Insights tab. Consent: `synthesis_consents` (person, project), asked again when the provider changes.
 - Tables (migrations `0032_project_insights.sql`, `0033_insights_with_proposed_facts.sql`, `0034_insight_pending_translation.sql`): `synthesis_runs`, `synthesis_insights`, `synthesis_insight_facts` (no foreign key to the facts, Evidence's table), `synthesis_consents`; cascade with the project.
+
+## Recommendations and key takeaways (spec 014)
+
+- **Insights as recommendations read them** (`application/insights-now.ts`): the project's insights with their computed confidence level, polarity and participants, from the Insights tab query (`now`).
+- **Find recommendations** (`commands/recommendation-run-commands.ts`, queue `synthesis.recommendations`, one run per project): the validated insights, and those still to decide when asked, sent as `iN | theme | level | polarity | for N against M of P participants | F facts | statement`, with the existing recommendations (`rN`) and the rejected actions to avoid. No fact, name, study or owner is sent.
+  - `domain/recommendations.ts` `checkRecommendations` keeps known refs, values within their lists, lengths, no name in the action, and at most 15 new ones.
+  - `mergeRecommendations` is incremental as for insights: decided ones keep their texts and get `suggested` links; a reproposal is dropped.
+  - A stop is checked before the call and before keeping its answer; any other failure ends the run as interrupted.
+- **Computed, never stored**:
+  - `priority` = impact × 2 − effort;
+  - `kindShown`: a build resting only on low-confidence insights shows as a test;
+  - `linkStateOf`: `validated`, `to-decide`, `rejected`, `deleted`, `changed`, against the snapshot each link keeps;
+  - `insightsChanged`.
+- **Decisions** (`commands/recommendation-commands.ts`): validate (a counted validated insight needed), reject, edit in place (texts, kind, impact, effort, owner), validate all shown, link, unlink, accept a suggested insight, reviewed, write one by hand. Texts are translated through `application/translation.ts` (`runTranslation`, `givenTexts`: the rules of spec 013, shared with the key takeaways); the translate queue routes by `target`.
+- **Key takeaways** (`commands/takeaways-commands.ts`, `domain/takeaways.ts`):
+  - one row per project, saved at the version seen;
+  - a draft (queue `synthesis.takeaways`) gets the takeaways saved (to revise them rather than start again), each insight with its weight (participants for and against out of the panel, facts) and an overview of the whole as counts (panel, insights by confidence, theme and polarity, recommendations by kind), never a share;
+  - a draft, from the validated insights and recommendations and, on request, those still to decide (marked for the AI, then counted as "to validate" on the saved text), keeps 2 to 4 sentences without a percentage or a known name and is never saved by itself ("Use this draft");
+  - `savedOver` (the validated insights and recommendations as their meaning goes: status, who decided and when, the run, an insight's confidence; never the version, which a translation or a review raises) tells "May be out of date"; a failed draft keeps the one before.
+- Ledger: tasks `recommendations` and `takeaways`; refs `recommendations:<runId>:<n>`, `takeaways:<projectId>` (drafts), `takeaways-translation:<projectId>` and `recommendations-translation:<projectId>`.
+- Tables (migrations `0035_project_recommendations.sql`, `0036_takeaways_with_proposed.sql`, `0037_takeaways_draft_basis.sql`): `synthesis_recommendation_runs`, `synthesis_recommendations`, `synthesis_recommendation_insights` (no foreign key to the insight), `synthesis_takeaways`; cascade with the project.

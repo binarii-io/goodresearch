@@ -237,6 +237,106 @@ describe('Find facts (US1)', () => {
     expect(s.memory.verbatims.size).toBe(2)
   })
 
+  it('sends the facts already there, and keeps one still to decide that the AI takes up', async () => {
+    const s = setup()
+    await runAll(s)
+    const [first] = [...s.memory.facts.values()]
+    if (!first) throw new Error('no fact')
+    s.state.facts = [
+      {
+        ref: 'F1',
+        statement: { en: 'Finding the data takes long', fr: 'Trouver les données prend longtemps' },
+        polarity: 'negative',
+        theme: 'other',
+        verbatims: ['v1'],
+      },
+    ]
+    await runAll(s, { all: true, consent: true })
+    const request = JSON.parse(s.requests.filter((r) => r.kind === 'facts').at(-1)?.body ?? '{}')
+    expect(request.existing).toEqual([
+      expect.objectContaining({ ref: 'F1', statement: first.statement.en, status: 'to decide' }),
+    ])
+    // Same fact, same place in the list: updated, not created again.
+    const facts = [...s.memory.facts.values()]
+    expect(facts.map((f) => [f.id, f.statement.en, f.version])).toEqual([
+      [first.id, 'Finding the data takes long', first.version + 1],
+    ])
+  })
+
+  it('takes up an existing fact once only, however often the AI refers to it', async () => {
+    const s = setup()
+    await runAll(s)
+    const [first] = [...s.memory.facts.values()]
+    if (!first) throw new Error('no fact')
+    s.state.facts = [
+      {
+        ref: 'F1',
+        statement: { en: 'Finding the data takes long', fr: 'Trouver les données prend longtemps' },
+        polarity: 'negative',
+        theme: 'other',
+        verbatims: ['v1'],
+      },
+      {
+        ref: 'F1',
+        statement: {
+          en: 'The newsletter is weekly reading',
+          fr: 'La lettre se lit chaque semaine',
+        },
+        polarity: 'positive',
+        theme: 'other',
+        verbatims: ['v2'],
+      },
+    ]
+    await runAll(s, { all: true, consent: true })
+    const facts = [...s.memory.facts.values()].filter((f) => f.id === first.id)
+    expect(facts).toHaveLength(1)
+    expect(facts[0]?.statement.en).toBe('Finding the data takes long')
+  })
+
+  it('a fact decided while the reading runs stays decided; the reading still saves', async () => {
+    const s = setup()
+    await runAll(s)
+    const [first] = [...s.memory.facts.values()]
+    if (!first) throw new Error('no fact')
+    s.state.facts = [
+      {
+        ref: 'F1',
+        statement: { en: 'Finding the data takes long', fr: 'Trouver les données prend longtemps' },
+        polarity: 'negative',
+        theme: 'other',
+        verbatims: ['v1'],
+      },
+    ]
+    s.state.duringFacts = async () => {
+      s.memory.facts.set(first.id, { ...first, status: 'accepted', version: first.version + 1 })
+    }
+    await runAll(s, { all: true, consent: true })
+    expect(s.memory.facts.get(first.id)).toMatchObject({
+      status: 'accepted',
+      statement: first.statement,
+    })
+    expect(s.memory.readings.get('s1')).toBeDefined()
+  })
+
+  it('never changes a decided fact the AI refers to', async () => {
+    const s = setup()
+    await runAll(s)
+    const [first] = [...s.memory.facts.values()]
+    if (!first) throw new Error('no fact')
+    s.memory.facts.set(first.id, { ...first, status: 'accepted', version: 2 })
+    s.state.facts = [
+      {
+        ref: 'F1',
+        statement: { en: 'Rewritten', fr: 'Réécrit' },
+        polarity: 'positive',
+        theme: 'other',
+        verbatims: ['v1'],
+      },
+    ]
+    await runAll(s, { all: true, consent: true })
+    expect([...s.memory.facts.values()]).toEqual([{ ...first, status: 'accepted', version: 2 }])
+  })
+
   it('fails the interviews left when the provider goes away', async () => {
     const s = setup({
       interviews: [

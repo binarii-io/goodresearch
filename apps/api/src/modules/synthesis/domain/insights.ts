@@ -252,7 +252,7 @@ export const mergeInsights = (
         if (!current) leftOut++
         continue
       }
-      if (current.status === 'proposed') {
+      if (current.status === 'proposed' && current.decidedBy === null) {
         const kept = current.links.filter((l) => l.origin === 'person' || l.state === 'unlinked')
         const links = [...kept, ...aiLinks(c, new Set(kept.map((l) => l.factId)), 'counted')]
         if (!links.some((l) => l.role === 'support' && l.state === 'counted')) continue

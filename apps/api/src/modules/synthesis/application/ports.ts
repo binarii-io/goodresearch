@@ -1,6 +1,8 @@
 import type { Clock } from '@goodresearch/shared'
-import type { InsightRun } from '../domain/insight-run.ts'
-import type { FactNow, Insight, InsightAnswer } from '../domain/insights.ts'
+import type { InsightRun, RecommendationRun } from '../domain/insight-run.ts'
+import type { Bilingual, FactNow, Insight, InsightAnswer } from '../domain/insights.ts'
+import type { Recommendation, RecommendationAnswer } from '../domain/recommendations.ts'
+import type { Takeaways } from '../domain/takeaways.ts'
 
 /** A fact of the project as Evidence gives it (spec 013 research R1). */
 export type SourceFact = FactNow & { readonly sessionId: string }
@@ -54,9 +56,8 @@ export type InsightRequest = {
   readonly avoid: readonly string[]
 }
 
-export type TranslatedTexts = Partial<
-  Record<'statement' | 'description' | 'counterEvidence' | 'minorityView', string>
->
+/** The texts to translate, by field (an insight's, a recommendation's, or the takeaways' `text`). */
+export type TranslatedTexts = Partial<Record<string, string>>
 
 export type InsightsAi = {
   /** Throws AiUnavailable or AiFailed. */
@@ -70,15 +71,47 @@ export type InsightsAi = {
     ref: string,
     request: { texts: TranslatedTexts; from: 'en' | 'fr'; to: 'en' | 'fr' },
   ): Promise<TranslatedTexts>
+  /** Spec 014: recommendations from insight lines. */
+  recommendations(
+    accountId: string,
+    ref: string,
+    request: RecommendationRequest,
+  ): Promise<readonly RecommendationAnswer[]>
+  /** Spec 014: a key takeaways draft, sentence by sentence in both languages. */
+  takeaways(
+    accountId: string,
+    ref: string,
+    request: TakeawaysRequest,
+  ): Promise<readonly Bilingual[]>
   providerOf(accountId: string): Promise<string | null>
   estimate(
     accountId: string,
     inputChars: number,
     outputTokens: number,
     calls: number,
+    /** Whose prompt is counted: an insights run by default. */
+    task?: 'insights' | 'recommendations' | 'takeaways',
   ): Promise<number | null>
   /** Costs of ledger refs, over every account. */
   costs(refs: readonly string[]): Promise<ReadonlyMap<string, number | null>>
+}
+
+/** Research R2 of spec 014: insight lines only; no fact, name, study or owner. */
+export type RecommendationRequest = {
+  readonly goal: string
+  readonly insights: readonly string[]
+  readonly recommendations: readonly string[]
+  readonly avoid: readonly string[]
+}
+
+export type TakeawaysRequest = {
+  readonly goal: string
+  /** The takeaways saved, to revise rather than write again; empty when none. */
+  readonly current: string
+  /** The distribution, as counts (no percentage): panel, insights by level, theme, polarity. */
+  readonly overview: readonly string[]
+  readonly insights: readonly string[]
+  readonly recommendations: readonly string[]
 }
 
 export type SaveOutcome = 'ok' | 'stale'
@@ -106,15 +139,47 @@ export type SynthesisStore = {
     readonly updates: readonly { readonly insight: Insight; readonly expected: number }[]
   }): Promise<{ skipped: number }>
 
+  openRecommendationRun(projectId: string): Promise<RecommendationRun | null>
+  recommendationRunsOf(projectId: string): Promise<RecommendationRun[]>
+  getRecommendationRun(id: string): Promise<RecommendationRun | null>
+  startRecommendationRun(run: RecommendationRun): Promise<boolean>
+  saveRecommendationRun(run: RecommendationRun): Promise<void>
+  requestRecommendationStop(runId: string): Promise<void>
+  recommendationsOf(projectId: string): Promise<Recommendation[]>
+  getRecommendation(id: string): Promise<Recommendation | null>
+  saveRecommendation(r: Recommendation, expected: number | null): Promise<SaveOutcome>
+  applyRecommendations(input: {
+    readonly creates: readonly Recommendation[]
+    readonly updates: readonly {
+      readonly recommendation: Recommendation
+      readonly expected: number
+    }[]
+  }): Promise<{ skipped: number }>
+  /** Null when never saved nor drafted. */
+  getTakeaways(projectId: string): Promise<Takeaways | null>
+  /** Saves the text if its version is still `expected` (0: never saved). */
+  saveTakeaways(t: Takeaways, expected: number): Promise<SaveOutcome>
+  /** The draft alone, whatever the text's version. */
+  saveDraft(projectId: string, draft: Takeaways['draft']): Promise<void>
+
   hasConsent(accountId: string, projectId: string, provider: string): Promise<boolean>
   giveConsent(accountId: string, projectId: string, provider: string, at: Date): Promise<void>
   accountNames(ids: readonly string[]): Promise<ReadonlyMap<string, string>>
 }
 
 export type InsightsJob = { readonly runId: string; readonly projectId: string }
+export type TakeawaysJob = {
+  readonly projectId: string
+  readonly accountId: string
+  /** Also what is still to decide (spec 014 FR-010, update). */
+  readonly withProposed?: boolean | undefined
+}
 
 export type InsightTranslateJob = {
+  /** The id of what is translated: an insight, a recommendation, or the project (takeaways). */
   readonly insightId: string
+  /** What is translated; jobs queued before spec 014 have none: an insight. */
+  readonly target?: 'insight' | 'recommendation' | 'takeaways' | undefined
   readonly accountId: string
   readonly from: 'en' | 'fr'
   /** The words the person wrote: applied while they are still the insight's (spec 012 R9). */
@@ -128,5 +193,7 @@ export type SynthesisDeps = {
   readonly clock: Clock
   readonly enqueueRun: (job: InsightsJob) => Promise<boolean>
   readonly enqueueTranslation: (job: InsightTranslateJob) => Promise<boolean>
+  readonly enqueueRecommendations: (job: InsightsJob) => Promise<boolean>
+  readonly enqueueTakeaways: (job: TakeawaysJob) => Promise<boolean>
   readonly log: { warn(object: object, message: string): void }
 }

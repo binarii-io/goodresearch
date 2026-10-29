@@ -1,4 +1,5 @@
 import {
+  getGetInsightQueryOptions,
   type InsightCard,
   type InsightsOverview,
   useGetInsights,
@@ -16,6 +17,7 @@ import {
 } from '@goodresearch/ui/components/sheet'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { useLingui } from '@lingui/react/macro'
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Choice } from '../analysis/choice.tsx'
@@ -63,6 +65,7 @@ export function InsightsTab({ projectId }: { projectId: string }) {
   )
   const stop = useStopInsightRun()
   const validate = useValidateInsights()
+  const queryClient = useQueryClient()
   const data = overview.data
   if (overview.isPending) return <Skeleton className="h-40 w-full" />
   if (!data) return <p role="alert">{errorMessage(i18n, overview.error)}</p>
@@ -229,6 +232,13 @@ export function InsightsTab({ projectId }: { projectId: string }) {
                         insight={i}
                         selected={i.id === selected}
                         onSelect={() => setChosen(i.id)}
+                        onPreview={() =>
+                          void queryClient.prefetchQuery({
+                            ...getGetInsightQueryOptions(projectId, i.id),
+                            // Once per half a minute: hovering again sends nothing (review of PR #14).
+                            staleTime: 30_000,
+                          })
+                        }
                       />
                     </li>
                   ))}
@@ -261,12 +271,7 @@ export function InsightsTab({ projectId }: { projectId: string }) {
             ) : null}
           </div>
           {selected ? (
-            <InsightPanel
-              key={selected}
-              projectId={projectId}
-              insightId={selected}
-              themes={data.themes}
-            />
+            <InsightPanel projectId={projectId} insightId={selected} themes={data.themes} />
           ) : null}
         </div>
       ) : null}

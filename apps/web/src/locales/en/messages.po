@@ -44,6 +44,12 @@ msgstr "{0, plural, one {Anonymisation is on: # interview has a name in its file
 msgid "{0, plural, one {of # interview} other {of # interviews}}"
 msgstr "{0, plural, one {of # interview} other {of # interviews}}"
 
+#. placeholder {0}: i18n._(REC_KINDS[r.kindShown])
+#. placeholder {1}: r.priority
+#: src/features/synthesis/recommendation-matrix.tsx
+msgid "{0} · priority {1}"
+msgstr "{0} · priority {1}"
+
 #. placeholder {0}: s.name
 #. placeholder {1}: s.facts
 #. placeholder {2}: s.toDecide
@@ -136,15 +142,31 @@ msgstr "{0} facts, {1} calls to the AI: about {cost} with your AI provider."
 msgid "{0} in Drive"
 msgstr "{0} in Drive"
 
+#. placeholder {0}: e.items
+#. placeholder {1}: e.cost === null ? t`unknown` : money(e.cost)
+#: src/features/synthesis/takeaways.tsx
+msgid "{0} insights and recommendations, one call to the AI: about {1} with your AI provider."
+msgstr "{0} insights and recommendations, one call to the AI: about {1} with your AI provider."
+
 #. placeholder {0}: r.changed
 #: src/features/synthesis/insights-tab.tsx
 msgid "{0} insights changed meanwhile: check them again."
 msgstr "{0} insights changed meanwhile: check them again."
 
+#. placeholder {0}: insights.length
+#: src/features/synthesis/new-recommendation-dialog.tsx
+msgid "{0} insights chosen"
+msgstr "{0} insights chosen"
+
 #. placeholder {0}: run.leftOut
 #: src/features/synthesis/insights-tab.tsx
 msgid "{0} insights of the last run were left out: no known fact, a name or a percentage, or already rejected."
 msgstr "{0} insights of the last run were left out: no known fact, a name or a percentage, or already rejected."
+
+#. placeholder {0}: e.insights
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "{0} insights, one call to the AI: about {cost} with your AI provider."
+msgstr "{0} insights, one call to the AI: about {cost} with your AI provider."
 
 #. placeholder {0}: data.toValidate
 #: src/features/enrichment/enrichment-tab.tsx
@@ -206,6 +228,21 @@ msgstr "{0} participants support it, {1} go against it, out of {2} participants 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "{0} rarer words were left out of the last reading (at most 300 per reading)."
 msgstr "{0} rarer words were left out of the last reading (at most 300 per reading)."
+
+#. placeholder {0}: res.changed
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "{0} recommendations changed meanwhile: check them again."
+msgstr "{0} recommendations changed meanwhile: check them again."
+
+#. placeholder {0}: run.leftOut
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "{0} recommendations of the last run were left out: no known insight, a name, or already rejected."
+msgstr "{0} recommendations of the last run were left out: no known insight, a name, or already rejected."
+
+#. placeholder {0}: res.blocked
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "{0} recommendations rest only on insights still to decide: validate their insights first."
+msgstr "{0} recommendations rest only on insights still to decide: validate their insights first."
 
 #. placeholder {0}: facts.length
 #. placeholder {1}: data.facts.length
@@ -370,6 +407,14 @@ msgid "a deleted account"
 msgstr "a deleted account"
 
 #: src/features/workspace/errors.ts
+msgid "A draft of the key takeaways is already being written."
+msgstr "A draft of the key takeaways is already being written."
+
+#: src/features/synthesis/takeaways.tsx
+msgid "A draft sends the validated insights and recommendations (no fact, no name) to your AI provider."
+msgstr "A draft sends the validated insights and recommendations (no fact, no name) to your AI provider."
+
+#: src/features/workspace/errors.ts
 msgid "A fact needs at least one verbatim."
 msgstr "A fact needs at least one verbatim."
 
@@ -400,6 +445,14 @@ msgstr "A project holds one research question and belongs to a team."
 #: src/routes/_authenticated/index.tsx
 msgid "A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it."
 msgstr "A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it."
+
+#: src/features/workspace/errors.ts
+msgid "A recommendation needs at least one validated insight: validate its insights first."
+msgstr "A recommendation needs at least one validated insight: validate its insights first."
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "A role or a team"
+msgstr "A role or a team"
 
 #: src/features/analysis/fact-dialog.tsx
 msgid "A short, neutral statement of what the interviewee says, without any name. Write it in one language: the other is translated."
@@ -446,6 +499,7 @@ msgstr "About you"
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-review.tsx
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Accept"
 msgstr "Accept"
 
@@ -566,6 +620,15 @@ msgstr "Account reactivated"
 msgid "Acronym"
 msgstr "Acronym"
 
+#: src/features/synthesis/new-recommendation-dialog.tsx
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Action"
+msgstr "Action"
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Action saved"
+msgstr "Action saved"
+
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
@@ -670,9 +733,17 @@ msgstr "Agree and analyze"
 msgid "Agree and clean"
 msgstr "Agree and clean"
 
+#: src/features/synthesis/takeaways.tsx
+msgid "Agree and draft"
+msgstr "Agree and draft"
+
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "Agree and find insights"
 msgstr "Agree and find insights"
+
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "Agree and find recommendations"
+msgstr "Agree and find recommendations"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Agree and find terms"
@@ -698,6 +769,19 @@ msgstr "Agree to send the transcripts to your AI provider first."
 msgid "AI"
 msgstr "AI"
 
+#: src/features/synthesis/takeaways.tsx
+msgid "AI draft"
+msgstr "AI draft"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "AI draft, not saved"
+msgstr "AI draft, not saved"
+
+#. placeholder {0}: money(k.cost)
+#: src/features/synthesis/takeaways.tsx
+msgid "AI drafts so far {0}"
+msgstr "AI drafts so far {0}"
+
 #: src/routes/setup.ai-provider.tsx
 msgid "AI is not configured on this instance."
 msgstr "AI is not configured on this instance."
@@ -717,7 +801,9 @@ msgstr "AI, from the lexicon"
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/synthesis/facts-panel.tsx
+#: src/features/synthesis/insights-picker.tsx
 #: src/features/synthesis/insights-tab.tsx
+#: src/features/synthesis/recommendations-tab.tsx
 msgid "All"
 msgstr "All"
 
@@ -799,6 +885,14 @@ msgstr "Also read again the interviews already read"
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "Also read the facts still to decide"
 msgstr "Also read the facts still to decide"
+
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "Also read the insights still to decide"
+msgstr "Also read the insights still to decide"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "Also use what is still to decide"
+msgstr "Also use what is still to decide"
 
 #: src/features/workspace/errors.ts
 msgid "An insight needs at least one accepted supporting fact: accept its facts to validate first."
@@ -1054,6 +1148,14 @@ msgstr "Better-designed studies, answers you can trust."
 msgid "Bias review"
 msgstr "Bias review"
 
+#: src/features/synthesis/labels.ts
+msgid "Build"
+msgstr "Build"
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Build shown as a test: its insights all have a low confidence."
+msgstr "Build shown as a test: its insights all have a low confidence."
+
 #: src/features/fieldwork/labels.ts
 msgid "built by the app"
 msgstr "built by the app"
@@ -1097,6 +1199,9 @@ msgstr "Can't tell: {excerpt}"
 #: src/features/preparation/schedule.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
+#: src/features/synthesis/new-recommendation-dialog.tsx
+#: src/features/synthesis/recommendation-run-dialog.tsx
+#: src/features/synthesis/takeaways.tsx
 #: src/routes/_authenticated/ai-provider.tsx
 #: src/routes/_authenticated/members/$memberId.tsx
 #: src/routes/_authenticated/sources.tsx
@@ -1209,6 +1314,10 @@ msgstr "Checking the key…"
 msgid "Checks"
 msgstr "Checks"
 
+#: src/features/synthesis/new-recommendation-dialog.tsx
+msgid "Choose"
+msgstr "Choose"
+
 #: src/features/research/create-project-dialog.tsx
 msgid "Choose a team"
 msgstr "Choose a team"
@@ -1225,6 +1334,10 @@ msgstr "Choose another region, or ask the person who deployed goodresearch which
 #: src/routes/setup.ai-provider.tsx
 msgid "Choose your AI provider"
 msgstr "Choose your AI provider"
+
+#: src/features/synthesis/new-recommendation-dialog.tsx
+msgid "Chosen"
+msgstr "Chosen"
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "chosen by a person"
@@ -1332,6 +1445,7 @@ msgstr "Click to change"
 #: src/features/research/study-settings.tsx
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
+#: src/features/synthesis/new-recommendation-dialog.tsx
 msgid "Close"
 msgstr "Close"
 
@@ -1365,6 +1479,7 @@ msgstr "coming later"
 
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/insights-picker.tsx
 #: src/features/synthesis/insights-tab.tsx
 msgid "Confidence"
 msgstr "Confidence"
@@ -1511,6 +1626,10 @@ msgstr "Counter-evidence from at least half as many participants lowers it one l
 msgid "Counting the facts to read…"
 msgstr "Counting the facts to read…"
 
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "Counting the insights to read…"
+msgstr "Counting the insights to read…"
+
 #: src/features/fieldwork/analysis.tsx
 msgid "Counting the interviews to analyze…"
 msgstr "Counting the interviews to analyze…"
@@ -1527,6 +1646,10 @@ msgstr "Counting the interviews to read…"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Counting the terms…"
 msgstr "Counting the terms…"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "Counting what the draft reads…"
+msgstr "Counting what the draft reads…"
 
 #: src/features/preparation/labels.ts
 msgid "covered"
@@ -1556,11 +1679,17 @@ msgstr "Create team"
 msgid "Create the insight"
 msgstr "Create the insight"
 
+#: src/features/synthesis/new-recommendation-dialog.tsx
+msgid "Create the recommendation"
+msgstr "Create the recommendation"
+
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Created {created} · Updated {updated}"
 msgstr "Created {created} · Updated {updated}"
 
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
+#: src/features/synthesis/takeaways.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Ctrl+Enter to save, Escape to cancel"
 msgstr "Ctrl+Enter to save, Escape to cancel"
@@ -1612,6 +1741,7 @@ msgstr "Decided terms stay as they are; new spellings are proposed on them."
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/preparation/drive-review.tsx
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Decision"
 msgstr "Decision"
 
@@ -1726,6 +1856,7 @@ msgstr "Disconnect Google Drive?"
 
 #: src/features/assistant/proposal-card.tsx
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Dismiss"
 msgstr "Dismiss"
 
@@ -1754,6 +1885,26 @@ msgstr "Download (CSV)"
 #: src/features/preparation/preparation-tab.tsx
 msgid "Download (Markdown)"
 msgstr "Download (Markdown)"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "Draft"
+msgstr "Draft"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "Draft the key takeaways with the AI?"
+msgstr "Draft the key takeaways with the AI?"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "Draft with the AI"
+msgstr "Draft with the AI"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "Drafting…"
+msgstr "Drafting…"
+
+#: src/features/synthesis/recommendation-matrix.tsx
+msgid "Drag a recommendation to another cell, or select it and use the arrow keys: up and down change its impact, left and right its effort."
+msgstr "Drag a recommendation to another cell, or select it and use the arrow keys: up and down change its impact, left and right its effort."
 
 #: src/features/fieldwork/proposals.tsx
 msgid "Drive did not answer: try again"
@@ -1804,6 +1955,16 @@ msgctxt "feminine"
 msgid "Edited"
 msgstr "Edited"
 
+#: src/features/synthesis/new-recommendation-dialog.tsx
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Effort"
+msgstr "Effort"
+
+#. placeholder {0}: i18n._(RATINGS[effort])
+#: src/features/synthesis/recommendation-matrix.tsx
+msgid "Effort {0}"
+msgstr "Effort {0}"
+
 #: src/routes/_authenticated/members/index.tsx
 msgid "Email"
 msgstr "Email"
@@ -1836,6 +1997,7 @@ msgstr "Enter a name."
 
 #: src/features/assistant/panel.tsx
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 #: src/routes/_authenticated/studies/$studyId.tsx
 #: src/routes/_authenticated/teams.tsx
@@ -1905,6 +2067,10 @@ msgstr "Every project belongs to a team, and people get access to projects throu
 #: src/routes/_authenticated/teams.tsx
 msgid "Every project belongs to one team; its members work on the team's projects."
 msgstr "Every project belongs to one team; its members work on the team's projects."
+
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "Every recommendation the AI proposes waits for a person's decision."
+msgstr "Every recommendation the AI proposes waits for a person's decision."
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Every recording is with its transcript."
@@ -2083,6 +2249,15 @@ msgstr "Find insights"
 msgid "Find insights?"
 msgstr "Find insights?"
 
+#: src/features/synthesis/recommendation-run-dialog.tsx
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "Find recommendations"
+msgstr "Find recommendations"
+
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "Find recommendations?"
+msgstr "Find recommendations?"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Find terms"
 msgstr "Find terms"
@@ -2142,6 +2317,10 @@ msgstr "Finding facts: part {0} of {1}, {2} of {3} interviews"
 #: src/features/synthesis/insights-tab.tsx
 msgid "Finding insights: call {0} of {1}"
 msgstr "Finding insights: call {0} of {1}"
+
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "Finding recommendations…"
+msgstr "Finding recommendations…"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Finding the terms…"
@@ -2404,9 +2583,17 @@ msgstr "Hidden by another correction here"
 msgid "Hide the facts"
 msgstr "Hide the facts"
 
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Hide the insights"
+msgstr "Hide the insights"
+
 #: src/features/synthesis/labels.ts
 msgid "high"
 msgstr "high"
+
+#: src/features/synthesis/labels.ts
+msgid "High"
+msgstr "High"
 
 #: src/features/fieldwork/labels.ts
 msgid "high confidence"
@@ -2454,10 +2641,42 @@ msgstr "Hypotheses (one per line)"
 msgid "hypothetical"
 msgstr "hypothetical"
 
+#: src/features/synthesis/new-recommendation-dialog.tsx
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Impact"
+msgstr "Impact"
+
+#. placeholder {0}: i18n._(RATINGS[impact])
+#: src/features/synthesis/recommendation-matrix.tsx
+msgid "Impact {0}"
+msgstr "Impact {0}"
+
+#. placeholder {0}: i18n._(RATINGS[r.impact])
+#. placeholder {1}: i18n._(RATINGS[r.effort])
+#. placeholder {2}: r.insights
+#: src/features/synthesis/recommendation-card.tsx
+msgid "Impact {0} · effort {1} · {2} insights"
+msgstr "Impact {0} · effort {1} · {2} insights"
+
+#. placeholder {0}: i18n._(RATINGS[impact])
+#. placeholder {1}: i18n._(RATINGS[effort])
+#: src/features/synthesis/recommendation-matrix.tsx
+msgid "Impact {0}, effort {1}"
+msgstr "Impact {0}, effort {1}"
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "impact × 2 − effort"
+msgstr "impact × 2 − effort"
+
 #. placeholder {0}: f.insights
 #: src/features/synthesis/facts-panel.tsx
 msgid "In {0} insights"
 msgstr "In {0} insights"
+
+#. placeholder {0}: i.recommendations
+#: src/features/synthesis/insights-picker.tsx
+msgid "In {0} recommendations"
+msgstr "In {0} recommendations"
 
 #: src/features/preparation/drive-review.tsx
 msgid "In Drive"
@@ -2483,18 +2702,45 @@ msgstr "In sync"
 msgid "In the app"
 msgstr "In the app"
 
+#: src/features/synthesis/takeaways.tsx
+msgid "Includes insights or recommendations still to validate."
+msgstr "Includes insights or recommendations still to validate."
+
 #: src/features/synthesis/insight-panel.tsx
 msgid "Insight selected"
 msgstr "Insight selected"
 
 #: src/features/synthesis/insights-tab.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Insights"
 msgstr "Insights"
 
+#: src/features/synthesis/takeaways.tsx
+msgid "Insights and recommendations not validated yet; the takeaways then say how many of them are still to validate."
+msgstr "Insights and recommendations not validated yet; the takeaways then say how many of them are still to validate."
+
 #: src/features/workspace/errors.ts
 msgid "Insights are already being found for this project."
 msgstr "Insights are already being found for this project."
+
+#. placeholder {0}: r.insightsChanged
+#: src/features/synthesis/recommendation-card.tsx
+msgid "Insights changed ({0})"
+msgstr "Insights changed ({0})"
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Insights changed ({changed}): some insights changed or were rejected since this recommendation was decided."
+msgstr "Insights changed ({changed}): some insights changed or were rejected since this recommendation was decided."
+
+#: src/features/synthesis/insights-picker.tsx
+msgid "Insights to link"
+msgstr "Insights to link"
+
+#. placeholder {0}: r.insightsToValidate
+#: src/features/synthesis/recommendation-card.tsx
+msgid "Insights to validate ({0})"
+msgstr "Insights to validate ({0})"
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/analysis/facts-list.tsx
@@ -2641,6 +2887,10 @@ msgstr "Inventory"
 msgid "Inventory in progress: {files} files in {folders} sub-folders so far…"
 msgstr "Inventory in progress: {files} files in {folders} sub-folders so far…"
 
+#: src/features/synthesis/labels.ts
+msgid "Investigate"
+msgstr "Investigate"
+
 #: src/features/preparation/labels.ts
 msgid "Invited"
 msgstr "Invited"
@@ -2700,11 +2950,22 @@ msgstr "Keep the app's"
 msgid "kept"
 msgstr "kept"
 
+#: src/features/synthesis/takeaways.tsx
+msgid "Key takeaways"
+msgstr "Key takeaways"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "Key takeaways saved"
+msgstr "Key takeaways saved"
+
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/guide-editor.tsx
+#: src/features/synthesis/new-recommendation-dialog.tsx
+#: src/features/synthesis/recommendation-panel.tsx
+#: src/features/synthesis/recommendations-tab.tsx
 msgid "Kind"
 msgstr "Kind"
 
@@ -2743,6 +3004,7 @@ msgstr "Last reading: unknown"
 #. placeholder {0}: money(data.lastRunCost)
 #. placeholder {1}: money(data.cost ?? 0)
 #: src/features/synthesis/insights-tab.tsx
+#: src/features/synthesis/recommendations-tab.tsx
 msgid "Last run {0} · total {1}"
 msgstr "Last run {0} · total {1}"
 
@@ -2785,17 +3047,30 @@ msgstr "Lexicon in numbers"
 msgid "Lexicon only"
 msgstr "Lexicon only"
 
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Link"
+msgstr "Link"
+
 #: src/features/synthesis/insight-panel.tsx
 msgid "Link facts"
 msgstr "Link facts"
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Link insights"
+msgstr "Link insights"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Link of the Drive folder"
 msgstr "Link of the Drive folder"
 
 #: src/features/fieldwork/session-dialog.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Linked"
 msgstr "Linked"
+
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "List"
+msgstr "List"
 
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Loading every occurrence…"
@@ -2816,6 +3091,10 @@ msgstr "Looking at: this page"
 #: src/features/synthesis/labels.ts
 msgid "low"
 msgstr "low"
+
+#: src/features/synthesis/labels.ts
+msgid "Low"
+msgstr "Low"
 
 #: src/features/fieldwork/labels.ts
 msgid "low confidence"
@@ -2842,6 +3121,14 @@ msgstr "Mark the planned interview done?"
 msgid "Marked done in the schedule"
 msgstr "Marked done in the schedule"
 
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "Matrix"
+msgstr "Matrix"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "May be out of date"
+msgstr "May be out of date"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Media"
 msgstr "Media"
@@ -2849,6 +3136,10 @@ msgstr "Media"
 #: src/features/synthesis/labels.ts
 msgid "medium"
 msgstr "medium"
+
+#: src/features/synthesis/labels.ts
+msgid "Medium"
+msgstr "Medium"
 
 #: src/features/fieldwork/labels.ts
 msgid "medium confidence"
@@ -2961,6 +3252,10 @@ msgstr "Move to against"
 msgid "Move to support"
 msgstr "Move to support"
 
+#: src/features/synthesis/recommendation-matrix.tsx
+msgid "Moved: {where}"
+msgstr "Moved: {where}"
+
 #: src/features/assistant/proposal-card.tsx
 #: src/features/enrichment/labels.ts
 #: src/features/ingestion/source-panel.tsx
@@ -3045,6 +3340,11 @@ msgstr "New name"
 msgid "New project"
 msgstr "New project"
 
+#: src/features/synthesis/new-recommendation-dialog.tsx
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "New recommendation"
+msgstr "New recommendation"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "New research goal"
 msgstr "New research goal"
@@ -3121,6 +3421,11 @@ msgstr "No fact linked."
 msgid "No fact to read with this choice."
 msgstr "No fact to read with this choice."
 
+#: src/features/synthesis/recommendation-run-dialog.tsx
+#: src/features/synthesis/takeaways.tsx
+msgid "No fact, no verbatim, no name and no study is sent."
+msgstr "No fact, no verbatim, no name and no study is sent."
+
 #: src/features/research/study-list.tsx
 msgid "No folder yet"
 msgstr "No folder yet"
@@ -3128,6 +3433,22 @@ msgstr "No folder yet"
 #: src/features/synthesis/insights-tab.tsx
 msgid "No insight matches these filters."
 msgstr "No insight matches these filters."
+
+#: src/features/synthesis/labels.ts
+msgid "No insight to read: they were rejected or changed meanwhile."
+msgstr "No insight to read: they were rejected or changed meanwhile."
+
+#: src/features/workspace/errors.ts
+msgid "No insight to read: validate insights first."
+msgstr "No insight to read: validate insights first."
+
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "No insight to read: validate insights in the Insights tab first."
+msgstr "No insight to read: validate insights in the Insights tab first."
+
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "No insight yet. Insights are found and validated in the Insights tab of the project."
+msgstr "No insight yet. Insights are found and validated in the Insights tab of the project."
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "No interview matches these filters."
@@ -3156,6 +3477,10 @@ msgstr "no planned interview matches"
 #: src/features/analysis/analysis-tab.tsx
 msgid "No reading yet"
 msgstr "No reading yet"
+
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "No recommendation matches these filters."
+msgstr "No recommendation matches these filters."
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "No recording found for this interview."
@@ -3274,6 +3599,8 @@ msgid "Not this term: {excerpt}"
 msgstr "Not this term: {excerpt}"
 
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
+#: src/features/synthesis/takeaways.tsx
 msgid "Not translated into the other language."
 msgstr "Not translated into the other language."
 
@@ -3285,6 +3612,10 @@ msgstr "Not translated into your language"
 #: src/features/preparation/drive-review.tsx
 msgid "Not understood"
 msgstr "Not understood"
+
+#: src/features/synthesis/insights-picker.tsx
+msgid "Not used by any recommendation"
+msgstr "Not used by any recommendation"
 
 #: src/features/preparation/schedule.tsx
 msgid "Notes"
@@ -3303,6 +3634,7 @@ msgid "Nothing to decide. Find terms to read new interviews, or see the accepted
 msgstr "Nothing to decide. Find terms to read new interviews, or see the accepted terms."
 
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Nothing yet"
 msgstr "Nothing yet"
 
@@ -3473,8 +3805,10 @@ msgstr "Organisation"
 #: src/features/ingestion/source-panel.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/insights-picker.tsx
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Other"
 msgstr "Other"
 
@@ -3498,6 +3832,10 @@ msgstr "Outside the project"
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Overview"
 msgstr "Overview"
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Owner"
+msgstr "Owner"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Owner: {owner}"
@@ -3641,6 +3979,20 @@ msgstr "Preparation for this type of study is coming in a later version."
 msgid "Previous"
 msgstr "Previous"
 
+#: src/features/synthesis/recommendation-matrix.tsx
+msgid "Prioritisation matrix"
+msgstr "Prioritisation matrix"
+
+#: src/features/synthesis/recommendation-panel.tsx
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "Priority"
+msgstr "Priority"
+
+#. placeholder {0}: r.priority
+#: src/features/synthesis/recommendation-card.tsx
+msgid "Priority {0}"
+msgstr "Priority {0}"
+
 #: src/features/enrichment/labels.ts
 msgid "Product"
 msgstr "Product"
@@ -3736,6 +4088,14 @@ msgstr "Question check"
 msgid "Question, objectives, hypotheses"
 msgstr "Question, objectives, hypotheses"
 
+#: src/features/synthesis/recommendation-matrix.tsx
+msgid "Quick wins"
+msgstr "Quick wins"
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Rationale"
+msgstr "Rationale"
+
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Reactivate"
 msgstr "Reactivate"
@@ -3770,6 +4130,19 @@ msgstr "Reading the interviews: {0} of {1}"
 msgid "Reading…"
 msgstr "Reading…"
 
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Recommendation selected"
+msgstr "Recommendation selected"
+
+#: src/features/synthesis/recommendations-tab.tsx
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Recommendations"
+msgstr "Recommendations"
+
+#: src/features/workspace/errors.ts
+msgid "Recommendations are already being found for this project."
+msgstr "Recommendations are already being found for this project."
+
 #: src/features/ai/provider-forms.tsx
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Reconnect Google"
@@ -3800,6 +4173,7 @@ msgstr "Region"
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-review.tsx
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Reject"
 msgstr "Reject"
 
@@ -3816,6 +4190,10 @@ msgstr "Reject all"
 #: src/features/synthesis/insight-panel.tsx
 msgid "Reject the fact"
 msgstr "Reject the fact"
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Reject the insight"
+msgstr "Reject the insight"
 
 #. placeholder {0}: term.form
 #: src/features/enrichment/lexicon-table.tsx
@@ -3834,6 +4212,7 @@ msgstr "Reject: {label}"
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/labels.ts
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Rejected"
 msgstr "Rejected"
 
@@ -3960,6 +4339,11 @@ msgstr "Research goal"
 msgid "Research projects"
 msgstr "Research projects"
 
+#. placeholder {0}: k.toValidate
+#: src/features/synthesis/takeaways.tsx
+msgid "Rests on {0} items to validate"
+msgstr "Rests on {0} items to validate"
+
 #. placeholder {0}: selected.size
 #: src/features/fieldwork/proposals.tsx
 msgid "Retry {0} files"
@@ -3983,6 +4367,7 @@ msgid "Review them first"
 msgstr "Review them first"
 
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Reviewed"
 msgstr "Reviewed"
 
@@ -4042,8 +4427,14 @@ msgid "Save the guide"
 msgstr "Save the guide"
 
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Saved"
 msgstr "Saved"
+
+#. placeholder {0}: k.savedBy.name ?? '…'
+#: src/features/synthesis/takeaways.tsx
+msgid "Saved by {0}"
+msgstr "Saved by {0}"
 
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Saving accepts the term with the spellings you keep."
@@ -4070,6 +4461,7 @@ msgid "Scheduled"
 msgstr "Scheduled"
 
 #: src/features/synthesis/facts-panel.tsx
+#: src/features/synthesis/insights-picker.tsx
 msgid "Search"
 msgstr "Search"
 
@@ -4098,6 +4490,10 @@ msgstr "Section {0}"
 #: src/features/synthesis/facts-panel.tsx
 msgid "See {0} in the interview"
 msgstr "See {0} in the interview"
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "See in the insights"
+msgstr "See in the insights"
 
 #: src/features/synthesis/facts-panel.tsx
 msgid "See in the interview"
@@ -4133,6 +4529,8 @@ msgstr "Set up your AI provider first: it groups the spellings and explains the 
 
 #: src/features/analysis/find-facts.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
+#: src/features/synthesis/recommendation-run-dialog.tsx
+#: src/features/synthesis/takeaways.tsx
 #: src/features/workspace/errors.ts
 msgid "Set up your AI provider first."
 msgstr "Set up your AI provider first."
@@ -4265,6 +4663,7 @@ msgstr "Statement saved"
 #: src/features/preparation/schedule.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insights-tab.tsx
+#: src/features/synthesis/recommendations-tab.tsx
 #: src/routes/_authenticated/members/index.tsx
 msgid "Status"
 msgstr "Status"
@@ -4275,6 +4674,7 @@ msgstr "Status"
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/analysis.tsx
 #: src/features/synthesis/insights-tab.tsx
+#: src/features/synthesis/recommendations-tab.tsx
 msgid "Stop"
 msgstr "Stop"
 
@@ -4287,6 +4687,7 @@ msgid "Stopping after the current call…"
 msgstr "Stopping after the current call…"
 
 #: src/features/fieldwork/analysis.tsx
+#: src/features/synthesis/recommendations-tab.tsx
 msgid "Stopping…"
 msgstr "Stopping…"
 
@@ -4320,7 +4721,12 @@ msgstr "Study phases"
 msgid "Study settings"
 msgstr "Study settings"
 
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Success measure"
+msgstr "Success measure"
+
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Suggested"
 msgstr "Suggested"
 
@@ -4332,6 +4738,11 @@ msgstr "suggested by the app, confirmed"
 #: src/features/synthesis/insight-card.tsx
 msgid "Suggested facts ({0})"
 msgstr "Suggested facts ({0})"
+
+#. placeholder {0}: r.suggested
+#: src/features/synthesis/recommendation-card.tsx
+msgid "Suggested insights ({0})"
+msgstr "Suggested insights ({0})"
 
 #. placeholder {0}: s.suggestion.interviewee
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -4460,6 +4871,10 @@ msgstr "Terms to decide"
 msgid "Terms to decide ({0})"
 msgstr "Terms to decide ({0})"
 
+#: src/features/synthesis/labels.ts
+msgid "Test"
+msgstr "Test"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Test again"
 msgstr "Test again"
@@ -4524,6 +4939,10 @@ msgstr "The AI reads each interview in full and picks verbatims: what the interv
 msgid "The AI reads the accepted facts of the studies you choose and proposes insights: findings that hold across participants. You decide each one."
 msgstr "The AI reads the accepted facts of the studies you choose and proposes insights: findings that hold across participants. You decide each one."
 
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "The AI reads the project's insights and proposes what the team should do, why, and how to know it worked. You decide each one."
+msgstr "The AI reads the project's insights and proposes what the team should do, why, and how to know it worked. You decide each one."
+
 #: src/features/fieldwork/analysis.tsx
 msgid "The analysis found something new: the interview is to decide again. Its cleaning and facts are kept."
 msgstr "The analysis found something new: the interview is to decide again. Its cleaning and facts are kept."
@@ -4574,9 +4993,25 @@ msgstr "The check did not work for an unexpected reason."
 msgid "The cleaning was interrupted: clean the transcripts again."
 msgstr "The cleaning was interrupted: clean the transcripts again."
 
+#: src/features/synthesis/takeaways.tsx
+msgid "The cost could not be estimated: the draft can still be asked for."
+msgstr "The cost could not be estimated: the draft can still be asked for."
+
 #: src/features/workspace/errors.ts
 msgid "The document was changed in Drive since it was published."
 msgstr "The document was changed in Drive since it was published."
+
+#: src/features/synthesis/takeaways.tsx
+msgid "The draft could not be written: try again."
+msgstr "The draft could not be written: try again."
+
+#: src/features/synthesis/takeaways.tsx
+msgid "The draft is shown beside the takeaways and saved only if you use it."
+msgstr "The draft is shown beside the takeaways and saved only if you use it."
+
+#: src/features/synthesis/takeaways.tsx
+msgid "The draft is written from the validated insights and recommendations: validate at least one insight first (Insights tab, or from a recommendation)."
+msgstr "The draft is written from the validated insights and recommendations: validate at least one insight first (Insights tab, or from a recommendation)."
 
 #: src/features/ingestion/folder-button.tsx
 msgid "The Drive folder the interviews come from."
@@ -4625,6 +5060,10 @@ msgstr "the Google Drive permission was revoked; reconnect from Connected source
 #: src/features/preparation/preparation-tab.tsx
 msgid "The guide holds the framing (objectives, hypotheses, audience, format) and the questions of the four phases: introduction, warm-up, one section per research theme, wrap-up. It is used during the interviews, then to check their coverage and to group the findings by theme."
 msgstr "The guide holds the framing (objectives, hypotheses, audience, format) and the questions of the four phases: introduction, warm-up, one section per research theme, wrap-up. It is used during the interviews, then to check their coverage and to group the findings by theme."
+
+#: src/features/synthesis/takeaways.tsx
+msgid "The insights and recommendations are sent to your AI provider, with your own connection: their statements, theme, confidence and participant counts."
+msgstr "The insights and recommendations are sent to your AI provider, with your own connection: their statements, theme, confidence and participant counts."
 
 #. placeholder {0}: view.link?.interviewee ?? ''
 #: src/features/fieldwork/session-dialog.tsx
@@ -4716,6 +5155,10 @@ msgstr "The schedule is full: at most 300 interviews per study."
 msgid "The selection covers several verbatims: select words within one of them."
 msgstr "The selection covers several verbatims: select words within one of them."
 
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "The statements of the insights are sent to your AI provider, with your own connection, with their theme, confidence and number of participants."
+msgstr "The statements of the insights are sent to your AI provider, with your own connection, with their theme, confidence and number of participants."
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
 msgstr "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
@@ -4772,6 +5215,10 @@ msgstr "These words are not in the turn (copy them exactly)."
 msgid "They are shown “to validate” in the insights, and count once accepted."
 msgstr "They are shown “to validate” in the insights, and count once accepted."
 
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "They are shown “to validate” in the recommendations, and count once validated."
+msgstr "They are shown “to validate” in the recommendations, and count once validated."
+
 #: src/features/assistant/panel.tsx
 msgid "Thinking…"
 msgstr "Thinking…"
@@ -4823,6 +5270,14 @@ msgstr "This Google Cloud project does not exist or your account cannot open it.
 #: src/features/workspace/errors.ts
 msgid "This insight is no longer there."
 msgstr "This insight is no longer there."
+
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "This insight was deleted."
+msgstr "This insight was deleted."
+
+#: src/features/workspace/errors.ts
+msgid "This insight was rejected or is no longer in the project."
+msgstr "This insight was rejected or is no longer in the project."
 
 #: src/features/workspace/errors.ts
 msgid "This interview can no longer be taken out of the reading: stop the whole reading instead."
@@ -4941,6 +5396,10 @@ msgid "This published file is no longer known."
 msgstr "This published file is no longer known."
 
 #: src/features/workspace/errors.ts
+msgid "This recommendation is no longer there."
+msgstr "This recommendation is no longer there."
+
+#: src/features/workspace/errors.ts
 msgid "This recording is used by another interview."
 msgstr "This recording is used by another interview."
 
@@ -5047,6 +5506,7 @@ msgid "To find who took part and when, the beginning of each transcript (about 4
 msgstr "To find who took part and when, the beginning of each transcript (about 4,000 characters) is sent to your AI provider, with your own connection. This text may contain names of people."
 
 #: src/features/synthesis/facts-panel.tsx
+#: src/features/synthesis/insights-picker.tsx
 #: src/features/synthesis/labels.ts
 msgid "To validate"
 msgstr "To validate"
@@ -5057,6 +5517,7 @@ msgstr "too long"
 
 #. placeholder {0}: money(data.cost ?? 0)
 #: src/features/synthesis/insights-tab.tsx
+#: src/features/synthesis/recommendations-tab.tsx
 msgid "Total cost {0}"
 msgstr "Total cost {0}"
 
@@ -5088,12 +5549,16 @@ msgid "Translate"
 msgstr "Translate"
 
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
+#: src/features/synthesis/takeaways.tsx
 msgid "Translate again"
 msgstr "Translate again"
 
 #: src/features/analysis/fact-card.tsx
 #: src/features/synthesis/insight-card.tsx
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
+#: src/features/synthesis/takeaways.tsx
 msgid "Translating…"
 msgstr "Translating…"
 
@@ -5112,6 +5577,10 @@ msgstr "Turns of the transcript"
 #: src/features/preparation/labels.ts
 msgid "two questions in one"
 msgstr "two questions in one"
+
+#: src/features/synthesis/takeaways.tsx
+msgid "Two to four sentences a stakeholder reads first."
+msgstr "Two to four sentences a stakeholder reads first."
 
 #: src/features/research/study-list.tsx
 msgid "Type"
@@ -5133,6 +5602,8 @@ msgstr "Unavailable in Drive"
 #: src/features/fieldwork/analysis.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
+#: src/features/synthesis/recommendation-run-dialog.tsx
+#: src/features/synthesis/takeaways.tsx
 msgid "unknown"
 msgstr "unknown"
 
@@ -5141,6 +5612,7 @@ msgid "unknown status"
 msgstr "unknown status"
 
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Unlink"
 msgstr "Unlink"
 
@@ -5177,17 +5649,23 @@ msgstr "Use the project ID, not its name: lower-case letters, digits and hyphens
 msgid "Use this"
 msgstr "Use this"
 
+#: src/features/synthesis/takeaways.tsx
+msgid "Use this draft"
+msgstr "Use this draft"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Using the skill: {name}"
 msgstr "Using the skill: {name}"
 
 #: src/features/fieldwork/session-dialog.tsx
 #: src/features/synthesis/insight-panel.tsx
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Validate"
 msgstr "Validate"
 
 #. placeholder {0}: toDecide.length
 #: src/features/synthesis/insights-tab.tsx
+#: src/features/synthesis/recommendations-tab.tsx
 msgid "Validate all shown ({0})"
 msgstr "Validate all shown ({0})"
 
@@ -5203,10 +5681,15 @@ msgstr "Validate the clean version"
 msgid "Validate the clean version before publishing it."
 msgstr "Validate the clean version before publishing it."
 
+#: src/features/synthesis/recommendation-panel.tsx
+msgid "Validate the insight"
+msgstr "Validate the insight"
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/labels.ts
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/labels.ts
+#: src/features/synthesis/recommendation-panel.tsx
 msgid "Validated"
 msgstr "Validated"
 
@@ -5250,6 +5733,10 @@ msgstr "Version {0} · edited by hand by {who} {when}"
 #: src/features/preparation/preparation-tab.tsx
 msgid "Version {0} · written with the assistant, applied by {who} {when}"
 msgstr "Version {0} · written with the assistant, applied by {who} {when}"
+
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "View"
+msgstr "View"
 
 #: src/features/ai/labels.ts
 msgid "Wait a minute and try again."
@@ -5391,6 +5878,10 @@ msgstr "Write the finding and choose the facts that support it. It is validated 
 #: src/features/workspace/errors.ts
 msgid "Write what it should read."
 msgstr "Write what it should read."
+
+#: src/features/synthesis/new-recommendation-dialog.tsx
+msgid "Write what the team should do and choose the insights it rests on. It is validated at once and translated into the other language."
+msgstr "Write what the team should do and choose the insights it rests on. It is validated at once and translated into the other language."
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Written:"

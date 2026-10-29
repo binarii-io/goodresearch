@@ -246,6 +246,27 @@
       "when": 1793293651889,
       "tag": "0034_insight_pending_translation",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793294919665,
+      "tag": "0035_project_recommendations",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793297790494,
+      "tag": "0036_takeaways_with_proposed",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793305528384,
+      "tag": "0037_takeaways_draft_basis",
+      "breakpoints": true
     }
   ]
 }

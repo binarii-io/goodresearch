@@ -206,5 +206,18 @@ export const unlinkFact = (
 }
 
 /** FR-012: "Reviewed" takes the counted facts as they are now; nothing else changes. */
-export const markReviewed = (i: Insight, c: DecisionContext): Result<Insight, InsightError> =>
-  ok({ ...i, links: reviewed(i.links, c), version: i.version + 1 })
+export const markReviewed = (i: Insight, c: DecisionContext): Result<Insight, InsightError> => {
+  // A fact no longer accepted or deleted is let go of once seen; one of a study away from the
+  // project may come back, so it stays. A decided insight is never left without support.
+  const fresh = reviewed(i.links, c)
+  const letGo = fresh.map((l) => {
+    if (l.state !== 'counted') return l
+    const state = linkState(l, c.facts.get(l.factId), c.studies)
+    return state === 'not-accepted' || state === 'deleted'
+      ? { ...l, state: 'unlinked' as const, by: c.by, at: c.at }
+      : l
+  })
+  const decidedOne = i.status === 'validated' || i.status === 'edited'
+  const links = decidedOne && !supported(letGo, c) ? fresh : letGo
+  return ok({ ...i, links, version: i.version + 1 })
+}

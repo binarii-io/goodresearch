@@ -73,9 +73,10 @@ export function ConfidenceBadge({ confidence }: { confidence: InsightConfidence 
         render={
           <button
             type="button"
-            className={badgeVariants({
+            // Above the card's own button, which covers the whole card.
+            className={`relative z-10 ${badgeVariants({
               variant: confidence.level === 'high' ? 'secondary' : 'outline',
-            })}
+            })}`}
           />
         }
       >
@@ -106,10 +107,13 @@ export function InsightCardView({
   insight,
   selected,
   onSelect,
+  onPreview,
 }: {
   insight: Card
   selected: boolean
   onSelect: () => void
+  /** The pointer or the focus is on it: its details may load before the click. */
+  onPreview?: () => void
 }) {
   const { t, i18n } = useLingui()
   const bilingual = useBilingual()
@@ -118,7 +122,7 @@ export function InsightCardView({
   return (
     <article
       aria-label={text}
-      className={`grid gap-2 rounded-md border bg-card p-3 ${selected ? 'border-primary ring-1 ring-primary' : ''} ${insight.status === 'rejected' ? 'opacity-70' : ''}`}
+      className={`relative grid cursor-pointer gap-2 rounded-md border bg-card p-3 hover:border-primary/60 ${selected ? 'border-primary ring-1 ring-primary' : ''} ${insight.status === 'rejected' ? 'opacity-70' : ''}`}
     >
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge variant={insight.status === 'proposed' ? 'outline' : 'secondary'}>
@@ -141,9 +145,11 @@ export function InsightCardView({
       </div>
       <button
         type="button"
-        className="cursor-pointer text-left font-medium"
+        className="text-left font-medium after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring"
         aria-pressed={selected}
         onClick={onSelect}
+        onPointerEnter={onPreview}
+        onFocus={onPreview}
       >
         {text}
       </button>

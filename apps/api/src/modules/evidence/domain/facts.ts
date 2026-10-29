@@ -39,6 +39,8 @@ export type FactError =
 const validStatement = (s: string) => s.trim().length >= 1 && s.trim().length <= STATEMENT_MAX
 
 export type CheckedFact = {
+  /** The existing fact this takes up (`F1`…), as the AI said. */
+  readonly ref?: string | undefined
   readonly statement: Statement
   readonly polarity: Polarity
   readonly theme: Theme
@@ -56,6 +58,7 @@ export const checkFacts = (
     polarity: Polarity
     theme: string
     verbatims: readonly string[]
+    ref?: string | undefined
   }[],
   ids: ReadonlyMap<string, string>,
   themes: ReadonlyMap<string, Theme>,
@@ -79,7 +82,13 @@ export const checkFacts = (
       leftOut++
       continue
     }
-    kept.push({ statement, polarity: a.polarity, theme: themes.get(a.theme) ?? null, verbatimIds })
+    kept.push({
+      ref: a.ref,
+      statement,
+      polarity: a.polarity,
+      theme: themes.get(a.theme) ?? null,
+      verbatimIds,
+    })
   }
   return { kept, leftOut }
 }

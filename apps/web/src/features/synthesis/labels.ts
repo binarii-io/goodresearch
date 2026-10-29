@@ -53,4 +53,29 @@ export const INSIGHT_FAILURES: Record<NonNullable<InsightRunView['failure']>, Me
   INVALID_ANSWER: msg`The AI answer could not be used: try again.`,
   INTERRUPTED: msg`The run was interrupted: find insights again.`,
   NO_FACTS: msg`No accepted fact to read.`,
+  NO_INSIGHTS: msg`No insight to read: they were rejected or changed meanwhile.`,
+}
+
+/** Spec 014: a recommendation's kind, impact and effort, and its insights now, always as text. */
+export const REC_KINDS: Record<'build' | 'test' | 'investigate', MessageDescriptor> = {
+  build: msg`Build`,
+  test: msg`Test`,
+  investigate: msg`Investigate`,
+}
+
+export const RATINGS: Record<'high' | 'medium' | 'low', MessageDescriptor> = {
+  high: msg`High`,
+  medium: msg`Medium`,
+  low: msg`Low`,
+}
+
+export const LINKED_INSIGHTS: Record<
+  'validated' | 'to-decide' | 'rejected' | 'deleted' | 'changed',
+  MessageDescriptor
+> = {
+  validated: msg`Validated`,
+  'to-decide': msg`To validate`,
+  rejected: msg`Rejected`,
+  deleted: msg`Deleted`,
+  changed: msg`Changed since`,
 }

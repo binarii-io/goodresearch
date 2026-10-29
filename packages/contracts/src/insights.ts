@@ -25,6 +25,7 @@ export const InsightsFailure = z.enum([
   'INVALID_ANSWER',
   'INTERRUPTED',
   'NO_FACTS',
+  'NO_INSIGHTS',
 ])
 
 const Who = z.object({ id: z.string(), name: z.string().nullable() })

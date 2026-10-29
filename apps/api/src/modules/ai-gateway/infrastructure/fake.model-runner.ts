@@ -114,6 +114,7 @@ const factsAnswer = (prompt: string) => {
   return {
     facts: [
       {
+        ref: null,
         statement: {
           en: 'The interviewee describes how they work with their team',
           fr: "L'interviewé décrit comment il travaille avec son équipe",
@@ -123,12 +124,14 @@ const factsAnswer = (prompt: string) => {
         verbatims: ids,
       },
       {
+        ref: null,
         statement: { en: 'A fact without support', fr: 'Un fait sans appui' },
         polarity: 'neutral',
         theme: 'other',
         verbatims: ['v999'],
       },
       {
+        ref: null,
         statement: { en: '[Person 1] says so', fr: '[Person 1] le dit' },
         polarity: 'neutral',
         theme: 'other',
@@ -172,6 +175,58 @@ const insightsAnswer = (prompt: string) => {
     })),
   }
 }
+
+/**
+ * Spec 014: one recommendation per insight line (a build, high impact, medium effort) resting on
+ * it, plus one citing an insight not sent (the app drops it).
+ */
+const recommendationsAnswer = (prompt: string) => {
+  const body = prompt.split('\n<insight-lines>\n')[1] ?? ''
+  const lines = body
+    .split('\n')
+    .filter((l) => /^i\d+ \| /.test(l))
+    .map((l) => l.split(' | '))
+  const text = (en: string, fr: string) => ({ en, fr })
+  return {
+    recommendations: [
+      ...lines.map((l) => ({
+        ref: null,
+        action: text(
+          `Act on: ${l.at(-1) ?? ''}`.slice(0, 200),
+          `Agir sur : ${l.at(-1) ?? ''}`.slice(0, 200),
+        ),
+        rationale: text('The insight shows a need.', "L'insight montre un besoin."),
+        kind: 'build',
+        impact: 'high',
+        effort: 'medium',
+        successMeasure: text('The need is met.', 'Le besoin est couvert.'),
+        insights: [l[0] ?? 'i1'],
+      })),
+      {
+        ref: null,
+        action: text('Unsupported idea', 'Idée sans appui'),
+        rationale: text('', ''),
+        kind: 'test',
+        impact: 'low',
+        effort: 'low',
+        successMeasure: text('', ''),
+        insights: ['i999'],
+      },
+    ],
+  }
+}
+
+/** Spec 014: three sentences, one with a percentage (the app drops it). */
+const takeawaysAnswer = () => ({
+  sentences: [
+    {
+      en: 'The teams lose time finding their data.',
+      fr: 'Les équipes perdent du temps à trouver leurs données.',
+    },
+    { en: 'About 40% of them rebuild reports.', fr: 'Environ 40 % refont des rapports.' },
+    { en: 'A shared catalogue would help them.', fr: 'Un catalogue partagé les aiderait.' },
+  ],
+})
 
 /** The test provider's lexicon: candidates within 2 edits are one term, the known form first. */
 const lexiconAnswer = (prompt: string) => {
@@ -454,6 +509,18 @@ export const createFakeRunner = (): ModelRunner => {
         if (!parsed.success) throw new ProviderCallError('UNKNOWN')
         return { object: parsed.data, usage: { inputTokens: 2000, outputTokens: 500 } }
       }
+      if (request.prompt?.includes('\n<insight-lines>\n')) {
+        await sleep(300)
+        const parsed = request.schema.safeParse(recommendationsAnswer(request.prompt))
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 2000, outputTokens: 700 } }
+      }
+      if (request.prompt?.startsWith('<takeaways-input>\n')) {
+        await sleep(200)
+        const parsed = request.schema.safeParse(takeawaysAnswer())
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 1500, outputTokens: 200 } }
+      }
       if (request.prompt?.includes('\n<fact-lines>\n')) {
         await sleep(300)
         const parsed = request.schema.safeParse(insightsAnswer(request.prompt))
@@ -469,6 +536,10 @@ export const createFakeRunner = (): ModelRunner => {
           description: null,
           counterEvidence: null,
           minorityView: null,
+          action: null,
+          rationale: null,
+          successMeasure: null,
+          text: null,
           ...Object.fromEntries(Object.entries(texts).map(([k, v]) => [k, `${lang}: ${v}`])),
         })
         if (!parsed.success) throw new ProviderCallError('UNKNOWN')

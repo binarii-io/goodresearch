@@ -259,8 +259,31 @@ export const createEvidenceStore = (db: Db): EvidenceStore => {
               keep.length > 0 ? notInArray(evidenceVerbatims.id, [...keep]) : sql`true`,
             ),
           )
-        if (verbatims.length > 0) await tx.insert(evidenceVerbatims).values([...verbatims])
-        await insertFacts(tx, facts, reading.readAt)
+        // A fact taken up by this reading but decided meanwhile stays as the person decided it, and
+        // the new verbatims only it cited are not added (review of PR #14).
+        const still = facts.length
+          ? new Set(
+              (
+                await tx
+                  .select({ id: evidenceFacts.id })
+                  .from(evidenceFacts)
+                  .where(
+                    inArray(
+                      evidenceFacts.id,
+                      facts.map((f) => f.id),
+                    ),
+                  )
+              ).map((r) => r.id),
+            )
+          : new Set<string>()
+        const kept = facts.filter((f) => !still.has(f.id))
+        const cited = new Set(kept.flatMap((f) => f.verbatimIds))
+        const skipped = new Set(facts.filter((f) => still.has(f.id)).flatMap((f) => f.verbatimIds))
+        const added = verbatims.filter(
+          (v) => !skipped.has(v.id) || cited.has(v.id) || keep.includes(v.id),
+        )
+        if (added.length > 0) await tx.insert(evidenceVerbatims).values([...added])
+        await insertFacts(tx, kept, reading.readAt)
         await tx
           .insert(evidenceReadings)
           .values(reading)

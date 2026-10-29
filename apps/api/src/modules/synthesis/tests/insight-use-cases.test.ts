@@ -266,6 +266,21 @@ describe('Decide the insights (US2)', () => {
     })
   })
 
+  it('a text written again in both languages ends a translation in flight', async () => {
+    const s = setup()
+    const i = await first(s)
+    await s.commands.edit('a1', 'pr', i.id, { version: i.version, statement: { en: 'Reports' } })
+    const now = s.memory.insights.get(i.id)
+    await s.commands.edit('a1', 'pr', i.id, {
+      version: now?.version ?? 0,
+      statement: { en: 'Reports are rebuilt', fr: 'Les rapports sont refaits' },
+    })
+    expect(s.memory.insights.get(i.id)).toMatchObject({
+      translation: 'done',
+      pendingTranslation: null,
+    })
+  })
+
   it('refuses a name in an edited statement', async () => {
     const s = setup()
     const i = await first(s)
@@ -382,9 +397,13 @@ describe('Facts panel (US3) and evidence changed (US4)', () => {
     const r = await s.commands.reviewed('a1', 'pr', i.id, i.version)
     expect(r.ok).toBe(true)
     const after = await s.queries.overview('a1', 'pr')
-    expect(after.ok && after.value.insights[0]?.evidenceChanged).toBe(1)
+    // Seen: the change is taken in, the fact no longer accepted is let go of.
+    expect(after.ok && after.value.insights[0]?.evidenceChanged).toBe(0)
     const d = await s.queries.detail('a1', 'pr', i.id)
-    expect(d.ok && d.value.links.find((l) => l.factId === 'a1')?.fact).toBe('not-accepted')
+    expect(d.ok && d.value.links.find((l) => l.factId === 'a1')).toMatchObject({
+      fact: 'not-accepted',
+      state: 'unlinked',
+    })
   })
 })
 

@@ -108,3 +108,105 @@ export const synthesisConsents = pgTable(
   },
   (t) => [primaryKey({ columns: [t.accountId, t.projectId] })],
 )
+
+/** "Find recommendations" over a project (spec 014): one unfinished at a time per project. */
+export const synthesisRecommendationRuns = pgTable(
+  'synthesis_recommendation_runs',
+  {
+    id: text('id').primaryKey(),
+    projectId: text('project_id').notNull(),
+    teamId: text('team_id').notNull(),
+    startedBy: text('started_by').notNull(),
+    withProposed: boolean('with_proposed').notNull().default(false),
+    calls: integer('calls').notNull().default(0),
+    callsDone: integer('calls_done').notNull().default(0),
+    stopRequested: boolean('stop_requested').notNull().default(false),
+    leftOut: integer('left_out').notNull().default(0),
+    failure: text('failure'),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    heartbeatAt: timestamp('heartbeat_at', { withTimezone: true }).notNull(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex('synthesis_recommendation_runs_open_idx')
+      .on(t.projectId)
+      .where(sql`${t.finishedAt} is null`),
+    index('synthesis_recommendation_runs_project_idx').on(t.projectId, t.startedAt),
+  ],
+)
+
+type Pending = {
+  from: 'en' | 'fr'
+  fields: string[]
+}
+
+/** Context map Recommendation (Synthesis, spec 014). */
+export const synthesisRecommendations = pgTable(
+  'synthesis_recommendations',
+  {
+    id: text('id').primaryKey(),
+    projectId: text('project_id').notNull(),
+    actionEn: text('action_en').notNull(),
+    actionFr: text('action_fr').notNull(),
+    rationaleEn: text('rationale_en').notNull(),
+    rationaleFr: text('rationale_fr').notNull(),
+    measureEn: text('measure_en').notNull(),
+    measureFr: text('measure_fr').notNull(),
+    kind: text('kind').notNull(),
+    impact: text('impact').notNull(),
+    effort: text('effort').notNull(),
+    owner: text('owner'),
+    translation: text('translation').notNull().default('done'),
+    pendingTranslation: jsonb('pending_translation').$type<Pending>(),
+    origin: text('origin').notNull(),
+    status: text('status').notNull(),
+    runId: text('run_id'),
+    decidedBy: text('decided_by'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    version: integer('version').notNull().default(1),
+  },
+  (t) => [index('synthesis_recommendations_project_idx').on(t.projectId, t.status)],
+)
+
+/** A recommendation ↔ an insight, with the insight as it was (research R3); no key to the insight. */
+export const synthesisRecommendationInsights = pgTable(
+  'synthesis_recommendation_insights',
+  {
+    recommendationId: text('recommendation_id')
+      .notNull()
+      .references(() => synthesisRecommendations.id, { onDelete: 'cascade' }),
+    insightId: text('insight_id').notNull(),
+    state: text('state').notNull(),
+    origin: text('origin').notNull(),
+    insightStatementEn: text('insight_statement_en').notNull(),
+    insightThemeKey: text('insight_theme_key').notNull(),
+    insightLevel: text('insight_level').notNull(),
+    by: text('by').notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.recommendationId, t.insightId] }),
+    index('synthesis_recommendation_insights_insight_idx').on(t.insightId),
+  ],
+)
+
+/** Context map KeyTakeaways: one per project, with the last AI draft (spec 014 research R5). */
+export const synthesisTakeaways = pgTable('synthesis_takeaways', {
+  projectId: text('project_id').primaryKey(),
+  textEn: text('text_en').notNull().default(''),
+  textFr: text('text_fr').notNull().default(''),
+  translation: text('translation').notNull().default('done'),
+  pendingTranslation: jsonb('pending_translation').$type<Pending>(),
+  savedBy: text('saved_by'),
+  savedAt: timestamp('saved_at', { withTimezone: true }),
+  version: integer('version').notNull().default(0),
+  savedOver: jsonb('saved_over').$type<string[]>(),
+  withProposed: boolean('with_proposed').notNull().default(false),
+  draftEn: text('draft_en'),
+  draftFr: text('draft_fr'),
+  draftState: text('draft_state').notNull().default('none'),
+  draftWithProposed: boolean('draft_with_proposed').notNull().default(false),
+  draftSavedOver: jsonb('draft_saved_over').$type<string[]>(),
+  draftBy: text('draft_by'),
+  draftAt: timestamp('draft_at', { withTimezone: true }),
+})

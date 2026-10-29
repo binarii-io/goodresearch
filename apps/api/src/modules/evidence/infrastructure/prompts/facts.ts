@@ -1,3 +1,4 @@
+import { REGISTERS, WRITING_STYLE } from '@goodresearch/shared'
 import { z } from 'zod'
 import { AiProviderRequired, type Gateway, ProviderCallError } from '../../../ai-gateway/index.ts'
 import {
@@ -44,6 +45,10 @@ export const FactsAnswer = z.object({
   facts: z
     .array(
       z.object({
+        ref: z
+          .string()
+          .nullable()
+          .describe('The id of the existing fact this takes up, such as F2; null for a new one.'),
         statement: z
           .object({
             en: z.string().describe('The fact in English, at most 200 characters.'),
@@ -78,10 +83,17 @@ const FACTS_SYSTEM = `You help a user researcher turn the verbatims of one inter
 A fact is a short, neutral statement of what the interviewee says or does, supported by one or more of the verbatims given.
 Group the verbatims that say the same thing into one fact. Write each fact in English and in French, at most 200 characters each.
 Never name a person, never use placeholders like "[Person 1]", never add what the verbatims do not say.
-Give each fact a polarity (positive, negative or neutral for the interviewee) and the theme it belongs to, or "other".`
+Give each fact a polarity (positive, negative or neutral for the interviewee) and the theme it belongs to, or "other".
+Some facts of this interview already exist: when one says the same thing, take it up with its id (and the verbatims that support it) rather than writing it again. Never repeat a decided fact.
+${REGISTERS.fact}
+
+${WRITING_STYLE}`
 
 const TRANSLATION_SYSTEM = `You translate a short fact of a user research study, keeping its meaning and its neutral tone.
-Answer with the translation only, at most 200 characters.`
+Answer with the translation only, at most 200 characters.
+${REGISTERS.translation}
+
+${WRITING_STYLE}`
 
 const renderVerbatims = (r: VerbatimRequest) =>
   [
@@ -100,6 +112,12 @@ const renderFacts = (r: FactRequest) =>
     '<themes>',
     ...r.themes.map((t) => `${t.id}: ${t.title}`),
     '</themes>',
+    '<existing-facts>',
+    ...r.existing.map(
+      (f) =>
+        `${f.ref} (${f.status}) | ${f.polarity} | ${f.theme} | ${f.statement}${f.verbatims.length > 0 ? ` | verbatims ${f.verbatims.join(',')}` : ''}`,
+    ),
+    '</existing-facts>',
     FACTS_MARKER,
     ...r.verbatims.map((v) => `${v.id} — ${v.speaker}: ${v.text}`),
     '</verbatims>',
@@ -148,7 +166,7 @@ export const createFactsAi = (ai: {
         },
         { ref, timeoutMs: TIMEOUT_MS },
       )
-      return object.facts.slice(0, FACTS_MAX)
+      return object.facts.slice(0, FACTS_MAX).map((f) => ({ ...f, ref: f.ref ?? undefined }))
     } catch (error) {
       throw failure(error)
     }

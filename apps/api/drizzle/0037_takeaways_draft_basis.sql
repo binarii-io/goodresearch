@@ -1,0 +1,1 @@
+ALTER TABLE "synthesis_takeaways" ADD COLUMN "draft_saved_over" jsonb;

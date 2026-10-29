@@ -14,4 +14,5 @@ export const InsightRunViewFailure = {
   INVALID_ANSWER: 'INVALID_ANSWER',
   INTERRUPTED: 'INTERRUPTED',
   NO_FACTS: 'NO_FACTS',
+  NO_INSIGHTS: 'NO_INSIGHTS',
 } as const;

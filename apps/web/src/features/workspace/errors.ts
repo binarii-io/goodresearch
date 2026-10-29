@@ -80,6 +80,12 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   INSIGHTS_CONSENT_REQUIRED: msg`Agree to send the facts to your AI provider first.`,
   NO_FACTS: msg`No fact to read with this choice.`,
   STUDY_ACCESS_REQUIRED: msg`You cannot open one of the studies chosen.`,
+  RECOMMENDATION_NOT_FOUND: msg`This recommendation is no longer there.`,
+  RECOMMENDATION_NEEDS_INSIGHT: msg`A recommendation needs at least one validated insight: validate its insights first.`,
+  INSIGHT_NOT_VALIDATED: msg`This insight was rejected or is no longer in the project.`,
+  RECOMMENDATIONS_RUNNING: msg`Recommendations are already being found for this project.`,
+  NO_INSIGHTS: msg`No insight to read: validate insights first.`,
+  TAKEAWAYS_DRAFTING: msg`A draft of the key takeaways is already being written.`,
 }
 
 /** One translated sentence for an error code (never technical details). */

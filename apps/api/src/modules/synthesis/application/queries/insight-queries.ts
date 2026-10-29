@@ -84,6 +84,17 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
     }
   }
 
+  /**
+   * The project's insights with their computed values, as recommendations read them (spec 014
+   * research R1): status, statement, theme, confidence level, polarity, participants.
+   */
+  const now = async (studyIds: ReadonlySet<string>, insights: readonly Insight[]) => {
+    const { own, byId } = await factsNow(studyIds, insights)
+    const panel = panelOf(own, studyIds)
+    const panelIfAccepted = panelOf(own, studyIds, true)
+    return insights.map((i) => cardOf(i, byId, studyIds, panel, panelIfAccepted))
+  }
+
   /** FR-001: the insights grouped by theme, with their computed values, the run and the costs. */
   const overview = async (accountId: string, projectId: string, filters: Filters = {}) => {
     const project = await projectOf(deps, accountId, projectId)
@@ -260,5 +271,5 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
     })
   }
 
-  return { overview, detail, facts }
+  return { overview, detail, facts, now }
 }

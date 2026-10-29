@@ -28,12 +28,20 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { reply } from '#platform/http/result.ts'
 import type { makeInsightCommands } from '../application/commands/insight-commands.ts'
 import type { makeInsightRunCommands } from '../application/commands/insight-run-commands.ts'
+import type { makeRecommendationCommands } from '../application/commands/recommendation-commands.ts'
+import type { makeRecommendationRunCommands } from '../application/commands/recommendation-run-commands.ts'
+import type { makeTakeawaysCommands } from '../application/commands/takeaways-commands.ts'
 import type { makeInsightQueries } from '../application/queries/insight-queries.ts'
+import type { makeRecommendationQueries } from '../application/queries/recommendation-queries.ts'
 
 export type SynthesisHandlers = {
   runs: ReturnType<typeof makeInsightRunCommands>
   insights: ReturnType<typeof makeInsightCommands>
   queries: ReturnType<typeof makeInsightQueries>
+  recommendationRuns: ReturnType<typeof makeRecommendationRunCommands>
+  recommendations: ReturnType<typeof makeRecommendationCommands>
+  takeaways: ReturnType<typeof makeTakeawaysCommands>
+  recommendationQueries: ReturnType<typeof makeRecommendationQueries>
 }
 
 const version = <T extends { version: number }>(v: T) => ({ version: v.version })

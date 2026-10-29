@@ -7,6 +7,7 @@ export type InsightsFailure =
   | 'INVALID_ANSWER'
   | 'INTERRUPTED'
   | 'NO_FACTS'
+  | 'NO_INSIGHTS'
 
 /** "Find insights" over a project (spec 013 FR-015): one unfinished at a time per project. */
 export type InsightRun = {
@@ -28,18 +29,35 @@ export type InsightRun = {
   readonly finishedAt: Date | null
 }
 
+/** "Find recommendations" over a project (spec 014): the same run, without studies or scope. */
+export type RecommendationRun = Omit<InsightRun, 'studyIds' | 'scope'>
+
+/** Ledger refs of spec 014 (research R6). */
+export const recommendationsRef = (runId: string, call: number) =>
+  `recommendations:${runId}:${call}`
+export const takeawaysRef = (projectId: string) => `takeaways:${projectId}`
+/** Translations of the takeaways, counted apart from the drafts (review of PR #14). */
+export const takeawaysTranslationRef = (projectId: string) => `takeaways-translation:${projectId}`
+export const recommendationTranslationRef = (projectId: string) =>
+  `recommendations-translation:${projectId}`
+
 /** Ledger ref of one call of a run (research R10). */
 export const insightsRef = (runId: string, call: number) => `insights:${runId}:${call}`
 /** Ledger ref of the translations of a project's insights (research R9). */
 export const insightTranslationRef = (projectId: string) => `insights-translation:${projectId}`
 
-export const isRunLive = (run: InsightRun | null, now: Date): run is InsightRun =>
+type Beating = { readonly finishedAt: Date | null; readonly heartbeatAt: Date }
+
+export const isRunLive = <R extends Beating>(run: R | null, now: Date): run is R =>
   run !== null &&
   run.finishedAt === null &&
   now.getTime() - run.heartbeatAt.getTime() < RUN_STALE_MS
 
 /** A stale run ends as interrupted; the calls it merged stay. */
-export const interruptedRun = (run: InsightRun, now: Date): InsightRun => ({
+export const interruptedRun = <R extends Beating & { readonly failure: InsightsFailure | null }>(
+  run: R,
+  now: Date,
+): R => ({
   ...run,
   failure: run.failure ?? 'INTERRUPTED',
   finishedAt: now,

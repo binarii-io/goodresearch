@@ -398,11 +398,17 @@ export const makeAnalysisCommands = (deps: EvidenceDeps) => {
       set(sessionId, { state: 'facts' })
       await save()
       const proposed: Fact[] = []
+      // An existing fact is taken up once per reading, whatever the batch (review of PR #14).
+      const takenIds = new Set<string>()
       for (let i = 0; i < pool.length; i += FACT_BATCH) {
         const haltedNow = await halted(sessionId)
         if (haltedNow) return haltedNow
         const batch = pool.slice(i, i + FACT_BATCH)
         const ids = new Map(batch.map((v, k) => [`v${k + 1}`, v.id]))
+        // The facts already there, so a new reading takes them up rather than writing them again.
+        const refOfVerbatim = new Map([...ids].map(([ref, id]) => [id, ref]))
+        const known = facts.filter((f) => f.status !== 'rejected')
+        const factRefs = new Map(known.map((f, k) => [`F${k + 1}`, f]))
         let answer: Awaited<ReturnType<EvidenceDeps['ai']['facts']>> | null = null
         for (let attempt = 1; attempt <= ATTEMPTS && !answer; attempt++) {
           try {
@@ -411,6 +417,14 @@ export const makeAnalysisCommands = (deps: EvidenceDeps) => {
               themes: [...themeIds].map(([id, t]) => ({
                 id,
                 title: t ? withPlaceholders(t.title, names).text : 'Other',
+              })),
+              existing: [...factRefs].map(([ref, f]) => ({
+                ref,
+                statement: withPlaceholders(f.statement.en, names).text,
+                polarity: f.polarity,
+                theme: [...themeIds].find(([, t]) => t?.id === f.theme?.id)?.[0] ?? 'other',
+                status: f.status === 'proposed' ? ('to decide' as const) : ('decided' as const),
+                verbatims: f.verbatimIds.flatMap((id) => refOfVerbatim.get(id) ?? []),
               })),
               verbatims: batch.map((v, k) => ({
                 id: `v${k + 1}`,
@@ -431,8 +445,30 @@ export const makeAnalysisCommands = (deps: EvidenceDeps) => {
         const checked = checkFacts(answer, ids, themeIds, names)
         let leftOut = checked.leftOut
         for (const c of checked.kept) {
+          const taken = c.ref ? factRefs.get(c.ref) : undefined
+          // A decided fact is never changed by a reading (FR-010).
+          if (taken && taken.status !== 'proposed') continue
           if (isReproposal(c, decided) || isRepeated(c, proposed)) {
             leftOut++
+            continue
+          }
+          if (taken) {
+            if (takenIds.has(taken.id)) {
+              leftOut++
+              continue
+            }
+            takenIds.add(taken.id)
+            // Taken up: the same fact, at the same place in the list, with the new reading's words.
+            proposed.push({
+              ...taken,
+              statement: c.statement,
+              translation: 'done',
+              polarity: c.polarity,
+              theme: c.theme,
+              verbatimIds: c.verbatimIds,
+              runId: job.runId,
+              version: taken.version + 1,
+            })
             continue
           }
           proposed.push({

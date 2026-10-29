@@ -122,5 +122,11 @@ test.describe('spec 013 — Project insights', () => {
     await create.getByRole('button', { name: 'Create the insight' }).click()
     await expect(create).toBeHidden()
     await expect(tab.getByRole('article')).toHaveCount(2)
+    // The whole card opens it, not only its statement: a click in its corner.
+    const second = tab.getByRole('article').nth(1)
+    const box = await second.boundingBox()
+    if (!box) throw new Error('no card')
+    await page.mouse.click(box.x + box.width - 8, box.y + box.height - 8)
+    await expect(second.getByRole('button', { pressed: true })).toBeVisible()
   })
 })

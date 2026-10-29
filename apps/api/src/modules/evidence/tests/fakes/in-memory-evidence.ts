@@ -98,8 +98,17 @@ export const inMemoryEvidenceStore = () => {
           !input.keep.includes(v.id)
         )
           verbatims.delete(v.id)
-      for (const v of input.verbatims) verbatims.set(v.id, v)
-      for (const f of input.facts) facts.set(f.id, f)
+      // A fact decided meanwhile stays as the person decided it, and the new verbatims only it
+      // cited are not added.
+      const kept = input.facts.filter((f) => !facts.has(f.id))
+      const cited = new Set(kept.flatMap((f) => f.verbatimIds))
+      const skipped = new Set(
+        input.facts.filter((f) => facts.has(f.id)).flatMap((f) => f.verbatimIds),
+      )
+      for (const v of input.verbatims)
+        if (!skipped.has(v.id) || cited.has(v.id) || input.keep.includes(v.id))
+          verbatims.set(v.id, v)
+      for (const f of kept) facts.set(f.id, f)
       readings.set(input.sessionId, input.reading)
     },
     saveFact: async (fact, expected) => {
@@ -233,7 +242,9 @@ export const fakeFactsAi = (options: { names?: string[] } = {}) => {
     failChunks: number
     /** The fact pass's answer, when a test writes it (ids `v1`…). */
     facts: FactAnswer[] | null
-  } = { unavailable: false, failChunks: 0, facts: null }
+    /** Runs while the fact pass is in flight (a person acting meanwhile). */
+    duringFacts: (() => Promise<void>) | null
+  } = { unavailable: false, failChunks: 0, facts: null, duringFacts: null }
   const ai: FactsAi = {
     verbatims: async (_accountId, ref, request: VerbatimRequest) => {
       requests.push({ kind: 'verbatims', ref, body: JSON.stringify(request) })
@@ -249,6 +260,7 @@ export const fakeFactsAi = (options: { names?: string[] } = {}) => {
     },
     facts: async (_accountId, ref, request): Promise<FactAnswer[]> => {
       requests.push({ kind: 'facts', ref, body: JSON.stringify(request) })
+      if (state.duringFacts) await state.duringFacts()
       if (state.unavailable) throw new AiUnavailable()
       if (state.facts) return state.facts
       return [

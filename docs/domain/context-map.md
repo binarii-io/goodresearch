@@ -144,8 +144,8 @@ Integration rules between contexts: reference by **ID only**, communicate throug
   - **PolarityPolicy**: neutral if polarised facts <30%; positive/negative if ≥60% of polarised; mixed otherwise.
   - Themes come from the guides' theme sections, merged by title across studies (+ "Other").
 - **InsightRun** (spec 013) — one "Find insights" over a project: studies and scope chosen (`all` or facts not yet in an insight), calls done of total, stopped or finished, cost; one at a time per project.
-- **Recommendation** — `action`, `rationale`, `kind` (`build | test | investigate`), `impact`/`effort` (H/M/L), `successMeasure`, `owner`, status, links to insights. A `build` backed only by low-confidence insights becomes `test`. **PriorityPolicy** = impact×2 − effort.
-- **KeyTakeaways** — the project's 2–4 sentence summary (one per project, referenced by project ID). AI may draft, never saved automatically.
+- **Recommendation** (spec 014) — `action`, `rationale`, `successMeasure` (English and French), `kind` (`build | test | investigate`), `impact`/`effort` (high/medium/low), `owner` (free text, never sent to the AI), status, links to insights (state `counted | suggested | unlinked`, with the insight's snapshot). A `build` whose counted insights all have a low confidence is shown as `test`. **PriorityPolicy** = impact×2 − effort (high 3, medium 2, low 1). Insights still to decide may be read on request, shown "to validate", counted once validated; "Insights changed" until "Reviewed". Listed in creation order.
+- **KeyTakeaways** (spec 014) — the project's 2–4 sentence summary (one per project, EN/FR). The AI may draft it from the validated insights and recommendations (no name, no percentage); a draft is never saved without a person. "May be out of date" when the validated insights or recommendations changed since it was saved.
 
 ### 8. Reporting (read models)
 
@@ -262,6 +262,10 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Evidence changed / Reviewed | Preuves modifiées / Vérifié | Spec 013 |
 | Find insights | Trouver des insights | |
 | Recommendation | Recommandation | |
+| Owner (of a recommendation) | Responsable | Free text (spec 014) |
+| Success measure | Mesure du succès | |
+| Find recommendations | Trouver des recommandations | |
+| May be out of date (key takeaways) | Peut-être obsolète | |
 | Kind: build / test / investigate | Type : construire / tester / investiguer | |
 | Impact / Effort | Impact / Effort | |
 | Key takeaways | Points clés | |

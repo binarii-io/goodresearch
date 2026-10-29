@@ -170,6 +170,26 @@ describe('Insight decisions (FR-010, data-model invariants)', () => {
     expect(unlinkFact(insight(), 'a', ctx).ok).toBe(true)
   })
 
+  it('"Reviewed" lets go of facts no longer accepted or deleted', () => {
+    const r = markReviewed(
+      insight({ status: 'validated', links: [link('a'), link('r'), link('x'), link('gone')] }),
+      ctx,
+    )
+    expect(r.ok && r.value.links.map((l) => [l.factId, l.state])).toEqual([
+      ['a', 'counted'],
+      ['r', 'unlinked'],
+      ['x', 'counted'],
+      ['gone', 'unlinked'],
+    ])
+  })
+
+  it('"Reviewed" never leaves a decided insight without support, nor lets go of a study away', () => {
+    const alone = markReviewed(insight({ status: 'validated', links: [link('r')] }), ctx)
+    expect(alone.ok && alone.value.links[0]?.state).toBe('counted')
+    const away = markReviewed(insight({ status: 'validated', links: [link('a'), link('x')] }), ctx)
+    expect(away.ok && away.value.links.map((l) => l.state)).toEqual(['counted', 'counted'])
+  })
+
   it('marks the facts reviewed: snapshots taken again, nothing else changed', () => {
     const changed = new Map([
       ...facts,

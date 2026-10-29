@@ -1,0 +1,2 @@
+ALTER TABLE "synthesis_takeaways" ADD COLUMN "with_proposed" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "synthesis_takeaways" ADD COLUMN "draft_with_proposed" boolean DEFAULT false NOT NULL;
