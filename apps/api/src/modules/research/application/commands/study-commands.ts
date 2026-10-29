@@ -1,6 +1,6 @@
 import { ConcurrencyError, err, newId, ok, type Result } from '@goodresearch/shared'
 import type { StudyRepository } from '../../domain/study.repository.ts'
-import { Study } from '../../domain/study.ts'
+import { Study, type TextAnalysed } from '../../domain/study.ts'
 import type { ResearchCommandDeps, StudyActionGate } from '../ports.ts'
 
 type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
@@ -71,11 +71,15 @@ export const makeStudyCommands = (
       return ok({ version: c.version + 1 })
     },
 
-    /** Spec 009 FR-013: names and titles of the interviews use pseudonyms, or not. */
+    /**
+     * Spec 009 FR-013: names and titles of the interviews use pseudonyms, or not; spec 012 FR-002:
+     * the text Analysis reads.
+     */
     setAnonymisation: async (c: {
       actor: Actor
       studyId: string
       anonymised: boolean
+      textAnalysed?: TextAnalysed | undefined
       version: number
     }): Promise<Result<{ version: number }, StudyCommandError>> => {
       const study = await loadVisible(c.actor.id, c.studyId)
@@ -83,6 +87,7 @@ export const makeStudyCommands = (
       if (!(await deps.gate.canAct(c.actor.id, study.id))) return err('FOLDER_ACCESS_REQUIRED')
       if (study.version !== c.version) return err('VERSION_CONFLICT')
       study.setAnonymised(c.anonymised, deps.clock.now())
+      if (c.textAnalysed) study.setTextAnalysed(c.textAnalysed, deps.clock.now())
       try {
         await deps.studies.save(study)
       } catch (error) {

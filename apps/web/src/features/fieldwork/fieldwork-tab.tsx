@@ -416,10 +416,16 @@ function Interviews({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <span className="grid">
-                    <span>{who.interviewees.length ? who.interviewees.join(', ') : '—'}</span>
+                  {/* Long lists of people end in "…", whole on hover: the next column stays clear. */}
+                  <span className="grid max-w-64">
+                    <span className="truncate" title={who.interviewees.join(', ')}>
+                      {who.interviewees.length ? who.interviewees.join(', ') : '—'}
+                    </span>
                     {who.interviewers.length ? (
-                      <span className="text-muted-foreground text-xs">
+                      <span
+                        className="truncate text-muted-foreground text-xs"
+                        title={who.interviewers.join(', ')}
+                      >
                         {t`Interviewer: ${who.interviewers.join(', ')}`}
                       </span>
                     ) : null}
@@ -493,7 +499,8 @@ function Interviews({
                   />
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-right">
-                  {reviewable(s) ? (
+                  {/* A validated interview too: anything new sends it back to decide. */}
+                  {reviewable(s) || s.state === 'validated' ? (
                     <Button
                       size="icon-sm"
                       variant="ghost"

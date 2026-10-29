@@ -10,6 +10,13 @@ export const fold = (text: string): string => withoutMarks(text).replace(/[‘�
 /** The same person whatever the case, accents or spaces of their name (stored keys, spec 009). */
 export const nameKey = (name: string): string => withoutMarks(name).replace(/\s+/g, ' ').trim()
 
+/**
+ * The person in a label written by a meeting tool: what comes before " -", "(", "|" or "[" (a
+ * company, a place, a version). "Jean-Pierre" keeps its hyphen.
+ */
+export const personName = (label: string): string =>
+  (label.split(/\s+[-–]|\s*[(|[]/)[0] ?? '').trim()
+
 export type Word = { readonly text: string; readonly start: number; readonly end: number }
 
 const WORD = /[\p{L}\p{N}]+(?:['‘’ʼ-][\p{L}\p{N}]+)*/gu

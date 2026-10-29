@@ -15,6 +15,7 @@ export {
   FolderOpenIcon,
   HistoryIcon,
   HourglassIcon,
+  LinkIcon,
   LoaderCircleIcon,
   LogOutIcon,
   MergeIcon,

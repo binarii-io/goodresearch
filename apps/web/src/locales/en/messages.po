@@ -20,6 +20,11 @@ msgstr "(empty)"
 msgid "(no duration)"
 msgstr "(no duration)"
 
+#: src/features/analysis/fact-card.tsx
+#: src/features/analysis/interview-facts.tsx
+msgid "(no longer in the text)"
+msgstr "(no longer in the text)"
+
 #: src/features/preparation/drive-review.tsx
 msgid "(none)"
 msgstr "(none)"
@@ -80,22 +85,33 @@ msgstr "{0} AI corrections were left out by the app's checks (not found in the t
 msgid "{0} applied, {1} rejected"
 msgstr "{0} applied, {1} rejected"
 
-#. placeholder {0}: data.counts.clean
-#. placeholder {1}: data.interviews.length
-#: src/features/enrichment/cleaning-table.tsx
-msgid "{0} clean of {1}"
-msgstr "{0} clean of {1}"
-
 #. placeholder {0}: o.yes
 #. placeholder {1}: o.no
 #: src/features/enrichment/term-dialogs.tsx
 msgid "{0} confirmed · {1} not this term"
 msgstr "{0} confirmed · {1} not this term"
 
+#. placeholder {0}: o.yes
+#. placeholder {1}: o.no
+#. placeholder {2}: o.unsure
+#: src/features/enrichment/term-dialogs.tsx
+msgid "{0} confirmed · {1} not this term · {2} can't tell"
+msgstr "{0} confirmed · {1} not this term · {2} can't tell"
+
 #. placeholder {0}: p.counts.rejected
 #: src/features/preparation/drive-publishing.tsx
 msgid "{0} Drive changes will be replaced at the next update. "
 msgstr "{0} Drive changes will be replaced at the next update. "
+
+#. placeholder {0}: result.changed
+#: src/features/analysis/facts-list.tsx
+msgid "{0} facts changed meanwhile: check them again."
+msgstr "{0} facts changed meanwhile: check them again."
+
+#. placeholder {0}: result.changed
+#: src/features/analysis/interview-facts.tsx
+msgid "{0} facts were not accepted: they changed meanwhile, or their speaker is to attribute."
+msgstr "{0} facts were not accepted: they changed meanwhile, or their speaker is to attribute."
 
 #. placeholder {0}: i18n._(KINDS[kind])
 #: src/features/preparation/drive-publishing.tsx
@@ -119,6 +135,7 @@ msgstr "{0} interviews will be read: never read, or whose transcript changed in 
 
 #. placeholder {0}: e.interviews
 #. placeholder {1}: e.chunks
+#: src/features/analysis/find-facts.tsx
 #: src/features/enrichment/cleaning-table.tsx
 msgid "{0} interviews, about {1} parts for the AI: about {cost} with your AI provider."
 msgstr "{0} interviews, about {1} parts for the AI: about {cost} with your AI provider."
@@ -150,15 +167,16 @@ msgstr "{0} more transcripts are in the folder: a study holds at most 500 interv
 msgid "{0} rarer words were left out of the last reading (at most 300 per reading)."
 msgstr "{0} rarer words were left out of the last reading (at most 300 per reading)."
 
+#. placeholder {0}: facts.length
+#. placeholder {1}: data.facts.length
+#: src/features/analysis/interview-facts.tsx
+msgid "{0} shown of {1}"
+msgstr "{0} shown of {1}"
+
 #. placeholder {0}: data.toValidate
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "{0} still to validate in Fieldwork"
 msgstr "{0} still to validate in Fieldwork"
-
-#. placeholder {0}: page.data.total
-#: src/features/enrichment/lexicon-table.tsx
-msgid "{0} terms"
-msgstr "{0} terms"
 
 #. placeholder {0}: data.counts.toDecide
 #. placeholder {1}: data.counts.accepted
@@ -166,6 +184,11 @@ msgstr "{0} terms"
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "{0} to decide · {1} accepted · {2} rejected"
 msgstr "{0} to decide · {1} accepted · {2} rejected"
+
+#. placeholder {0}: i.lost
+#: src/features/analysis/analysis-tab.tsx
+msgid "{0} verbatims no longer in the text"
+msgstr "{0} verbatims no longer in the text"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{audios, plural, one {# audio} other {# audio}}"
@@ -187,6 +210,10 @@ msgstr "{count} points"
 #: src/features/enrichment/lexicon-table.tsx
 msgid "{count} times in {0} interviews"
 msgstr "{count} times in {0} interviews"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "{count} words"
+msgstr "{count} words"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{excluded} excluded"
@@ -216,6 +243,10 @@ msgstr "{name} waits for its analysis"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{proposed} proposed"
 msgstr "{proposed} proposed"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "{published} published in Drive"
+msgstr "{published} published in Drive"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "{sectionCount} sections · {questions} main questions · {minutes} min"
@@ -266,12 +297,16 @@ msgid "2 · Fieldwork"
 msgstr "2 · Fieldwork"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
-msgid "3 · Enrichment"
-msgstr "3 · Enrichment"
+msgid "3 · Lexicon"
+msgstr "3 · Lexicon"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
-msgid "4 · Analysis"
-msgstr "4 · Analysis"
+msgid "4 · Enrichment"
+msgstr "4 · Enrichment"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "5 · Analysis"
+msgstr "5 · Analysis"
 
 #: src/features/workspace/errors.ts
 msgid "A correction is at most 200 characters."
@@ -280,6 +315,14 @@ msgstr "A correction is at most 200 characters."
 #: src/features/preparation/preparation-tab.tsx
 msgid "a deleted account"
 msgstr "a deleted account"
+
+#: src/features/workspace/errors.ts
+msgid "A fact needs at least one verbatim."
+msgstr "A fact needs at least one verbatim."
+
+#: src/features/workspace/errors.ts
+msgid "A fact never names a person: write it without names."
+msgstr "A fact never names a person: write it without names."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "A folder is attached to this study: connect your Drive to see it."
@@ -305,6 +348,10 @@ msgstr "A project holds one research question and belongs to a team."
 msgid "A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it."
 msgstr "A project holds one research question: what you want to learn, why, and your hypotheses. Studies and their evidence will attach to it."
 
+#: src/features/analysis/fact-dialog.tsx
+msgid "A short, neutral statement of what the interviewee says, without any name. Write it in one language: the other is translated."
+msgstr "A short, neutral statement of what the interviewee says, without any name. Write it in one language: the other is translated."
+
 #: src/features/research/study-list.tsx
 msgid "A study is one way of collecting evidence for the project's research question."
 msgstr "A study is one way of collecting evidence for the project's research question."
@@ -321,6 +368,15 @@ msgstr "A team with this name already exists."
 msgid "A term cannot be merged into itself."
 msgstr "A term cannot be merged into itself."
 
+#: src/features/analysis/interview-facts.tsx
+#: src/features/workspace/errors.ts
+msgid "A verbatim has 3 to 120 words."
+msgstr "A verbatim has 3 to 120 words."
+
+#: src/features/workspace/errors.ts
+msgid "A verbatim is what an interviewee says, not an interviewer."
+msgstr "A verbatim is what an interviewee says, not an interviewer."
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "About {cost} with your AI provider. Terms already decided by your team are not sent again."
 msgstr "About {cost} with your AI provider. Terms already decided by your team are not sent again."
@@ -333,6 +389,7 @@ msgstr "about the future"
 msgid "About you"
 msgstr "About you"
 
+#: src/features/analysis/fact-card.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Accept"
@@ -352,6 +409,9 @@ msgstr "Accept all"
 
 #. placeholder {0}: shown.length
 #. placeholder {0}: terms.length
+#. placeholder {0}: toDecide.length
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Accept all shown ({0})"
@@ -377,9 +437,17 @@ msgstr "Accept: {0}"
 msgid "Accept: {label}"
 msgstr "Accept: {label}"
 
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
+#: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/enrichment/lexicon-table.tsx
+msgid "Accepted"
+msgstr "Accepted"
+
+#: src/features/enrichment/labels.ts
 #: src/features/fieldwork/labels.ts
+msgctxt "feminine"
 msgid "Accepted"
 msgstr "Accepted"
 
@@ -390,6 +458,10 @@ msgstr "Accepted changes are applied to the app; rejected ones are replaced in D
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Accepted corrections"
 msgstr "Accepted corrections"
+
+#: src/features/analysis/analysis-tab.tsx
+msgid "Accepted facts"
+msgstr "Accepted facts"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Accepted terms"
@@ -431,7 +503,9 @@ msgstr "Account reactivated"
 msgid "Acronym"
 msgstr "Acronym"
 
+#: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/cleaning-table.tsx
+#: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/preparation/schedule.tsx
 msgid "Actions"
@@ -466,6 +540,18 @@ msgstr "Add a question"
 msgid "Add a theme section"
 msgstr "Add a theme section"
 
+#: src/features/analysis/interview-facts.tsx
+msgid "Add a verbatim"
+msgstr "Add a verbatim"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Add a verbatim from this turn"
+msgstr "Add a verbatim from this turn"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Add and write a fact"
+msgstr "Add and write a fact"
+
 #: src/features/ai/labels.ts
 msgid "Add credit or raise the quota in the provider's console, then try again."
 msgstr "Add credit or raise the quota in the provider's console, then try again."
@@ -473,6 +559,18 @@ msgstr "Add credit or raise the quota in the provider's console, then try again.
 #: src/routes/_authenticated/teams.tsx
 msgid "Add team"
 msgstr "Add team"
+
+#: src/features/analysis/fact-dialog.tsx
+msgid "Add the fact"
+msgstr "Add the fact"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Add the verbatim"
+msgstr "Add the verbatim"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Add to a fact"
+msgstr "Add to a fact"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/session-dialog.tsx
@@ -509,6 +607,10 @@ msgstr "Agree and clean"
 msgid "Agree and find terms"
 msgstr "Agree and find terms"
 
+#: src/features/analysis/find-facts.tsx
+msgid "Agree and find the facts"
+msgstr "Agree and find the facts"
+
 #: src/features/workspace/errors.ts
 msgid "Agree to send excerpts to your AI provider first."
 msgstr "Agree to send excerpts to your AI provider first."
@@ -534,6 +636,8 @@ msgstr "AI provider"
 msgid "AI, from the lexicon"
 msgstr "AI, from the lexicon"
 
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -553,6 +657,10 @@ msgstr "All categories"
 msgid "All groups"
 msgstr "All groups"
 
+#: src/features/analysis/facts-list.tsx
+msgid "All interviews"
+msgstr "All interviews"
+
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/ingestion/source-panel.tsx
@@ -562,6 +670,11 @@ msgstr "All kinds"
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "All sources"
 msgstr "All sources"
+
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
+msgid "All themes"
+msgstr "All themes"
 
 #: src/features/fieldwork/proposals.tsx
 msgid "Allow editing in Drive"
@@ -588,26 +701,51 @@ msgstr "Also finds misheard words the lexicon does not know, and wrong speakers.
 msgid "also in {0} other studies of the team"
 msgstr "also in {0} other studies of the team"
 
+#: src/features/analysis/find-facts.tsx
+msgid "Also read again the interviews already analysed"
+msgstr "Also read again the interviews already analysed"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Also read again the interviews already read"
 msgstr "Also read again the interviews already read"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "An interviewer"
+msgstr "An interviewer"
 
 #: src/features/workspace/errors.ts
 msgid "An inventory is already running for this study."
 msgstr "An inventory is already running for this study."
 
+#: src/features/analysis/labels.ts
+msgid "Analysed"
+msgstr "Analysed"
+
+#: src/features/analysis/analysis-tab.tsx
+msgid "Analysed on"
+msgstr "Analysed on"
+
+#: src/features/analysis/analysis-tab.tsx
 #: src/features/assistant/proposal-card.tsx
 #: src/features/fieldwork/proposals.tsx
 msgid "Analysis"
 msgstr "Analysis"
 
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Analysis for this type of study is coming in a later version."
+msgstr "Analysis for this type of study is coming in a later version."
+
+#: src/features/analysis/analysis-tab.tsx
+msgid "Analysis in numbers"
+msgstr "Analysis in numbers"
+
+#: src/features/analysis/analysis-tab.tsx
+msgid "Analysis in progress"
+msgstr "Analysis in progress"
+
 #: src/features/fieldwork/labels.ts
 msgid "Analysis incomplete"
 msgstr "Analysis incomplete"
-
-#: src/routes/_authenticated/studies/$studyId.tsx
-msgid "Analysis of the validated interviews is coming in a later version."
-msgstr "Analysis of the validated interviews is coming in a later version."
 
 #: src/features/fieldwork/analysis.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -700,6 +838,10 @@ msgstr "app's rules only"
 msgid "Applied"
 msgstr "Applied"
 
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Applied to the clean versions"
+msgstr "Applied to the clean versions"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Apply"
 msgstr "Apply"
@@ -789,9 +931,13 @@ msgstr "Back to research projects"
 msgid "Back to review"
 msgstr "Back to review"
 
-#: src/features/enrichment/interview-cleaning.tsx
-msgid "Back to the interviews"
-msgstr "Back to the interviews"
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Back to the analysis"
+msgstr "Back to the analysis"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Back to the cleaning"
+msgstr "Back to the cleaning"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Back to the project"
@@ -831,6 +977,17 @@ msgstr "by {actor}"
 msgid "by the app: its transcript was found"
 msgstr "by the app: its transcript was found"
 
+#: src/features/enrichment/term-dialogs.tsx
+msgid "Can't tell yet, decide in Cleaning"
+msgstr "Can't tell yet, decide in Cleaning"
+
+#: src/features/enrichment/term-dialogs.tsx
+msgid "Can't tell: {excerpt}"
+msgstr "Can't tell: {excerpt}"
+
+#: src/features/analysis/fact-dialog.tsx
+#: src/features/analysis/find-facts.tsx
+#: src/features/analysis/interview-facts.tsx
 #: src/features/assistant/panel.tsx
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
@@ -860,8 +1017,8 @@ msgid "Case by case"
 msgstr "Case by case"
 
 #: src/features/enrichment/term-dialogs.tsx
-msgid "Case by case: say for each excerpt whether it is this term. Cleaning corrects only those you confirm."
-msgstr "Case by case: say for each excerpt whether it is this term. Cleaning corrects only those you confirm."
+msgid "Case by case: say for each excerpt whether it is this term. Cleaning corrects only those you confirm; those you can't tell yet are left to decide there."
+msgstr "Case by case: say for each excerpt whether it is this term. Cleaning corrects only those you confirm; those you can't tell yet are left to decide there."
 
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/enrichment/term-dialogs.tsx
@@ -980,7 +1137,6 @@ msgid "Claude models with an API key from your Anthropic account."
 msgstr "Claude models with an API key from your Anthropic account."
 
 #: src/features/enrichment/cleaning-table.tsx
-#: src/features/enrichment/labels.ts
 msgid "Clean"
 msgstr "Clean"
 
@@ -1020,6 +1176,14 @@ msgstr "Clean version {0} validated."
 msgid "Clean version to validate"
 msgstr "Clean version to validate"
 
+#: src/features/enrichment/labels.ts
+msgid "Clean version validated"
+msgstr "Clean version validated"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Clean versions validated"
+msgstr "Clean versions validated"
+
 #. placeholder {0}: interview.title
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Clean: {0}"
@@ -1033,10 +1197,9 @@ msgstr "Cleaned on"
 msgid "Cleaning"
 msgstr "Cleaning"
 
-#. placeholder {0}: clean.counts.toDecide
-#: src/features/enrichment/enrichment-tab.tsx
-msgid "Cleaning ({0} to decide)"
-msgstr "Cleaning ({0} to decide)"
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Cleaning in numbers"
+msgstr "Cleaning in numbers"
 
 #. placeholder {0}: run.done + run.failed
 #. placeholder {1}: run.total
@@ -1056,6 +1219,8 @@ msgstr "Cleaning: part {0} of {1}, {2} of {3} interviews"
 msgid "Click to change"
 msgstr "Click to change"
 
+#: src/features/analysis/fact-dialog.tsx
+#: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/fieldwork/proposals.tsx
@@ -1085,6 +1250,10 @@ msgstr "closed (yes or no)"
 #: src/features/workspace/app-sidebar.tsx
 msgid "Collapse the sidebar"
 msgstr "Collapse the sidebar"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Colours of the verbatims"
+msgstr "Colours of the verbatims"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Columns of the sheet"
@@ -1169,6 +1338,7 @@ msgstr "Correction"
 msgid "Corrections of this turn"
 msgstr "Corrections of this turn"
 
+#: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/labels.ts
 msgid "Corrections to decide"
 msgstr "Corrections to decide"
@@ -1178,6 +1348,7 @@ msgstr "Corrections to decide"
 msgid "Corrections to decide ({0})"
 msgstr "Corrections to decide ({0})"
 
+#: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Cost"
 msgstr "Cost"
@@ -1187,15 +1358,15 @@ msgstr "Cost"
 msgid "Cost of the analyses: {0}"
 msgstr "Cost of the analyses: {0}"
 
-#. placeholder {0}: money(data.cost)
-#: src/features/enrichment/cleaning-table.tsx
-msgid "Cost of the cleanings: {0}"
-msgstr "Cost of the cleanings: {0}"
+#: src/features/analysis/analysis-tab.tsx
+msgid "Cost of the analysis"
+msgstr "Cost of the analysis"
 
 #: src/features/enrichment/cleaning-table.tsx
-msgid "Cost of the cleanings: unknown"
-msgstr "Cost of the cleanings: unknown"
+msgid "Cost of the cleanings"
+msgstr "Cost of the cleanings"
 
+#: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Cost of the readings"
 msgstr "Cost of the readings"
@@ -1208,6 +1379,10 @@ msgstr "Cost of this conversation: {total}. Last message: {last}."
 #: src/features/fieldwork/proposals.tsx
 msgid "cost unknown"
 msgstr "cost unknown"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Cost:"
+msgstr "Cost:"
 
 #. placeholder {0}: money(data.cost)
 #: src/features/enrichment/interview-cleaning.tsx
@@ -1230,6 +1405,7 @@ msgstr "Counting the interviews to analyze…"
 msgid "Counting the interviews to clean…"
 msgstr "Counting the interviews to clean…"
 
+#: src/features/analysis/find-facts.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Counting the interviews to read…"
 msgstr "Counting the interviews to read…"
@@ -1438,6 +1614,7 @@ msgstr "Document text"
 msgid "Don't ask me again"
 msgstr "Don't ask me again"
 
+#: src/features/analysis/labels.ts
 #: src/features/preparation/labels.ts
 msgid "Done"
 msgstr "Done"
@@ -1467,6 +1644,7 @@ msgstr "Each term is accepted with its spellings. A transcription error without 
 msgid "Each transcript of the folder is an interview. Link it to the planned interview, check its recordings and people, then validate it."
 msgstr "Each transcript of the folder is an interview. Link it to the planned interview, check its recordings and people, then validate it."
 
+#: src/features/analysis/fact-card.tsx
 #: src/features/preparation/preparation-tab.tsx
 msgid "Edit"
 msgstr "Edit"
@@ -1476,6 +1654,10 @@ msgstr "Edit"
 msgid "Edit {0}"
 msgstr "Edit {0}"
 
+#: src/features/analysis/fact-dialog.tsx
+msgid "Edit the fact"
+msgstr "Edit the fact"
+
 #: src/features/preparation/schedule.tsx
 msgid "Edit the interview"
 msgstr "Edit the interview"
@@ -1484,7 +1666,13 @@ msgstr "Edit the interview"
 msgid "Edit the interview guide"
 msgstr "Edit the interview guide"
 
+#: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
+msgid "Edited"
+msgstr "Edited"
+
+#: src/features/enrichment/labels.ts
+msgctxt "feminine"
 msgid "Edited"
 msgstr "Edited"
 
@@ -1506,17 +1694,12 @@ msgid "English"
 msgstr "English"
 
 #: src/features/assistant/proposal-card.tsx
-#: src/features/enrichment/enrichment-tab.tsx
 msgid "Enrichment"
 msgstr "Enrichment"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Enrichment for this type of study is coming in a later version."
 msgstr "Enrichment for this type of study is coming in a later version."
-
-#: src/features/enrichment/enrichment-tab.tsx
-msgid "Enrichment in numbers"
-msgstr "Enrichment in numbers"
 
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
@@ -1541,6 +1724,18 @@ msgstr "Every correction is decided. One step left: validate the clean version, 
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Every correction the AI proposes waits for a person's decision."
 msgstr "Every correction the AI proposes waits for a person's decision."
+
+#: src/features/analysis/find-facts.tsx
+msgid "Every fact the AI proposes waits for a person's decision."
+msgstr "Every fact the AI proposes waits for a person's decision."
+
+#: src/features/workspace/errors.ts
+msgid "Every interview is already analysed."
+msgstr "Every interview is already analysed."
+
+#: src/features/analysis/find-facts.tsx
+msgid "Every interview is already analysed. Tick the box below to read them again."
+msgstr "Every interview is already analysed. Tick the box below to read them again."
 
 #: src/features/fieldwork/analysis.tsx
 msgid "Every interview is already analyzed. Tick the box below to analyze them again."
@@ -1586,13 +1781,17 @@ msgstr "Every recording is with its transcript."
 msgid "Every section needs a title."
 msgstr "Every section needs a title."
 
+#: src/features/analysis/facts-list.tsx
+msgid "Everyone"
+msgstr "Everyone"
+
 #: src/features/enrichment/labels.ts
 msgid "Everywhere"
 msgstr "Everywhere"
 
 #: src/features/enrichment/term-dialogs.tsx
-msgid "Everywhere: Cleaning corrects every occurrence, except those you mark as not this term."
-msgstr "Everywhere: Cleaning corrects every occurrence, except those you mark as not this term."
+msgid "Everywhere: Cleaning corrects every occurrence, except those you mark as not this term; those you can't tell yet are left to decide there."
+msgstr "Everywhere: Cleaning corrects every occurrence, except those you mark as not this term; those you can't tell yet are left to decide there."
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Exclude"
@@ -1615,7 +1814,39 @@ msgstr "Excluded because: {0}"
 msgid "Expand the sidebar"
 msgstr "Expand the sidebar"
 
+#: src/features/analysis/interview-facts.tsx
+msgid "Facts"
+msgstr "Facts"
+
+#. placeholder {0}: data.counts.toDecide
+#: src/features/analysis/analysis-tab.tsx
+msgid "Facts ({0} to decide)"
+msgstr "Facts ({0} to decide)"
+
+#: src/features/analysis/find-facts.tsx
+msgid "Facts already decided stay as they are."
+msgstr "Facts already decided stay as they are."
+
+#: src/features/workspace/errors.ts
+msgid "Facts are already being found for this study."
+msgstr "Facts are already being found for this study."
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Facts of this interview"
+msgstr "Facts of this interview"
+
+#: src/features/analysis/analysis-tab.tsx
+#: src/features/analysis/labels.ts
+msgid "Facts to decide"
+msgstr "Facts to decide"
+
+#. placeholder {0}: i.facts.toDecide
+#: src/features/analysis/analysis-tab.tsx
+msgid "Facts to decide ({0})"
+msgstr "Facts to decide ({0})"
+
 #: src/features/ai/provider-forms.tsx
+#: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 msgid "Failed"
 msgstr "Failed"
@@ -1653,17 +1884,92 @@ msgstr "Files renamed in Drive"
 msgid "Final text"
 msgstr "Final text"
 
+#: src/features/analysis/analysis-tab.tsx
+#: src/features/analysis/find-facts.tsx
+msgid "Find facts"
+msgstr "Find facts"
+
+#: src/features/analysis/find-facts.tsx
+msgid "Find facts again"
+msgstr "Find facts again"
+
+#. placeholder {0}: interview.title
+#: src/features/analysis/find-facts.tsx
+msgid "Find facts again: {0}"
+msgstr "Find facts again: {0}"
+
+#. placeholder {0}: interview.title
+#: src/features/analysis/find-facts.tsx
+msgid "Find facts: {0}"
+msgstr "Find facts: {0}"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Find terms"
 msgstr "Find terms"
 
 #: src/features/enrichment/enrichment-tab.tsx
+msgid "Find terms again"
+msgstr "Find terms again"
+
+#. placeholder {0}: interview.title
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Find terms again: {0}"
+msgstr "Find terms again: {0}"
+
+#. placeholder {0}: interview.title
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Find terms: {0}"
+msgstr "Find terms: {0}"
+
+#: src/features/analysis/find-facts.tsx
+msgid "Find the facts"
+msgstr "Find the facts"
+
+#. placeholder {0}: interview.title
+#: src/features/analysis/find-facts.tsx
+msgid "Find the facts of “{0}”?"
+msgstr "Find the facts of “{0}”?"
+
+#: src/features/analysis/find-facts.tsx
+msgid "Find the facts?"
+msgstr "Find the facts?"
+
+#. placeholder {0}: interview.title
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Find the terms of “{0}”?"
+msgstr "Find the terms of “{0}”?"
+
+#: src/features/enrichment/enrichment-tab.tsx
 msgid "Find the terms of the interviews?"
 msgstr "Find the terms of the interviews?"
+
+#. placeholder {0}: run.done + run.failed
+#. placeholder {1}: run.total
+#: src/features/analysis/analysis-tab.tsx
+msgid "Finding facts: {0} of {1} interviews"
+msgstr "Finding facts: {0} of {1} interviews"
+
+#. placeholder {0}: run.chunksDone
+#. placeholder {1}: run.chunks
+#. placeholder {2}: run.done + run.failed
+#. placeholder {3}: run.total
+#: src/features/analysis/analysis-tab.tsx
+msgid "Finding facts: part {0} of {1}, {2} of {3} interviews"
+msgstr "Finding facts: part {0} of {1}, {2} of {3} interviews"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Finding the terms…"
 msgstr "Finding the terms…"
+
+#. placeholder {0}: reading.chunksDone
+#. placeholder {1}: reading.chunks
+#: src/features/analysis/analysis-tab.tsx
+msgid "Finding verbatims: part {0} of {1}"
+msgstr "Finding verbatims: part {0} of {1}"
+
+#: src/features/analysis/labels.ts
+msgid "Finding verbatims…"
+msgstr "Finding verbatims…"
 
 #: src/features/research/study-list.tsx
 msgid "Folder attached"
@@ -1723,6 +2029,10 @@ msgstr "Framing"
 msgid "French"
 msgstr "French"
 
+#: src/features/analysis/analysis-tab.tsx
+msgid "From {verbatims} verbatims"
+msgstr "From {verbatims} verbatims"
+
 #: src/features/fieldwork/labels.ts
 msgid "from the file name"
 msgstr "from the file name"
@@ -1751,6 +2061,7 @@ msgstr "Gemini models in your own Google Cloud project, with your Google account
 msgid "Get a key from {name}"
 msgstr "Get a key from {name}"
 
+#: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Go to Fieldwork"
 msgstr "Go to Fieldwork"
@@ -1850,6 +2161,10 @@ msgstr "GPT models with an API key from your OpenAI account."
 msgid "Group"
 msgstr "Group"
 
+#: src/features/analysis/labels.ts
+msgid "Grouping into facts…"
+msgstr "Grouping into facts…"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Guide design progress"
 msgstr "Guide design progress"
@@ -1873,6 +2188,10 @@ msgstr "high confidence"
 #: src/features/enrichment/labels.ts
 msgid "High confidence"
 msgstr "High confidence"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Highlight what an interviewee says to add it as a verbatim."
+msgstr "Highlight what an interviewee says to add it as a verbatim."
 
 #: src/features/enrichment/cleaning-table.tsx
 msgid "How to clean"
@@ -1901,6 +2220,14 @@ msgstr "hypothetical"
 msgid "In Drive"
 msgstr "In Drive"
 
+#: src/features/analysis/fact-dialog.tsx
+msgid "In English"
+msgstr "In English"
+
+#: src/features/analysis/fact-dialog.tsx
+msgid "In French"
+msgstr "In French"
+
 #: src/features/preparation/drive-publishing.tsx
 msgid "In sync"
 msgstr "In sync"
@@ -1909,6 +2236,8 @@ msgstr "In sync"
 msgid "In the app"
 msgstr "In the app"
 
+#: src/features/analysis/analysis-tab.tsx
+#: src/features/analysis/facts-list.tsx
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -1960,9 +2289,17 @@ msgstr "Interview: {name}"
 msgid "Interviewed"
 msgstr "Interviewed"
 
+#: src/features/analysis/interview-facts.tsx
+msgid "interviewee"
+msgstr "interviewee"
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Interviewee"
 msgstr "Interviewee"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "interviewer"
+msgstr "interviewer"
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Interviewer"
@@ -1989,6 +2326,7 @@ msgstr "Interviews"
 
 #. placeholder {0}: data.interviews.length
 #. placeholder {0}: data.sessions.length
+#: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Interviews ({0})"
@@ -1997,6 +2335,18 @@ msgstr "Interviews ({0})"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Interviews are validated in Fieldwork; their terms are found here."
 msgstr "Interviews are validated in Fieldwork; their terms are found here."
+
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Interviews are validated in Fieldwork; their transcripts are cleaned here."
+msgstr "Interviews are validated in Fieldwork; their transcripts are cleaned here."
+
+#: src/features/analysis/analysis-tab.tsx
+msgid "Interviews are validated in Fieldwork; their verbatims and facts are found here."
+msgstr "Interviews are validated in Fieldwork; their verbatims and facts are found here."
+
+#: src/features/analysis/analysis-tab.tsx
+msgid "Interviews done"
+msgstr "Interviews done"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Interviews found"
@@ -2103,6 +2453,11 @@ msgstr "Kind"
 msgid "Language"
 msgstr "Language"
 
+#. placeholder {0}: money(data.lastRunCost)
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Last cleaning: {0}"
+msgstr "Last cleaning: {0}"
+
 #. placeholder {0}: p.lastEditor
 #: src/features/preparation/drive-publishing.tsx
 msgid "Last edited in Drive by {0}. "
@@ -2134,14 +2489,15 @@ msgid "Last successful check"
 msgstr "Last successful check"
 
 #. placeholder {0}: money(data.lastRunCost)
-#: src/features/enrichment/cleaning-table.tsx
-msgid "last: {0}"
-msgstr "last: {0}"
+#: src/features/analysis/analysis-tab.tsx
+msgid "Last: {0}"
+msgstr "Last: {0}"
 
 #: src/features/workspace/errors.ts
 msgid "Let goodresearch edit your Drive files first."
 msgstr "Let goodresearch edit your Drive files first."
 
+#: src/features/enrichment/enrichment-tab.tsx
 #: src/features/enrichment/labels.ts
 msgid "Lexicon"
 msgstr "Lexicon"
@@ -2154,6 +2510,10 @@ msgstr "Lexicon ({0} to decide)"
 #: src/features/enrichment/labels.ts
 msgid "Lexicon changed"
 msgstr "Lexicon changed"
+
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Lexicon in numbers"
+msgstr "Lexicon in numbers"
 
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Lexicon only"
@@ -2270,6 +2630,10 @@ msgstr "Minutes"
 msgid "missing"
 msgstr "missing"
 
+#: src/features/analysis/labels.ts
+msgid "Mixed"
+msgstr "Mixed"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Model"
 msgstr "Model"
@@ -2339,6 +2703,14 @@ msgstr "Name saved"
 msgid "Names separated by commas."
 msgstr "Names separated by commas."
 
+#: src/features/analysis/interview-facts.tsx
+msgid "Narrow the verbatim to this selection"
+msgstr "Narrow the verbatim to this selection"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Narrow this verbatim"
+msgstr "Narrow this verbatim"
+
 #: src/routes/_authenticated.tsx
 msgid "Navigation"
 msgstr "Navigation"
@@ -2347,9 +2719,22 @@ msgstr "Navigation"
 msgid "Needs attention"
 msgstr "Needs attention"
 
+#: src/features/analysis/labels.ts
+msgid "Negative"
+msgstr "Negative"
+
+#: src/features/analysis/labels.ts
+msgid "Neutral"
+msgstr "Neutral"
+
 #: src/features/assistant/panel.tsx
 msgid "New conversation"
 msgstr "New conversation"
+
+#: src/features/analysis/fact-dialog.tsx
+#: src/features/analysis/interview-facts.tsx
+msgid "New fact"
+msgstr "New fact"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "New name"
@@ -2376,6 +2761,11 @@ msgstr "New study"
 msgid "New theme"
 msgstr "New theme"
 
+#: src/features/analysis/interview-facts.tsx
+msgid "New verbatim"
+msgstr "New verbatim"
+
+#: src/features/analysis/facts-list.tsx
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Next"
 msgstr "Next"
@@ -2392,6 +2782,10 @@ msgstr "No AI provider is set up: only the app's rules will run, at no cost."
 msgid "No change to review."
 msgstr "No change to review."
 
+#: src/features/enrichment/cleaning-table.tsx
+msgid "No cleaning yet"
+msgstr "No cleaning yet"
+
 #: src/features/assistant/panel.tsx
 msgid "No conversation yet."
 msgstr "No conversation yet."
@@ -2399,6 +2793,15 @@ msgstr "No conversation yet."
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "No correction matches these filters."
 msgstr "No correction matches these filters."
+
+#: src/features/analysis/labels.ts
+msgid "No fact"
+msgstr "No fact"
+
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
+msgid "No fact here."
+msgstr "No fact here."
 
 #: src/features/research/study-list.tsx
 msgid "No folder yet"
@@ -2420,10 +2823,15 @@ msgstr "No planned interview"
 msgid "no planned interview matches"
 msgstr "no planned interview matches"
 
+#: src/features/analysis/analysis-tab.tsx
+msgid "No reading yet"
+msgstr "No reading yet"
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "No recording found for this interview."
 msgstr "No recording found for this interview."
 
+#: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "No speaker"
 msgstr "No speaker"
@@ -2440,6 +2848,7 @@ msgstr "No team yet"
 msgid "No term matches these filters."
 msgstr "No term matches these filters."
 
+#: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "No transcript"
@@ -2461,6 +2870,7 @@ msgstr "No transcript found: only a recording."
 msgid "No transcript in the folder yet. Transcripts dropped in the folder appear here after a refresh."
 msgstr "No transcript in the folder yet. Transcripts dropped in the folder appear here after a refresh."
 
+#: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "No validated interview yet."
 msgstr "No validated interview yet."
@@ -2473,9 +2883,17 @@ msgstr "Nobody yet."
 msgid "None"
 msgstr "None"
 
+#: src/features/analysis/labels.ts
+msgid "Not analysed"
+msgstr "Not analysed"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Not applied"
 msgstr "Not applied"
+
+#: src/features/analysis/labels.ts
+msgid "Not clean yet"
+msgstr "Not clean yet"
 
 #: src/features/enrichment/labels.ts
 msgid "Not cleaned"
@@ -2517,6 +2935,10 @@ msgstr "Not this term here"
 msgid "Not this term: {excerpt}"
 msgstr "Not this term: {excerpt}"
 
+#: src/features/analysis/fact-card.tsx
+msgid "Not translated into your language"
+msgstr "Not translated into your language"
+
 #: src/features/preparation/drive-review.tsx
 msgid "Not understood"
 msgstr "Not understood"
@@ -2555,6 +2977,12 @@ msgstr "Objectives and research themes"
 msgid "Objectives and themes"
 msgstr "Objectives and themes"
 
+#. placeholder {0}: data.interviews.length
+#: src/features/analysis/analysis-tab.tsx
+msgid "of {0} validated"
+msgstr "of {0} validated"
+
+#: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "of {withTranscript} with a transcript"
 msgstr "of {withTranscript} with a transcript"
@@ -2578,6 +3006,10 @@ msgstr "Only the names change: no file is moved, copied or deleted."
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Only turns with corrections"
 msgstr "Only turns with corrections"
+
+#: src/features/research/study-settings.tsx
+msgid "Only what a person checked. An interview without a validated clean version is not analysed."
+msgstr "Only what a person checked. An interview without a validated clean version is not analysed."
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Open"
@@ -2681,6 +3113,10 @@ msgstr "Order of the sections"
 msgid "Organisation"
 msgstr "Organisation"
 
+#: src/features/analysis/fact-card.tsx
+#: src/features/analysis/fact-dialog.tsx
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/labels.ts
 #: src/features/ingestion/source-panel.tsx
 msgid "Other"
@@ -2703,9 +3139,29 @@ msgstr "Out of date: changed in the app"
 msgid "Owner: {owner}"
 msgstr "Owner: {owner}"
 
+#: src/features/analysis/facts-list.tsx
+msgid "Page {page} of {pages}"
+msgstr "Page {page} of {pages}"
+
+#: src/features/analysis/facts-list.tsx
+msgid "Pages"
+msgstr "Pages"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Pages above"
+msgstr "Pages above"
+
+#: src/features/enrichment/lexicon-table.tsx
+msgid "Pages of the lexicon"
+msgstr "Pages of the lexicon"
+
 #: src/features/preparation/labels.ts
 msgid "partial"
 msgstr "partial"
+
+#: src/features/analysis/facts-list.tsx
+msgid "Participant"
+msgstr "Participant"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Passed"
@@ -2773,6 +3229,16 @@ msgstr "Planned interviews with no transcript in the folder yet."
 msgid "Planned only ({0})"
 msgstr "Planned only ({0})"
 
+#: src/features/analysis/fact-dialog.tsx
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
+msgid "Polarity"
+msgstr "Polarity"
+
+#: src/features/analysis/labels.ts
+msgid "Positive"
+msgstr "Positive"
+
 #: src/features/preparation/labels.ts
 msgid "Postponed"
 msgstr "Postponed"
@@ -2785,6 +3251,7 @@ msgstr "Preparation"
 msgid "Preparation for this type of study is coming in a later version."
 msgstr "Preparation for this type of study is coming in a later version."
 
+#: src/features/analysis/facts-list.tsx
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Previous"
 msgstr "Previous"
@@ -2814,6 +3281,14 @@ msgstr "Projects"
 #: src/features/fieldwork/labels.ts
 msgid "Proposed"
 msgstr "Proposed"
+
+#: src/features/analysis/analysis-tab.tsx
+msgid "Proposed by the AI"
+msgstr "Proposed by the AI"
+
+#: src/features/enrichment/cleaning-table.tsx
+msgid "Proposed by the lexicon or the AI"
+msgstr "Proposed by the lexicon or the AI"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Proposed, or with new spellings"
@@ -2892,6 +3367,10 @@ msgstr "Read the best practices"
 msgid "Read the whole guide"
 msgstr "Read the whole guide"
 
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Reading in progress"
+msgstr "Reading in progress"
+
 #. placeholder {0}: run.done + run.failed
 #. placeholder {1}: run.total
 #: src/features/enrichment/enrichment-tab.tsx
@@ -2928,6 +3407,7 @@ msgstr "Refreshing…"
 msgid "Region"
 msgstr "Region"
 
+#: src/features/analysis/fact-card.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Reject"
@@ -2952,9 +3432,17 @@ msgstr "Reject: {0}"
 msgid "Reject: {label}"
 msgstr "Reject: {label}"
 
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
+#: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/enrichment/lexicon-table.tsx
+msgid "Rejected"
+msgstr "Rejected"
+
+#: src/features/enrichment/labels.ts
 #: src/features/fieldwork/labels.ts
+msgctxt "feminine"
 msgid "Rejected"
 msgstr "Rejected"
 
@@ -3137,6 +3625,7 @@ msgstr "same meeting in their names"
 msgid "same time"
 msgstr "same time"
 
+#: src/features/analysis/fact-dialog.tsx
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/schedule.tsx
@@ -3158,6 +3647,14 @@ msgstr "Saving accepts the term with the spellings you keep."
 #: src/features/workspace/errors.ts
 msgid "Say what a transcription error should read."
 msgstr "Say what a transcription error should read."
+
+#: src/features/workspace/errors.ts
+msgid "Say who speaks in this interview first."
+msgstr "Say who speaks in this interview first."
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Say who speaks: facts count once their speakers are known."
+msgstr "Say who speaks: facts count once their speakers are known."
 
 #: src/features/preparation/schedule.tsx
 msgid "schedule"
@@ -3192,6 +3689,10 @@ msgstr "Section {0}"
 msgid "See the guide"
 msgstr "See the guide"
 
+#: src/features/analysis/interview-facts.tsx
+msgid "Select the words of the verbatim in the turn (3 to 120 words), then add it."
+msgstr "Select the words of the verbatim in the turn (3 to 120 words), then add it."
+
 #: src/features/assistant/panel.tsx
 msgid "Send"
 msgstr "Send"
@@ -3199,6 +3700,10 @@ msgstr "Send"
 #: src/features/fieldwork/analysis.tsx
 msgid "Send the beginning of the transcript to your AI provider?"
 msgstr "Send the beginning of the transcript to your AI provider?"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Set aside"
+msgstr "Set aside"
 
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Set up your AI provider first, or choose \"Lexicon only\"."
@@ -3208,6 +3713,7 @@ msgstr "Set up your AI provider first, or choose \"Lexicon only\"."
 msgid "Set up your AI provider first: it groups the spellings and explains the terms."
 msgstr "Set up your AI provider first: it groups the spellings and explains the terms."
 
+#: src/features/analysis/find-facts.tsx
 #: src/features/workspace/errors.ts
 msgid "Set up your AI provider first."
 msgstr "Set up your AI provider first."
@@ -3215,6 +3721,10 @@ msgstr "Set up your AI provider first."
 #: src/features/enrichment/labels.ts
 msgid "Set up your AI provider to clean with the AI."
 msgstr "Set up your AI provider to clean with the AI."
+
+#: src/features/analysis/labels.ts
+msgid "Set up your AI provider to find the facts."
+msgstr "Set up your AI provider to find the facts."
 
 #: src/features/enrichment/labels.ts
 msgid "Set up your AI provider to find the terms."
@@ -3290,6 +3800,10 @@ msgstr "Sources goodresearch reads with your own permission. They are separate f
 msgid "Speaker"
 msgstr "Speaker"
 
+#: src/features/analysis/interview-facts.tsx
+msgid "speaker to attribute"
+msgstr "speaker to attribute"
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Speaker:"
 msgstr "Speaker:"
@@ -3303,12 +3817,15 @@ msgstr "Spellings found"
 msgid "Spoken by"
 msgstr "Spoken by"
 
+#: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "State"
 msgstr "State"
 
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -3318,6 +3835,7 @@ msgstr "State"
 msgid "Status"
 msgstr "Status"
 
+#: src/features/analysis/analysis-tab.tsx
 #: src/features/assistant/panel.tsx
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
@@ -3392,6 +3910,31 @@ msgstr "Take back the decision on “{0}”"
 msgid "Take Drive's"
 msgstr "Take Drive's"
 
+#: src/features/workspace/reading-list.tsx
+msgid "Take out"
+msgstr "Take out"
+
+#: src/features/analysis/analysis-tab.tsx
+msgid "Take out of the analysis: {title}"
+msgstr "Take out of the analysis: {title}"
+
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Take out of the reading: {title}"
+msgstr "Take out of the reading: {title}"
+
+#: src/features/analysis/analysis-tab.tsx
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Taken out"
+msgstr "Taken out"
+
+#: src/features/analysis/labels.ts
+msgid "Taken out of the analysis: find its facts again when you wish."
+msgstr "Taken out of the analysis: find its facts again when you wish."
+
+#: src/features/enrichment/labels.ts
+msgid "Taken out of the reading: find its terms again when you wish."
+msgstr "Taken out of the reading: find its terms again when you wish."
+
 #: src/features/assistant/proposal-card.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
@@ -3432,6 +3975,10 @@ msgstr "Term saved"
 msgid "Term: {0}"
 msgstr "Term: {0}"
 
+#: src/features/enrichment/lexicon-table.tsx
+msgid "Terms {first}–{last} of {total} · page {current} of {pages}"
+msgstr "Terms {first}–{last} of {total} · page {current} of {pages}"
+
 #: src/features/workspace/errors.ts
 msgid "Terms are already being found for this study."
 msgstr "Terms are already being found for this study."
@@ -3471,6 +4018,14 @@ msgstr "Testing…"
 msgid "Text"
 msgstr "Text"
 
+#: src/features/research/study-settings.tsx
+msgid "Text analysed"
+msgstr "Text analysed"
+
+#: src/features/research/study-settings.tsx
+msgid "Text analysed changed"
+msgstr "Text analysed changed"
+
 #: src/features/ai/labels.ts
 msgid "The account has no credit or quota left."
 msgstr "The account has no credit or quota left."
@@ -3483,6 +4038,7 @@ msgstr "The AI answer could not be used: some corrections may be missing, try ag
 msgid "The AI answer could not be used: some terms may be missing, try again."
 msgstr "The AI answer could not be used: some terms may be missing, try again."
 
+#: src/features/analysis/labels.ts
 #: src/features/fieldwork/labels.ts
 msgid "The AI answer could not be used: try again."
 msgstr "The AI answer could not be used: try again."
@@ -3495,13 +4051,26 @@ msgstr "The AI provider returned an error or took too long: some corrections may
 msgid "The AI provider returned an error or took too long: some terms may be missing, try again."
 msgstr "The AI provider returned an error or took too long: some terms may be missing, try again."
 
+#: src/features/analysis/labels.ts
 #: src/features/fieldwork/labels.ts
 msgid "The AI provider returned an error or took too long: try again."
 msgstr "The AI provider returned an error or took too long: try again."
 
+#: src/features/analysis/find-facts.tsx
+msgid "The AI reads each interview in full and picks verbatims: what the interviewees say, word for word. It then groups them into facts you decide."
+msgstr "The AI reads each interview in full and picks verbatims: what the interviewees say, word for word. It then groups them into facts you decide."
+
+#: src/features/fieldwork/analysis.tsx
+msgid "The analysis found something new: the interview is to decide again. Its cleaning and facts are kept."
+msgstr "The analysis found something new: the interview is to decide again. Its cleaning and facts are kept."
+
 #: src/features/fieldwork/labels.ts
 msgid "The analysis was interrupted: analyze again."
 msgstr "The analysis was interrupted: analyze again."
+
+#: src/features/analysis/labels.ts
+msgid "The analysis was interrupted: find the facts again."
+msgstr "The analysis was interrupted: find the facts again."
 
 #: src/features/fieldwork/analysis.tsx
 msgid "The app adds neither the schedule nor the list of your team. With anonymisation on, the names it knows are replaced before sending; other names in the text stay."
@@ -3518,6 +4087,12 @@ msgstr "The app cannot read this file format."
 #: src/features/enrichment/cleaning-table.tsx
 msgid "The app first applies the lexicon itself, at no cost. The AI then reads each transcript in full and proposes corrections: you decide each one."
 msgstr "The app first applies the lexicon itself, at no cost. The AI then reads each transcript in full and proposes corrections: you decide each one."
+
+#. placeholder {0}: data.run.leftOut.verbatims
+#. placeholder {1}: data.run.leftOut.facts
+#: src/features/analysis/analysis-tab.tsx
+msgid "The app's checks left out {0} verbatims (not found in the text, or not an interviewee's) and {1} facts (without verbatim, with a name, or already decided)."
+msgstr "The app's checks left out {0} verbatims (not found in the text, or not an interviewee's) and {1} facts (without verbatim, with a name, or already decided)."
 
 #: src/features/preparation/preparation-tab.tsx
 msgid "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
@@ -3588,6 +4163,10 @@ msgstr "The guide holds the framing (objectives, hypotheses, audience, format) a
 msgid "The interview with {0} is validated. Its row in the schedule can be marked done."
 msgstr "The interview with {0} is validated. Its row in the schedule can be marked done."
 
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "The interviews read now go to the AI together: one can no longer be taken out, only the whole reading stopped."
+msgstr "The interviews read now go to the AI together: one can no longer be taken out, only the whole reading stopped."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "The inventory and the {interviews} interviews found, with their links and decisions, are removed from goodresearch. Nothing changes in Drive."
 msgstr "The inventory and the {interviews} interviews found, with their links and decisions, are removed from goodresearch. Nothing changes in Drive."
@@ -3608,6 +4187,10 @@ msgstr "The key or the Google access was refused."
 msgid "The last refresh failed ({reason}). The list below is from {when}."
 msgstr "The last refresh failed ({reason}). The list below is from {when}."
 
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "The lexicon for this type of study is coming in a later version."
+msgstr "The lexicon for this type of study is coming in a later version."
+
 #: src/features/ai/labels.ts
 msgid "The model is not available for this account or region."
 msgstr "The model is not available for this account or region."
@@ -3620,6 +4203,7 @@ msgstr "The name and email are erased for good and the person can no longer sign
 msgid "The names and titles proposed for the interviews use a pseudonym (P01, P02…) instead of the interviewee's name. Before the beginning of a transcript goes to the AI, the names the app knows (schedule, people of the interview, team) are replaced; names it does not know stay in the text. Replacing every name inside the transcripts comes with the cleaning phase."
 msgstr "The names and titles proposed for the interviews use a pseudonym (P01, P02…) instead of the interviewee's name. Before the beginning of a transcript goes to the AI, the names the app knows (schedule, people of the interview, team) are replaced; names it does not know stay in the text. Replacing every name inside the transcripts comes with the cleaning phase."
 
+#: src/features/analysis/find-facts.tsx
 #: src/features/enrichment/cleaning-table.tsx
 msgid "The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending."
 msgstr "The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending."
@@ -3656,6 +4240,10 @@ msgstr "The reading was interrupted: find the terms again."
 msgid "The schedule is full: at most 300 interviews per study."
 msgstr "The schedule is full: at most 300 interviews per study."
 
+#: src/features/analysis/interview-facts.tsx
+msgid "The selection covers several verbatims: select words within one of them."
+msgstr "The selection covers several verbatims: select words within one of them."
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
 msgstr "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
@@ -3669,6 +4257,10 @@ msgstr "The transcript is missing in Drive."
 msgid "The transcript is no longer in Drive, or you cannot open it."
 msgstr "The transcript is no longer in Drive, or you cannot open it."
 
+#: src/features/research/study-settings.tsx
+msgid "The transcript with the corrections of the cleaning, those still to decide included. Facts can be found before every interview is clean."
+msgstr "The transcript with the corrections of the cleaning, those still to decide included. Facts can be found before every interview is clean."
+
 #: src/features/ai/labels.ts
 msgid "The Vertex AI API is not enabled in this project."
 msgstr "The Vertex AI API is not enabled in this project."
@@ -3681,6 +4273,9 @@ msgstr "The workspace needs at least one active admin."
 msgid "Thematic questions"
 msgstr "Thematic questions"
 
+#: src/features/analysis/fact-dialog.tsx
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
 #: src/features/preparation/labels.ts
 msgid "Theme"
 msgstr "Theme"
@@ -3721,6 +4316,10 @@ msgstr "This conversation: {total}"
 msgid "This correction is no longer there: the transcript or the lexicon changed."
 msgstr "This correction is no longer there: the transcript or the lexicon changed."
 
+#: src/features/workspace/errors.ts
+msgid "This fact is no longer there."
+msgstr "This fact is no longer there."
+
 #: src/features/fieldwork/labels.ts
 msgid "This file is a summary, not a transcript: the app excluded it. Reopen it if it is an interview."
 msgstr "This file is a summary, not a transcript: the app excluded it. Reopen it if it is an interview."
@@ -3733,13 +4332,37 @@ msgstr "This folder does not exist or your Google account cannot open it."
 msgid "This Google Cloud project does not exist or your account cannot open it."
 msgstr "This Google Cloud project does not exist or your account cannot open it."
 
+#: src/features/workspace/errors.ts
+msgid "This interview can no longer be taken out of the reading: stop the whole reading instead."
+msgstr "This interview can no longer be taken out of the reading: stop the whole reading instead."
+
+#: src/features/analysis/interview-facts.tsx
+msgid "This interview has no interviewee yet: add them in Fieldwork, on the interview."
+msgstr "This interview has no interviewee yet: add them in Fieldwork, on the interview."
+
+#: src/features/analysis/interview-facts.tsx
+msgid "This interview has no text to analyse."
+msgstr "This interview has no text to analyse."
+
+#: src/features/analysis/find-facts.tsx
+msgid "This interview has no text to read."
+msgstr "This interview has no text to read."
+
 #: src/features/enrichment/cleaning-table.tsx
 msgid "This interview has no transcript to clean."
 msgstr "This interview has no transcript to clean."
 
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "This interview has no transcript to read."
+msgstr "This interview has no transcript to read."
+
 #: src/features/enrichment/labels.ts
 msgid "This interview has no transcript."
 msgstr "This interview has no transcript."
+
+#: src/features/analysis/labels.ts
+msgid "This interview has no validated clean version yet."
+msgstr "This interview has no validated clean version yet."
 
 #: src/features/enrichment/cleaning-table.tsx
 msgid "This interview is cleaned again in full. Decisions already made stay as they are."
@@ -3752,6 +4375,14 @@ msgstr "This interview is no longer in the folder's list."
 #: src/features/workspace/errors.ts
 msgid "This interview is no longer in the schedule."
 msgstr "This interview is no longer in the schedule."
+
+#: src/features/analysis/find-facts.tsx
+msgid "This interview is read again in full. Facts already decided stay as they are."
+msgstr "This interview is read again in full. Facts already decided stay as they are."
+
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "This interview is read again. Decided terms stay as they are; new spellings are proposed on them."
+msgstr "This interview is read again. Decided terms stay as they are; new spellings are proposed on them."
 
 #: src/features/workspace/errors.ts
 msgid "This interview was already decided. Reload to see where it stands."
@@ -3842,6 +4473,10 @@ msgid "This term is no longer in the lexicon."
 msgstr "This term is no longer in the lexicon."
 
 #: src/features/workspace/errors.ts
+msgid "This text is not in the interview any more."
+msgstr "This text is not in the interview any more."
+
+#: src/features/workspace/errors.ts
 msgid "This text is not in the turn any more."
 msgstr "This text is not in the turn any more."
 
@@ -3858,6 +4493,14 @@ msgstr "Title"
 msgid "Title saved"
 msgstr "Title saved"
 
+#: src/features/analysis/labels.ts
+msgid "To analyse again"
+msgstr "To analyse again"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "To attribute"
+msgstr "To attribute"
+
 #: src/features/enrichment/labels.ts
 msgid "To clean again"
 msgstr "To clean again"
@@ -3870,6 +4513,9 @@ msgstr "To clean with the AI, the full text of each transcript is sent to your A
 msgid "To contact"
 msgstr "To contact"
 
+#: src/features/analysis/facts-list.tsx
+#: src/features/analysis/interview-facts.tsx
+#: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/labels.ts
@@ -3891,6 +4537,10 @@ msgstr "To decide ({0}): open {name}"
 msgid "To decide ({waiting})"
 msgstr "To decide ({waiting})"
 
+#: src/features/analysis/find-facts.tsx
+msgid "To find the facts, the text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
+msgstr "To find the facts, the text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "To find the terms, the app first reads the transcripts itself. Only the unusual words it finds are sent to your AI provider, with your own connection, each with up to three short excerpts (200 characters)."
 msgstr "To find the terms, the app first reads the transcripts itself. Only the unusual words it finds are sent to your AI provider, with your own connection, each with up to three short excerpts (200 characters)."
@@ -3908,6 +4558,7 @@ msgstr "too long"
 msgid "Total duration: {total} min"
 msgstr "Total duration: {total} min"
 
+#: src/features/analysis/interview-facts.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/schedule.tsx
 msgid "Transcript"
@@ -3924,6 +4575,14 @@ msgstr "Transcript missing"
 #: src/features/enrichment/labels.ts
 msgid "Transcription error"
 msgstr "Transcription error"
+
+#: src/features/analysis/fact-card.tsx
+msgid "Translate"
+msgstr "Translate"
+
+#: src/features/analysis/fact-card.tsx
+msgid "Translating…"
+msgstr "Translating…"
 
 #: src/features/ai/labels.ts
 msgid "Try again in a moment."
@@ -3953,6 +4612,8 @@ msgstr "Type {email} to confirm"
 msgid "Unavailable in Drive"
 msgstr "Unavailable in Drive"
 
+#: src/features/analysis/analysis-tab.tsx
+#: src/features/analysis/find-facts.tsx
 #: src/features/assistant/cost.tsx
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
@@ -4023,9 +4684,31 @@ msgstr "Validate the clean version before publishing it."
 msgid "Validated"
 msgstr "Validated"
 
+#: src/features/research/study-settings.tsx
+msgid "Validated clean version only"
+msgstr "Validated clean version only"
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Validated: {name}"
 msgstr "Validated: {name}"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "verbatim, {toneLabel}:"
+msgstr "verbatim, {toneLabel}:"
+
+#: src/features/analysis/analysis-tab.tsx
+#: src/features/analysis/fact-dialog.tsx
+msgid "Verbatims"
+msgstr "Verbatims"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Verbatims without a fact"
+msgstr "Verbatims without a fact"
+
+#. placeholder {0}: verbatims.length
+#: src/features/analysis/interview-facts.tsx
+msgid "Verbatims without a fact ({0})"
+msgstr "Verbatims without a fact ({0})"
 
 #. placeholder {0}: g.version + 1
 #: src/features/preparation/preparation-tab.tsx
@@ -4046,6 +4729,7 @@ msgstr "Version {0} · written with the assistant, applied by {who} {when}"
 msgid "Wait a minute and try again."
 msgstr "Wait a minute and try again."
 
+#: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 msgid "Waiting"
 msgstr "Waiting"
@@ -4054,6 +4738,10 @@ msgstr "Waiting"
 #: src/features/fieldwork/labels.ts
 msgid "Waiting for analysis"
 msgstr "Waiting for analysis"
+
+#: src/features/analysis/analysis-tab.tsx
+msgid "Waiting for the analysis"
+msgstr "Waiting for the analysis"
 
 #: src/features/preparation/labels.ts
 msgid "Warm-up questions"
@@ -4079,6 +4767,10 @@ msgstr "What the AI proposes stays a proposal until a person accepts it."
 msgid "What the AI proposes stays a proposal until you accept it."
 msgstr "What the AI proposes stays a proposal until you accept it."
 
+#: src/features/research/study-settings.tsx
+msgid "What the Analysis phase reads to find verbatims and facts."
+msgstr "What the Analysis phase reads to find verbatims and facts."
+
 #: src/features/fieldwork/analysis.tsx
 msgid "What you accepted or rejected stays; only the proposals still to decide are replaced."
 msgstr "What you accepted or rejected stays; only the proposals still to decide are replaced."
@@ -4094,6 +4786,10 @@ msgstr "Where it was found"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Where to correct"
 msgstr "Where to correct"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Who speaks"
+msgstr "Who speaks"
 
 #: src/features/preparation/schedule.tsx
 msgid "Who to interview, when and by whom. Shared with the people who can open this study; never sent to the assistant."
@@ -4120,6 +4816,10 @@ msgstr "With a transcript"
 msgid "with the AI"
 msgstr "with the AI"
 
+#: src/features/research/study-settings.tsx
+msgid "With the corrections"
+msgstr "With the corrections"
+
 #: src/features/enrichment/cleaning-table.tsx
 msgid "With the lexicon and the AI"
 msgstr "With the lexicon and the AI"
@@ -4145,6 +4845,10 @@ msgstr "Working"
 #: src/features/preparation/labels.ts
 msgid "Wrap-up"
 msgstr "Wrap-up"
+
+#: src/features/analysis/interview-facts.tsx
+msgid "Write a fact"
+msgstr "Write a fact"
 
 #: src/features/preparation/preparation-tab.tsx
 msgid "Write it myself"

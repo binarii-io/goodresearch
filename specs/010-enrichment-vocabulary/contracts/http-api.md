@@ -26,7 +26,7 @@ All routes need a session (sign-in) and follow the study's access rules (spec 00
 Query: `status?` (`to-decide | accepted | rejected | all`, default `to-decide`), `kind?`, `category?`, `language?`, `sessionId?`, `q?`, `cursor?` (50 per page).
 
 ```
-{ terms: LexiconTerm[], next: string | null, total: number }
+{ terms: LexiconTerm[], next: string | null, total: number, pageSize: number }   // the cursor is a page's offset
 LexiconTerm = {
   id, version, form, kind, correction | null, category, definition | null, language,
   status, origin, quote | null,
@@ -45,11 +45,11 @@ Every occurrence of the term in the study's validated interviews, counted again 
 
 Body `{ sessionId, segmentId, offset, verdict: 'yes' | 'no' | null }` (null takes it back). Errors: `TERM_NOT_FOUND`, `OCCURRENCE_NOT_FOUND` (the place does not hold one of the term's spellings in a validated interview).
 
-### `GET /api/studies/:studyId/lexicon-runs/estimate?all=bool` → `{ interviews: number, estimatedCost: number | null }`
+### `GET /api/studies/:studyId/lexicon-runs/estimate?all=bool&sessionId=` → `{ interviews: number, estimatedCost: number | null }`
 
 ### `POST /api/studies/:studyId/lexicon-runs` → 202 `{ runId }`
 
-Body `{ consent?: boolean, all?: boolean }`. Errors:
+Body `{ consent?: boolean, all?: boolean, sessionIds?: string[] }` (`sessionIds`: only these interviews, read again whatever their state; `sessionId` in the estimate). Errors:
 
 - `NO_VALIDATED_INTERVIEW`
 - `NOTHING_TO_READ`
@@ -59,6 +59,10 @@ Body `{ consent?: boolean, all?: boolean }`. Errors:
 - `AI_PROVIDER_REQUIRED`
 
 ### `POST /api/studies/:studyId/lexicon-runs/:runId/stop` → 204
+
+### `POST /api/studies/:studyId/lexicon-runs/:runId/sessions/:sessionId/stop` → 204
+
+Takes one interview out of the reading while it waits or is imported; it ends `failed` with `STOPPED`. Errors: `NOT_FOUND` (not in that run), `TOO_LATE_TO_STOP` (409: done already, or the reading is past the import).
 
 ### `PATCH /api/studies/:studyId/lexicon/terms/:termId` → `LexiconTerm`
 

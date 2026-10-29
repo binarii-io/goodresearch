@@ -1,5 +1,5 @@
 import type { TermLanguage } from './candidates.ts'
-import type { Segment } from './segments.ts'
+import { hasUnsplitTurns, type Segment } from './segments.ts'
 
 /** The imported text of a validated interview (spec 010 FR-004): its raw version, never edited. */
 export type Transcript = {
@@ -24,6 +24,7 @@ export type LexiconFailure =
   | 'TOO_LONG'
   | 'NO_TRANSCRIPT'
   | 'INTERRUPTED'
+  | 'STOPPED'
   | 'AI_PROVIDER_REQUIRED'
   | 'AI_FAILED'
   | 'INVALID_ANSWER'
@@ -45,6 +46,8 @@ export type LexiconRun = {
   readonly sessions: readonly Reading[]
   readonly phase: RunPhase
   readonly stopRequested: boolean
+  /** Interviews a person took out of the reading while it imported them (written only by them). */
+  readonly stoppedSessions: readonly string[]
   /** Candidates over the limit (research R4). */
   readonly leftOut: number
   /** A failure of the AI part: the interviews were read, some terms may be missing. */
@@ -70,14 +73,39 @@ export const interrupted = (run: LexiconRun, now: Date): LexiconRun => ({
   ...run,
   phase: 'finished',
   finishedAt: now,
-  sessions: run.sessions.map((s) =>
+  // An interview a person took out stays taken out.
+  sessions: withStops(run).sessions.map((s) =>
     s.state === 'waiting' || s.state === 'reading'
       ? { sessionId: s.sessionId, state: 'failed', failure: 'INTERRUPTED' }
       : s,
   ),
 })
 
-/** A session needs reading when it was never imported or its file changed in Drive since. */
+/**
+ * One interview can be taken out of a reading while it waits or is imported: after that its words
+ * are among the candidates sent together with the others'.
+ */
+export const canStopReading = (run: LexiconRun, sessionId: string): boolean =>
+  run.finishedAt === null &&
+  run.phase === 'import' &&
+  run.sessions.some(
+    (s) => s.sessionId === sessionId && (s.state === 'waiting' || s.state === 'reading'),
+  )
+
+/** The run with the interviews a person stopped shown as stopped, whatever the reading last wrote. */
+export const withStops = (run: LexiconRun): LexiconRun => ({
+  ...run,
+  sessions: run.sessions.map((s) =>
+    run.stoppedSessions.includes(s.sessionId) && (s.state === 'waiting' || s.state === 'reading')
+      ? { sessionId: s.sessionId, state: 'failed', failure: 'STOPPED' }
+      : s,
+  ),
+})
+
+/**
+ * A session needs reading when it was never imported, its file changed in Drive since, or its turns
+ * were read by an older rule (`hasUnsplitTurns`).
+ */
 export const fileChanged = (
   s: {
     readonly transcript: { readonly fileId: string; readonly modifiedAt: string | null } | null
@@ -87,7 +115,8 @@ export const fileChanged = (
   s.transcript !== null &&
   (!imported ||
     imported.fileId !== s.transcript.fileId ||
-    imported.fileModifiedAt !== s.transcript.modifiedAt)
+    imported.fileModifiedAt !== s.transcript.modifiedAt ||
+    hasUnsplitTurns(imported.segments))
 
 /**
  * A session to read: never imported, its file changed since, or a reading stopped or failed before

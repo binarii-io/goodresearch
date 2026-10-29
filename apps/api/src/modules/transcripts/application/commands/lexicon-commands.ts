@@ -23,6 +23,7 @@ import {
   makeBatches,
 } from '../../domain/excerpts.ts'
 import {
+  canStopReading,
   fileChanged,
   interrupted,
   isLive,
@@ -42,7 +43,7 @@ import {
   spellingsOf,
   type TermDecision,
 } from '../../domain/lexicon-term.ts'
-import { countOccurrences, occurrenceAt } from '../../domain/occurrences.ts'
+import { countOccurrences, occurrenceAt, type Verdict } from '../../domain/occurrences.ts'
 import { keepIds, parseSegments, type Segment } from '../../domain/segments.ts'
 import {
   type Actor,
@@ -103,15 +104,25 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     return study
   }
 
-  /** What "Find terms" would read: never read, changed, or every one with `all`. */
-  const toRead = async (accountId: string, studyId: string, all: boolean) => {
+  /**
+   * What "Find terms" would read: never read, changed, or every one with `all`; with `only`, those
+   * interviews whatever their state (a row's own button).
+   */
+  const toRead = async (
+    accountId: string,
+    studyId: string,
+    all: boolean,
+    only?: readonly string[],
+  ) => {
     const found = await deps.sources.enrichmentSessions(accountId, studyId)
     if (!found) return null
     const imported = new Map((await deps.store.transcriptsOf(studyId)).map((t) => [t.sessionId, t]))
     const withTranscript = found.sessions.filter((s) => s.transcript !== null)
     return {
       validated: found.sessions.length,
-      sessions: withTranscript.filter((s) => all || needsReading(s, imported.get(s.id))),
+      sessions: withTranscript.filter((s) =>
+        only ? only.includes(s.id) : all || needsReading(s, imported.get(s.id)),
+      ),
     }
   }
 
@@ -126,10 +137,10 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     )
   }
 
-  const estimate = async (accountId: string, studyId: string, all: boolean) => {
+  const estimate = async (accountId: string, studyId: string, all: boolean, sessionId?: string) => {
     const study = await studyOf(accountId, studyId)
     if (!study.ok) return study
-    const reading = await toRead(accountId, studyId, all)
+    const reading = await toRead(accountId, studyId, all, sessionId ? [sessionId] : undefined)
     if (!reading) return err('FOLDER_ACCESS_REQUIRED' as const)
     const provider = await deps.ai.providerOf(accountId)
     return ok({
@@ -145,11 +156,15 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
   const startRun = async (
     actor: Actor,
     studyId: string,
-    options: { consent?: boolean | undefined; all?: boolean | undefined },
+    options: {
+      consent?: boolean | undefined
+      all?: boolean | undefined
+      sessionIds?: readonly string[] | undefined
+    },
   ): Promise<Result<{ runId: string }, StartError>> => {
     const study = await studyOf(actor.id, studyId)
     if (!study.ok) return study
-    const reading = await toRead(actor.id, studyId, options.all === true)
+    const reading = await toRead(actor.id, studyId, options.all === true, options.sessionIds)
     if (!reading) return err('FOLDER_ACCESS_REQUIRED')
     if (reading.validated === 0) return err('NO_VALIDATED_INTERVIEW')
     if (reading.sessions.length === 0) return err('NOTHING_TO_READ')
@@ -176,6 +191,7 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
       sessions: reading.sessions.map((s) => ({ sessionId: s.id, state: 'waiting' })),
       phase: 'import',
       stopRequested: false,
+      stoppedSessions: [],
       leftOut: 0,
       failure: null,
       startedAt: at,
@@ -209,6 +225,34 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     return ok(undefined)
   }
 
+  /** Takes one interview out of a reading while it waits or is imported (the others go on). */
+  const stopSession = async (
+    actor: Actor,
+    studyId: string,
+    runId: string,
+    sessionId: string,
+  ): Promise<
+    Result<
+      void,
+      | 'STUDY_NOT_FOUND'
+      | 'NOT_AN_INTERVIEW_STUDY'
+      | 'FOLDER_ACCESS_REQUIRED'
+      | 'NOT_FOUND'
+      | 'TOO_LATE_TO_STOP'
+    >
+  > => {
+    const study = await actingOn(actor.id, studyId)
+    if (!study.ok) return study
+    const run = await deps.store.getRun(runId)
+    if (!run || run.studyId !== studyId || !run.sessions.some((s) => s.sessionId === sessionId))
+      return err('NOT_FOUND')
+    // Taken out already: the same answer, so a second click is no error.
+    if (run.stoppedSessions.includes(sessionId)) return ok(undefined)
+    if (!canStopReading(run, sessionId)) return err('TOO_LATE_TO_STOP')
+    if (!(await deps.store.requestSessionStop(runId, sessionId))) return err('TOO_LATE_TO_STOP')
+    return ok(undefined)
+  }
+
   /**
    * The language of a transcript the person did not set: from its words, else (a short text) the
    * language most of the study's transcripts have.
@@ -226,7 +270,10 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
   const importOne = async (
     run: { readonly startedBy: string; readonly studyId: string },
     session: SourceSession,
-  ): Promise<{ transcript: Transcript | null; failure: LexiconFailure | null }> => {
+  ): Promise<{
+    transcript: Transcript | null
+    failure: Exclude<LexiconFailure, 'STOPPED'> | null
+  }> => {
     const previous = await deps.store.getTranscript(session.id)
     // The same file: its text is there already (read again for the terms, not imported again).
     if (previous && !fileChanged(session, previous)) return { transcript: previous, failure: null }
@@ -329,6 +376,9 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     const byId = new Map((found?.sessions ?? []).map((s) => [s.id, s]))
     const read: Transcript[] = []
     const queue = run.sessions.filter((s) => s.state === 'waiting').map((s) => s.sessionId)
+    // A person may take an interview out while it waits or is imported (read from the store).
+    const stoppedNow = async (id: string) =>
+      ((await deps.store.getRun(job.runId))?.stoppedSessions ?? []).includes(id)
     let halted = false
     const worker = async () => {
       for (let id = queue.shift(); id !== undefined && !halted; id = queue.shift()) {
@@ -341,12 +391,22 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
           set(id, { state: 'failed', failure: 'FILE_NOT_FOUND' })
           continue
         }
+        if (await stoppedNow(id)) {
+          set(id, { state: 'failed', failure: 'STOPPED' })
+          if (run) await save(run)
+          continue
+        }
         set(id, { state: 'reading' })
         if (run) await save(run)
         const { transcript, failure } = await importOne(run as LexiconRun, session)
-        if (transcript) read.push(transcript)
+        // Saved done first: from then on a take-out is refused, and one that came before is seen
+        // below. Stopped while imported: its text is kept, its words are not among the candidates.
         set(id, failure ? { state: 'failed', failure } : { state: 'done' })
         if (run) await save(run)
+        if (await stoppedNow(id)) {
+          set(id, { state: 'failed', failure: 'STOPPED' })
+          if (run) await save(run)
+        } else if (transcript) read.push(transcript)
       }
     }
     await Promise.all(Array.from({ length: IMPORT_PARALLEL }, worker))
@@ -498,7 +558,8 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
   }
 
   /**
-   * A person's yes / no on one occurrence of a term in its context (the prototype's verdicts), or
+   * A person's yes / no / unsure on one occurrence of a term in its context (the prototype's
+   * verdicts), or
    * null to take it back. The place must hold one of the term's spellings in a validated interview.
    */
   const judge = async (
@@ -506,7 +567,7 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     studyId: string,
     termId: string,
     place: { sessionId: string; segmentId: string; offset: number },
-    verdict: 'yes' | 'no' | null,
+    verdict: Verdict['verdict'] | null,
   ): Promise<Result<void, DecideError | 'OCCURRENCE_NOT_FOUND'>> => {
     const found = await termOf(actor, studyId, termId)
     if (!found.ok) return found
@@ -550,6 +611,7 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     estimate,
     startRun,
     stopRun,
+    stopSession,
     runJob,
     decide,
     merge,

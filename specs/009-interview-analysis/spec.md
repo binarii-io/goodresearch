@@ -47,7 +47,7 @@ The person opens the interview (pencil) and reviews each proposal: accept, edit 
 2. **Given** the AI is called, **When** it answers, **Then** each proposal carries a quote of the transcript. A proposal whose quote is not found in the transcript is dropped and never shown.
 3. **Given** proposals, **When** the person opens the interview, **Then** each one is shown with its origin (file name, meeting tool header, planned interview, AI with its quote) and can be accepted, edited or rejected one by one, or all at once.
 4. **Given** a proposed interviewer whose name matches one team member, **When** it is accepted, **Then** the roster entry is linked to that member. Without a single match, it stays a name.
-5. **Given** an interview decided by a person (validated or excluded), **When** it is shown, **Then** "Analyze" is not offered until it is reopened.
+5. **Given** an interview excluded by a person, **When** it is shown, **Then** "Analyze" is not offered until it is reopened. **Given** an interview validated by a person, **When** a person analyzes it again from its row, **Then** what was decided is kept; if the analysis brings something new to decide (a proposal not open before), the interview goes back to "To decide" and what later phases made from it (cleaning, facts) is kept.
 6. **Given** an interview without transcript, **When** the person analyzes it, **Then** only the app's rules run (file names, dates, planned interview), without AI.
 7. **Given** the person has no AI connection (spec 004), **When** they activate "Analyze", **Then** the app's rules still run and a message explains how to connect an AI provider for the rest.
 8. **Given** an analysis, **When** it ends, **Then** its cost is shown on the row and in the Fieldwork total, and recorded in the usage ledger.
@@ -141,7 +141,7 @@ The analysis points to other files of the folder that seem to belong to the inte
 
 ### Functional Requirements
 
-- **FR-001**: Fieldwork MUST offer "Analyze" on each row of an interview not decided by a person, and "Analyze interviews" on the right of the filters for the interviews never analyzed or whose files changed since their last analysis.
+- **FR-001**: Fieldwork MUST offer "Analyze" on each row of an interview not excluded by a person (a validated one goes back to "To decide" when the analysis brings something new, its later work kept — update after spec 012), and "Analyze interviews" on the right of the filters for the interviews never analyzed or whose files changed since their last analysis.
 - **FR-002**: An analysis MUST read the beginning of the transcript: about the first 4,000 characters, extended once up to 8,000 when no person is found. For a Google document, only the tab holding the transcript is read. Only the analysis reads transcript content; nothing of it is stored except the verified quotes of the proposals.
 - **FR-003**: An analysis MUST apply the app's rules first, with no AI: the date and time written in the file name or the header, a participants list written by the meeting tool, the linked planned interview (its interviewee, interviewers and date), the team members. The AI MUST be called only for the fields still missing, and never for an interview without transcript.
 - **FR-004**: The AI MUST receive only the read part of the transcript and what it must find. Names of the schedule and of team members MUST NOT be sent to it; the app matches the names it returns against them. With anonymisation on, the names the app already knows MUST be replaced by placeholders in what is sent.

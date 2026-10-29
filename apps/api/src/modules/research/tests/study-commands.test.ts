@@ -27,6 +27,33 @@ describe('study commands', () => {
     projectId = await research.addProject('team-a')
   })
 
+  it('changes the anonymisation and the text analysed with the version seen (spec 012)', async () => {
+    const created = await commands.createStudy({
+      actor: alice,
+      projectId,
+      name: 'Interviews',
+      type: 'interviews',
+    })
+    if (!created.ok) throw new Error('fixture')
+    const studyId = created.value.id
+    expect(
+      await commands.setAnonymisation({
+        actor: alice,
+        studyId,
+        anonymised: true,
+        textAnalysed: 'clean-only',
+        version: 0,
+      }),
+    ).toEqual({ ok: true, value: { version: 1 } })
+    expect(research.studies.get(studyId)?.snapshot()).toMatchObject({
+      anonymised: true,
+      textAnalysed: 'clean-only',
+    })
+    expect(
+      await commands.setAnonymisation({ actor: alice, studyId, anonymised: false, version: 0 }),
+    ).toEqual({ ok: false, error: 'VERSION_CONFLICT' })
+  })
+
   it('creates an interview study in an accessible project', async () => {
     const result = await commands.createStudy({
       actor: alice,

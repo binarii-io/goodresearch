@@ -352,6 +352,31 @@ describe('analyzing the interviews (spec 009)', () => {
       decision: 'validate',
       version: again.version,
     })
+    // A validated interview can be analyzed again: nothing new, it stays validated.
+    expect(await world.analysis.analyzeSession({ actor: alice, sessionId: s.id })).toEqual({
+      ok: true,
+      value: { id: s.id },
+    })
+    expect(await sessionOf('Interview Sam Example.txt')).toMatchObject({
+      state: 'validated',
+      decidedBy: { id: alice.id },
+    })
+    // Something new to decide (a file added since): back to decide, what it holds kept.
+    file('n-sam', 'Interview Sam Example - Notes.pdf', '2026-10-23T09:00:00Z', 'application/pdf')
+    await world.commands.refreshInventory({ actor: alice, studyId: 'study-1' })
+    await world.runJobs()
+    await world.analysis.analyzeSession({ actor: alice, sessionId: s.id })
+    const reopened = await sessionOf('Interview Sam Example.txt')
+    expect(reopened).toMatchObject({ state: 'proposed', decidedBy: null })
+    expect(reopened.title).toBe('2026-10-21 – Sam Example – Alice Martin')
+    expect(reopened.analysis?.proposals.find((p) => p.field === 'date')?.status).toBe('accepted')
+    // Excluded by a person: not analyzed.
+    await world.sessions.decide({
+      actor: alice,
+      sessionId: s.id,
+      decision: 'exclude',
+      version: reopened.version,
+    })
     expect(await world.analysis.analyzeSession({ actor: alice, sessionId: s.id })).toEqual({
       ok: false,
       error: 'SESSION_DECIDED',

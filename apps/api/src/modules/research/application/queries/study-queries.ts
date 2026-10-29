@@ -64,6 +64,7 @@ export const makeStudyQueries = (deps: {
         type: study.type as StudyDetail['type'],
         project: { id: visible.project.id, name: visible.project.name },
         anonymised: study.anonymised,
+        textAnalysed: study.textAnalysed as StudyDetail['textAnalysed'],
         createdAt: study.createdAt.toISOString(),
         updatedAt: study.updatedAt.toISOString(),
         version: study.version,
@@ -79,12 +80,14 @@ export const makeStudyQueries = (deps: {
       type: string
       teamId: string
       anonymised: boolean
+      textAnalysed: 'with-corrections' | 'clean-only'
     } | null> => {
       const [study] = await db
         .select({
           projectId: researchStudies.projectId,
           type: researchStudies.type,
           anonymised: researchStudies.anonymised,
+          textAnalysed: researchStudies.textAnalysed,
         })
         .from(researchStudies)
         .where(eq(researchStudies.id, studyId))
@@ -95,6 +98,7 @@ export const makeStudyQueries = (deps: {
             type: study.type,
             teamId: visible.project.teamId,
             anonymised: study.anonymised,
+            textAnalysed: study.textAnalysed as 'with-corrections' | 'clean-only',
           }
         : null
     },

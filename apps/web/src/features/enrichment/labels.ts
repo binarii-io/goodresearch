@@ -37,6 +37,7 @@ export const LEXICON_FAILURES: Record<
   TOO_LONG: msg`This transcript is too long to be read (more than 400,000 characters).`,
   NO_TRANSCRIPT: msg`This interview has no transcript.`,
   INTERRUPTED: msg`The reading was interrupted: find the terms again.`,
+  STOPPED: msg`Taken out of the reading: find its terms again when you wish.`,
   AI_PROVIDER_REQUIRED: msg`Set up your AI provider to find the terms.`,
   AI_FAILED: msg`The AI provider returned an error or took too long: some terms may be missing, try again.`,
   INVALID_ANSWER: msg`The AI answer could not be used: some terms may be missing, try again.`,
@@ -84,7 +85,7 @@ export const CLEANING_STATES: Record<CleaningInterview['state'], MessageDescript
   'to-redo': msg`To clean again`,
   'to-decide': msg`Corrections to decide`,
   'lexicon-changed': msg`Lexicon changed`,
-  clean: msg`Clean`,
+  clean: msg`Clean version validated`,
   published: msg`Published`,
   'out-of-date': msg`Out of date in Drive`,
 }
@@ -115,11 +116,12 @@ export const CORRECTION_KINDS: Record<Correction['kind'], MessageDescriptor> = {
   name: msg`Name`,
 }
 
+/** A correction (feminine in French): its own words, not the terms'. */
 export const CORRECTION_STATUSES: Record<Correction['status'], MessageDescriptor> = {
   proposed: msg`To decide`,
-  accepted: msg`Accepted`,
-  edited: msg`Edited`,
-  rejected: msg`Rejected`,
+  accepted: msg({ message: 'Accepted', context: 'feminine' }),
+  edited: msg({ message: 'Edited', context: 'feminine' }),
+  rejected: msg({ message: 'Rejected', context: 'feminine' }),
 }
 
 export const CONFIDENCES: Record<NonNullable<Correction['confidence']>, MessageDescriptor> = {

@@ -3,6 +3,7 @@ import {
   type Analysis,
   decideProposals,
   mergeProposals,
+  newToDecide,
   type Proposal,
   ruleProposals,
 } from '../domain/analysis.ts'
@@ -452,6 +453,19 @@ describe('merging and deciding proposals', () => {
       ['language', 'en', 'accepted'],
       ['interviewees', [{ name: 'Lee', memberId: null }], 'proposed'],
     ])
+  })
+
+  it('tells when an analysis brings something new to decide', () => {
+    const open = proposal({ field: 'date', value: '2026-10-21' })
+    const accepted = proposal({ field: 'language', value: 'en', status: 'accepted' })
+    // Still open with the same value, or decided: nothing new.
+    expect(newToDecide([open, accepted], [open, accepted])).toBe(false)
+    // A value proposed again after a decision, a new field, a new file: new.
+    expect(newToDecide([open], [proposal({ field: 'date', value: '2026-10-22' })])).toBe(true)
+    expect(newToDecide([accepted], [accepted, open])).toBe(true)
+    const file = (fileId: string) =>
+      proposal({ field: 'attachment', value: { fileId, kind: 'notes', label: null } as never })
+    expect(newToDecide([file('a')], [file('a'), file('b')])).toBe(true)
   })
 
   const analyzed = (proposals: Proposal[]): Session =>

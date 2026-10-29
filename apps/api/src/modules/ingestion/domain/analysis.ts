@@ -172,6 +172,19 @@ export const mergeProposals = (
   ]
 }
 
+/**
+ * An analysis brings something new to decide: a proposal open now that was not open, with the
+ * same value, before it. A validated interview then goes back to decide (spec 009, update).
+ */
+export const newToDecide = (previous: readonly Proposal[], next: readonly Proposal[]): boolean =>
+  next.some(
+    (p) =>
+      p.status === 'proposed' &&
+      !previous.some(
+        (o) => o.status === 'proposed' && keyOf(o) === keyOf(p) && same(o.value, p.value),
+      ),
+  )
+
 const rosterNames = (s: Session, role: RosterEntry['role']) =>
   s.roster.filter((r) => r.role === role).map((r) => r.name)
 

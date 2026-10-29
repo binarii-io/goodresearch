@@ -1,5 +1,12 @@
-import { err, fold, newId, ok, type Result, withPlaceholders } from '@goodresearch/shared'
-import { makeChunks } from '../../domain/chunks.ts'
+import {
+  err,
+  fold,
+  makeChunks,
+  newId,
+  ok,
+  type Result,
+  withPlaceholders,
+} from '@goodresearch/shared'
 import { cleanDocName, renderCleanDoc } from '../../domain/clean-doc.ts'
 import { checkCorrections, prepareChunk } from '../../domain/correction-check.ts'
 import {

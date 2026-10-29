@@ -197,6 +197,34 @@
       "when": 1793033391936,
       "tag": "0027_transcript_cleaning",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793186137786,
+      "tag": "0028_interview_facts",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793263277651,
+      "tag": "0029_lexicon_reading_stops",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793266157190,
+      "tag": "0030_lexicon_unsure_verdict",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793276542166,
+      "tag": "0031_facts_reading_stops",
+      "breakpoints": true
     }
   ]
 }

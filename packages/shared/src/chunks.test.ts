@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { makeChunks } from '../domain/chunks.ts'
-import type { Segment } from '../domain/segments.ts'
+import { type ChunkSegment, makeChunks } from './chunks.ts'
 
-const turns = (n: number, text = (i: number) => `turn ${i}.`): Segment[] =>
-  Array.from({ length: n }, (_, i) => ({ id: `g${i}`, speaker: 'Lee', start: null, text: text(i) }))
+const turns = (n: number, text = (i: number) => `turn ${i}.`): ChunkSegment[] =>
+  Array.from({ length: n }, (_, i) => ({ id: `g${i}`, speaker: 'Lee', text: text(i) }))
 
 const newOf = (c: ReturnType<typeof makeChunks>[number]) =>
   c.turns.filter((t) => !t.context).map((t) => t.segmentId)
@@ -39,10 +38,9 @@ describe('makeChunks (research R4)', () => {
 
   it('cuts a very long turn at sentence ends, keeping where each part starts', () => {
     const sentence = `${'word '.repeat(19)}end. `
-    const long: Segment = {
+    const long: ChunkSegment = {
       id: 'g0',
       speaker: 'Lee',
-      start: null,
       text: sentence.repeat(150).trim(),
     }
     const chunks = makeChunks([long])

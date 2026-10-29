@@ -44,6 +44,7 @@ Pure domain functions, written test-first.
 **Building corrections**
 - `lexiconCorrections(transcript, terms, verdicts, suggestions)` (research R2):
   - Spellings are matched with the shared match rule; the longest wins at a place.
+  - Verdict *unsure*, in either scope → `lexicon` proposed, for a person; the AI is not asked.
   - Scope `global`: one correction per occurrence, except verdicts *no*.
   - Scope `case-by-case`:
     - verdict *yes* → accepted;

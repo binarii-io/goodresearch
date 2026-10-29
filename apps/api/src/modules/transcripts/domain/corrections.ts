@@ -123,7 +123,8 @@ const placeKey = (termId: string, segmentId: string, offset: number) =>
 /**
  * Spec 011 FR-003, research R2: the lexicon's corrections of one interview, computed each time.
  * Scope `global`: every occurrence, accepted unless its verdict is no. Scope `case-by-case`: the
- * verdicts decide; without one, an AI yes gives an `ai-lexicon` proposal.
+ * verdicts decide; without one, an AI yes gives an `ai-lexicon` proposal. An `unsure` verdict, in
+ * either scope, leaves a proposal for a person.
  */
 export const lexiconCorrections = (
   interview: Interview & { readonly sessionId: string },
@@ -156,7 +157,17 @@ export const lexiconCorrections = (
       termId: m.term.id,
       version: null,
     }
-    if (verdict) {
+    if (verdict?.verdict === 'unsure') {
+      // The person could not tell: a person decides it in context, the AI is not asked.
+      out.push({
+        ...base,
+        source: 'lexicon',
+        reason: null,
+        status: 'proposed',
+        decidedBy: null,
+        decidedAt: null,
+      })
+    } else if (verdict) {
       out.push({
         ...base,
         source: 'lexicon',
@@ -377,6 +388,15 @@ export const resolveCorrections = (all: readonly Correction[]): Resolved[] => {
 export const effectiveCorrections = (all: readonly Correction[]): Correction[] =>
   resolveCorrections(all)
     .filter((c) => !c.overridden && (c.status === 'accepted' || c.status === 'edited'))
+    .map(({ overridden: _, ...c }) => c)
+
+/**
+ * Spec 012 research R2: what the text analysed applies by default — every correction not rejected
+ * and not overridden, those still to decide included (as the prototype read them).
+ */
+export const analysedCorrections = (all: readonly Correction[]): Correction[] =>
+  resolveCorrections(all)
+    .filter((c) => !c.overridden && c.status !== 'rejected')
     .map(({ overridden: _, ...c }) => c)
 
 /** What is left to decide: proposed and not overridden. */

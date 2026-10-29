@@ -29,6 +29,8 @@ export const researchStudies = pgTable(
     type: text('type').notNull(),
     /** Spec 009: names and titles use pseudonyms. */
     anonymised: boolean('anonymised').notNull().default(false),
+    /** Spec 012: the text Analysis reads, `with-corrections` or `clean-only`. */
+    textAnalysed: text('text_analysed').notNull().default('with-corrections'),
     createdBy: text('created_by').references(() => auth_users.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),

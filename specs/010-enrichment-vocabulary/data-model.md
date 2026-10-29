@@ -61,7 +61,7 @@ New module **transcripts**; tables prefixed `transcripts_`. Migration `0024_enri
 
 ### Verdict (per term and occurrence)
 
-`transcripts_verdicts` (migration `0025_lexicon_verdicts.sql`): `termId` (FK terms, cascade), `sessionId` (FK `ingestion_sessions`, cascade), `studyId`, `segmentId`, `offset`, `verdict` (`yes | no`), `decidedBy`, `decidedAt`. PK `(termId, segmentId, offset)`. Turn ids stay across imports, so a verdict survives readings while the turn is unchanged; a merge moves the verdicts of the merged term to the kept one (a place it already judged keeps its own).
+`transcripts_verdicts` (migration `0025_lexicon_verdicts.sql`): `termId` (FK terms, cascade), `sessionId` (FK `ingestion_sessions`, cascade), `studyId`, `segmentId`, `offset`, `verdict` (`yes | no | unsure`; `unsure` added by migration `0028_lexicon_unsure_verdict.sql`), `decidedBy`, `decidedAt`. PK `(termId, segmentId, offset)`. Turn ids stay across imports, so a verdict survives readings while the turn is unchanged; a merge moves the verdicts of the merged term to the kept one (a place it already judged keeps its own).
 
 ### LexiconRun (per study)
 

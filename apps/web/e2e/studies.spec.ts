@@ -67,7 +67,7 @@ test.describe('spec 002 — studies', () => {
     await page.getByRole('button', { name: 'New study' }).click()
     await page.getByRole('dialog').getByLabel('Name').fill(`Consent study ${runId}`)
     await page.getByRole('dialog').getByRole('button', { name: 'Create study' }).click()
-    await expect(page.getByRole('tab', { name: '4 · Analysis' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: '5 · Analysis' })).toBeVisible()
     await page.goto(`${page.url()}?drive=connected`)
     await expect(page.getByText('Google Drive connected')).toHaveCount(1)
     await expect(page).not.toHaveURL(/drive=/)

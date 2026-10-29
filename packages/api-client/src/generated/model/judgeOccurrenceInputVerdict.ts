@@ -11,4 +11,5 @@ export type JudgeOccurrenceInputVerdict = typeof JudgeOccurrenceInputVerdict[key
 export const JudgeOccurrenceInputVerdict = {
   yes: 'yes',
   no: 'no',
+  unsure: 'unsure',
 } as const;

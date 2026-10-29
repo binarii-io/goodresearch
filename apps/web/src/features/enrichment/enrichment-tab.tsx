@@ -7,6 +7,7 @@ import {
   useGetCleaning,
   useGetEnrichment,
   useStartLexiconRun,
+  useStopLexiconReading,
   useStopLexiconRun,
 } from '@goodresearch/api-client'
 import {
@@ -50,6 +51,7 @@ import { useEffect, useId, useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
+import { type ReadingItem, ReadingList } from '../workspace/reading-list.tsx'
 import { CleaningTable, cleaning } from './cleaning-table.tsx'
 import { InterviewCleaningView } from './interview-cleaning.tsx'
 import { ENRICHMENT_STATES, LEXICON_FAILURES, READING_STATES } from './labels.ts'
@@ -59,10 +61,21 @@ import { LexiconTable } from './lexicon-table.tsx'
 const reading = (data: Enrichment | undefined) => !!data?.run && !data.run.finished
 
 /**
- * The Enrichment phase: the validated interviews, the team lexicon found in them (spec 010), the
- * cleaning of their transcripts (spec 011), and what each step costs.
+ * Two phases of a study over its validated interviews: Lexicon, the team terms found in them (spec
+ * 010), then Enrichment, the cleaning of their transcripts (spec 011), each with what it costs.
  */
-export function EnrichmentTab({ studyId }: { studyId: string }) {
+export function EnrichmentTab({
+  studyId,
+  part,
+  reviewing = null,
+  onReview,
+}: {
+  studyId: string
+  part: 'lexicon' | 'cleaning'
+  /** The interview whose cleaning is open (in the address), a page below the study's. */
+  reviewing?: string | null
+  onReview?: (sessionId: string | null) => void
+}) {
   const { t, i18n } = useLingui()
   const enrichment = useGetEnrichment(studyId, {
     query: {
@@ -77,7 +90,6 @@ export function EnrichmentTab({ studyId }: { studyId: string }) {
       refetchInterval: (query) => (cleaning(query.state.data) ? 2000 : false),
     },
   })
-  const [reviewing, setReviewing] = useState<string | null>(null)
   const queryClient = useQueryClient()
   // A reading that ends brings new terms: the lexicon is read again.
   const finishedRun = enrichment.data?.run?.finished ? enrichment.data.run.id : null
@@ -96,7 +108,9 @@ export function EnrichmentTab({ studyId }: { studyId: string }) {
         <p className="text-muted-foreground text-sm">
           {data.toValidate
             ? t`${data.toValidate} interviews wait for your decision in Fieldwork: validate them to find their terms here.`
-            : t`Interviews are validated in Fieldwork; their terms are found here.`}{' '}
+            : part === 'lexicon'
+              ? t`Interviews are validated in Fieldwork; their terms are found here.`
+              : t`Interviews are validated in Fieldwork; their transcripts are cleaned here.`}{' '}
           <Link
             to="."
             search={(previous) => ({ ...previous, phase: 'fieldwork' })}
@@ -107,36 +121,44 @@ export function EnrichmentTab({ studyId }: { studyId: string }) {
         </p>
       </div>
     )
-  if (reviewing)
+  if (reviewing && part === 'cleaning')
     return (
       <InterviewCleaningView
         studyId={studyId}
         sessionId={reviewing}
-        onBack={() => setReviewing(null)}
+        onBack={() => onReview?.(null)}
       />
     )
   const clean = cleaningView.data
+  if (part === 'cleaning')
+    return (
+      <section aria-label={t`Cleaning`}>
+        {clean ? (
+          <CleaningTable studyId={studyId} data={clean} onOpen={(id) => onReview?.(id)} />
+        ) : (
+          <Skeleton className="h-40 w-full" />
+        )}
+      </section>
+    )
   return (
     <div className="grid gap-6">
       <Overview data={data} />
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <TabsList aria-label={t`Enrichment`}>
+          <TabsList aria-label={t`Lexicon`}>
             <TabsTrigger value="lexicon">{t`Lexicon (${data.counts.toDecide} to decide)`}</TabsTrigger>
             <TabsTrigger value="interviews">{t`Interviews (${data.interviews.length})`}</TabsTrigger>
-            <TabsTrigger value="cleaning">
-              {clean ? t`Cleaning (${clean.counts.toDecide} to decide)` : t`Cleaning`}
-            </TabsTrigger>
           </TabsList>
-          {tab === 'cleaning' ? null : <FindTerms studyId={studyId} data={data} />}
+          <FindTerms studyId={studyId} data={data} />
         </div>
-        {tab !== 'cleaning' && data.run?.finished && data.run.failure ? (
+        {reading(data) ? <ReadingProgress studyId={studyId} data={data} /> : null}
+        {data.run?.finished && data.run.failure ? (
           <p className="flex items-center gap-2 text-sm" role="status">
             <TriangleAlertIcon aria-hidden className="size-4 text-highlight-soft-foreground" />
             {i18n._(LEXICON_FAILURES[data.run.failure])}
           </p>
         ) : null}
-        {tab !== 'cleaning' && data.run?.finished && data.run.leftOut > 0 ? (
+        {data.run?.finished && data.run.leftOut > 0 ? (
           <p className="text-muted-foreground text-sm">
             {t`${data.run.leftOut} rarer words were left out of the last reading (at most 300 per reading).`}
           </p>
@@ -151,19 +173,13 @@ export function EnrichmentTab({ studyId }: { studyId: string }) {
         </TabsContent>
         <TabsContent value="interviews">
           <Interviews
+            studyId={studyId}
             data={data}
             onTerms={(id) => {
               setSession(id)
               setTab('lexicon')
             }}
           />
-        </TabsContent>
-        <TabsContent value="cleaning">
-          {clean ? (
-            <CleaningTable studyId={studyId} data={clean} onOpen={setReviewing} />
-          ) : (
-            <Skeleton className="h-40 w-full" />
-          )}
         </TabsContent>
       </Tabs>
     </div>
@@ -175,7 +191,7 @@ function Overview({ data }: { data: Enrichment }) {
   const money = useMoney()
   const withTranscript = data.interviews.filter((i) => i.state !== 'no-transcript').length
   return (
-    <StatTiles aria-label={t`Enrichment in numbers`}>
+    <StatTiles aria-label={t`Lexicon in numbers`}>
       <StatTile
         icon={<FileTextIcon aria-hidden />}
         label={t`Interviews read`}
@@ -226,21 +242,9 @@ function ConsentText() {
 /** "Find terms" (US1): the count and the most it can cost, then the reading in the background. */
 function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
   const { t, i18n } = useLingui()
-  const money = useMoney()
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
-  const [again, setAgain] = useState(false)
-  const againId = useId()
-  const estimate = useEstimateLexiconRun(studyId, again ? { all: 'true' } : undefined, {
-    query: { enabled: open, staleTime: 0, gcTime: 0 },
-  })
-  const start = useStartLexiconRun()
   const stop = useStopLexiconRun()
-  const refresh = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: getGetEnrichmentQueryKey(studyId) }),
-      queryClient.invalidateQueries({ queryKey: getListLexiconQueryKey(studyId) }),
-    ])
 
   const run = data.run
   if (run && !run.finished)
@@ -261,7 +265,7 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
           onClick={() =>
             void stop
               .mutateAsync({ studyId, runId: run.id })
-              .then(refresh)
+              .then(() => refreshLexicon(queryClient, studyId))
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
         >
@@ -271,34 +275,131 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
       </div>
     )
 
-  const e = estimate.data
-  const cost = e?.estimatedCost === null ? t`unknown` : money(e?.estimatedCost ?? 0)
   return (
     <>
       <Button className="ml-auto" onClick={() => setOpen(true)}>
         <SpellCheckIcon aria-hidden />
         {t`Find terms`}
       </Button>
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t`Find the terms of the interviews?`}</AlertDialogTitle>
-            {!e ? (
-              <AlertDialogDescription>{t`Counting the interviews to read…`}</AlertDialogDescription>
-            ) : e.interviews === 0 ? (
-              <AlertDialogDescription>{t`Every interview is already read. Tick the box below to read them again.`}</AlertDialogDescription>
-            ) : !e.aiConnected ? (
-              <AlertDialogDescription>{t`Set up your AI provider first: it groups the spellings and explains the terms.`}</AlertDialogDescription>
-            ) : (
-              <>
-                <AlertDialogDescription className="grid gap-2">
-                  <span>{t`${e.interviews} interviews will be read: never read, or whose transcript changed in Drive.`}</span>
-                  <span>{t`About ${cost} with your AI provider. Terms already decided by your team are not sent again.`}</span>
-                </AlertDialogDescription>
-                {e.consentNeeded ? <ConsentText /> : null}
-              </>
-            )}
-          </AlertDialogHeader>
+      <FindTermsDialog studyId={studyId} open={open} onOpenChange={setOpen} />
+    </>
+  )
+}
+
+/**
+ * Where a reading stands, interview by interview. While the transcripts are imported, one can be
+ * taken out; after that their words go to the AI together, and only the whole reading stops.
+ */
+function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment }) {
+  const { t, i18n } = useLingui()
+  const queryClient = useQueryClient()
+  const stopOne = useStopLexiconReading()
+  const run = data.run
+  if (!run) return null
+  const importing = run.phase === 'import'
+  const items: ReadingItem[] = data.interviews.flatMap((i) =>
+    i.reading === null
+      ? []
+      : [
+          {
+            sessionId: i.sessionId,
+            title: i.title,
+            step: i.reading === 'reading' ? 'working' : i.reading,
+            label:
+              i.reading === 'failed' && i.failure === 'STOPPED'
+                ? t`Taken out`
+                : i18n._(READING_STATES[i.reading]),
+            stoppable: importing && (i.reading === 'waiting' || i.reading === 'reading'),
+          },
+        ],
+  )
+  return (
+    <ReadingList
+      name={t`Reading in progress`}
+      items={items}
+      takeOutLabel={(title) => t`Take out of the reading: ${title}`}
+      busy={stopOne.isPending}
+      onTakeOut={(sessionId) =>
+        void stopOne
+          .mutateAsync({ studyId, runId: run.id, sessionId })
+          .then(() => refreshLexicon(queryClient, studyId))
+          .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
+      }
+      footer={
+        importing ? null : (
+          <p className="text-muted-foreground text-xs">{t`The interviews read now go to the AI together: one can no longer be taken out, only the whole reading stopped.`}</p>
+        )
+      }
+    />
+  )
+}
+
+const refreshLexicon = (queryClient: ReturnType<typeof useQueryClient>, studyId: string) =>
+  Promise.all([
+    queryClient.invalidateQueries({ queryKey: getGetEnrichmentQueryKey(studyId) }),
+    queryClient.invalidateQueries({ queryKey: getListLexiconQueryKey(studyId) }),
+  ])
+
+/** What a reading sends and costs, asked before it starts: the study's, or one interview's. */
+function FindTermsDialog({
+  studyId,
+  open,
+  onOpenChange,
+  interview,
+}: {
+  studyId: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  interview?: { sessionId: string; title: string } | undefined
+}) {
+  const { t, i18n } = useLingui()
+  const money = useMoney()
+  const queryClient = useQueryClient()
+  const [again, setAgain] = useState(false)
+  const againId = useId()
+  const estimate = useEstimateLexiconRun(
+    studyId,
+    interview ? { sessionId: interview.sessionId } : again ? { all: 'true' } : undefined,
+    { query: { enabled: open, staleTime: 0, gcTime: 0 } },
+  )
+  const start = useStartLexiconRun()
+
+  const e = estimate.data
+  const cost = e?.estimatedCost === null ? t`unknown` : money(e?.estimatedCost ?? 0)
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {interview
+              ? t`Find the terms of “${interview.title}”?`
+              : t`Find the terms of the interviews?`}
+          </AlertDialogTitle>
+          {!e ? (
+            <AlertDialogDescription>{t`Counting the interviews to read…`}</AlertDialogDescription>
+          ) : e.interviews === 0 ? (
+            <AlertDialogDescription>
+              {interview
+                ? t`This interview has no transcript to read.`
+                : t`Every interview is already read. Tick the box below to read them again.`}
+            </AlertDialogDescription>
+          ) : !e.aiConnected ? (
+            <AlertDialogDescription>{t`Set up your AI provider first: it groups the spellings and explains the terms.`}</AlertDialogDescription>
+          ) : (
+            <>
+              <AlertDialogDescription className="grid gap-2">
+                <span>
+                  {interview
+                    ? t`This interview is read again. Decided terms stay as they are; new spellings are proposed on them.`
+                    : t`${e.interviews} interviews will be read: never read, or whose transcript changed in Drive.`}
+                </span>
+                <span>{t`About ${cost} with your AI provider. Terms already decided by your team are not sent again.`}</span>
+              </AlertDialogDescription>
+              {e.consentNeeded ? <ConsentText /> : null}
+            </>
+          )}
+        </AlertDialogHeader>
+        {interview ? null : (
           <div className="flex items-start gap-2">
             <Checkbox
               id={againId}
@@ -310,29 +411,76 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
               <span className="text-muted-foreground text-xs">{t`Decided terms stay as they are; new spellings are proposed on them.`}</span>
             </Label>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={!e || e.interviews === 0 || !e.aiConnected || start.isPending}
-              onClick={() => {
-                setOpen(false)
-                void start
-                  .mutateAsync({
-                    studyId,
-                    data: {
-                      ...(e?.consentNeeded ? { consent: true } : {}),
-                      ...(again ? { all: true } : {}),
-                    },
-                  })
-                  .then(refresh)
-                  .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
-              }}
-            >
-              {e?.consentNeeded ? t`Agree and find terms` : t`Find terms`}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        )}
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={!e || e.interviews === 0 || !e.aiConnected || start.isPending}
+            onClick={() => {
+              onOpenChange(false)
+              void start
+                .mutateAsync({
+                  studyId,
+                  data: {
+                    ...(e?.consentNeeded ? { consent: true } : {}),
+                    ...(interview
+                      ? { sessionIds: [interview.sessionId] }
+                      : again
+                        ? { all: true }
+                        : {}),
+                  },
+                })
+                .then(() => refreshLexicon(queryClient, studyId))
+                .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
+            }}
+          >
+            {e?.consentNeeded ? t`Agree and find terms` : t`Find terms`}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
+/** "Find terms" / "Find terms again" for one interview (its row). */
+function FindTermsOneButton({
+  studyId,
+  interview,
+  read,
+  disabled,
+  onOpen,
+}: {
+  studyId: string
+  interview: { sessionId: string; title: string }
+  read: boolean
+  disabled: boolean
+  /** In a table: the table's one dialog opens instead of a dialog of this button. */
+  onOpen?: () => void
+}) {
+  const { t } = useLingui()
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="xs"
+        disabled={disabled}
+        aria-label={
+          read ? t`Find terms again: ${interview.title}` : t`Find terms: ${interview.title}`
+        }
+        onClick={() => (onOpen ? onOpen() : setOpen(true))}
+      >
+        <SpellCheckIcon aria-hidden />
+        {read ? t`Find terms again` : t`Find terms`}
+      </Button>
+      {onOpen ? null : (
+        <FindTermsDialog
+          studyId={studyId}
+          open={open}
+          onOpenChange={setOpen}
+          interview={interview}
+        />
+      )}
     </>
   )
 }
@@ -346,72 +494,112 @@ const STATE_BADGE: Record<EnrichmentInterview['state'], 'outline' | 'secondary' 
 }
 
 /** US4: each validated interview with where it stands. */
-function Interviews({ data, onTerms }: { data: Enrichment; onTerms: (sessionId: string) => void }) {
+function Interviews({
+  studyId,
+  data,
+  onTerms,
+}: {
+  studyId: string
+  data: Enrichment
+  onTerms: (sessionId: string) => void
+}) {
   const { t, i18n } = useLingui()
   const day = new Intl.DateTimeFormat(i18n.locale, { dateStyle: 'medium' })
+  // One dialog for the table, for the interview whose row asked for it.
+  const [one, setOne] = useState<{ sessionId: string; title: string } | null>(null)
+  const [oneOpen, setOneOpen] = useState(false)
+  const openOne = (interview: { sessionId: string; title: string }) => {
+    setOne(interview)
+    setOneOpen(true)
+  }
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>{t`Interview`}</TableHead>
-          <TableHead>{t`State`}</TableHead>
-          <TableHead>{t`Read on`}</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.interviews.map((i) => (
-          // A row with terms to decide opens them, the whole row (its button is the keyboard way).
-          <TableRow
-            key={i.sessionId}
-            className={i.state === 'to-decide' ? 'cursor-pointer' : undefined}
-            onClick={i.state === 'to-decide' ? () => onTerms(i.sessionId) : undefined}
-          >
-            <TableCell>
-              <span className="grid min-w-0 max-w-80">
-                {/* Long names are cut with an ellipsis; the full name shows on hover. */}
-                <span className="truncate font-medium" title={i.title}>
-                  {i.title}
-                </span>
-                {i.interviewDate ? (
-                  <span className="text-muted-foreground text-xs">
-                    {day.format(new Date(`${i.interviewDate}T12:00:00Z`))}
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t`Interview`}</TableHead>
+            <TableHead>{t`State`}</TableHead>
+            <TableHead>{t`Read on`}</TableHead>
+            <TableHead>
+              <span className="sr-only">{t`Actions`}</span>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.interviews.map((i) => (
+            // A row with terms to decide opens them, the whole row (its button is the keyboard way).
+            <TableRow
+              key={i.sessionId}
+              className={i.state === 'to-decide' ? 'cursor-pointer' : undefined}
+              onClick={i.state === 'to-decide' ? () => onTerms(i.sessionId) : undefined}
+            >
+              <TableCell>
+                <span className="grid min-w-0 max-w-80">
+                  {/* Long names are cut with an ellipsis; the full name shows on hover. */}
+                  <span className="truncate font-medium" title={i.title}>
+                    {i.title}
                   </span>
-                ) : null}
-              </span>
-            </TableCell>
-            <TableCell>
-              {i.reading === 'waiting' || i.reading === 'reading' ? (
-                <span className="inline-flex items-center gap-1.5 text-sm">
-                  {i.reading === 'waiting' ? (
-                    <HourglassIcon aria-hidden className="size-4" />
-                  ) : (
-                    <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
-                  )}
-                  {i18n._(READING_STATES[i.reading])}
-                </span>
-              ) : i.state === 'to-decide' ? (
-                <Button variant="outline" size="xs" onClick={() => onTerms(i.sessionId)}>
-                  {t`Terms to decide (${i.toDecide})`}
-                </Button>
-              ) : (
-                <span className="grid gap-0.5">
-                  <Badge variant={STATE_BADGE[i.state]} className="w-fit">
-                    {i18n._(ENRICHMENT_STATES[i.state])}
-                  </Badge>
-                  {i.failure ? (
+                  {i.interviewDate ? (
                     <span className="text-muted-foreground text-xs">
-                      {i18n._(LEXICON_FAILURES[i.failure])}
+                      {day.format(new Date(`${i.interviewDate}T12:00:00Z`))}
                     </span>
                   ) : null}
                 </span>
-              )}
-            </TableCell>
-            <TableCell className="text-muted-foreground text-sm">
-              {i.readAt ? day.format(new Date(i.readAt)) : '—'}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+              </TableCell>
+              <TableCell>
+                {i.reading === 'waiting' || i.reading === 'reading' ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm">
+                    {i.reading === 'waiting' ? (
+                      <HourglassIcon aria-hidden className="size-4" />
+                    ) : (
+                      <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
+                    )}
+                    {i18n._(READING_STATES[i.reading])}
+                  </span>
+                ) : i.state === 'to-decide' ? (
+                  <Button variant="outline" size="xs" onClick={() => onTerms(i.sessionId)}>
+                    {t`Terms to decide (${i.toDecide})`}
+                  </Button>
+                ) : (
+                  <span className="grid gap-0.5">
+                    <Badge variant={STATE_BADGE[i.state]} className="w-fit">
+                      {i18n._(ENRICHMENT_STATES[i.state])}
+                    </Badge>
+                    {i.failure ? (
+                      <span className="text-muted-foreground text-xs">
+                        {i18n._(LEXICON_FAILURES[i.failure])}
+                      </span>
+                    ) : null}
+                  </span>
+                )}
+              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">
+                {i.readAt ? day.format(new Date(i.readAt)) : '—'}
+              </TableCell>
+              {/* Its button and dialog are not part of the row's click (portals bubble in React). */}
+              <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                {i.state === 'no-transcript' ? null : (
+                  <FindTermsOneButton
+                    studyId={studyId}
+                    interview={{ sessionId: i.sessionId, title: i.title }}
+                    read={i.state !== 'not-read'}
+                    disabled={reading(data)}
+                    onOpen={() => openOne({ sessionId: i.sessionId, title: i.title })}
+                  />
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {one ? (
+        <FindTermsDialog
+          studyId={studyId}
+          open={oneOpen}
+          onOpenChange={setOneOpen}
+          interview={one}
+        />
+      ) : null}
+    </>
   )
 }

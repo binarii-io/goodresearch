@@ -7,6 +7,9 @@ export const STUDY_TYPES = ['interviews', 'survey', 'usability-test'] as const
 export type StudyType = (typeof STUDY_TYPES)[number]
 const CREATABLE: readonly string[] = ['interviews']
 
+/** Spec 012 FR-002: the corrected text (proposed corrections included), or the clean version only. */
+export type TextAnalysed = 'with-corrections' | 'clean-only'
+
 export type StudyProps = {
   readonly id: StudyId
   readonly projectId: string
@@ -14,6 +17,8 @@ export type StudyProps = {
   readonly type: StudyType
   /** Spec 009: interview names and titles use pseudonyms instead of names. */
   readonly anonymised: boolean
+  /** Spec 012: the text Analysis reads. */
+  readonly textAnalysed: TextAnalysed
   readonly createdBy: string | null
   readonly createdAt: Date
   readonly updatedAt: Date
@@ -51,6 +56,7 @@ export class Study {
         name: name.value,
         type: input.type as StudyType,
         anonymised: false,
+        textAnalysed: 'with-corrections',
         createdBy: input.createdBy,
         createdAt: input.now,
         updatedAt: input.now,
@@ -80,6 +86,15 @@ export class Study {
   }
   get anonymised(): boolean {
     return this.#props.anonymised
+  }
+
+  get textAnalysed(): TextAnalysed {
+    return this.#props.textAnalysed
+  }
+
+  /** Spec 012 FR-002: set by any person who can act on the study. */
+  setTextAnalysed(mode: TextAnalysed, now: Date): void {
+    this.#props = { ...this.#props, textAnalysed: mode, updatedAt: now }
   }
 
   /** Turned on or off by any person who can act on the study (spec 009 FR-013). */

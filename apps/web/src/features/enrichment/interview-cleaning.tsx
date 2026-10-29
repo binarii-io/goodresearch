@@ -325,13 +325,6 @@ export function InterviewCleaningView({
   return (
     <div className="grid gap-4 pb-24">
       <div className="flex flex-wrap items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          <Undo2Icon aria-hidden />
-          {t`Back to the interviews`}
-        </Button>
-        <h3 className="min-w-0 max-w-full truncate font-medium text-lg" title={data.title}>
-          {data.title}
-        </h3>
         <Badge variant="outline">{i18n._(CLEANING_STATES[data.state])}</Badge>
         <span className="text-muted-foreground text-sm">
           {data.cost === null ? t`Cost: unknown` : t`Cost: ${money(data.cost)}`}

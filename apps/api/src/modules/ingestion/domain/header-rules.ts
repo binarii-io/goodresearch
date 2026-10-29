@@ -1,4 +1,8 @@
+import { personName } from '@goodresearch/shared'
 import { normaliseWord } from './file-words.ts'
+
+// Shared with the transcripts' turn reading, so both read the same speaker labels.
+export { personName }
 
 /** The first lines of a transcript: where meeting tools write the date and the participants. */
 const HEADER_LINES = 30
@@ -70,13 +74,6 @@ export const findDate = (text: string): string | null => {
   }
   return best?.value ?? null
 }
-
-/**
- * The person in a label written by a meeting tool: what comes before " -", "(", "|" or "[" (a
- * company, a place, a version). "Jean-Pierre" keeps its hyphen.
- */
-export const personName = (label: string): string =>
-  (label.split(/\s+[-–]|\s*[(|[]/)[0] ?? '').trim()
 
 const headerOf = (text: string) => text.split(/\r?\n/).slice(0, HEADER_LINES)
 

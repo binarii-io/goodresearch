@@ -3,11 +3,12 @@ import {
   BulkResult,
   DecideTerm,
   Enrichment,
-  EstimateQuery,
   JudgeOccurrence,
   LexiconEstimate,
+  LexiconEstimateQuery,
   LexiconPage,
   LexiconQuery,
+  LexiconReadingParams,
   LexiconRunParams,
   LexiconRunStarted,
   LexiconTerm,
@@ -110,7 +111,7 @@ export const registerTranscriptsRoutes = (
         operationId: 'estimateLexiconRun',
         tags,
         params: StudyParams,
-        querystring: EstimateQuery,
+        querystring: LexiconEstimateQuery,
         response: { 200: LexiconEstimate },
       },
     },
@@ -121,6 +122,7 @@ export const registerTranscriptsRoutes = (
           request.account.id,
           request.params.studyId,
           request.query.all === 'true',
+          request.query.sessionId,
         ),
         (v) => res.send(v),
       ),
@@ -153,6 +155,25 @@ export const registerTranscriptsRoutes = (
       reply(
         res,
         await lexicon.stopRun(request.account, request.params.studyId, request.params.runId),
+        () => res.status(204).send(),
+      ),
+  )
+
+  api.post(
+    '/api/studies/:studyId/lexicon-runs/:runId/sessions/:sessionId/stop',
+    {
+      ...secured,
+      schema: { operationId: 'stopLexiconReading', tags, params: LexiconReadingParams },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await lexicon.stopSession(
+          request.account,
+          request.params.studyId,
+          request.params.runId,
+          request.params.sessionId,
+        ),
         () => res.status(204).send(),
       ),
   )

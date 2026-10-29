@@ -12,7 +12,7 @@ import {
 import type { AnswerTerm } from '../../domain/answer-check.ts'
 import { type CommonWords, isClose } from '../../domain/candidates.ts'
 import type { Batch } from '../../domain/excerpts.ts'
-import type { LexiconRun, Transcript } from '../../domain/lexicon-run.ts'
+import { canStopReading, type LexiconRun, type Transcript } from '../../domain/lexicon-run.ts'
 import type { LexiconTerm } from '../../domain/lexicon-term.ts'
 import type { Occurrence, Verdict } from '../../domain/occurrences.ts'
 
@@ -101,6 +101,7 @@ export const createInMemoryStore = () => {
       runs.set(run.id, {
         ...run,
         stopRequested: (current?.stopRequested ?? false) || run.stopRequested,
+        stoppedSessions: current?.stoppedSessions ?? run.stoppedSessions,
       })
     },
     heartbeat: async (id, at) => {
@@ -114,6 +115,13 @@ export const createInMemoryStore = () => {
     requestStop: async (id) => {
       const r = runs.get(id)
       if (r) runs.set(id, { ...r, stopRequested: true })
+    },
+    requestSessionStop: async (id, sessionId) => {
+      const r = runs.get(id)
+      if (!r || !canStopReading(r, sessionId)) return false
+      if (!r.stoppedSessions.includes(sessionId))
+        runs.set(id, { ...r, stoppedSessions: [...r.stoppedSessions, sessionId] })
+      return true
     },
     verdictsOf: async (studyId) => [...verdicts.values()].filter((v) => v.studyId === studyId),
     saveVerdict: async (place, verdict) => {

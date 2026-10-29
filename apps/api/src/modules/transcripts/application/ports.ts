@@ -132,6 +132,11 @@ export type TranscriptsStore = {
   /** A person asked to stop it, or it was finished elsewhere (replaced as stale). */
   stopRequested(runId: string): Promise<boolean>
   requestStop(runId: string): Promise<void>
+  /**
+   * Takes one interview out of the run, in the same write that checks it is still open (waiting or
+   * reading, during the import); false when it is too late. `saveRun` never clears it.
+   */
+  requestSessionStop(runId: string, sessionId: string): Promise<boolean>
 
   /** The verdicts given on the study's occurrences. */
   verdictsOf(studyId: string): Promise<Verdict[]>

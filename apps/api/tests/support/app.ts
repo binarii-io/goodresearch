@@ -63,9 +63,11 @@ export const startTestApp = async (
   const runJobs = async () => {
     while (queued.length > 0) {
       const job = queued.shift()
-      const handler = [...modules.ingestion.jobs, ...modules.transcripts.jobs].find(
-        (h) => h.queue === job?.queue,
-      )
+      const handler = [
+        ...modules.ingestion.jobs,
+        ...modules.transcripts.jobs,
+        ...modules.evidence.jobs,
+      ].find((h) => h.queue === job?.queue)
       if (job && handler) await handler.handle(job.data)
     }
   }

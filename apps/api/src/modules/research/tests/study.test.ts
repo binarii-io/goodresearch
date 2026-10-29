@@ -36,4 +36,12 @@ describe('Study', () => {
     expect(study.value.snapshot()).toMatchObject({ name: 'Renamed', updatedAt: t1 })
     expect(study.value.rename('', t1)).toEqual({ ok: false, error: 'VALIDATION' })
   })
+
+  it('reads the corrected text by default and can read only the validated clean version (spec 012)', () => {
+    const study = create()
+    if (!study.ok) throw new Error('fixture')
+    expect(study.value.textAnalysed).toBe('with-corrections')
+    study.value.setTextAnalysed('clean-only', t1)
+    expect(study.value.snapshot()).toMatchObject({ textAnalysed: 'clean-only', updatedAt: t1 })
+  })
 })

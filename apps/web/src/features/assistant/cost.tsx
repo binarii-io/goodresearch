@@ -5,10 +5,12 @@ import { useLingui } from '@lingui/react/macro'
 /** Small amounts keep their first significant digits ($0.0031), larger ones two decimals. */
 export const useMoney = () => {
   const { i18n } = useLingui()
-  return (value: number) =>
+  /** `narrow`: "$" in every language, where space is short ("0,15 $" rather than "0,15 $US"). */
+  return (value: number, { narrow = false }: { narrow?: boolean } = {}) =>
     new Intl.NumberFormat(i18n.locale, {
       style: 'currency',
       currency: 'USD',
+      currencyDisplay: narrow ? 'narrowSymbol' : 'symbol',
       ...(value > 0 && value < 0.01
         ? { maximumSignificantDigits: 2 }
         : { minimumFractionDigits: 2, maximumFractionDigits: 2 }),

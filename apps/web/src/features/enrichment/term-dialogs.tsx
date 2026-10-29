@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@goodresearch/ui/components/dialog'
-import { CheckIcon, XIcon } from '@goodresearch/ui/components/icons'
+import { CheckIcon, CircleDashedIcon, XIcon } from '@goodresearch/ui/components/icons'
 import { Input } from '@goodresearch/ui/components/input'
 import { Label } from '@goodresearch/ui/components/label'
 import {
@@ -227,7 +227,9 @@ export function TermDialog({
   )
 }
 
-/** One excerpt, the term as written marked in it, with the person's yes / no on it. */
+type Verdict = NonNullable<TermQuote['verdict']>
+
+/** One excerpt, the term as written marked in it, with the person's yes / no / unsure on it. */
 function Quote({
   quote,
   busy,
@@ -235,11 +237,11 @@ function Quote({
 }: {
   quote: TermQuote
   busy: boolean
-  onVerdict: (verdict: 'yes' | 'no' | null) => void
+  onVerdict: (verdict: Verdict | null) => void
 }) {
   const { t } = useLingui()
   const excerpt = `${quote.before}${quote.match}${quote.after}`
-  const toggle = (verdict: 'yes' | 'no') => onVerdict(quote.verdict === verdict ? null : verdict)
+  const toggle = (verdict: Verdict) => onVerdict(quote.verdict === verdict ? null : verdict)
   return (
     <div className="flex items-start gap-2">
       <blockquote
@@ -276,6 +278,17 @@ function Quote({
         >
           <XIcon aria-hidden />
         </Button>
+        <Button
+          size="icon-sm"
+          variant={quote.verdict === 'unsure' ? 'secondary' : 'ghost'}
+          aria-pressed={quote.verdict === 'unsure'}
+          aria-label={t`Can't tell: ${excerpt}`}
+          title={t`Can't tell yet, decide in Cleaning`}
+          disabled={busy}
+          onClick={() => toggle('unsure')}
+        >
+          <CircleDashedIcon aria-hidden />
+        </Button>
       </div>
     </div>
   )
@@ -300,18 +313,24 @@ function Occurrences({
   const full = useListTermOccurrences(studyId, term.id, { query: { enabled: all } })
   const judge = useJudgeOccurrence()
   // Verdicts given here, shown at once (the lists are read again behind).
-  const [given, setGiven] = useState<Record<string, 'yes' | 'no' | null>>({})
+  const [given, setGiven] = useState<Record<string, Verdict | null>>({})
   const placeOf = (q: TermQuote) => `${q.segmentId}/${q.offset}`
   const occurrences = (all && full.data ? full.data.occurrences : term.occurrences).map((o) => {
     const quotes = o.quotes.map((q) => {
       const key = placeOf(q)
       return key in given ? { ...q, verdict: given[key] ?? null } : q
     })
-    const changed = (v: 'yes' | 'no') =>
+    const changed = (v: Verdict) =>
       quotes.filter((q) => q.verdict === v).length - o.quotes.filter((q) => q.verdict === v).length
-    return { ...o, quotes, yes: o.yes + changed('yes'), no: o.no + changed('no') }
+    return {
+      ...o,
+      quotes,
+      yes: o.yes + changed('yes'),
+      no: o.no + changed('no'),
+      unsure: o.unsure + changed('unsure'),
+    }
   })
-  const decide = (sessionId: string, q: TermQuote, verdict: 'yes' | 'no' | null) => {
+  const decide = (sessionId: string, q: TermQuote, verdict: Verdict | null) => {
     setGiven((current) => ({ ...current, [placeOf(q)]: verdict }))
     void judge
       .mutateAsync({
@@ -341,8 +360,8 @@ function Occurrences({
       </h3>
       <p className="text-muted-foreground text-xs">
         {term.scope === 'case-by-case'
-          ? t`Case by case: say for each excerpt whether it is this term. Cleaning corrects only those you confirm.`
-          : t`Everywhere: Cleaning corrects every occurrence, except those you mark as not this term.`}
+          ? t`Case by case: say for each excerpt whether it is this term. Cleaning corrects only those you confirm; those you can't tell yet are left to decide there.`
+          : t`Everywhere: Cleaning corrects every occurrence, except those you mark as not this term; those you can't tell yet are left to decide there.`}
       </p>
       <ul className="grid gap-3">
         {occurrences.map((o) => (
@@ -352,9 +371,11 @@ function Occurrences({
                 ? t`${o.title} (${o.count} times, ${o.quotes.length} excerpts shown)`
                 : t`${o.title} (${o.count} times)`}
             </span>
-            {o.yes || o.no ? (
+            {o.yes || o.no || o.unsure ? (
               <span className="text-muted-foreground text-xs">
-                {t`${o.yes} confirmed · ${o.no} not this term`}
+                {o.unsure
+                  ? t`${o.yes} confirmed · ${o.no} not this term · ${o.unsure} can't tell`
+                  : t`${o.yes} confirmed · ${o.no} not this term`}
               </span>
             ) : null}
             {o.quotes.map((quote) => (

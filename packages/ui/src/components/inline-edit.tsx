@@ -97,7 +97,8 @@ export function InlineEdit({
     'w-full rounded-md border border-input bg-background px-3 py-2 text-base outline-none focus-visible:ring-3 focus-visible:ring-highlight/50 aria-invalid:border-destructive'
 
   return (
-    <div className={cn('grid gap-1', className)}>
+    // One column that may shrink: a single-line value ends in "…" where space is short (page bar).
+    <div className={cn('grid grid-cols-[minmax(0,1fr)] gap-1', className)}>
       {editing ? (
         <>
           {multiline ? (
@@ -138,7 +139,11 @@ export function InlineEdit({
           ref={buttonRef}
           type="button"
           aria-label={`${label}: ${value || placeholder || ''}`}
-          className="-mx-2 rounded-md px-2 py-1 text-left hover:bg-muted"
+          className={cn(
+            '-mx-2 rounded-md px-2 py-1 text-left hover:bg-muted',
+            !multiline && 'truncate',
+          )}
+          title={multiline ? undefined : value}
           onClick={() => setEditing(true)}
         >
           {value ? (

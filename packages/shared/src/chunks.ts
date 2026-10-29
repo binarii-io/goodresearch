@@ -1,6 +1,14 @@
-import type { Segment } from './segments.ts'
+/** A turn of a transcript, as the chunks need it. */
+export type ChunkSegment = {
+  readonly id: string
+  readonly speaker: string | null
+  readonly text: string
+}
 
-/** Research R4: the AI reads a transcript 60 turns at a time, the 5 before as context. */
+/**
+ * Spec 011 research R4 (also spec 012 R4): the AI reads a transcript 60 turns at a time, the 5
+ * before as context.
+ */
 export const CHUNK_TURNS = 60
 export const CHUNK_OVERLAP = 5
 export const CHUNK_MAX_CHARS = 24_000
@@ -27,7 +35,7 @@ type Part = Omit<ChunkTurn, 'id' | 'context'>
 const SENTENCE_END = /[.!?…]+["»”')\]]*\s+/g
 
 /** A turn's text in parts of at most PART_MAX, cut after a sentence end (else at a space). */
-const partsOf = (s: Segment): Part[] => {
+const partsOf = (s: ChunkSegment): Part[] => {
   if (s.text.length <= PART_MAX)
     return [{ segmentId: s.id, speaker: s.speaker, offset: 0, text: s.text }]
   const out: Part[] = []
@@ -53,7 +61,7 @@ const partsOf = (s: Segment): Part[] => {
  * turn is wanted.
  */
 export const makeChunks = (
-  segments: readonly Segment[],
+  segments: readonly ChunkSegment[],
   options: {
     readonly only?: ReadonlySet<string> | undefined
     readonly turns?: number

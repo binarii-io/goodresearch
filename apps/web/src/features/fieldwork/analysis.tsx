@@ -79,6 +79,10 @@ export function useAnalyzeOne(studyId: string) {
       })
       await queryClient.invalidateQueries({ queryKey: getGetFieldworkQueryKey(studyId) })
       if (next.analysis?.failure) toast.warning(i18n._(ANALYSIS_FAILURES[next.analysis.failure]))
+      else if (s.state === 'validated' && next.state === 'proposed')
+        toast.info(
+          t`The analysis found something new: the interview is to decide again. Its cleaning and facts are kept.`,
+        )
       return next
     } catch (failure) {
       if (errorCode(failure) === 'ANALYSIS_CONSENT_REQUIRED') setAsking(s)

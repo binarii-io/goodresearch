@@ -7,6 +7,7 @@ import {
   isDate,
   markAlreadySet,
   mergeProposals,
+  newToDecide,
   type Proposal,
   type ProposalDecision,
   READ_MAX,
@@ -29,7 +30,7 @@ import type { InventoryFile } from '../../domain/inventory-walk.ts'
 import { attachmentLabel, normalisedBase } from '../../domain/normalised-name.ts'
 import { nameKey } from '../../domain/pseudonyms.ts'
 import { fromPlaceholders, QUOTE_MAX, quoteFound, withPlaceholders } from '../../domain/quotes.ts'
-import { personDecided, type Session, splitNames } from '../../domain/session.ts'
+import { decide, personDecided, type Session, splitNames } from '../../domain/session.ts'
 import { looksLikeTranscript } from '../../domain/transcript-text.ts'
 import { resolveStudyAccess } from '../access.ts'
 import { readRefreshToken } from '../connection.ts'
@@ -442,6 +443,21 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
     }
   }
 
+  /**
+   * Something new to decide sends a validated interview back to decide; what it holds and what
+   * later phases made from it (cleaning, facts) are kept.
+   */
+  const reopenIfNew = async (sessionId: string, before: readonly Proposal[]) => {
+    for (let attempt = 0; attempt < WRITE_ATTEMPTS; attempt++) {
+      const current = await deps.store.getSession(sessionId)
+      if (!current || current.state !== 'validated') return
+      if (!newToDecide(before, current.analysis?.proposals ?? [])) return
+      const next = decide(current, 'reopen', current.decidedBy ?? '', deps.clock.now())
+      if (!next.ok) return
+      if ((await deps.store.saveSession(next.value, current.version)) === 'saved') return
+    }
+  }
+
   const merged = (analysis: Analysis) => (current: Session) => ({
     ...analysis,
     proposals: markAlreadySet(
@@ -490,7 +506,8 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
       if (!s) return err('SESSION_NOT_FOUND')
       const ctx = await contextOf(c.actor.id, s.studyId)
       if (!ctx.ok) return ctx.error === 'STUDY_NOT_FOUND' ? err('SESSION_NOT_FOUND') : ctx
-      if (personDecided(s)) return err('SESSION_DECIDED')
+      // A validated interview can be analyzed again (spec 009, update); an excluded one cannot.
+      if (personDecided(s) && s.state !== 'validated') return err('SESSION_DECIDED')
       const run = await deps.store.lastRun(s.studyId)
       if (isLive(run, deps.clock.now()) && run.sessionIds.includes(s.id))
         return err('ANALYSIS_RUNNING')
@@ -501,6 +518,7 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
       const analysis = await analyze(c.actor.id, s, ctx.value, null)
       if (!(await store(s.id, merged(analysis)))) return err('VERSION_CONFLICT')
       await excludeSummary(s.id, analysis)
+      if (personDecided(s)) await reopenIfNew(s.id, s.analysis?.proposals ?? [])
       return ok({ id: s.id })
     },
 

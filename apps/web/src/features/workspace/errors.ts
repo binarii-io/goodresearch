@@ -45,6 +45,7 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   NOTHING_TO_READ: msg`Every interview is already read.`,
   LEXICON_CONSENT_REQUIRED: msg`Agree to send excerpts to your AI provider first.`,
   LEXICON_RUNNING: msg`Terms are already being found for this study.`,
+  TOO_LATE_TO_STOP: msg`This interview can no longer be taken out of the reading: stop the whole reading instead.`,
   ENRICHMENT_RUNNING: msg`Terms are being found or transcripts cleaned for this study: wait until it ends.`,
   CLEANING_CONSENT_REQUIRED: msg`Agree to send the transcripts to your AI provider first.`,
   NOTHING_TO_CLEAN: msg`Every interview is already cleaned.`,
@@ -62,6 +63,16 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   MERGE_ITSELF: msg`A term cannot be merged into itself.`,
   LANGUAGE_DIFFERS: msg`Only terms of the same language can be merged.`,
   AI_PROVIDER_REQUIRED: msg`Set up your AI provider first.`,
+  FACTS_RUNNING: msg`Facts are already being found for this study.`,
+  FACTS_CONSENT_REQUIRED: msg`Agree to send the transcripts to your AI provider first.`,
+  NOTHING_TO_ANALYSE: msg`Every interview is already analysed.`,
+  VERBATIM_NOT_FOUND: msg`This text is not in the interview any more.`,
+  INTERVIEWER_TURN: msg`A verbatim is what an interviewee says, not an interviewer.`,
+  VERBATIM_LENGTH: msg`A verbatim has 3 to 120 words.`,
+  NAME_IN_STATEMENT: msg`A fact never names a person: write it without names.`,
+  SPEAKER_TO_ATTRIBUTE: msg`Say who speaks in this interview first.`,
+  FACT_NEEDS_VERBATIM: msg`A fact needs at least one verbatim.`,
+  FACT_NOT_FOUND: msg`This fact is no longer there.`,
 }
 
 /** One translated sentence for an error code (never technical details). */

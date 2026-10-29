@@ -1,5 +1,5 @@
+import type { Chunk, ChunkTurn } from '@goodresearch/shared'
 import { fromPlaceholders, PLACEHOLDER, withPlaceholders, words } from '@goodresearch/shared'
-import type { Chunk, ChunkTurn } from './chunks.ts'
 import type {
   Confidence,
   Correction,

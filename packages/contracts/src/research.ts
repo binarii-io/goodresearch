@@ -53,6 +53,9 @@ export const StudySummary = z
   .meta({ id: 'StudySummary' })
 export type StudySummary = z.infer<typeof StudySummary>
 
+/** Spec 012: the text Analysis reads. */
+export const TextAnalysed = z.enum(['with-corrections', 'clean-only'])
+
 export const StudyDetail = z
   .object({
     id: Id,
@@ -61,6 +64,8 @@ export const StudyDetail = z
     project: z.object({ id: Id, name: z.string() }),
     /** Spec 009: names and titles of interviews use pseudonyms. */
     anonymised: z.boolean(),
+    /** Spec 012: the text Analysis reads. */
+    textAnalysed: TextAnalysed,
     createdAt: Timestamp,
     updatedAt: Timestamp,
     version: Version,
@@ -76,5 +81,5 @@ export const RenameStudy = z
   .meta({ id: 'RenameStudy' })
 export const StudyParams = z.object({ studyId: Id })
 export const StudySettings = z
-  .object({ anonymised: z.boolean(), version: Version })
+  .object({ anonymised: z.boolean(), textAnalysed: TextAnalysed.optional(), version: Version })
   .meta({ id: 'StudySettings' })

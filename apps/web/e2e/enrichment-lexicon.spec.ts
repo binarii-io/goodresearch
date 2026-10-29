@@ -50,8 +50,8 @@ test.describe('spec 010 — the Enrichment phase and the team lexicon', () => {
     const interviews = main.getByRole('region', { name: 'Interviews' })
     await expect(interviews.getByRole('row')).toHaveCount(6, { timeout: 30_000 })
 
-    // FR-001: four phases. Nothing validated yet: Enrichment points to Fieldwork.
-    await page.getByRole('tab', { name: '3 · Enrichment' }).click()
+    // FR-001: the phases (Lexicon split from Enrichment since). Nothing validated yet: Lexicon points to Fieldwork.
+    await page.getByRole('tab', { name: '3 · Lexicon' }).click()
     await expect(main.getByText('No validated interview yet.')).toBeVisible()
     await page.getByRole('tab', { name: '2 · Fieldwork' }).click()
     for (const name of ['Interview Sam Example', 'Interview 2 - transcript'])
@@ -59,15 +59,15 @@ test.describe('spec 010 — the Enrichment phase and the team lexicon', () => {
     await expect(interviews.getByText(/2 validated/)).toBeVisible()
 
     // US1: find the terms, after the consent for the AI provider (FR-016).
-    await page.getByRole('tab', { name: '3 · Enrichment' }).click()
-    await main.getByRole('button', { name: 'Find terms' }).click()
+    await page.getByRole('tab', { name: '3 · Lexicon' }).click()
+    await main.getByRole('button', { name: 'Find terms', exact: true }).click()
     const run = page.getByRole('alertdialog', { name: 'Find the terms of the interviews?' })
     await expect(run).toContainText('2 interviews will be read')
     await expect(run).toContainText('No transcript is sent in full')
     await expectAccessible(page)
     await run.getByRole('button', { name: 'Agree and find terms' }).click()
 
-    const lexicon = main.getByRole('tabpanel', { name: /Lexicon/ })
+    const lexicon = main.getByRole('tabpanel', { name: /^Lexicon \(/ })
     const good = lexicon.getByRole('row', { name: /Goodresearch/ })
     await expect(good).toBeVisible({ timeout: 30_000 })
     await expect(good.getByText('Gooresearch')).toBeVisible()
@@ -114,7 +114,12 @@ test.describe('spec 010 — the Enrichment phase and the team lexicon', () => {
     await expect(
       main.getByRole('tabpanel', { name: /Interviews/ }).getByText('Read', { exact: true }),
     ).toHaveCount(2)
-    await main.getByRole('button', { name: 'Find terms' }).click()
+    await main.getByRole('button', { name: 'Find terms', exact: true }).click()
     await expect(page.getByRole('alertdialog')).toContainText('Every interview is already read')
+    await page.getByRole('button', { name: 'Cancel' }).click()
+    // A row reads its own interview again, whatever its state.
+    await main.getByRole('button', { name: /^Find terms again: Interview 2/ }).click()
+    await expect(page.getByRole('alertdialog')).toContainText('This interview is read again')
+    await page.getByRole('button', { name: 'Cancel' }).click()
   })
 })

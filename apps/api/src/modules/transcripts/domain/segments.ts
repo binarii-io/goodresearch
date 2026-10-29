@@ -1,3 +1,5 @@
+import { personName } from '@goodresearch/shared'
+
 /** One speaker turn of a transcript; its id stays the same across imports (research R3). */
 export type Segment = {
   readonly id: string
@@ -20,9 +22,14 @@ const LABEL = /^\s*([^\s:\d][^:\n]{0,59}?)\s*:\s+(\S.*)$/
 const seconds = (m: RegExpExecArray, at: number): number =>
   Number(m[at] ?? 0) * 3600 + Number(m[at + 1]) * 60 + Number(m[at + 2])
 
-/** A label names someone: a few words, no sentence (spec 009 rules). */
-const isName = (label: string) =>
-  label.length > 0 && label.split(/\s+/).length <= 4 && !/[.?!,;]/.test(label)
+/**
+ * A label names someone: a few words, no sentence (spec 009 rules). What a meeting tool adds after
+ * the name (" -OFFICE PARIS-", "(Acme)") is not counted; the label is kept whole.
+ */
+const isName = (label: string) => {
+  const name = personName(label)
+  return name.length > 0 && name.split(/\s+/).length <= 4 && !/[.?!,;]/.test(name)
+}
 
 const cleanName = (label: string) => label.trim().replace(/,+$/, '')
 
@@ -70,6 +77,16 @@ export const parseSegments = (text: string): ParsedSegment[] => {
     .map((s) => ({ speaker: s.speaker, start: s.start, text: s.lines.join('\n') }))
     .filter((s) => s.text.length > 0 || s.speaker !== null)
 }
+
+/**
+ * Turns read by an older rule: a line after a turn's first one is itself a speaker label (a
+ * meeting tool's label with its office, once refused as too long). Imported again to split them.
+ */
+export const hasUnsplitTurns = (segments: readonly ParsedSegment[]): boolean =>
+  segments.some((s) => {
+    const rest = s.text.split('\n').slice(1).join('\n')
+    return rest !== '' && parseSegments(rest).some((p) => p.speaker !== null)
+  })
 
 const keyOf = (s: ParsedSegment) => `${s.speaker ?? ''}\u0000${s.text}`
 

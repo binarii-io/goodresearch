@@ -83,6 +83,61 @@ const cleaningAnswer = (prompt: string) => {
   return { corrections, decisions }
 }
 
+/**
+ * Spec 012: per part, the first sentence of each new interviewee turn, plus one quote not in the
+ * text and one from an interviewer's turn (the app must drop both).
+ */
+const verbatimsAnswer = (prompt: string) => {
+  const turns = [...prompt.matchAll(/^(t\d+)( \(context\))? — ([^:\n]*): (.*)$/gm)]
+    .filter((m) => !m[2])
+    .map((m) => ({ id: m[1] ?? '', speaker: m[3] ?? '', text: m[4] ?? '' }))
+  const firstSentence = (text: string) => text.split(/(?<=[.!?])\s/)[0] ?? text
+  const verbatims: { turn: string; text: string; reason: string | null }[] = turns
+    .filter((t) => t.speaker.startsWith('interviewee') || t.speaker === 'unknown speaker')
+    .filter((t) => firstSentence(t.text).split(/\s+/).length >= 3)
+    .map((t) => ({ turn: t.id, text: firstSentence(t.text), reason: 'It says how they work.' }))
+  const first = turns[0]
+  const interviewer = turns.find((t) => t.speaker === 'interviewer')
+  if (first) verbatims.push({ turn: first.id, text: 'words never said here', reason: null })
+  if (interviewer)
+    verbatims.push({ turn: interviewer.id, text: firstSentence(interviewer.text), reason: null })
+  return { verbatims }
+}
+
+/**
+ * Spec 012: one fact over every verbatim, in the first theme; one citing an unknown id only, and
+ * one naming a placeholder (the app must drop both).
+ */
+const factsAnswer = (prompt: string) => {
+  const ids = [...prompt.matchAll(/^(v\d+) — /gm)].map((m) => m[1] ?? '')
+  const theme = /^(s\d+): /m.exec(prompt)?.[1] ?? 'other'
+  return {
+    facts: [
+      {
+        statement: {
+          en: 'The interviewee describes how they work with their team',
+          fr: "L'interviewé décrit comment il travaille avec son équipe",
+        },
+        polarity: 'neutral',
+        theme,
+        verbatims: ids,
+      },
+      {
+        statement: { en: 'A fact without support', fr: 'Un fait sans appui' },
+        polarity: 'neutral',
+        theme: 'other',
+        verbatims: ['v999'],
+      },
+      {
+        statement: { en: '[Person 1] says so', fr: '[Person 1] le dit' },
+        polarity: 'neutral',
+        theme: 'other',
+        verbatims: ids.slice(0, 1),
+      },
+    ],
+  }
+}
+
 /** The test provider's lexicon: candidates within 2 edits are one term, the known form first. */
 const lexiconAnswer = (prompt: string) => {
   const candidates: { spelling: string; excerpts: string[] }[] = []
@@ -350,6 +405,27 @@ export const createFakeRunner = (): ModelRunner => {
         const parsed = request.schema.safeParse(answer)
         if (!parsed.success) throw new ProviderCallError('UNKNOWN')
         return { object: parsed.data, usage: { inputTokens: 2400, outputTokens: 200 } }
+      }
+      // Spec 012: verbatims, facts and translations, answered from the prompt.
+      if (request.prompt?.includes('\n<interview-turns>\n')) {
+        await sleep(300)
+        const parsed = request.schema.safeParse(verbatimsAnswer(request.prompt))
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 5000, outputTokens: 400 } }
+      }
+      if (request.prompt?.includes('\n<verbatims>\n')) {
+        await sleep(300)
+        const parsed = request.schema.safeParse(factsAnswer(request.prompt))
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 2000, outputTokens: 500 } }
+      }
+      if (request.prompt?.startsWith('<translate>\n')) {
+        const [, , to, ...text] = request.prompt.split('\n')
+        const parsed = request.schema.safeParse({
+          statement: `${to?.replace('to: ', '').toUpperCase()}: ${text.join(' ')}`,
+        })
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 200, outputTokens: 40 } }
       }
       // Spec 011: a cleaning corrects "eating" into "meeting" in each new turn that writes it, says
       // yes to each place to decide, and adds one correction not in the turn and one of 12 words

@@ -1438,6 +1438,77 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getStopLexiconRunMutationOptions(options), queryClient);
     }
+    export const getStopLexiconReadingUrl = (studyId: string,
+    runId: string,
+    sessionId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/lexicon-runs/${runId}/sessions/${sessionId}/stop`
+}
+
+export const stopLexiconReading = async (studyId: string,
+    runId: string,
+    sessionId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getStopLexiconReadingUrl(studyId,runId,sessionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getStopLexiconReadingMutationKey = () => ['stopLexiconReading'] as const;
+
+export const getStopLexiconReadingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopLexiconReading>>, TError,StopLexiconReadingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof stopLexiconReading>>, TError,StopLexiconReadingMutationVariables, TContext> => {
+
+const mutationKey = getStopLexiconReadingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stopLexiconReading>>, StopLexiconReadingMutationVariables> = (props) => {
+          const {studyId,runId,sessionId} = props ?? {};
+
+          return  stopLexiconReading(studyId,runId,sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StopLexiconReadingMutationResult = NonNullable<Awaited<ReturnType<typeof stopLexiconReading>>>
+
+    export type StopLexiconReadingMutationError = unknown
+    export type StopLexiconReadingMutationVariables = {studyId: string;runId: string;sessionId: string}
+
+    export const useStopLexiconReading = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopLexiconReading>>, TError,StopLexiconReadingMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stopLexiconReading>>,
+        TError,
+        StopLexiconReadingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStopLexiconReadingMutationOptions(options), queryClient);
+    }
     export const getListTermOccurrencesUrl = (studyId: string,
     termId: string,) => {
 

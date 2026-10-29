@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { keepIds, parseSegments, type Segment } from '../domain/segments.ts'
+import { hasUnsplitTurns, keepIds, parseSegments, type Segment } from '../domain/segments.ts'
 
 describe('parseSegments', () => {
   it('reads "Name: text" turns and joins continuation lines', () => {
@@ -35,6 +35,34 @@ describe('parseSegments', () => {
       { speaker: 'Lee', start: null, text: 'We tried this: it failed.' },
     ])
     expect(parseSegments('Next steps, then more: fine')[0]?.speaker).toBeNull()
+  })
+
+  it('reads a name followed by the office a meeting tool adds', () => {
+    expect(
+      parseSegments(
+        "Lee EXAMPLE -OFFICE NORTH-: Ok.\nSam EXAMPLE -OFFICE SOUTH SITE D'ARC V2-: Hi there",
+      ),
+    ).toEqual([
+      { speaker: 'Lee EXAMPLE -OFFICE NORTH-', start: null, text: 'Ok.' },
+      { speaker: "Sam EXAMPLE -OFFICE SOUTH SITE D'ARC V2-", start: null, text: 'Hi there' },
+    ])
+  })
+
+  it('finds turns read by an older rule, with a label inside', () => {
+    const old = [
+      {
+        speaker: 'Lee EXAMPLE -OFFICE NORTH-',
+        start: null,
+        text: "Ok.\nSam EXAMPLE -OFFICE SOUTH SITE D'ARC V2-: Hi there",
+      },
+    ]
+    expect(hasUnsplitTurns(old)).toBe(true)
+    expect(hasUnsplitTurns(parseSegments(`Lee EXAMPLE -OFFICE NORTH-: ${old[0]?.text}`))).toBe(
+      false,
+    )
+    expect(
+      hasUnsplitTurns([{ speaker: 'Lee', start: null, text: 'We tried this:\nit failed.' }]),
+    ).toBe(false)
   })
 })
 

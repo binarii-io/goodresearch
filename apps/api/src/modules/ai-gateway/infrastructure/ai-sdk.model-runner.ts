@@ -237,7 +237,16 @@ export const createAiSdkRunner = (options: {
         const failure = toProviderError(error)
         if (failure.failure === 'UNKNOWN' && !(error instanceof ProviderCallError))
           log.warn(
-            { kind: error instanceof Error ? error.name : typeof error },
+            {
+              kind: error instanceof Error ? error.name : typeof error,
+              // The status and the provider's error code say why; never the body's message (it may quote the prompt).
+              ...(APICallError.isInstance(error)
+                ? {
+                    status: error.statusCode ?? null,
+                    code: bodyFacts(error.responseBody).code ?? null,
+                  }
+                : {}),
+            },
             'model call failed',
           )
         throw failure

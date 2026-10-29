@@ -23,6 +23,7 @@ type Term = {
     count: number
     yes: number
     no: number
+    unsure: number
     quotes: {
       before: string
       match: string
@@ -221,6 +222,22 @@ describe('The team lexicon on PostgreSQL (spec 010)', () => {
     ).toBe('OCCURRENCE_NOT_FOUND')
     const after = (await lexicon()).find((t) => t.id === good?.id)
     expect(after?.occurrences.reduce((a, o) => a + o.no, 0)).toBe(1)
+    // "I can't tell": kept and counted apart, the place left to decide in Cleaning.
+    const second = all[0]?.quotes[1] ?? all[1]?.quotes[0]
+    const secondSession = all[0]?.quotes[1] ? all[0].sessionId : all[1]?.sessionId
+    if (!second || !secondSession) throw new Error('no second quote')
+    expect(
+      (
+        await call(alex, 'PUT', `/api/studies/${studyId}/lexicon/terms/${good?.id}/verdicts`, {
+          sessionId: secondSession,
+          segmentId: second.segmentId,
+          offset: second.offset,
+          verdict: 'unsure',
+        })
+      ).statusCode,
+    ).toBe(204)
+    const unsure = (await lexicon()).find((t) => t.id === good?.id)
+    expect(unsure?.occurrences.reduce((a, o) => a + o.unsure, 0)).toBe(1)
     expect(all.flatMap((o) => o.quotes.map((q) => q.match)).sort()).toEqual([
       'Goodresearch',
       'Goodresearch',

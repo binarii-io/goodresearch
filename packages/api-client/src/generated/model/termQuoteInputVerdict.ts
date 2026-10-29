@@ -11,4 +11,5 @@ export type TermQuoteInputVerdict = typeof TermQuoteInputVerdict[keyof typeof Te
 export const TermQuoteInputVerdict = {
   yes: 'yes',
   no: 'no',
+  unsure: 'unsure',
 } as const;

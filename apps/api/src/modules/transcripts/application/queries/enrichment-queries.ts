@@ -8,6 +8,7 @@ import {
   type LexiconFailure,
   type LexiconRun,
   runRef,
+  withStops,
 } from '../../domain/lexicon-run.ts'
 import { type LexiconTerm, toDecide } from '../../domain/lexicon-term.ts'
 import { countOccurrences, type Occurrence, type Verdict } from '../../domain/occurrences.ts'
@@ -84,7 +85,7 @@ const perInterview = (
     const quotes: (ExcerptParts & {
       segmentId: string
       offset: number
-      verdict: 'yes' | 'no' | null
+      verdict: Verdict['verdict'] | null
     })[] = []
     for (const p of kept) {
       if (quotes.length >= limit) break
@@ -103,6 +104,7 @@ const perInterview = (
       count: list.reduce((a, o) => a + o.count, 0),
       yes: mine.filter((v) => v.verdict === 'yes').length,
       no: mine.filter((v) => v.verdict === 'no').length,
+      unsure: mine.filter((v) => v.verdict === 'unsure').length,
       quotes,
     }
   })
@@ -146,7 +148,8 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
     ])
     const imported = new Map(transcripts.map((t) => [t.sessionId, t]))
     const open = runs.find((r) => r.finishedAt === null) ?? null
-    const live = isLive(open, deps.clock.now()) ? open : null
+    // An interview a person stopped shows as stopped at once, before the reading gets to it.
+    const live = isLive(open, deps.clock.now()) ? withStops(open) : null
     const shown: LexiconRun | null = live ?? runs[0] ?? null
     const toDecideIn = new Map<string, number>()
     for (const t of terms)
@@ -177,8 +180,9 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
         toDecide: toDecideIn.get(s.id) ?? 0,
         readAt: t?.readAt ? t.readAt.toISOString() : null,
         reading: reading?.state ?? null,
-        failure: (last?.state === 'failed'
-          ? (last.failure ?? null)
+        // The live reading first: an interview stopped there shows so before the reading gets to it.
+        failure: ((reading ?? last)?.state === 'failed'
+          ? ((reading ?? last)?.failure ?? null)
           : null) as LexiconFailure | null,
       }
     })
@@ -280,6 +284,7 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
       terms: page.map(view),
       next: from + PAGE < all.length ? String(from + PAGE) : null,
       total: all.length,
+      pageSize: PAGE,
     })
   }
 

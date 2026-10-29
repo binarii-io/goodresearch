@@ -4,9 +4,11 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
+import type { StudySettingsTextAnalysed } from './studySettingsTextAnalysed.ts';
 
 export interface StudySettings {
   anonymised: boolean;
+  textAnalysed?: StudySettingsTextAnalysed;
   /**
      * @minimum 0
      * @maximum 9007199254740991

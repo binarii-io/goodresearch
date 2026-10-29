@@ -64,21 +64,21 @@ test.describe('spec 011 — Cleaning the transcripts', () => {
     }
 
     // The lexicon first: "Goodresearch" accepted, everywhere.
-    await page.getByRole('tab', { name: '3 · Enrichment' }).click()
+    await page.getByRole('tab', { name: '3 · Lexicon' }).click()
     await main.getByRole('button', { name: 'Find terms' }).click()
     await page
       .getByRole('alertdialog', { name: 'Find the terms of the interviews?' })
       .getByRole('button', { name: /find terms/i })
       .click()
-    const lexicon = main.getByRole('tabpanel', { name: /Lexicon/ })
+    const lexicon = main.getByRole('tabpanel', { name: /^Lexicon \(/ })
     const good = lexicon.getByRole('row', { name: /Goodresearch/ })
     await expect(good).toBeVisible({ timeout: 30_000 })
     await good.getByRole('button', { name: 'Accept: Goodresearch' }).click()
     await expect(good).toHaveCount(0)
 
     // US1: clean, with the AI, after its own consent (FR-017).
-    await main.getByRole('tab', { name: /^Cleaning/ }).click()
-    const cleaning = main.getByRole('tabpanel', { name: /Cleaning/ })
+    await page.getByRole('tab', { name: '4 · Enrichment' }).click()
+    const cleaning = main.getByRole('region', { name: 'Cleaning' })
     await cleaning.getByRole('button', { name: 'Clean transcripts' }).click()
     const dialog = page.getByRole('alertdialog', { name: 'Clean the transcripts?' })
     await expect(dialog).toContainText('the full text of each transcript is sent')
@@ -116,7 +116,7 @@ test.describe('spec 011 — Cleaning the transcripts', () => {
     await expect(page.getByRole('link', { name: 'Open in Drive' })).toBeVisible()
     await expectAccessible(page)
 
-    await page.getByRole('button', { name: 'Back to the interviews' }).click()
+    await page.getByRole('link', { name: 'Back to the cleaning' }).click()
     await expect(cleaning.getByRole('row', { name: /Interview 2/ })).toContainText('Published')
     // One interview can be cleaned again alone, like "Analyze again" in Fieldwork.
     await cleaning.getByRole('button', { name: /^Clean again: Interview 2/ }).click()

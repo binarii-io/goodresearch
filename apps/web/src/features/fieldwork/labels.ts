@@ -63,10 +63,11 @@ export const PROPOSAL_ORIGINS: Record<SessionProposal['origin'], MessageDescript
 }
 
 export const PROPOSAL_STATUSES: Record<SessionProposal['status'], MessageDescriptor> = {
+  // A proposal (feminine in French).
   proposed: msg`To decide`,
-  accepted: msg`Accepted`,
+  accepted: msg({ message: 'Accepted', context: 'feminine' }),
   edited: msg`Changed`,
-  rejected: msg`Rejected`,
+  rejected: msg({ message: 'Rejected', context: 'feminine' }),
   'already-set': msg`Already set`,
 }
 

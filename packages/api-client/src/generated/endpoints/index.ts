@@ -1,4 +1,5 @@
 export * from './ai-provider/ai-provider.ts';
+export * from './analysis/analysis.ts';
 export * from './assistant/assistant.ts';
 export * from './enrichment/enrichment.ts';
 export * from './fieldwork/fieldwork.ts';

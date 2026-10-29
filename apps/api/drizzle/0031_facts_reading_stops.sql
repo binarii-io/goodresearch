@@ -1,0 +1,1 @@
+ALTER TABLE "evidence_runs" ADD COLUMN "stopped_sessions" jsonb DEFAULT '[]'::jsonb NOT NULL;

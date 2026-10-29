@@ -2,6 +2,7 @@ import type { Clock } from '@goodresearch/shared'
 import { z } from 'zod'
 import type { Db } from '#platform/db.ts'
 import { type JobHandler, QUEUES } from '#platform/jobs.ts'
+import { makeAnalysedText } from '../application/analysed-text.ts'
 import { makeCleaningCommands } from '../application/commands/cleaning-commands.ts'
 import { makeLexiconCommands } from '../application/commands/lexicon-commands.ts'
 import type {
@@ -40,6 +41,8 @@ export const createTranscriptsModule = (deps: {
   cleaningNames: CleaningNames
   cleanFiles: CleanFilesPort
   enqueue: (queue: string, data: object, options: { singletonKey: string }) => Promise<boolean>
+  /** Spec 012: a "Find facts" of the study is running (Evidence module, bound late). */
+  factsLive?: (studyId: string) => Promise<boolean>
   /** Replaces the word lists (tests). */
   common?: CommonWords
   log?: { warn(object: object, message: string): void }
@@ -49,7 +52,8 @@ export const createTranscriptsModule = (deps: {
     store: createTranscriptsStore(deps.db),
     // One Enrichment run per study (spec 011 research R6).
     otherRunLive: async (studyId) =>
-      isCleaningLive(await cleaningStore.openCleaningRun(studyId), deps.clock.now()),
+      isCleaningLive(await cleaningStore.openCleaningRun(studyId), deps.clock.now()) ||
+      ((await deps.factsLive?.(studyId)) ?? false),
     studies: deps.studies,
     sources: deps.sources,
     ai: deps.ai,
@@ -97,6 +101,9 @@ export const createTranscriptsModule = (deps: {
       },
     },
   ]
-  /** Spec 011: the latest clean version of an interview, for the phases after Enrichment. */
-  return { handlers, jobs, latestClean: cleaningQueries.latestClean }
+  const analysed = makeAnalysedText(cleaningDeps, lexicon, async (studyId) =>
+    isCleaningLive(await cleaningStore.openCleaningRun(studyId), deps.clock.now()),
+  )
+  /** Spec 012: the text Analysis reads, the missing imports, the Enrichment runs. */
+  return { handlers, jobs, ...analysed }
 }

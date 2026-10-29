@@ -45,6 +45,9 @@
   --color-highlight: var(--highlight);
   --color-highlight-soft: var(--highlight-soft);
   --color-highlight-soft-foreground: var(--highlight-soft-foreground);
+  --color-polarity-positive: var(--polarity-positive);
+  --color-polarity-negative: var(--polarity-negative);
+  --color-polarity-neutral: var(--polarity-neutral);
   --radius-sm: calc(var(--radius) * 0.5);
   --radius-md: calc(var(--radius) * 0.72);
   --radius-lg: var(--radius);
@@ -85,6 +88,10 @@
   --highlight-soft: #fdf0cf;
   --highlight-soft-foreground: var(--ink);
   --destructive: #b3261e; /* 6.5:1 on white */
+  /* Polarity of a fact: soft fills under ink text, always with a text label (spec 012 FR-020). */
+  --polarity-positive: #d5eedd;
+  --polarity-negative: #f8d6d2;
+  --polarity-neutral: #e3e5ea;
   --border: #e3e5ea;
   --input: #d9dde5;
   --ring: var(--ink);
@@ -133,6 +140,9 @@
     --highlight-soft: #3b3420;
     --highlight-soft-foreground: var(--paper);
     --destructive: #f2b8b5;
+    --polarity-positive: #1f3d2c;
+    --polarity-negative: #4a2624;
+    --polarity-neutral: #343c50;
     --border: #2e3647;
     --input: #3a4256;
     --ring: var(--paper);

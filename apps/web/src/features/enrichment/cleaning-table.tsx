@@ -21,6 +21,8 @@ import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
 import {
+  CheckIcon,
+  FileTextIcon,
   FolderOpenIcon,
   HourglassIcon,
   LoaderCircleIcon,
@@ -30,6 +32,7 @@ import {
 } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
 import { RadioGroup, RadioGroupItem } from '@goodresearch/ui/components/radio-group'
+import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
 import {
   Table,
   TableBody,
@@ -74,16 +77,17 @@ export function CleaningTable({
   const money = useMoney()
   const day = new Intl.DateTimeFormat(i18n.locale, { dateStyle: 'medium' })
   const running = data.run && !data.run.finished ? data.run : null
+  // One dialog for the table, for the interview whose row asked for it.
+  const [one, setOne] = useState<{ sessionId: string; title: string } | null>(null)
+  const [oneOpen, setOneOpen] = useState(false)
+  const openOne = (interview: { sessionId: string; title: string }) => {
+    setOne(interview)
+    setOneOpen(true)
+  }
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-6">
+      <Numbers data={data} />
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-muted-foreground text-sm">
-          {t`${data.counts.clean} clean of ${data.interviews.length}`} ·{' '}
-          {data.cost === null
-            ? t`Cost of the cleanings: unknown`
-            : t`Cost of the cleanings: ${money(data.cost)}`}
-          {data.lastRunCost !== null ? ` · ${t`last: ${money(data.lastRunCost)}`}` : ''}
-        </p>
         <CleanTranscripts studyId={studyId} data={data} />
       </div>
       {data.run?.finished && data.run.failure ? (
@@ -198,6 +202,7 @@ export function CleaningTable({
                       interview={{ sessionId: i.sessionId, title: i.title }}
                       cleaned={i.state !== 'not-cleaned'}
                       disabled={!!running}
+                      onOpen={() => openOne({ sessionId: i.sessionId, title: i.title })}
                     />
                   )}
                 </TableCell>
@@ -206,7 +211,57 @@ export function CleaningTable({
           })}
         </TableBody>
       </Table>
+      {one ? (
+        <CleanDialog studyId={studyId} open={oneOpen} onOpenChange={setOneOpen} interview={one} />
+      ) : null}
     </div>
+  )
+}
+
+/** The cleaning in numbers, like the lexicon's tiles. */
+function Numbers({ data }: { data: Cleaning }) {
+  const { t } = useLingui()
+  const money = useMoney()
+  const withTranscript = data.interviews.filter((i) => i.state !== 'no-transcript').length
+  // An out-of-date document is still published in Drive.
+  const published = data.interviews.filter(
+    (i) => i.state === 'published' || i.state === 'out-of-date',
+  ).length
+  const accepted = data.interviews.reduce((n, i) => n + i.accepted, 0)
+  return (
+    <StatTiles aria-label={t`Cleaning in numbers`}>
+      <StatTile
+        icon={<FileTextIcon aria-hidden />}
+        label={t`Clean versions validated`}
+        value={data.counts.clean}
+        detail={[
+          t`of ${withTranscript} with a transcript`,
+          ...(published ? [t`${published} published in Drive`] : []),
+        ].join(' · ')}
+      />
+      <StatTile
+        icon={<HourglassIcon aria-hidden />}
+        label={t`Corrections to decide`}
+        value={data.counts.toDecide}
+        detail={t`Proposed by the lexicon or the AI`}
+      />
+      <StatTile
+        icon={<CheckIcon aria-hidden />}
+        label={t`Accepted corrections`}
+        value={accepted}
+        detail={t`Applied to the clean versions`}
+      />
+      <StatTile
+        icon={<SparklesIcon aria-hidden />}
+        label={t`Cost of the cleanings`}
+        value={data.cost === null ? t`unknown` : money(data.cost)}
+        detail={
+          data.lastRunCost === null
+            ? t`No cleaning yet`
+            : t`Last cleaning: ${money(data.lastRunCost)}`
+        }
+      />
+    </StatTiles>
   )
 }
 
@@ -416,12 +471,15 @@ export function CleanOneButton({
   cleaned,
   disabled,
   onStarted,
+  onOpen,
 }: {
   studyId: string
   interview: { sessionId: string; title: string }
   cleaned: boolean
   disabled?: boolean
   onStarted?: () => void
+  /** In a table: the table's one dialog opens instead of a dialog of this button. */
+  onOpen?: () => void
 }) {
   const { t } = useLingui()
   const [open, setOpen] = useState(false)
@@ -432,18 +490,20 @@ export function CleanOneButton({
         size="xs"
         disabled={disabled}
         aria-label={cleaned ? t`Clean again: ${interview.title}` : t`Clean: ${interview.title}`}
-        onClick={() => setOpen(true)}
+        onClick={() => (onOpen ? onOpen() : setOpen(true))}
       >
         <SparklesIcon aria-hidden />
         {cleaned ? t`Clean again` : t`Clean`}
       </Button>
-      <CleanDialog
-        studyId={studyId}
-        open={open}
-        onOpenChange={setOpen}
-        interview={interview}
-        {...(onStarted ? { onStarted } : {})}
-      />
+      {onOpen ? null : (
+        <CleanDialog
+          studyId={studyId}
+          open={open}
+          onOpenChange={setOpen}
+          interview={interview}
+          {...(onStarted ? { onStarted } : {})}
+        />
+      )}
     </>
   )
 }

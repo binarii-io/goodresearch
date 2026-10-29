@@ -1,0 +1,1 @@
+ALTER TABLE "transcripts_lexicon_runs" ADD COLUMN "stopped_sessions" jsonb DEFAULT '[]'::jsonb NOT NULL;

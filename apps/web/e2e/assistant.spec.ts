@@ -97,7 +97,7 @@ test.describe('spec 005 — assistant panel', () => {
     await expect(accepted.getByRole('status')).toContainText('Applied')
     await field.fill('open study')
     await page.keyboard.press('Enter')
-    await expect(page.getByRole('tab', { name: '4 · Analysis' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: '5 · Analysis' })).toBeVisible()
     await expect(panel.getByText('Opened the study')).toBeVisible()
     await field.fill('open preparation')
     await page.keyboard.press('Enter')

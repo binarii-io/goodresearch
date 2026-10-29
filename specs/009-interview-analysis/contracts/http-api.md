@@ -24,12 +24,12 @@ Adds:
 
 ### `POST /api/sessions/:sessionId/analysis` → `Session`
 
-Body `{ consent?: boolean }`. Analyzes one session in the request (research R6).
+Body `{ consent?: boolean }`. Analyzes one session in the request (research R6). A session validated by a person is analyzed too: its decisions are kept, and a proposal not open before sends it back to `proposed` (update after spec 012).
 
 Errors:
 
 - `SESSION_NOT_FOUND`
-- `SESSION_DECIDED`
+- `SESSION_DECIDED` (excluded by a person)
 - `ANALYSIS_CONSENT_REQUIRED` (409)
 - `ANALYSIS_RUNNING` (409, a run covers it)
 - `DRIVE_NOT_CONNECTED`

@@ -7,6 +7,7 @@ import type { TermCategory, TermKind } from '../domain/answer-check.ts'
 import type { TermLanguage } from '../domain/candidates.ts'
 import type { LexiconFailure, LexiconRun, RunPhase, Transcript } from '../domain/lexicon-run.ts'
 import type { LexiconTerm, TermScope, TermStatus } from '../domain/lexicon-term.ts'
+import type { Verdict } from '../domain/occurrences.ts'
 import {
   transcriptsConsents,
   transcriptsLexiconRuns,
@@ -252,7 +253,7 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
     verdictsOf: async (studyId) =>
       (
         await db.select().from(transcriptsVerdicts).where(eq(transcriptsVerdicts.studyId, studyId))
-      ).map((r) => ({ ...r, verdict: r.verdict as 'yes' | 'no' })),
+      ).map((r) => ({ ...r, verdict: r.verdict as Verdict['verdict'] })),
 
     saveVerdict: async (place, verdict) => {
       const where = and(
@@ -315,6 +316,7 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
           teamId: run.teamId,
           startedBy: run.startedBy,
           stopRequested: run.stopRequested,
+          stoppedSessions: [...run.stoppedSessions],
           startedAt: run.startedAt,
           ...runValues(run),
         })
@@ -346,7 +348,8 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
       return row ? toRun(row) : null
     },
 
-    // `stopRequested` is written only by `requestStop`: a run saving its progress never clears it.
+    // `stopRequested` and `stoppedSessions` are written only by `requestStop` and
+    // `requestSessionStop`: a run saving its progress never clears them.
     saveRun: async (run) => {
       await db
         .update(transcriptsLexiconRuns)
@@ -379,6 +382,27 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
         .update(transcriptsLexiconRuns)
         .set({ stopRequested: true })
         .where(eq(transcriptsLexiconRuns.id, runId))
+    },
+
+    // Appended in the database: a reading saving its progress meanwhile keeps it.
+    // One statement: the row lock orders it with the worker's `saveRun`, so an interview the worker
+    // already saved as done can no longer be taken out.
+    requestSessionStop: async (runId, sessionId) => {
+      const updated = await db
+        .update(transcriptsLexiconRuns)
+        .set({
+          stoppedSessions: sql`case when ${transcriptsLexiconRuns.stoppedSessions} ? ${sessionId} then ${transcriptsLexiconRuns.stoppedSessions} else ${transcriptsLexiconRuns.stoppedSessions} || jsonb_build_array(${sessionId}::text) end`,
+        })
+        .where(
+          and(
+            eq(transcriptsLexiconRuns.id, runId),
+            isNull(transcriptsLexiconRuns.finishedAt),
+            eq(transcriptsLexiconRuns.phase, 'import'),
+            sql`exists (select 1 from jsonb_array_elements(${transcriptsLexiconRuns.sessions}) e where e->>'sessionId' = ${sessionId} and e->>'state' in ('waiting', 'reading'))`,
+          ),
+        )
+        .returning({ id: transcriptsLexiconRuns.id })
+      return updated.length > 0
     },
 
     runsOf: async (studyId) =>

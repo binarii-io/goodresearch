@@ -93,13 +93,16 @@ export const countOccurrences = (
   return out
 }
 
-/** Spec 010: a person's yes / no on one occurrence of a term, kept across readings. */
+/**
+ * Spec 010: a person's yes / no on one occurrence of a term, kept across readings; `unsure` when
+ * they cannot tell yet (the place stays to decide).
+ */
 export type Verdict = {
   readonly termId: string
   readonly sessionId: string
   readonly segmentId: string
   readonly offset: number
-  readonly verdict: 'yes' | 'no'
+  readonly verdict: 'yes' | 'no' | 'unsure'
   readonly decidedBy: string
   readonly decidedAt: Date
 }

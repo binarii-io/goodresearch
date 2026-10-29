@@ -16,7 +16,8 @@ export const TermCategory = z.enum([
 ])
 /** Every occurrence is the term, or each one is judged in its context (verdicts). */
 export const TermScope = z.enum(['global', 'case-by-case'])
-export const Verdict = z.enum(['yes', 'no'])
+/** `unsure`: the person cannot tell yet; Cleaning leaves the place to decide. */
+export const Verdict = z.enum(['yes', 'no', 'unsure'])
 export const TermStatus = z.enum(['proposed', 'accepted', 'edited', 'rejected', 'merged'])
 export const VariantStatus = z.enum(['proposed', 'accepted', 'rejected'])
 export const TermOrigin = z.enum(['rules', 'ai'])
@@ -31,6 +32,7 @@ export const LexiconFailure = z.enum([
   'TOO_LONG',
   'NO_TRANSCRIPT',
   'INTERRUPTED',
+  'STOPPED',
   'AI_PROVIDER_REQUIRED',
   'AI_FAILED',
   'INVALID_ANSWER',
@@ -121,6 +123,7 @@ export const TermOccurrence = z
     /** Verdicts given in this interview. */
     yes: z.number().int(),
     no: z.number().int(),
+    unsure: z.number().int(),
     quotes: z.array(TermQuote),
   })
   .meta({ id: 'TermOccurrence' })
@@ -159,6 +162,8 @@ export const LexiconPage = z
     terms: z.array(LexiconTerm),
     next: z.string().nullable(),
     total: z.number().int(),
+    /** Terms per page: the cursor is the offset of a page. */
+    pageSize: z.number().int(),
   })
   .meta({ id: 'LexiconPage' })
 
@@ -187,12 +192,21 @@ export const StartLexiconRun = z
     consent: z.boolean().optional(),
     /** Read again the interviews already read. */
     all: z.boolean().optional(),
+    /** Only these interviews, read again whatever their state. */
+    sessionIds: z.array(Id).min(1).max(500).optional(),
   })
   .meta({ id: 'StartLexiconRun' })
+
+export const LexiconEstimateQuery = z.object({
+  all: z.enum(['true', 'false']).optional(),
+  /** One interview only (read again whatever its state). */
+  sessionId: Id.optional(),
+})
 
 export const LexiconRunStarted = z.object({ runId: Id }).meta({ id: 'LexiconRunStarted' })
 
 export const LexiconRunParams = z.object({ studyId: Id, runId: Id })
+export const LexiconReadingParams = z.object({ studyId: Id, runId: Id, sessionId: Id })
 export const TermParams = z.object({ studyId: Id, termId: Id })
 
 const Spelling = z.string().trim().min(1).max(80)

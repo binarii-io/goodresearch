@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  analysedCorrections,
   applyCorrections,
   type Correction,
   caseByCaseToDecide,
@@ -53,7 +54,12 @@ const seg = (id: string, text: string, speaker: string | null = 'Lee'): Segment 
 
 const interview = (segments: Segment[]) => ({ sessionId: 's1', language: 'en' as const, segments })
 
-const verdict = (offset: number, v: 'yes' | 'no', segmentId = 'g1', termId = 't1'): Verdict => ({
+const verdict = (
+  offset: number,
+  v: Verdict['verdict'],
+  segmentId = 'g1',
+  termId = 't1',
+): Verdict => ({
   termId,
   sessionId: 's1',
   segmentId,
@@ -84,6 +90,33 @@ describe('lexiconCorrections (FR-003)', () => {
     )
     expect(first?.status).toBe('rejected')
     expect(first?.decidedBy).toBe('a2')
+  })
+
+  it('leaves an "unsure" place to decide in Cleaning, global or case by case, without the AI', () => {
+    const nps = term({
+      id: 't2',
+      form: 'NPS',
+      scope: 'case-by-case',
+      variants: [{ spelling: 'MPS', status: 'accepted', origin: 'ai' }],
+    })
+    const found = lexiconCorrections(
+      interview([seg('g1', text), seg('g2', 'The MPS went up.')]),
+      [term(), nps],
+      [verdict(7, 'unsure'), verdict(4, 'unsure', 'g2', 't2')],
+      [],
+    )
+    expect(found.map((c) => [c.key, c.status, c.source, c.decidedBy])).toEqual([
+      ['lex:t1:g1:7', 'proposed', 'lexicon', null],
+      ['lex:t1:g1:26', 'accepted', 'lexicon', null],
+      ['lex:t2:g2:4', 'proposed', 'lexicon', null],
+    ])
+    expect(
+      caseByCaseToDecide(
+        interview([seg('g2', 'The MPS went up.')]),
+        [nps],
+        [verdict(4, 'unsure', 'g2', 't2')],
+      ),
+    ).toEqual([])
   })
 
   it('gives nothing for a spelling already equal to the form, nor for proposed or rejected terms', () => {
@@ -308,6 +341,17 @@ describe('resolve, apply, fingerprint (FR-008, FR-011)', () => {
     const resolved = resolveCorrections(all)
     expect(resolved.filter((c) => c.overridden).map((c) => c.key)).toEqual(['ai'])
     expect(effectiveCorrections(all).map((c) => c.key)).toEqual(['lex'])
+  })
+
+  it('spec 012: the text analysed applies every correction not rejected, proposed ones included', () => {
+    const all = [
+      stored({ key: 'proposed', offset: 0, length: 3 }),
+      stored({ key: 'accepted', offset: 10, length: 3, status: 'accepted' }),
+      stored({ key: 'rejected', offset: 20, length: 3, status: 'rejected' }),
+      stored({ key: 'under', offset: 10, length: 2, source: 'ai-other' }),
+      stored({ key: 'edited', offset: 30, length: 3, status: 'edited', edited: 'q' }),
+    ]
+    expect(analysedCorrections(all).map((c) => c.key)).toEqual(['proposed', 'accepted', 'edited'])
   })
 
   it('applies accepted and edited corrections, maps offsets back, and changes speakers only by target', () => {

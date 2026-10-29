@@ -2,6 +2,8 @@ import {
   getGetStudyQueryKey,
   getListStudiesQueryKey,
   useDeleteStudy,
+  useGetEnrichment,
+  useGetInterviewFacts,
   useGetStudy,
   useGetStudySource,
   useRenameStudy,
@@ -30,6 +32,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { AnalysisTab } from '../../../features/analysis/analysis-tab.tsx'
 import { EnrichmentTab } from '../../../features/enrichment/enrichment-tab.tsx'
 import { FieldworkTab } from '../../../features/fieldwork/fieldwork-tab.tsx'
 import { FolderButton } from '../../../features/ingestion/folder-button.tsx'
@@ -46,9 +49,12 @@ export const Route = createFileRoute('/_authenticated/studies/$studyId')({
     drive: z.enum(['connected', 'error']).optional().catch(undefined),
     // Opens on Fieldwork, where the source folder and the interviews are (spec 008).
     phase: z
-      .enum(['preparation', 'fieldwork', 'enrichment', 'analysis'])
+      .enum(['preparation', 'fieldwork', 'lexicon', 'enrichment', 'analysis'])
       .optional()
       .catch(undefined),
+    // An interview open in Enrichment (its cleaning) or Analysis (spec 012), and the turn to show.
+    interview: z.string().min(1).max(64).optional().catch(undefined),
+    turn: z.string().min(1).max(64).optional().catch(undefined),
   }),
   component: StudyPage,
 })
@@ -56,7 +62,7 @@ export const Route = createFileRoute('/_authenticated/studies/$studyId')({
 function StudyPage() {
   const { t, i18n } = useLingui()
   const { studyId } = Route.useParams()
-  const { drive, phase = 'fieldwork' } = Route.useSearch()
+  const { drive, phase = 'fieldwork', interview, turn } = Route.useSearch()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const me = useMe()
@@ -65,6 +71,27 @@ function StudyPage() {
   const rename = useRenameStudy()
   const remove = useDeleteStudy()
   const [error, setError] = useState<unknown>(null)
+  // Deeper than the study: the interview is the page, the study one of its parents.
+  const deep = (phase === 'analysis' || phase === 'enrichment') && interview ? interview : null
+  const facts = useGetInterviewFacts(studyId, deep ?? '', {
+    query: { enabled: deep !== null && phase === 'analysis' },
+  })
+  const enrichment = useGetEnrichment(studyId, {
+    query: { enabled: deep !== null && phase === 'enrichment' },
+  })
+  const deepTitle =
+    phase === 'analysis'
+      ? facts.data?.title
+      : enrichment.data?.interviews.find((i) => i.sessionId === deep)?.title
+  const openInterview = (sessionId: string | null, segmentId?: string) =>
+    void navigate({
+      to: '.',
+      search: (previous) => ({
+        ...previous,
+        interview: sessionId ?? undefined,
+        turn: segmentId,
+      }),
+    })
 
   // Shown once per return from Google's consent: the toast id prevents duplicates and the
   // parameter is removed from the address right away.
@@ -99,15 +126,37 @@ function StudyPage() {
       onValueChange={(value) =>
         void navigate({
           to: '.',
-          search: (previous) => ({ ...previous, phase: value }),
+          // Another phase opens on its own list, not on the interview open here.
+          search: (previous) => ({
+            ...previous,
+            phase: value,
+            interview: undefined,
+            turn: undefined,
+          }),
           replace: true,
         })
       }
       className="gap-4"
     >
       <PageBar
-        back={<Link to="/projects/$projectId" params={{ projectId: s.project.id }} />}
-        backLabel={t`Back to the project`}
+        back={
+          deep ? (
+            <Link
+              to="."
+              search={(previous) => ({ ...previous, interview: undefined, turn: undefined })}
+            />
+          ) : (
+            <Link to="/projects/$projectId" params={{ projectId: s.project.id }} />
+          )
+        }
+        backLabel={
+          deep
+            ? phase === 'analysis'
+              ? t`Back to the analysis`
+              : t`Back to the cleaning`
+            : t`Back to the project`
+        }
+        foldedLabel={t`Pages above`}
         crumbs={[
           <Link key="projects" to="/">
             {t`Projects`}
@@ -115,9 +164,22 @@ function StudyPage() {
           <Link key="project" to="/projects/$projectId" params={{ projectId: s.project.id }}>
             {projectName}
           </Link>,
+          ...(deep
+            ? [
+                <Link
+                  key="study"
+                  to="."
+                  search={(previous) => ({ ...previous, interview: undefined, turn: undefined })}
+                >
+                  {s.name}
+                </Link>,
+              ]
+            : []),
         ]}
         title={
-          canAct ? (
+          deep ? (
+            <span title={deepTitle}>{deepTitle ?? '…'}</span>
+          ) : canAct ? (
             <InlineEdit
               label={t`Study name`}
               value={s.name}
@@ -154,8 +216,9 @@ function StudyPage() {
             <TabsList aria-label={t`Study phases`}>
               <TabsTrigger value="preparation">{t`1 · Preparation`}</TabsTrigger>
               <TabsTrigger value="fieldwork">{t`2 · Fieldwork`}</TabsTrigger>
-              <TabsTrigger value="enrichment">{t`3 · Enrichment`}</TabsTrigger>
-              <TabsTrigger value="analysis">{t`4 · Analysis`}</TabsTrigger>
+              <TabsTrigger value="lexicon">{t`3 · Lexicon`}</TabsTrigger>
+              <TabsTrigger value="enrichment">{t`4 · Enrichment`}</TabsTrigger>
+              <TabsTrigger value="analysis">{t`5 · Analysis`}</TabsTrigger>
             </TabsList>
           </>
         }
@@ -181,19 +244,47 @@ function StudyPage() {
           </div>
         )}
       </TabsContent>
+      <TabsContent value="lexicon">
+        {s.type !== 'interviews' ? (
+          <p className="text-muted-foreground text-base">{t`The lexicon for this type of study is coming in a later version.`}</p>
+        ) : source.isPending ? (
+          <Skeleton className="h-40 w-full" />
+        ) : canAct ? (
+          <EnrichmentTab studyId={studyId} part="lexicon" />
+        ) : (
+          <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see its interviews.`}</p>
+        )}
+      </TabsContent>
       <TabsContent value="enrichment">
         {s.type !== 'interviews' ? (
           <p className="text-muted-foreground text-base">{t`Enrichment for this type of study is coming in a later version.`}</p>
         ) : source.isPending ? (
           <Skeleton className="h-40 w-full" />
         ) : canAct ? (
-          <EnrichmentTab studyId={studyId} />
+          <EnrichmentTab
+            studyId={studyId}
+            part="cleaning"
+            reviewing={interview ?? null}
+            onReview={(sessionId) => openInterview(sessionId)}
+          />
         ) : (
           <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see its interviews.`}</p>
         )}
       </TabsContent>
       <TabsContent value="analysis">
-        <p className="text-muted-foreground text-base">{t`Analysis of the validated interviews is coming in a later version.`}</p>
+        {s.type !== 'interviews' ? (
+          <p className="text-muted-foreground text-base">{t`Analysis for this type of study is coming in a later version.`}</p>
+        ) : source.isPending ? (
+          <Skeleton className="h-40 w-full" />
+        ) : canAct ? (
+          <AnalysisTab
+            studyId={studyId}
+            open={interview ? { sessionId: interview, segmentId: turn ?? null } : null}
+            onOpen={openInterview}
+          />
+        ) : (
+          <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see its interviews.`}</p>
+        )}
       </TabsContent>
 
       {canDelete ? (

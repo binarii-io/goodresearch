@@ -2,16 +2,27 @@ import { useRender } from '@base-ui/react/use-render'
 import { cn } from 'cn'
 import { ArrowLeftIcon } from 'lucide-react'
 import * as React from 'react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './dropdown-menu'
+
+/** Parents shown in full; the deeper a page, the fewer of the first ones show. */
+const SHOWN_CRUMBS = 2
 
 /**
  * Bar at the top of a page, across the whole content column (spec 003, FR-012): square back
  * button, title as a breadcrumb (parents greyed and clickable, current page in bold), controls on
- * the right (tabs, phases, folder). `back` takes the router's link.
+ * the right (tabs, phases, folder). `back` takes the router's link. Past two parents, the first
+ * ones fold into "…", a menu of their links.
  */
 function PageBar({
   back,
   backLabel,
-  crumbs,
+  crumbs = [],
+  foldedLabel,
   title,
   right,
   className,
@@ -19,7 +30,9 @@ function PageBar({
   back?: useRender.RenderProp
   backLabel?: string
   /** Parent pages, as router links with their text. */
-  crumbs?: React.ReactNode[]
+  crumbs?: React.ReactElement[]
+  /** Name of the "…" menu of the folded parents. */
+  foldedLabel?: string
   title: React.ReactNode
   right?: React.ReactNode
   className?: string
@@ -35,6 +48,8 @@ function PageBar({
       children: <ArrowLeftIcon aria-hidden className="size-[18px]" />,
     },
   })
+  const folded = crumbs.slice(0, -SHOWN_CRUMBS)
+  const shown = crumbs.slice(-SHOWN_CRUMBS)
   return (
     <header
       data-slot="page-bar"
@@ -45,9 +60,30 @@ function PageBar({
     >
       {back ? backLink : null}
       <h1 className="flex min-w-0 flex-1 items-center gap-2.5 text-xl leading-tight md:text-[1.35rem]">
-        {crumbs?.map((crumb, index) => (
+        {folded.length > 0 ? (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label={foldedLabel}
+                title={foldedLabel}
+                className="shrink-0 rounded-md px-1 font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                …
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-auto max-w-80">
+                {folded.map((crumb, index) => (
+                  <DropdownMenuItem key={index} render={crumb} />
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <span aria-hidden className="shrink-0 font-normal text-input">
+              ›
+            </span>
+          </>
+        ) : null}
+        {shown.map((crumb, index) => (
           <React.Fragment key={index}>
-            <span className="shrink truncate font-medium text-muted-foreground [&_a:hover]:text-foreground">
+            <span className="shrink truncate font-medium text-muted-foreground [&>a]:block [&>a]:truncate [&_a:hover]:text-foreground">
               {crumb}
             </span>
             <span aria-hidden className="shrink-0 font-normal text-input">

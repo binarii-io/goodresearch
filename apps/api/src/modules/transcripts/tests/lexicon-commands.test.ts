@@ -73,6 +73,52 @@ describe('startRun', () => {
     })
     expect((await s.commands.startRun(ACTOR, 'study', { all: true })).ok).toBe(true)
   })
+
+  it('takes one interview out while it waits or is imported, never after', async () => {
+    const s = setup()
+    const { runId } = value(await s.commands.startRun(ACTOR, 'study', { consent: true }))
+    expect((await s.commands.stopSession(ACTOR, 'study', runId, 'a')).ok).toBe(true)
+    // A second click gives the same answer.
+    expect((await s.commands.stopSession(ACTOR, 'study', runId, 'a')).ok).toBe(true)
+    // "b" is stopped while its transcript is imported: its words are not sent.
+    const read = s.sources.readTranscript
+    s.sources.readTranscript = async (a, st, id) => {
+      if (id === 'b') await s.commands.stopSession(ACTOR, 'study', runId, 'b')
+      return read(a, st, id)
+    }
+    await s.commands.runJob({ runId, studyId: 'study' })
+    expect(s.memory.runs.get(runId)?.sessions).toEqual([
+      { sessionId: 'a', state: 'failed', failure: 'STOPPED' },
+      { sessionId: 'b', state: 'failed', failure: 'STOPPED' },
+      { sessionId: 'c', state: 'done' },
+    ])
+    expect(s.reads).not.toContain('a')
+    expect(s.ai.batches.flat().some((c) => JSON.stringify(c).includes('Gooresearch'))).toBe(false)
+    expect(await s.commands.stopSession(ACTOR, 'study', runId, 'c')).toEqual({
+      ok: false,
+      error: 'TOO_LATE_TO_STOP',
+    })
+    expect(await s.commands.stopSession(ACTOR, 'study', runId, 'other')).toEqual({
+      ok: false,
+      error: 'NOT_FOUND',
+    })
+    // Stopped interviews stay to read.
+    expect(value(await s.commands.estimate(ACTOR.id, 'study', false)).interviews).toBe(2)
+  })
+
+  it('reads one interview again, whatever its state', async () => {
+    const s = setup()
+    await readAll(s)
+    expect(value(await s.commands.estimate(ACTOR.id, 'study', false, 'b')).interviews).toBe(1)
+    const { runId } = value(await s.commands.startRun(ACTOR, 'study', { sessionIds: ['b'] }))
+    expect(s.memory.runs.get(runId)?.sessions.map((x) => x.sessionId)).toEqual(['b'])
+    await s.commands.runJob({ runId, studyId: 'study' })
+    expect(s.memory.runs.get(runId)?.sessions.map((x) => x.state)).toEqual(['done'])
+    expect(await s.commands.startRun(ACTOR, 'study', { sessionIds: ['unknown'] })).toEqual({
+      ok: false,
+      error: 'NOTHING_TO_READ',
+    })
+  })
 })
 
 describe('runJob', () => {

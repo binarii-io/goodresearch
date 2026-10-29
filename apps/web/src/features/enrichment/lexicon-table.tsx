@@ -47,7 +47,7 @@ import {
 } from '@goodresearch/ui/components/table'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { toast } from 'sonner'
 import { errorMessage } from '../workspace/errors.ts'
 import { LANGUAGES, TERM_CATEGORIES, TERM_KINDS, TERM_SCOPES, TERM_STATUSES } from './labels.ts'
@@ -145,6 +145,20 @@ export function LexiconTable({
       .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
 
   const terms = page.data?.terms ?? []
+  const size = page.data?.pageSize ?? 50
+  const pages = Math.max(1, Math.ceil((page.data?.total ?? 0) / size))
+  // A page emptied meanwhile (its last terms decided elsewhere): back to the last page there is.
+  const emptied = !!cursor && !!page.data && page.data.terms.length === 0
+  useEffect(() => {
+    if (emptied) setCursor(pages > 1 ? String((pages - 1) * size) : undefined)
+  }, [emptied, pages, size])
+  // The cursor is the offset of the page.
+  const pageLabel = (offset: number, shown: number, total: number) => {
+    const first = offset + 1
+    const last = offset + shown
+    const current = Math.floor(offset / size) + 1
+    return t`Terms ${first}–${last} of ${total} · page ${current} of ${pages}`
+  }
   const interviewTitle = interviews.find((i) => i.sessionId === session)?.title
 
   return (
@@ -411,19 +425,21 @@ export function LexiconTable({
         </Table>
       )}
       {page.data && (cursor || page.data.next) ? (
-        <div className="flex items-center gap-2">
+        <nav aria-label={t`Pages of the lexicon`} className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             disabled={!cursor}
             onClick={() => {
-              const previous = Number(cursor ?? 0) - 50
+              const previous = Number(cursor ?? 0) - size
               setCursor(previous > 0 ? String(previous) : undefined)
             }}
           >
             {t`Previous`}
           </Button>
-          <span className="text-muted-foreground text-sm">{t`${page.data.total} terms`}</span>
+          <span className="text-muted-foreground text-sm" aria-live="polite">
+            {pageLabel(Number(cursor ?? 0), terms.length, page.data.total)}
+          </span>
           <Button
             variant="outline"
             size="sm"
@@ -432,7 +448,7 @@ export function LexiconTable({
           >
             {t`Next`}
           </Button>
-        </div>
+        </nav>
       ) : null}
 
       <AlertDialog open={confirmAll} onOpenChange={setConfirmAll}>

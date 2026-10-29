@@ -2,14 +2,19 @@ import { ConcurrencyError } from '@goodresearch/shared'
 import { and, eq, sql } from 'drizzle-orm'
 import type { Executor } from '#platform/db.ts'
 import type { StudyRepository } from '../domain/study.repository.ts'
-import { Study, type StudyId, type StudyType } from '../domain/study.ts'
+import { Study, type StudyId, type StudyType, type TextAnalysed } from '../domain/study.ts'
 import { researchStudies } from './schema.ts'
 
 export const drizzleStudyRepository = (tx: Executor): StudyRepository => ({
   findById: async (id) => {
     const [row] = await tx.select().from(researchStudies).where(eq(researchStudies.id, id))
     return row
-      ? Study.fromPersistence({ ...row, id: row.id as StudyId, type: row.type as StudyType })
+      ? Study.fromPersistence({
+          ...row,
+          id: row.id as StudyId,
+          type: row.type as StudyType,
+          textAnalysed: row.textAnalysed as TextAnalysed,
+        })
       : null
   },
 
@@ -20,6 +25,7 @@ export const drizzleStudyRepository = (tx: Executor): StudyRepository => ({
       .set({
         name: p.name,
         anonymised: p.anonymised,
+        textAnalysed: p.textAnalysed,
         updatedAt: p.updatedAt,
         version: sql`${researchStudies.version} + 1`,
       })

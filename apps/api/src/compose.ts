@@ -8,6 +8,11 @@ import {
   registerAssistantRoutes,
 } from './modules/assistant/index.ts'
 import {
+  createEvidenceModule,
+  createFactsAi,
+  registerEvidenceRoutes,
+} from './modules/evidence/index.ts'
+import {
   createAiAnalyzer,
   createIngestionModule,
   registerIngestionRoutes,
@@ -55,6 +60,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
   let ingestion: ReturnType<typeof createIngestionModule> | undefined
   let ai: ReturnType<typeof createAiGatewayModule> | undefined
   let assistant: ReturnType<typeof createAssistantModule> | undefined
+  let evidence: ReturnType<typeof createEvidenceModule> | undefined
   const bound = <T>(module: T | undefined): T => {
     if (!module) throw new Error('module not composed yet')
     return module
@@ -177,8 +183,49 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       }
     },
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
+    // Spec 012: an Analysis run of the study waits for the Enrichment runs, and the reverse.
+    factsLive: (studyId) => bound(evidence).factsLive(studyId),
   })
   const r = research.handlers
+  evidence = createEvidenceModule({
+    db: infra.db,
+    clock,
+    sources: {
+      studyAccess: (accountId, studyId) => research.getStudyAccess(accountId, studyId),
+      sessions: async (accountId, studyId) =>
+        (await enrichment.enrichmentSessions(accountId, studyId))?.sessions ?? null,
+      people: async (accountId, studyId, options) =>
+        (await enrichment.cleaningNames(accountId, studyId, options))?.people ?? null,
+      knownNames: async (accountId, studyId) => [
+        ...(await enrichment.knownNames(accountId, studyId)),
+        ...(await transcripts.personNames(accountId, studyId)),
+      ],
+      analysedText: (accountId, studyId, sessionId, mode, options) =>
+        transcripts.analysedText(accountId, studyId, sessionId, mode, options),
+      importTranscripts: (accountId, studyId, sessionIds) =>
+        transcripts.importTranscripts(accountId, studyId, sessionIds),
+      // The research goal and the guide's theme sections (spec 012 research R12).
+      context: async (accountId, studyId) => {
+        const study = await r.studyQueries.getStudy(accountId, studyId)
+        const project = study ? await r.queries.getProject(accountId, study.project.id) : null
+        const guide = await r.preparationQueries.getGuide(accountId, studyId)
+        const sections = guide.ok && guide.value ? guide.value.content.sections : []
+        return {
+          goal: project?.goal ?? '',
+          themes: sections
+            .filter((s) => s.kind === 'theme')
+            .map((s) => ({ id: s.id, title: s.title })),
+        }
+      },
+      enrichmentLive: (studyId) => transcripts.enrichmentLive(studyId),
+    },
+    ai: createFactsAi({
+      gateway: () => bound(ai).gateway,
+      estimateCost: (...args) => bound(ai).estimateCost(...args),
+      studyCosts: (refs) => bound(ai).studyCosts(refs),
+    }),
+    enqueue: (queue, data, options) => jobs.send(queue, data, options),
+  })
   // Results of research commands, as the assistant reads them (`ok` + id, or an error code).
   const outcome = <T extends object>(
     result: { ok: true; value: T } | { ok: false; error: string },
@@ -266,7 +313,17 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       },
     },
   })
-  return { clock, workspace, research, ingestion, ai, assistant, publishing, transcripts }
+  return {
+    clock,
+    workspace,
+    research,
+    ingestion,
+    ai,
+    assistant,
+    publishing,
+    transcripts,
+    evidence,
+  }
 }
 
 /** Composition root of the HTTP server: modules, auth and routes. */
@@ -276,7 +333,17 @@ export const composeApp = async (
   options: { logger?: boolean; rateLimit?: boolean } = {},
 ) => {
   const modules = composeModules(config, infra)
-  const { clock, workspace, research, ingestion, ai, assistant, publishing, transcripts } = modules
+  const {
+    clock,
+    workspace,
+    research,
+    ingestion,
+    ai,
+    assistant,
+    publishing,
+    transcripts,
+    evidence,
+  } = modules
   const auth = createAuth({
     config,
     db: infra.db,
@@ -298,6 +365,7 @@ export const composeApp = async (
       registerAssistantRoutes(instance, { guard, handlers: assistant.handlers })
       registerPublishingRoutes(instance, { guard, handlers: publishing.handlers })
       registerTranscriptsRoutes(instance, { guard, handlers: transcripts.handlers })
+      registerEvidenceRoutes(instance, { guard, handlers: evidence.handlers })
     },
   })
   return { app, auth, modules }

@@ -1,4 +1,5 @@
 export type { Brand } from './brand.ts'
+export { type Chunk, type ChunkSegment, type ChunkTurn, makeChunks } from './chunks.ts'
 export { type Clock, fixedClock, systemClock } from './clock.ts'
 export {
   BEST_PRACTICES,
@@ -19,6 +20,7 @@ export {
   nameKey,
   normaliseQuote,
   PLACEHOLDER,
+  personName,
   QUOTE_MAX,
   quoteFound,
   type SessionLanguage,
