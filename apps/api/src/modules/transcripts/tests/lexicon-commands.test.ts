@@ -147,6 +147,20 @@ describe('runJob', () => {
     expect(run?.batchesDone).toBe(run?.batchesTotal)
   })
 
+  it('keeps the batch count when the reading is stopped during the AI step', async () => {
+    const ai = fakeAi()
+    const s = setup(DEMO, ai)
+    const { runId } = value(await s.commands.startRun(ACTOR, 'study', { consent: true }))
+    const propose = ai.ai.propose
+    ai.ai.propose = async (...args) => {
+      const answer = await propose(...args)
+      await s.commands.stopRun(ACTOR, 'study', runId)
+      return answer
+    }
+    await s.commands.runJob({ runId, studyId: 'study' })
+    expect((await s.deps.store.getRun(runId))?.batchesDone).toBe(1)
+  })
+
   it('never sends a known name nor a whole transcript', async () => {
     const s = setup()
     await readAll(s)

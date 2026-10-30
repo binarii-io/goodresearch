@@ -67,7 +67,7 @@ export const LexiconRunView = z
     failed: z.number().int(),
     /** Candidates over the limit of a reading (research R4). */
     leftOut: z.number().int(),
-    /** Batches of words sent to the AI, and how many it answered. */
+    /** Batches of words for the AI, and how many were processed, failed ones included. */
     batchesTotal: z.number().int(),
     batchesDone: z.number().int(),
     /** The AI part failed: the interviews were read, some terms may be missing. */

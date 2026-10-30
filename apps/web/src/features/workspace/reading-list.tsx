@@ -48,10 +48,11 @@ export function ReadingList({
   const [open, setOpen] = useState(true)
   return (
     <section aria-label={name} className="grid gap-2 rounded-lg border p-3">
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
         aria-expanded={open}
-        className="flex items-center gap-2 text-left text-sm"
+        className="h-auto min-h-8 justify-start whitespace-normal text-left font-normal"
         onClick={() => setOpen(!open)}
       >
         <ChevronRightIcon
@@ -60,7 +61,7 @@ export function ReadingList({
         />
         <span className="font-medium">{name}</span>
         {summary ? <span className="text-muted-foreground">{summary}</span> : null}
-      </button>
+      </Button>
       {open ? (
         <ul className="grid gap-1">
           {items.map((i) => (

@@ -41,12 +41,21 @@ msgstr "(plus dans le texte)"
 msgid "(none)"
 msgstr "(aucun)"
 
+#. placeholder {0}: run.total
+#. placeholder {1}: run.done + run.failed
+#. placeholder {2}: run.done + run.failed
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "{0, plural, one {{1} of # interview imported} other {{2} of # interviews imported}}"
+msgstr "{0, plural, one {{1} sur # entretien importé} other {{2} sur # entretiens importés}}"
+
 #. placeholder {0}: slide.facts
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0, plural, one {# fact} other {# facts}}"
 msgstr "{0, plural, one {# fait} other {# faits}}"
 
+#. placeholder {0}: run.done
 #. placeholder {0}: slide.interviews
+#: src/features/enrichment/enrichment-tab.tsx
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0, plural, one {# interview} other {# interviews}}"
 msgstr "{0, plural, one {# entretien} other {# entretiens}}"
@@ -215,11 +224,6 @@ msgstr "{0} insights du dernier passage ont été écartés : aucun fait connu, 
 msgid "{0} insights, one call to the AI: about {cost} with your AI provider."
 msgstr "{0} insights, un appel à l'IA : environ {cost} avec votre fournisseur d'IA."
 
-#. placeholder {0}: run.total
-#: src/features/enrichment/enrichment-tab.tsx
-msgid "{0} interviews"
-msgstr "{0} entretiens"
-
 #. placeholder {0}: data.toValidate
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "{0} interviews wait for your decision in Fieldwork: validate them to find their terms here."
@@ -241,13 +245,6 @@ msgstr "{0} entretiens seront lus : jamais lus, ou dont la transcription a chang
 #: src/features/enrichment/cleaning-table.tsx
 msgid "{0} interviews, about {1} parts for the AI: about {cost} with your AI provider."
 msgstr "{0} entretiens, environ {1} morceaux pour l’IA : environ {cost} avec votre fournisseur IA."
-
-#. placeholder {0}: run.total
-#. placeholder {1}: Math.min(run.batchesDone + 1, run.batchesTotal)
-#. placeholder {2}: run.batchesTotal
-#: src/features/enrichment/enrichment-tab.tsx
-msgid "{0} interviews, batch {1} of {2}"
-msgstr "{0} entretiens, lot {1} sur {2}"
 
 #. placeholder {0}: e.interviews
 #: src/features/enrichment/cleaning-table.tsx
@@ -275,12 +272,6 @@ msgstr "{0} participants de plus ont des faits encore à valider."
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{0} more transcripts are in the folder: a study holds at most 500 interviews."
 msgstr "{0} autres transcriptions sont dans le dossier : une étude contient au plus 500 entretiens."
-
-#. placeholder {0}: run.done + run.failed
-#. placeholder {1}: run.total
-#: src/features/enrichment/enrichment-tab.tsx
-msgid "{0} of {1} interviews imported"
-msgstr "{0} entretiens sur {1} importés"
 
 #. placeholder {0}: slide.support
 #. placeholder {1}: slide.panel
@@ -1231,6 +1222,12 @@ msgstr "Retour au nettoyage"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Back to the project"
 msgstr "Retour au projet"
+
+#. placeholder {0}: Math.min(run.batchesDone + 1, run.batchesTotal)
+#. placeholder {1}: run.batchesTotal
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "batch {0} of {1}"
+msgstr "lot {0} sur {1}"
 
 #: src/features/preparation/preparation-tab.tsx
 msgid "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews. Each one can be published to the study's Drive folder: edits made there come back here for review."
@@ -4264,6 +4261,14 @@ msgstr "Préparation"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Preparation for this type of study is coming in a later version."
 msgstr "La préparation de ce type d’étude arrivera dans une prochaine version."
+
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Preparing the terms"
+msgstr "Préparation des termes"
+
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Preparing the terms…"
+msgstr "Préparation des termes…"
 
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Present"

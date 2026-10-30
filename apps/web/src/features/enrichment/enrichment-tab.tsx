@@ -44,6 +44,7 @@ import {
   TableRow,
 } from '@goodresearch/ui/components/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
+import { plural } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -254,11 +255,13 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
         <span className="text-sm">
           {run.phase === 'import'
             ? t`Reading the interviews: ${run.done + run.failed} of ${run.total}`
-            : run.phase === 'ai'
-              ? run.batchesTotal > 0
-                ? t`Finding the terms: batch ${Math.min(run.batchesDone + 1, run.batchesTotal)} of ${run.batchesTotal}`
-                : t`Finding the terms…`
-              : t`Counting the terms…`}
+            : run.phase === 'candidates'
+              ? t`Preparing the terms…`
+              : run.phase === 'ai'
+                ? run.batchesTotal > 0
+                  ? t`Finding the terms: batch ${Math.min(run.batchesDone + 1, run.batchesTotal)} of ${run.batchesTotal}`
+                  : t`Finding the terms…`
+                : t`Counting the terms…`}
         </span>
         <Button
           variant="outline"
@@ -299,8 +302,15 @@ function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment 
   const run = data.run
   if (!run) return null
   const importing = run.phase === 'import'
-  // The interviews stay in the reading after their import: the terms come from all of them.
-  const inProgress = run.phase === 'ai' || run.phase === 'counting'
+  // An imported interview stays in the reading: its words are still on their way to the lexicon.
+  const stepAfterImport =
+    run.phase === 'candidates'
+      ? t`Preparing the terms`
+      : run.phase === 'ai'
+        ? t`Finding the terms`
+        : run.phase === 'counting'
+          ? t`Counting the terms`
+          : null
   const items: ReadingItem[] = data.interviews.flatMap((i) =>
     i.reading === null
       ? []
@@ -309,16 +319,14 @@ function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment 
             sessionId: i.sessionId,
             title: i.title,
             step:
-              i.reading === 'reading' || (i.reading === 'done' && inProgress)
+              i.reading === 'reading' || (i.reading === 'done' && stepAfterImport)
                 ? 'working'
                 : i.reading,
             label:
               i.reading === 'failed' && i.failure === 'STOPPED'
                 ? t`Taken out`
-                : i.reading === 'done' && inProgress
-                  ? run.phase === 'ai'
-                    ? t`Finding the terms`
-                    : t`Counting the terms`
+                : i.reading === 'done' && stepAfterImport
+                  ? stepAfterImport
                   : i18n._(READING_STATES[i.reading]),
             stoppable: importing && (i.reading === 'waiting' || i.reading === 'reading'),
           },
@@ -329,10 +337,19 @@ function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment 
       name={t`Reading in progress`}
       summary={
         run.phase === 'import'
-          ? t`${run.done + run.failed} of ${run.total} interviews imported`
-          : run.phase === 'ai' && run.batchesTotal > 0
-            ? t`${run.total} interviews, batch ${Math.min(run.batchesDone + 1, run.batchesTotal)} of ${run.batchesTotal}`
-            : t`${run.total} interviews`
+          ? plural(run.total, {
+              one: `${run.done + run.failed} of # interview imported`,
+              other: `${run.done + run.failed} of # interviews imported`,
+            })
+          : [
+              // Taken out or failed ones no longer count.
+              plural(run.done, { one: '# interview', other: '# interviews' }),
+              ...(run.phase === 'ai' && run.batchesTotal > 0
+                ? [
+                    t`batch ${Math.min(run.batchesDone + 1, run.batchesTotal)} of ${run.batchesTotal}`,
+                  ]
+                : []),
+            ].join(' · ')
       }
       items={items}
       takeOutLabel={(title) => t`Take out of the reading: ${title}`}

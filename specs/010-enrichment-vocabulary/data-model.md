@@ -77,6 +77,7 @@ New module **transcripts**; tables prefixed `transcripts_`. Migration `0024_enri
 | phase | `import \| candidates \| ai \| counting \| finished` | |
 | stopRequested | boolean | |
 | leftOut | int | candidates over the limit (R4) |
+| batchesTotal, batchesDone | int | batches of words for the AI, and how many were processed, failed ones included (update 2026-10-30) |
 | heartbeatAt, startedAt, finishedAt | | stale after 10 minutes without a heartbeat |
 
 **Failure** values: `FILE_NOT_FOUND`, `DRIVE_NOT_CONNECTED`, `DRIVE_UNAVAILABLE`, `UNREADABLE_FORMAT`, `TOO_LONG`, `NO_TRANSCRIPT`, `INTERRUPTED`, `AI_PROVIDER_REQUIRED`, `AI_FAILED`, `INVALID_ANSWER`.

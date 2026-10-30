@@ -361,18 +361,11 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
         )
     },
 
-    batchAnswered: async (runId, batchesDone, at) => {
+    batchProcessed: async (runId, batchesDone, at) => {
       await db
         .update(transcriptsLexiconRuns)
         .set({ batchesDone, heartbeatAt: at })
-        .where(eq(transcriptsLexiconRuns.id, runId))
-    },
-
-    heartbeat: async (runId, at) => {
-      await db
-        .update(transcriptsLexiconRuns)
-        .set({ heartbeatAt: at })
-        .where(eq(transcriptsLexiconRuns.id, runId))
+        .where(and(eq(transcriptsLexiconRuns.id, runId), isNull(transcriptsLexiconRuns.finishedAt)))
     },
 
     stopRequested: async (runId) => {
