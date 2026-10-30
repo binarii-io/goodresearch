@@ -6,8 +6,8 @@ import { createJobQueue, registerHandlers } from './platform/jobs.ts'
 
 // Background jobs entrypoint: runs the jobs of every module (spec 002: Drive inventories).
 const config = loadConfig(process.env)
-const { db, pool } = createDb(config.databaseUrl)
-const boss = new PgBoss({ connectionString: config.databaseUrl })
+const { db, pool } = createDb(config.databaseUrl, config.databasePoolMax)
+const boss = new PgBoss({ connectionString: config.databaseUrl, max: config.jobsPoolMax })
 boss.on('error', (error) => console.error(error))
 await boss.start()
 

@@ -7,10 +7,15 @@ import { createJobQueue } from './platform/jobs.ts'
 import { createStorage } from './platform/storage.ts'
 
 const config = loadConfig(process.env)
-const { db, pool } = createDb(config.databaseUrl)
+const { db, pool } = createDb(config.databaseUrl, config.databasePoolMax)
 const storage = createStorage(config.s3)
 // The server only enqueues jobs; the worker runs them.
-const boss = new PgBoss({ connectionString: config.databaseUrl, supervise: false, schedule: false })
+const boss = new PgBoss({
+  connectionString: config.databaseUrl,
+  max: config.jobsPoolMax,
+  supervise: false,
+  schedule: false,
+})
 boss.on('error', (error) => console.error(error))
 await boss.start()
 

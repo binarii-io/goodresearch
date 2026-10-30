@@ -9,7 +9,7 @@ export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0]
 /** Anything repositories can run queries on: the database or a transaction. */
 export type Executor = Db | Tx
 
-export const createDb = (databaseUrl: string): { db: Db; pool: pg.Pool } => {
-  const pool = new pg.Pool({ connectionString: databaseUrl, max: 10 })
+export const createDb = (databaseUrl: string, max = 10): { db: Db; pool: pg.Pool } => {
+  const pool = new pg.Pool({ connectionString: databaseUrl, max })
   return { db: drizzle(pool, { schema }), pool }
 }
