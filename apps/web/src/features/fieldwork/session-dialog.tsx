@@ -103,6 +103,8 @@ export function SessionDialog({
   /** `consent`: an accepted name needs the editing consent, and renames after it. */
   const [renaming, setRenaming] = useState<false | 'asked' | 'consent'>(false)
   const [renameBusy, setRenameBusy] = useState(false)
+  /** The whole of a decision, between its requests too (`Accept all` makes several). */
+  const [deciding, setDeciding] = useState(false)
   const [choosing, setChoosing] = useState(false)
   const [view, setView] = useState(session)
   const [title, setTitle] = useState(session.title ?? '')
@@ -128,7 +130,8 @@ export function SessionDialog({
     proposals.isPending ||
     analyzer.pending ||
     schedule.pending ||
-    renameBusy
+    renameBusy ||
+    deciding
 
   const refresh = () =>
     Promise.all([
@@ -258,6 +261,7 @@ export function SessionDialog({
     decisions: Parameters<typeof proposals.mutateAsync>[0]['data']['decisions'],
     options: { acceptAll?: boolean } = {},
   ) => {
+    setDeciding(true)
     try {
       let next = dirty ? await save() : view
       // A request carries at most 10 decisions; the order is kept (the name comes last).
@@ -299,6 +303,8 @@ export function SessionDialog({
         await renameFiles(view.id)
     } catch (failure) {
       await fail(failure)
+    } finally {
+      setDeciding(false)
     }
   }
 

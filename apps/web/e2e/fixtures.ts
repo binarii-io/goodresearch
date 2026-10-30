@@ -92,21 +92,19 @@ export const test = base
 export { expect }
 
 /**
- * "Accept all" on the open interview, then closes it: the window stays open until the files are
- * renamed, or until it asks for the editing consent (without that access yet).
+ * "Accept all" on the open interview, then closes it: the window stays open until all its requests
+ * are done, and asks for the editing consent if the renaming needs it.
  */
 export const acceptAllAndClose = async (page: Page) => {
-  const dialog = page.getByRole('dialog')
-  await dialog
+  await page
+    .getByRole('dialog')
     .getByRole('region', { name: 'Analysis' })
     .getByRole('button', { name: 'Accept all' })
     .click()
   const renaming = page.getByRole('dialog', { name: 'Rename the files in Drive' })
-  const named = dialog.getByText('Files named in Drive')
-  await expect(renaming.or(named).first()).toBeVisible({ timeout: 30_000 })
-  if (await renaming.isVisible()) await renaming.getByRole('button', { name: 'Cancel' }).click()
   await expect(async () => {
+    if (await renaming.isVisible()) await renaming.getByRole('button', { name: 'Cancel' }).click()
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 500 })
-  }).toPass({ timeout: 15_000 })
+  }).toPass({ timeout: 30_000 })
 }
