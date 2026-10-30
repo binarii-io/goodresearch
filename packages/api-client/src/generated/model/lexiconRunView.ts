@@ -32,6 +32,16 @@ export interface LexiconRunView {
      * @maximum 9007199254740991
      */
   leftOut: number;
+  /**
+     * @minimum -9007199254740991
+     * @maximum 9007199254740991
+     */
+  batchesTotal: number;
+  /**
+     * @minimum -9007199254740991
+     * @maximum 9007199254740991
+     */
+  batchesDone: number;
   failure: LexiconRunViewFailure;
   startedBy: LexiconRunViewStartedBy;
   finished: boolean;

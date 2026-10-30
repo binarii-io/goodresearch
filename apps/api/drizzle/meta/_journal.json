@@ -274,6 +274,13 @@
       "when": 1793308117513,
       "tag": "0038_debrief_deck",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793354784255,
+      "tag": "0039_square_metal_master",
+      "breakpoints": true
     }
   ]
 }

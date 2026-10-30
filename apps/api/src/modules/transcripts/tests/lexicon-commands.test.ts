@@ -139,6 +139,14 @@ describe('runJob', () => {
     expect(s.ai.refs.every((r) => r === `lexicon-reading:${runId}`)).toBe(true)
   })
 
+  it('counts the batches sent to the AI, so a reading shows where it stands', async () => {
+    const s = setup()
+    const runId = await readAll(s)
+    const run = await s.deps.store.getRun(runId)
+    expect(run?.batchesTotal).toBeGreaterThan(0)
+    expect(run?.batchesDone).toBe(run?.batchesTotal)
+  })
+
   it('never sends a known name nor a whole transcript', async () => {
     const s = setup()
     await readAll(s)

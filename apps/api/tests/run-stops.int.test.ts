@@ -100,6 +100,8 @@ describe('one interview taken out of a reading, on PostgreSQL', () => {
       stopRequested: false,
       stoppedSessions: [],
       leftOut: 0,
+      batchesTotal: 0,
+      batchesDone: 0,
       failure: null,
       startedAt: now,
       heartbeatAt: now,

@@ -215,6 +215,11 @@ msgstr "{0} insights of the last run were left out: no known fact, a name or a p
 msgid "{0} insights, one call to the AI: about {cost} with your AI provider."
 msgstr "{0} insights, one call to the AI: about {cost} with your AI provider."
 
+#. placeholder {0}: run.total
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "{0} interviews"
+msgstr "{0} interviews"
+
 #. placeholder {0}: data.toValidate
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "{0} interviews wait for your decision in Fieldwork: validate them to find their terms here."
@@ -236,6 +241,13 @@ msgstr "{0} interviews will be read: never read, or whose transcript changed in 
 #: src/features/enrichment/cleaning-table.tsx
 msgid "{0} interviews, about {1} parts for the AI: about {cost} with your AI provider."
 msgstr "{0} interviews, about {1} parts for the AI: about {cost} with your AI provider."
+
+#. placeholder {0}: run.total
+#. placeholder {1}: Math.min(run.batchesDone + 1, run.batchesTotal)
+#. placeholder {2}: run.batchesTotal
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "{0} interviews, batch {1} of {2}"
+msgstr "{0} interviews, batch {1} of {2}"
 
 #. placeholder {0}: e.interviews
 #: src/features/enrichment/cleaning-table.tsx
@@ -263,6 +275,12 @@ msgstr "{0} more participants have facts still to validate."
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{0} more transcripts are in the folder: a study holds at most 500 interviews."
 msgstr "{0} more transcripts are in the folder: a study holds at most 500 interviews."
+
+#. placeholder {0}: run.done + run.failed
+#. placeholder {1}: run.total
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "{0} of {1} interviews imported"
+msgstr "{0} of {1} interviews imported"
 
 #. placeholder {0}: slide.support
 #. placeholder {1}: slide.panel
@@ -1741,6 +1759,10 @@ msgid "Counting the interviews to read…"
 msgstr "Counting the interviews to read…"
 
 #: src/features/enrichment/enrichment-tab.tsx
+msgid "Counting the terms"
+msgstr "Counting the terms"
+
+#: src/features/enrichment/enrichment-tab.tsx
 msgid "Counting the terms…"
 msgstr "Counting the terms…"
 
@@ -2431,6 +2453,16 @@ msgid "Finding recommendations…"
 msgstr "Finding recommendations…"
 
 #: src/features/enrichment/enrichment-tab.tsx
+msgid "Finding the terms"
+msgstr "Finding the terms"
+
+#. placeholder {0}: Math.min(run.batchesDone + 1, run.batchesTotal)
+#. placeholder {1}: run.batchesTotal
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Finding the terms: batch {0} of {1}"
+msgstr "Finding the terms: batch {0} of {1}"
+
+#: src/features/enrichment/enrichment-tab.tsx
 msgid "Finding the terms…"
 msgstr "Finding the terms…"
 
@@ -2817,6 +2849,14 @@ msgstr "impact × 2 − effort"
 #: src/features/synthesis/deck-slide.tsx
 msgid "Impact × effort"
 msgstr "Impact × effort"
+
+#: src/features/enrichment/labels.ts
+msgid "Imported"
+msgstr "Imported"
+
+#: src/features/enrichment/labels.ts
+msgid "Importing…"
+msgstr "Importing…"
 
 #. placeholder {0}: f.insights
 #: src/features/synthesis/facts-panel.tsx
@@ -4424,10 +4464,6 @@ msgstr "Reading in progress"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Reading the interviews: {0} of {1}"
 msgstr "Reading the interviews: {0} of {1}"
-
-#: src/features/enrichment/labels.ts
-msgid "Reading…"
-msgstr "Reading…"
 
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Recommendation selected"

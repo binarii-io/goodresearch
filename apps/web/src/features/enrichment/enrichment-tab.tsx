@@ -255,7 +255,9 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
           {run.phase === 'import'
             ? t`Reading the interviews: ${run.done + run.failed} of ${run.total}`
             : run.phase === 'ai'
-              ? t`Finding the terms…`
+              ? run.batchesTotal > 0
+                ? t`Finding the terms: batch ${Math.min(run.batchesDone + 1, run.batchesTotal)} of ${run.batchesTotal}`
+                : t`Finding the terms…`
               : t`Counting the terms…`}
         </span>
         <Button
@@ -297,6 +299,8 @@ function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment 
   const run = data.run
   if (!run) return null
   const importing = run.phase === 'import'
+  // The interviews stay in the reading after their import: the terms come from all of them.
+  const inProgress = run.phase === 'ai' || run.phase === 'counting'
   const items: ReadingItem[] = data.interviews.flatMap((i) =>
     i.reading === null
       ? []
@@ -304,11 +308,18 @@ function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment 
           {
             sessionId: i.sessionId,
             title: i.title,
-            step: i.reading === 'reading' ? 'working' : i.reading,
+            step:
+              i.reading === 'reading' || (i.reading === 'done' && inProgress)
+                ? 'working'
+                : i.reading,
             label:
               i.reading === 'failed' && i.failure === 'STOPPED'
                 ? t`Taken out`
-                : i18n._(READING_STATES[i.reading]),
+                : i.reading === 'done' && inProgress
+                  ? run.phase === 'ai'
+                    ? t`Finding the terms`
+                    : t`Counting the terms`
+                  : i18n._(READING_STATES[i.reading]),
             stoppable: importing && (i.reading === 'waiting' || i.reading === 'reading'),
           },
         ],
@@ -316,6 +327,13 @@ function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment 
   return (
     <ReadingList
       name={t`Reading in progress`}
+      summary={
+        run.phase === 'import'
+          ? t`${run.done + run.failed} of ${run.total} interviews imported`
+          : run.phase === 'ai' && run.batchesTotal > 0
+            ? t`${run.total} interviews, batch ${Math.min(run.batchesDone + 1, run.batchesTotal)} of ${run.batchesTotal}`
+            : t`${run.total} interviews`
+      }
       items={items}
       takeOutLabel={(title) => t`Take out of the reading: ${title}`}
       busy={stopOne.isPending}

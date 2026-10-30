@@ -16,6 +16,8 @@ const run = (over: Partial<LexiconRun> = {}): LexiconRun => ({
   stopRequested: false,
   stoppedSessions: [],
   leftOut: 0,
+  batchesTotal: 0,
+  batchesDone: 0,
   failure: null,
   startedAt: at,
   heartbeatAt: at,

@@ -104,6 +104,10 @@ export const createInMemoryStore = () => {
         stoppedSessions: current?.stoppedSessions ?? run.stoppedSessions,
       })
     },
+    batchAnswered: async (id, batchesDone, at) => {
+      const r = runs.get(id)
+      if (r) runs.set(id, { ...r, batchesDone, heartbeatAt: at })
+    },
     heartbeat: async (id, at) => {
       const r = runs.get(id)
       if (r) runs.set(id, { ...r, heartbeatAt: at })

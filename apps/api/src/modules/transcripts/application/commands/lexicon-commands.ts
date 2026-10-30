@@ -193,6 +193,8 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
       stopRequested: false,
       stoppedSessions: [],
       leftOut: 0,
+      batchesTotal: 0,
+      batchesDone: 0,
       failure: null,
       startedAt: at,
       heartbeatAt: at,
@@ -445,19 +447,28 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     const placeholders = withPlaceholders('', names).names
 
     // 3. The AI, batch after batch, one language per batch.
-    await save({ ...(run as LexiconRun), phase: 'ai', leftOut })
     const byLanguage = new Map<TermLanguage, Candidate[]>()
     for (const c of candidates)
       byLanguage.set(c.language, [...(byLanguage.get(c.language) ?? []), c])
+    const planned = [...byLanguage].map(
+      ([language, group]) =>
+        [
+          language,
+          makeBatches({ candidates: group, segments, knownNames: names, acceptedForms }),
+        ] as const,
+    )
+    await save({
+      ...(run as LexiconRun),
+      phase: 'ai',
+      leftOut,
+      batchesTotal: planned.reduce((total, [, batches]) => total + batches.length, 0),
+      batchesDone: 0,
+    })
     let failure: LexiconFailure | null = null
-    for (const [language, group] of byLanguage) {
+    let answered = 0
+    for (const [language, batches] of planned) {
       if (failure === 'AI_PROVIDER_REQUIRED') break
-      for (const batch of makeBatches({
-        candidates: group,
-        segments,
-        knownNames: names,
-        acceptedForms,
-      })) {
+      for (const batch of batches) {
         if (await stopped()) return
         try {
           const answer = await deps.ai.propose(run.startedBy, runRef(run.id), batch)
@@ -473,9 +484,12 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
           }
           failure = error instanceof AiFailed && error.invalid ? 'INVALID_ANSWER' : 'AI_FAILED'
         }
-        await deps.store.heartbeat(run.id, now())
+        answered++
+        await deps.store.batchAnswered(run.id, answered, now())
       }
     }
+    // The next saves write the whole run: the count stays.
+    run = { ...(run as LexiconRun), batchesDone: answered }
 
     // 4. Occurrences of the team's terms in the study, recounted by the app.
     await save({ ...(run as LexiconRun), phase: 'counting', failure })

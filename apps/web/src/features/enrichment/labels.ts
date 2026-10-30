@@ -21,8 +21,9 @@ export const READING_STATES: Record<
   MessageDescriptor
 > = {
   waiting: msg`Waiting`,
-  reading: msg`Reading…`,
-  done: msg`Read`,
+  reading: msg`Importing…`,
+  // During the reading the tab says "Imported" then what follows; "Read" once all is finished.
+  done: msg`Imported`,
   failed: msg`Failed`,
 }
 
