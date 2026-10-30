@@ -1,6 +1,7 @@
 name: Release image
 
-# Publishes the image to GHCR for each version tag (ADR-0005): ghcr.io/<owner>/<repo>:<version> and :latest.
+# Publishes the image to GHCR for each version tag (ADR-0005): ghcr.io/<owner>/<repo>:<version>.
+# :latest only moves to the highest stable version, never to a prerelease or a backport.
 on:
   push:
     tags: ["v*.*.*"]
@@ -31,4 +32,8 @@ jobs:
             --label org.opencontainers.image.licenses=AGPL-3.0-only \
             -t "$image:$version" -t "$image:latest" .
           docker push "$image:$version"
-          docker push "$image:latest"
+          if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            git fetch --force --tags origin
+            highest="$(git tag --list 'v*.*.*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)"
+            if [ "$TAG" = "$highest" ]; then docker push "$image:latest"; fi
+          fi

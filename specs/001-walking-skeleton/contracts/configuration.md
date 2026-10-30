@@ -7,7 +7,7 @@ All configuration comes from environment variables, validated at boot by `packag
 | `APP_URL` | yes | `https://research.example.org` | public base URL; `https` in production |
 | `AUTH_SECRET` | yes | (32+ random chars) | signs sessions |
 | `DATABASE_URL` | yes | `postgres://…` | |
-| `DATABASE_POOL_MAX`, `JOBS_POOL_MAX` | no (default `10` each) | `5` | connections per process for the app and for the job queue; keep (server instances + workers) × (both) under the database's connection limit |
+| `DATABASE_POOL_MAX`, `JOBS_POOL_MAX` | no (default `10` each) | `5` | connections per process for the app and for the job queue; keep (server instances + workers) × (both), plus 20 for `migrate`, under the database's connection limit |
 | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | yes | | S3-compatible store; `S3_FORCE_PATH_STYLE` (default `false`) |
 | `AUTH_PROVIDERS` | yes (empty = "sign-in not configured" page) | `google` | comma-separated provider keys |
 | `AUTH_<KEY>_DISPLAY_NAME` | per provider | `Google` | shown on the button |

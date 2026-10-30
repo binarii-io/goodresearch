@@ -24,7 +24,7 @@ describe('job queues', () => {
     expect([...queues.keys()].sort()).toEqual(Object.values(QUEUES).sort())
   })
 
-  it('frees a run whose worker died within a minute, instead of at expiry', async () => {
+  it('frees the queue slot of a dead worker within a minute, instead of at expiry', async () => {
     const { boss, queues } = fakeBoss()
     await createQueues(boss)
     for (const [name, options] of queues) {

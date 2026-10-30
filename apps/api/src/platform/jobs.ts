@@ -1,4 +1,4 @@
-import type { PgBoss } from 'pg-boss'
+import type { PgBoss, Queue } from 'pg-boss'
 
 /** Every queue of the app, created by the `migrate` entrypoint. */
 export const QUEUES = {
@@ -36,9 +36,10 @@ export type JobHandler = {
 
 /**
  * A run's job sends a heartbeat while it works: when its worker dies (redeploy, scale-in, crash),
- * pg-boss fails the job within this delay and frees the study or project for a new run, instead
- * of keeping it "running" until expiry. Runs are not retried: they would start over and bill the
- * person's AI provider again; the run shows as interrupted and the person starts it again.
+ * pg-boss fails the job within this delay and frees its `exclusive` slot, instead of holding it
+ * until expiry. The app still sees the run as live until its own stale delay (RUN_STALE_MS, 10 min;
+ * STALE_RUN_MS for inventories, 35 min); a new run can start after that. Runs are not retried: they
+ * would start over and bill the person's AI provider again.
  */
 const RUN_HEARTBEAT_SECONDS = 60
 
@@ -53,7 +54,7 @@ const run = (expireInSeconds: number) =>
 /** A short job safe to run again (a translation overwrites the same texts). */
 const retried = { retryLimit: 1, expireInSeconds: 5 * 60 } as const
 
-const QUEUE_OPTIONS: Readonly<Record<string, { readonly policy?: 'exclusive' } & object>> = {
+const QUEUE_OPTIONS = {
   [QUEUES.inventory]: run(30 * 60),
   [QUEUES.analysis]: run(60 * 60),
   [QUEUES.lexicon]: run(60 * 60),
@@ -64,11 +65,11 @@ const QUEUE_OPTIONS: Readonly<Record<string, { readonly policy?: 'exclusive' } &
   [QUEUES.insightTranslate]: retried,
   [QUEUES.recommendations]: run(30 * 60),
   [QUEUES.takeaways]: run(10 * 60),
-}
+} satisfies Record<string, Omit<Queue, 'name'>>
 
 /** Creates missing queues and brings existing ones to the current settings (creation alone keeps old ones). */
 export const createQueues = async (boss: PgBoss): Promise<void> => {
-  for (const [name, options] of Object.entries(QUEUE_OPTIONS)) {
+  for (const [name, options] of Object.entries<Omit<Queue, 'name'>>(QUEUE_OPTIONS)) {
     await boss.createQueue(name, options)
     const { policy: _policy, ...settings } = options
     await boss.updateQueue(name, settings)

@@ -35,16 +35,16 @@ goodresearch never stores passwords. Any other OpenID Connect provider works the
 
 Health endpoints: `/health` (process up), `/ready` (database and storage reachable).
 
-Images: each version tag publishes `ghcr.io/<owner>/<repository>:<version>` (and `:latest`); deploy a version, not `latest`.
+Images: each version tag publishes `ghcr.io/<owner>/<repository>:<version>`, and `:latest` follows the highest stable version; deploy a version, not `latest`.
 
 ### Deploy on a managed container platform (e.g. Google Cloud)
 
 The same image runs on platforms such as Cloud Run with a managed PostgreSQL and object storage. Keep this repository generic: your instance's settings (project, domain, sizes, secrets) belong in your own deployment repository.
 
 - **Services.** `server` (HTTP, scale on traffic; request timeout above the longest assistant answer, e.g. 15 min), `worker` (no HTTP, a fixed number of always-on instances with CPU always allocated) and `migrate` as a one-off job run before each rollout.
-- **Database.** PostgreSQL 18 on a private network, automated backups and point-in-time recovery on. Each process opens up to `DATABASE_POOL_MAX` + `JOBS_POOL_MAX` connections: size them so (max server instances + workers) × that total stays under the instance's connection limit.
+- **Database.** PostgreSQL 18 on a private network, automated backups and point-in-time recovery on. Each process opens up to `DATABASE_POOL_MAX` + `JOBS_POOL_MAX` connections: size them so (max server instances + workers) × that total, plus 20 for the `migrate` job (it uses the default pools), stays under the instance's connection limit.
 - **Object storage.** Any S3-compatible store; for Google Cloud Storage use `S3_ENDPOINT=https://storage.googleapis.com`, an HMAC key of a service account, `S3_FORCE_PATH_STYLE=true` and `S3_CREATE_BUCKET=false` (create the bucket yourself).
-- **Restarts.** A redeploy or scale-in stops instances within seconds. A run whose worker stops (analysis, cleaning, insights…) is freed within a minute and shows as interrupted: the person starts it again (runs are not retried, so the AI provider is not billed twice). An assistant answer cut off by a restart shows as stopped after 30 minutes. Roll out outside working hours when you can.
+- **Restarts.** A redeploy or scale-in stops instances within seconds. A run whose worker stops (analysis, cleaning, insights…) can be started again after about 10 minutes, 35 for a Drive inventory, once the app sees it as interrupted (runs are not retried, so the AI provider is not billed twice). An assistant answer cut off by a restart shows as stopped after 30 minutes. Roll out outside working hours when you can.
 - **Secrets** through the platform's secret store, mounted as files (`*_FILE`) or variables.
 - **Client IP.** Sign-in rate limiting needs the real client IP: set `TRUSTED_PROXIES` to the address range the platform's proxy connects from (check `request.ip` in the logs on first deploy). Hop counts are not accepted: they let a client forge its address.
 
