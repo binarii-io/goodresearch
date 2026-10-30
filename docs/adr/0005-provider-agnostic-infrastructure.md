@@ -157,6 +157,7 @@ Deployers want to run goodresearch on managed container platforms (Cloud Run fir
 - **Images on GHCR per version tag** (`v*.*.*`): a release workflow pushes `<version>` and `latest`, built with the docker CLI (no extra third-party actions).
 - **Connection pools are configuration** (`DATABASE_POOL_MAX`, `JOBS_POOL_MAX`, default 10 each), so the number of instances can be sized against a managed database's connection limit.
 - **Client IP stays address-based.** `TRUSTED_PROXIES` takes addresses or CIDRs only; Fastify refuses hop counts because they let a direct client forge `X-Forwarded-For`. On a managed platform the deployer sets the range its proxy connects from.
+- **Restarts are expected.** Run queues carry a pg-boss heartbeat (60 s): when a worker dies, its job fails within a minute and frees the study or project, instead of blocking new runs until expiry (up to 2 h). Runs stay at `retryLimit: 0` because a retry starts over and bills the person's AI provider again; making runs resumable is feature work. `migrate` updates existing queues, since creating a queue that exists changes nothing. An assistant answer still streaming 30 minutes after it started is shown as stopped.
 - **Instance settings live outside this repository** (deployer's own infrastructure repository); the README keeps a generic managed-platform guide.
 
 ### Consequences

@@ -34,49 +34,45 @@ export type JobHandler = {
   readonly handle: (data: unknown) => Promise<void>
 }
 
+/**
+ * A run's job sends a heartbeat while it works: when its worker dies (redeploy, scale-in, crash),
+ * pg-boss fails the job within this delay and frees the study or project for a new run, instead
+ * of keeping it "running" until expiry. Runs are not retried: they would start over and bill the
+ * person's AI provider again; the run shows as interrupted and the person starts it again.
+ */
+const RUN_HEARTBEAT_SECONDS = 60
+
+const run = (expireInSeconds: number) =>
+  ({
+    policy: 'exclusive',
+    retryLimit: 0,
+    expireInSeconds,
+    heartbeatSeconds: RUN_HEARTBEAT_SECONDS,
+  }) as const
+
+/** A short job safe to run again (a translation overwrites the same texts). */
+const retried = { retryLimit: 1, expireInSeconds: 5 * 60 } as const
+
+const QUEUE_OPTIONS: Readonly<Record<string, { readonly policy?: 'exclusive' } & object>> = {
+  [QUEUES.inventory]: run(30 * 60),
+  [QUEUES.analysis]: run(60 * 60),
+  [QUEUES.lexicon]: run(60 * 60),
+  [QUEUES.cleaning]: run(120 * 60),
+  [QUEUES.facts]: run(120 * 60),
+  [QUEUES.translate]: retried,
+  [QUEUES.insights]: run(60 * 60),
+  [QUEUES.insightTranslate]: retried,
+  [QUEUES.recommendations]: run(30 * 60),
+  [QUEUES.takeaways]: run(10 * 60),
+}
+
+/** Creates missing queues and brings existing ones to the current settings (creation alone keeps old ones). */
 export const createQueues = async (boss: PgBoss): Promise<void> => {
-  await boss.createQueue(QUEUES.inventory, {
-    policy: 'exclusive',
-    retryLimit: 0,
-    expireInSeconds: 30 * 60,
-  })
-  await boss.createQueue(QUEUES.analysis, {
-    policy: 'exclusive',
-    retryLimit: 0,
-    expireInSeconds: 60 * 60,
-  })
-  await boss.createQueue(QUEUES.lexicon, {
-    policy: 'exclusive',
-    retryLimit: 0,
-    expireInSeconds: 60 * 60,
-  })
-  await boss.createQueue(QUEUES.cleaning, {
-    policy: 'exclusive',
-    retryLimit: 0,
-    expireInSeconds: 120 * 60,
-  })
-  await boss.createQueue(QUEUES.facts, {
-    policy: 'exclusive',
-    retryLimit: 0,
-    expireInSeconds: 120 * 60,
-  })
-  await boss.createQueue(QUEUES.translate, { retryLimit: 1, expireInSeconds: 5 * 60 })
-  await boss.createQueue(QUEUES.insights, {
-    policy: 'exclusive',
-    retryLimit: 0,
-    expireInSeconds: 60 * 60,
-  })
-  await boss.createQueue(QUEUES.insightTranslate, { retryLimit: 1, expireInSeconds: 5 * 60 })
-  await boss.createQueue(QUEUES.recommendations, {
-    policy: 'exclusive',
-    retryLimit: 0,
-    expireInSeconds: 30 * 60,
-  })
-  await boss.createQueue(QUEUES.takeaways, {
-    policy: 'exclusive',
-    retryLimit: 0,
-    expireInSeconds: 10 * 60,
-  })
+  for (const [name, options] of Object.entries(QUEUE_OPTIONS)) {
+    await boss.createQueue(name, options)
+    const { policy: _policy, ...settings } = options
+    await boss.updateQueue(name, settings)
+  }
 }
 
 export const createJobQueue = (boss: PgBoss): JobQueue => ({

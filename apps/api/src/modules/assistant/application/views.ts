@@ -16,11 +16,20 @@ export const proposalView = (p: StoredProposal) => ({
   error: p.error,
 })
 
-export const messageView = (m: StoredMessage, proposals: readonly StoredProposal[]) => ({
+/**
+ * An answer still "streaming" this long after it started lost its server (restart, redeploy) before
+ * it could be saved: it is shown as stopped. Longer than any request timeout a deployment should use.
+ */
+export const ANSWER_LOST_AFTER_MS = 30 * 60_000
+
+export const messageView = (m: StoredMessage, proposals: readonly StoredProposal[], now: Date) => ({
   id: m.id,
   role: m.role,
   text: m.text,
-  status: m.status,
+  status:
+    m.status === 'streaming' && now.getTime() - m.createdAt.getTime() > ANSWER_LOST_AFTER_MS
+      ? ('stopped' as const)
+      : m.status,
   failure: m.failure,
   proposals: proposals
     .filter((p) => p.messageId === m.id && p.state !== 'invalid')

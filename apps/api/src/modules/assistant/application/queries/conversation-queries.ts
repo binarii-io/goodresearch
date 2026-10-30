@@ -21,7 +21,7 @@ export const makeConversationQueries = (deps: AssistantDeps) => ({
     return {
       id: conversation.id,
       title: conversation.title,
-      messages: messages.map((m) => messageView(m, proposals)),
+      messages: messages.map((m) => messageView(m, proposals, deps.clock.now())),
       // Unknown as soon as one call has no price, rather than a total that looks complete.
       cost: {
         currency: 'USD' as const,
