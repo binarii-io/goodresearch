@@ -1,4 +1,5 @@
 import {
+  deletePlannedInterview,
   type Fieldwork,
   getGetFieldworkQueryKey,
   getListPlannedInterviewsQueryKey,
@@ -301,11 +302,16 @@ export function useAddToSchedule(studyId: string) {
         studyId,
         data: { ...entry, role: '', status: 'done', notes: '' },
       })
-      const next = await link.mutateAsync({
-        sessionId: s.id,
-        data: { plannedInterviewId: created.id, version: s.version },
-      })
-      return next
+      try {
+        return await link.mutateAsync({
+          sessionId: s.id,
+          data: { plannedInterviewId: created.id, version: s.version },
+        })
+      } catch (failure) {
+        // The new row without its interview would be added again at the next try.
+        await deletePlannedInterview(created.id).catch(() => undefined)
+        throw failure
+      }
     } catch (failure) {
       toast.error(errorMessage(i18n, failure))
       return null

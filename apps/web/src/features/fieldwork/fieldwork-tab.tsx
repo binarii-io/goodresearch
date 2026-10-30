@@ -2,6 +2,7 @@ import {
   type Fieldwork,
   getGetFieldworkQueryKey,
   getGetStudySourceQueryKey,
+  getListPlannedInterviewsQueryKey,
   type Session,
   useDecideSession,
   useGetFieldwork,
@@ -64,6 +65,7 @@ import {
   useAnalyzeOne,
 } from './analysis.tsx'
 import { SESSION_STATES, SUGGESTION_RULES } from './labels.ts'
+import { takeRenameAfterConsent, useQuietRename } from './proposals.tsx'
 import { SessionDialog } from './session-dialog.tsx'
 
 const ALL = '__all__'
@@ -314,6 +316,12 @@ function Interviews({
   })
   const analyzer = useAnalyzeOne(studyId)
   const schedule = useAddToSchedule(studyId)
+  const quietRename = useQuietRename(studyId)
+  // Back from the editing consent: the renaming that needed it goes on.
+  useEffect(() => {
+    const sessionId = takeRenameAfterConsent()
+    if (sessionId) void quietRename(sessionId)
+  })
   const link = useLinkSession()
   const decide = useDecideSession()
   const [state, setState] = useState<string>(ALL)
@@ -368,7 +376,12 @@ function Interviews({
         sessionId: s.id,
         data: { decision: on ? 'validate' : 'reopen', version: s.version },
       })
-      .then(() => queryClient.invalidateQueries({ queryKey: getGetFieldworkQueryKey(studyId) }))
+      .then(() =>
+        Promise.all([
+          queryClient.invalidateQueries({ queryKey: getGetFieldworkQueryKey(studyId) }),
+          queryClient.invalidateQueries({ queryKey: getListPlannedInterviewsQueryKey(studyId) }),
+        ]),
+      )
       .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
 
   /** One row per interview: name, people, files, planned interview, state and action. */

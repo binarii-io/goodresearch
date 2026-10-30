@@ -73,7 +73,7 @@ The person opens the interview (pencil) and reviews each proposal: accept, edit 
 
 ### User Story 3 - Rename the files in Drive (Priority: P2)
 
-Once the name of an interview is accepted, the person activates "Rename in Drive". The transcript and its recordings get the same base name, followed by their kind (`Transcript`, `Video`, `Audio`). The result is shown file by file.
+Once the name of an interview is accepted, its files are renamed in Drive (update 2026-10-30: at once, FR-027). The transcript and its recordings get the same base name, followed by their kind (`Transcript`, `Video`, `Audio`). The result is shown file by file.
 
 **Why this priority**: A clear folder in Drive is what the team uses outside the app; but the analysis is useful even without renaming.
 
@@ -82,7 +82,7 @@ Once the name of an interview is accepted, the person activates "Rename in Drive
 **Acceptance Scenarios**:
 
 1. **Given** an accepted name, **When** the name is accepted, **Then** the files are renamed at once, with no confirmation; "Rename in Drive" on the name's row lists each file left with its current and new name (update 2026-10-30).
-2. **Given** the person can edit the files in Drive, **When** they confirm, **Then** each file is renamed, its extension kept; the interview keeps its files and decisions.
+2. **Given** the person can edit the files in Drive, **When** the name is accepted, **Then** each file is renamed, its extension kept; the interview keeps its files and decisions.
 3. **Given** a file the person cannot edit, or a rename that fails, **When** the renaming ends, **Then** the failed files are listed with the reason, the others stay renamed, and the person can retry the failed ones.
 4. **Given** two files of the interview that would get the same name (two videos), **When** the names are built, **Then** they are numbered (`Video 1`, `Video 2`).
 5. **Given** a file renamed in Drive by someone else meanwhile, **When** the person confirms, **Then** the new name is still applied and the confirmation showed the name read last.
@@ -160,13 +160,13 @@ The analysis points to other files of the folder that seem to belong to the inte
 - **FR-018**: The link suggestion (spec 008 FR-005) MUST first compare the interviewees found in the transcript (accepted, else proposed and not rejected) with the planned interviewees, by name words, a unique best match only, then the file name, then the date (the interview date when known, else the file's). This comparison is done by the app; the schedule is never sent to an AI provider.
 - **FR-019**: On each row, "To decide (X)" MUST open the interview with its proposals (FR-020).
 - **FR-020**: Every interview MUST wait for a person: an interview found with its transcript is proposed, not validated by the app (this replaces spec 008 FR-002c; interviews validated by the app so far go back to "to decide"). The state column MUST show three states (plus excluded): "Proposed" while the interview is not analyzed, "To decide (X)" once it is analyzed, X being the open proposals plus the planned interview to link or add (opening it MUST open the interview's validation window), and "Validated" once a person turned the switch on. The "Validated" switch is off until a person turns it on.
-- **FR-021**: In the validation window, the planned interview MUST be shown as a proposal card like the others: the planned interview as the schedule shows it (person, date, interviewers, status), where the suggestion comes from, and the actions (accept the suggestion, change it, or add the interview to the schedule). Update 2026-10-30: while proposals are open, the window\'s main action at the bottom is "Accept all" instead of "Validate", which appears once they are decided.
+- **FR-021**: In the validation window, the planned interview MUST be shown as a proposal card like the others: the planned interview as the schedule shows it (person, date, interviewers, status), where the suggestion comes from, and the actions (accept the suggestion, change it, or add the interview to the schedule). Update 2026-10-30: while proposals are open, the window's main action at the bottom is "Accept all" instead of "Validate", which appears once they are decided.
 - **FR-022**: An interview and its linked planned interview MUST share who was interviewed, who interviewed and the date: a person's change on one side (accepting or editing a proposal, editing the people, editing the schedule, a change accepted from Drive) MUST be written on the other through its own rules and version check. The schedule keeps its status, role and notes; the interview keeps its member links and files. An interview a person decided is not changed by the schedule. Proposals not accepted never change the schedule.
 - **FR-023**: A file whose beginning (from 1,000 characters on) has no speaker turns and no timestamps is a summary, not a transcript: the analysis MUST NOT call the AI for it, and the app MUST exclude the interview with the reason "a summary, not a transcript"; a person can reopen it.
 - **FR-024**: A failed AI call without counted tokens MUST cost nothing in the totals (a failure after the answer records its tokens); only a stopped answer stays of unknown cost.
 - **FR-025**: For a Google document, the invited people of its meeting notes (another tab) MUST complete the first names found in its transcript into full names, when exactly one invited person matches.
 - **FR-026**: "Analyze interviews" MUST offer to analyze again the interviews already analyzed (not decided by a person); the count and the most it can cost follow the choice, and decided proposals are kept.
-- **FR-027**: Accepting or changing the name of an interview MUST rename its files in Drive at once, with no confirmation (update 2026-10-30). A window shows only for the editing consent the first time; files that cannot be renamed are reported in a short message and stay on the name's row (FR-028).
+- **FR-027**: Accepting or changing the name of an interview MUST rename its files in Drive at once, with no confirmation (update 2026-10-30). A window shows only for the editing consent the first time, after which the renaming goes on by itself; files that cannot be renamed are reported in a short message and stay on the name's row (FR-028).
 - **FR-028**: Once a name is accepted, its row MUST show whether the files in Drive (as the last inventory saw them) carry it: "Files named in Drive", or "Rename in Drive (N)" with N the files whose name differs — a file renamed in Drive afterwards shows again after the next refresh.
 - **FR-016**: All texts MUST exist in English and French; the new buttons, dialogs and settings MUST meet WCAG 2.2 AA.
 

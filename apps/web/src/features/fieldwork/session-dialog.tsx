@@ -1,17 +1,13 @@
 import {
   type Fieldwork,
   getGetFieldworkQueryKey,
-  getGetRenamePlanQueryKey,
   getListPlannedInterviewsQueryKey,
-  getRenamePlan,
-  renameSessionFiles,
   type Session,
   useDecideProposals,
   useDecideSession,
   useEditSession,
   useLinkSession,
   useListPlannedInterviews,
-  useUpdatePlannedInterview,
 } from '@goodresearch/api-client'
 import {
   AlertDialog,
@@ -63,6 +59,7 @@ import {
   ProposalCard,
   Proposals,
   RenameDialog,
+  useQuietRename,
 } from './proposals.tsx'
 
 type Person = {
@@ -99,7 +96,7 @@ export function SessionDialog({
   const link = useLinkSession()
   const edit = useEditSession()
   const decide = useDecideSession()
-  const markDone = useUpdatePlannedInterview()
+  const quietRename = useQuietRename(studyId)
   const proposals = useDecideProposals()
   const analyzer = useAnalyzeOne(studyId)
   const schedule = useAddToSchedule(studyId)
@@ -156,38 +153,17 @@ export function SessionDialog({
     if (fresh) await took(fresh)
   }
 
-  /**
-   * An accepted name reaches the files in Drive with no window (FR-027): one shows only for the
-   * editing consent. What cannot be renamed stays on the name's row, which says why.
-   */
+  /** An accepted name reaches the files in Drive with no window, but for the editing consent. */
   const renameFiles = async (sessionId: string) => {
     setRenameBusy(true)
-    try {
-      const plan = await getRenamePlan(sessionId)
-      if (!plan.writeAccess) return setRenaming(true)
-      const differing = plan.files.filter((f) => f.current !== f.next)
-      const fileIds = differing.filter((f) => f.canEdit).map((f) => f.fileId)
-      const results = fileIds.length
-        ? (await renameSessionFiles(sessionId, { fileIds })).results
-        : []
-      if (fileIds.length < differing.length || results.some((r) => r.outcome !== 'renamed'))
-        toast.warning(
-          t`Some files could not be renamed in Drive: use “Rename in Drive” to see why.`,
-        )
-      await queryClient.invalidateQueries({ queryKey: getGetRenamePlanQueryKey(sessionId) })
-      // Only the version and the files changed: what the person is typing stays.
-      const key = getGetFieldworkQueryKey(studyId)
-      await queryClient.refetchQueries({ queryKey: key })
-      const fresh = queryClient
-        .getQueryData<Fieldwork>(key)
-        ?.sessions.find((s) => s.id === sessionId)
-      if (fresh) setView(fresh)
-    } catch (failure) {
-      if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED') setRenaming(true)
-      else toast.error(errorMessage(i18n, failure))
-    } finally {
-      setRenameBusy(false)
-    }
+    const outcome = await quietRename(sessionId)
+    if (outcome === 'consent') setRenaming(true)
+    // Only the version and the files changed: what the person is typing stays.
+    const fresh = queryClient
+      .getQueryData<Fieldwork>(getGetFieldworkQueryKey(studyId))
+      ?.sessions.find((s) => s.id === sessionId)
+    if (fresh) setView(fresh)
+    setRenameBusy(false)
   }
 
   /** Someone changed it meanwhile: show the session as it now is, so the next action works. */
@@ -259,7 +235,7 @@ export function SessionDialog({
   const run = async (decision: 'validate' | 'exclude' | 'reopen') => {
     try {
       const current = proposed && dirty ? await save() : view
-      const next = await took(
+      await took(
         await decide.mutateAsync({
           sessionId: view.id,
           data: {
@@ -270,10 +246,7 @@ export function SessionDialog({
         }),
       )
       setExcluding(false)
-      // FR-009: validating marks the planned interview done, with no question.
-      if (decision === 'validate' && next.link && next.link.status !== 'done')
-        await markPlannedDone(next)
-      else if (decision !== 'reopen') onClose()
+      if (decision !== 'reopen') onClose()
     } catch (failure) {
       await fail(failure)
     }
@@ -298,16 +271,19 @@ export function SessionDialog({
       // "Accept all" also settles the planned interview: the suggestion, or a new row (FR-017).
       if (options.acceptAll && !next.link) {
         if (next.suggestion) {
-          next = await took(
-            await link.mutateAsync({
-              sessionId: view.id,
-              data: {
-                plannedInterviewId: next.suggestion.plannedInterviewId,
-                version: next.version,
-                confirmSuggestion: true,
-              },
-            }),
-          )
+          const plannedInterviewId = next.suggestion.plannedInterviewId
+          // A failed link never stops the renaming: the proposals are already accepted.
+          try {
+            next = await took(
+              await link.mutateAsync({
+                sessionId: view.id,
+                data: { plannedInterviewId, version: next.version, confirmSuggestion: true },
+              }),
+            )
+          } catch (failure) {
+            if (errorCode(failure) === 'PLANNED_INTERVIEW_LINKED') setMoving(plannedInterviewId)
+            else await fail(failure)
+          }
         } else {
           const added = await schedule.add(next)
           if (added) next = await took(added)
@@ -332,29 +308,6 @@ export function SessionDialog({
     }
     const next = await analyzer.analyze(view)
     if (next) await took(next)
-  }
-
-  const markPlannedDone = async (validated: Session) => {
-    const row = planned.data?.find((p) => p.id === validated.link?.plannedInterviewId)
-    if (!row) return onClose()
-    try {
-      await markDone.mutateAsync({
-        plannedInterviewId: row.id,
-        data: {
-          interviewee: row.interviewee,
-          role: row.role,
-          interviewers: row.interviewers,
-          scheduledAt: row.scheduledAt,
-          status: 'done',
-          notes: row.notes,
-          version: row.version,
-        },
-      })
-      await refresh()
-    } catch (failure) {
-      await fail(failure)
-    }
-    onClose()
   }
 
   /** A planned interview as the schedule shows it: person, date, interviewers, status. */
@@ -768,7 +721,7 @@ export function SessionDialog({
               {/* Validating comes once the proposals are decided, not before them. */}
               {openProposals > 0 ? (
                 <Button
-                  disabled={busy}
+                  disabled={busy || unnamed}
                   onClick={() =>
                     void decideProposals(acceptAllDecisions(view), { acceptAll: true })
                   }

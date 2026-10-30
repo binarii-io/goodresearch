@@ -29,6 +29,19 @@ export const makePlannedSync = (deps: IngestionDeps) => ({
     deps.log.warn({ sessionId: s.id }, 'schedule not updated from its interview')
   },
 
+  /** After a person validated an interview: its planned interview is done (spec 008 FR-009). */
+  markDone: async (actor: Actor, s: Session): Promise<void> => {
+    if (!s.plannedInterviewId) return
+    for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+      const planned = (await deps.schedule.list(actor.id, s.studyId))?.find(
+        (p) => p.id === s.plannedInterviewId,
+      )
+      if (!planned || planned.status === 'done') return
+      if (await deps.schedule.update(actor, s.studyId, planned.id, { status: 'done' })) return
+    }
+    deps.log.warn({ sessionId: s.id }, 'planned interview not marked done')
+  },
+
   /** After a planned interview changed: its interview takes the same values (unless decided). */
   plannedChanged: async (
     _actor: Actor,

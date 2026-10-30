@@ -2,7 +2,9 @@ import {
   type DecideProposalsDecisionsItem,
   getGetFieldworkQueryKey,
   getGetRenamePlanQueryKey,
+  getRenamePlan,
   type RenameResult,
+  renameSessionFiles,
   type Session,
   type SessionProposal,
   useGetRenamePlan,
@@ -446,8 +448,60 @@ export function Proposals({
   )
 }
 
-/** Goes to Google's consent for editing, then back to the Fieldwork tab (spec 007 flow). */
-const askWriteConsent = (studyId: string) => {
+const RENAME_AFTER_CONSENT = 'goodresearch.renameAfterConsent'
+
+/** The interview to rename once back from the consent, if any; read once. */
+export const takeRenameAfterConsent = (): string | null => {
+  try {
+    const sessionId = globalThis.sessionStorage?.getItem(RENAME_AFTER_CONSENT) ?? null
+    globalThis.sessionStorage?.removeItem(RENAME_AFTER_CONSENT)
+    return sessionId
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Renames what can be, with no window (FR-027). `consent`: editing in Drive is not allowed yet.
+ * What cannot be renamed stays on the name's row, which says why.
+ */
+export function useQuietRename(studyId: string) {
+  const { t, i18n } = useLingui()
+  const queryClient = useQueryClient()
+  return async (sessionId: string): Promise<'done' | 'consent' | 'failed'> => {
+    try {
+      const plan = await getRenamePlan(sessionId)
+      if (!plan.writeAccess) return 'consent'
+      const differing = plan.files.filter((f) => f.current !== f.next)
+      const fileIds = differing.filter((f) => f.canEdit).map((f) => f.fileId)
+      const results = fileIds.length
+        ? (await renameSessionFiles(sessionId, { fileIds })).results
+        : []
+      if (fileIds.length < differing.length || results.some((r) => r.outcome !== 'renamed'))
+        toast.warning(
+          t`Some files could not be renamed in Drive: use “Rename in Drive” to see why.`,
+        )
+      await queryClient.invalidateQueries({ queryKey: getGetRenamePlanQueryKey(sessionId) })
+      await queryClient.refetchQueries({ queryKey: getGetFieldworkQueryKey(studyId) })
+      return 'done'
+    } catch (failure) {
+      if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED') return 'consent'
+      toast.error(errorMessage(i18n, failure))
+      return 'failed'
+    }
+  }
+}
+
+/**
+ * Goes to Google's consent for editing, then back to the Fieldwork tab (spec 007 flow), where the
+ * renaming that needed it goes on.
+ */
+const askWriteConsent = (studyId: string, sessionId: string) => {
+  try {
+    globalThis.sessionStorage?.setItem(RENAME_AFTER_CONSENT, sessionId)
+  } catch {
+    // The person then uses "Rename in Drive".
+  }
   const back = `/studies/${studyId}?phase=fieldwork`
   window.location.assign(
     `/api/sources/google-drive/connect?access=write&returnTo=${encodeURIComponent(back)}`,
@@ -507,7 +561,7 @@ export function RenameDialog({
       ])
       await onRenamed?.()
     } catch (failure) {
-      if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED') return askWriteConsent(studyId)
+      if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED') return askWriteConsent(studyId, session.id)
       toast.error(errorMessage(i18n, failure))
     } finally {
       onBusy?.(false)
@@ -525,7 +579,11 @@ export function RenameDialog({
         {plan.data && !plan.data.writeAccess ? (
           <p className="rounded-md border bg-highlight-soft p-2 text-highlight-soft-foreground text-sm">
             {t`Renaming needs your permission to edit files in Google Drive.`}{' '}
-            <Button size="sm" variant="outline" onClick={() => askWriteConsent(studyId)}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => askWriteConsent(studyId, session.id)}
+            >
               {t`Allow editing in Drive`}
             </Button>
           </p>

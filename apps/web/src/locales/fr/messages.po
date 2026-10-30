@@ -4928,7 +4928,7 @@ msgstr "Petits plus"
 msgid "Some fields are not valid."
 msgstr "Certains champs ne sont pas valides."
 
-#: src/features/fieldwork/session-dialog.tsx
+#: src/features/fieldwork/proposals.tsx
 msgid "Some files could not be renamed in Drive: use “Rename in Drive” to see why."
 msgstr "Certains fichiers n’ont pas pu être renommés dans Drive : utilisez « Renommer dans Drive » pour en voir la raison."
 

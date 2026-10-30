@@ -194,6 +194,27 @@ describe('fieldwork sessions (spec 008)', () => {
     expect(reopened.ok).toBe(true)
   })
 
+  it('US3: validating marks its planned interview done, whichever screen it comes from', async () => {
+    const sam = (await fieldwork()).sessions[1]
+    if (!sam) throw new Error('fixture')
+    const linked = await world.sessions.link({
+      actor: alice,
+      sessionId: sam.id,
+      plannedInterviewId: SAM,
+      version: sam.version,
+    })
+    if (!linked.ok) throw new Error('fixture')
+    const now = (await fieldwork()).sessions[1]
+    await world.sessions.decide({
+      actor: alice,
+      sessionId: sam.id,
+      decision: 'validate',
+      version: now?.version ?? 0,
+    })
+    expect(world.schedules.get('study-1')?.find((p) => p.id === SAM)?.status).toBe('done')
+    expect(world.schedules.get('study-1')?.find((p) => p.id === LEE)?.status).toBe('scheduled')
+  })
+
   it('US3: a stale change is refused with "changed meanwhile"', async () => {
     const sam = (await fieldwork()).sessions[1]
     if (!sam) throw new Error('fixture')
