@@ -1,7 +1,10 @@
 import { randomUUID } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
+import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import pg from 'pg'
 import { PgBoss } from 'pg-boss'
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest'
+import { createDb } from '../src/platform/db.ts'
 import { runMigrations } from '../src/platform/migrations.ts'
 
 /** A role that owns three schemas and nothing else: no CREATE on the database nor on public. */
@@ -59,6 +62,22 @@ describe('migrating with the fewest rights', () => {
     await boss.createQueue('restricted-test')
     expect(await boss.send('restricted-test', {})).not.toBeNull()
     await boss.stop({ graceful: false })
+  })
+
+  it('records the same migrations as the Drizzle migrator it replaces', async () => {
+    const other = `drizzle_${suffix}`
+    await query(adminUrl.toString(), `CREATE DATABASE "${other}"`)
+    const otherUrl = new URL(adminUrl)
+    otherUrl.pathname = `/${other}`
+    const { db, pool } = createDb(otherUrl.toString())
+    await migrate(db, {
+      migrationsFolder: fileURLToPath(new URL('../drizzle', import.meta.url)),
+    })
+    await pool.end()
+    const rows = 'SELECT hash, created_at FROM drizzle.__drizzle_migrations ORDER BY created_at'
+    const theirs = (await query(otherUrl.toString(), rows)).rows
+    await query(adminUrl.toString(), `DROP DATABASE "${other}" WITH (FORCE)`)
+    expect((await query(url.toString(), rows)).rows).toEqual(theirs)
   })
 
   it('applies nothing again, whatever the recorded hashes of older files', async () => {

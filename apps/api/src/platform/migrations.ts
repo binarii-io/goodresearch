@@ -45,7 +45,7 @@ const applyMigrations = async (client: pg.PoolClient): Promise<void> => {
     }
     await client.query('COMMIT')
   } catch (error) {
-    await client.query('ROLLBACK')
+    await client.query('ROLLBACK').catch(() => undefined)
     throw error
   }
 }

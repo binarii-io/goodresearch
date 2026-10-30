@@ -52,6 +52,11 @@ describe('loadConfig', () => {
     expect(config.jobsPoolMax).toBe(10)
   })
 
+  it('has the worker listen only when PORT is set', () => {
+    expect(loadConfig(valid).workerHealthPort).toBeNull()
+    expect(loadConfig({ ...valid, PORT: '8080' }).workerHealthPort).toBe(8080)
+  })
+
   it('sizes the connection pools', () => {
     const config = loadConfig({ ...valid, DATABASE_POOL_MAX: '4', JOBS_POOL_MAX: '2' })
     expect(config.databasePoolMax).toBe(4)

@@ -4,7 +4,8 @@ import { createServer, type Server } from 'node:http'
 export const startHealthServer = (port: number): Promise<Server> =>
   new Promise((resolve, reject) => {
     const server = createServer((request, response) => {
-      const ok = request.method === 'GET' && request.url === '/health'
+      const path = (request.url ?? '').split('?')[0]
+      const ok = (request.method === 'GET' || request.method === 'HEAD') && path === '/health'
       response.writeHead(ok ? 200 : 404, { 'content-type': 'application/json' })
       response.end(JSON.stringify(ok ? { status: 'ok' } : { error: 'not found' }))
     })
