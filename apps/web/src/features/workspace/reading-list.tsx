@@ -35,7 +35,7 @@ export function ReadingList({
 }: {
   /** The section's title, also its accessible name. */
   name: string
-  /** Where the whole reading stands: stays visible when the list is folded. */
+  /** Where the whole reading stands, when known: stays visible when the list is folded. */
   summary?: string
   items: readonly ReadingItem[]
   /** The take-out button's accessible name for an interview. */

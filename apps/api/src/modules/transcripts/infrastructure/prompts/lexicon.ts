@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { AiProviderRequired, type Gateway, ProviderCallError } from '../../../ai-gateway/index.ts'
+import {
+  AiProviderRequired,
+  type Gateway,
+  isAuthorisationFailure,
+  ProviderCallError,
+} from '../../../ai-gateway/index.ts'
 import { AiFailed, AiUnavailable, type LexiconAi } from '../../application/ports.ts'
 import type { Batch } from '../../domain/excerpts.ts'
 
@@ -109,6 +114,9 @@ export const createLexiconAi = (ai: {
       return object.terms
     } catch (error) {
       if (error instanceof AiProviderRequired) throw new AiUnavailable()
+      // Access refused: the next batches would fail the same way, the reading stops asking.
+      if (error instanceof ProviderCallError && isAuthorisationFailure(error.failure))
+        throw new AiUnavailable()
       // An answer that came back (tokens counted) but does not fit the schema.
       if (error instanceof ProviderCallError) throw new AiFailed(error.usage !== null)
       throw new AiFailed(false)

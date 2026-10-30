@@ -149,7 +149,13 @@ describe('runJob', () => {
 
   it('keeps the batch count when the reading is stopped during the AI step', async () => {
     const ai = fakeAi()
-    const s = setup(DEMO, ai)
+    // More rare words than one batch holds.
+    const rare = Array.from(
+      { length: 40 },
+      (_, i) =>
+        `qzx${String.fromCharCode(97 + (i % 26))}${String.fromCharCode(97 + Math.floor(i / 26))}qz`,
+    )
+    const s = setup([session('a', `Sam Example: ${rare.join(' ')}.`)], ai)
     const { runId } = value(await s.commands.startRun(ACTOR, 'study', { consent: true }))
     const propose = ai.ai.propose
     ai.ai.propose = async (...args) => {
@@ -158,7 +164,10 @@ describe('runJob', () => {
       return answer
     }
     await s.commands.runJob({ runId, studyId: 'study' })
-    expect((await s.deps.store.getRun(runId))?.batchesDone).toBe(1)
+    const run = await s.deps.store.getRun(runId)
+    expect(run?.batchesTotal).toBe(2)
+    expect(run?.batchesDone).toBe(1)
+    expect(run?.finishedAt).not.toBeNull()
   })
 
   it('never sends a known name nor a whole transcript', async () => {

@@ -42,8 +42,8 @@ msgid "(none)"
 msgstr "(aucun)"
 
 #. placeholder {0}: run.total
-#. placeholder {1}: run.done + run.failed
-#. placeholder {2}: run.done + run.failed
+#. placeholder {1}: run.done
+#. placeholder {2}: run.done
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "{0, plural, one {{1} of # interview imported} other {{2} of # interviews imported}}"
 msgstr "{0, plural, one {{1} sur # entretien importé} other {{2} sur # entretiens importés}}"

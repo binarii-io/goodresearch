@@ -50,7 +50,7 @@ export type LexiconRun = {
   readonly stoppedSessions: readonly string[]
   /** Candidates over the limit (research R4). */
   readonly leftOut: number
-  /** Batches of words for the AI, and how many were processed, failed ones included. */
+  /** Batches of words for the AI, and how many were processed, failed ones included; a refused access stops before the rest. */
   readonly batchesTotal: number
   readonly batchesDone: number
   /** A failure of the AI part: the interviews were read, some terms may be missing. */

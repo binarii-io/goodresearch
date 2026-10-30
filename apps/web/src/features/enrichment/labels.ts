@@ -22,7 +22,7 @@ export const READING_STATES: Record<
 > = {
   waiting: msg`Waiting`,
   reading: msg`Importing…`,
-  // During the reading the tab says "Imported" then what follows; "Read" once all is finished.
+  // After its import, the tab says where the interview's words are (preparing, finding, counting).
   done: msg`Imported`,
   failed: msg`Failed`,
 }
