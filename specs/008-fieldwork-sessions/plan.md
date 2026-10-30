@@ -87,7 +87,7 @@ docs/domain/context-map.md (Passation, Session states), apps/api README (ingesti
    - reconcile inside `completeInventory`; discard on attach and detach;
    - list query; the Fieldwork tab with the source panel moved, the summary and the list.
 3. **US2 links** (P1): link suggestion (test-first) in the list query; link command with "move"; planned interviews without a session; the column in the schedule.
-4. **US3 decisions** (P1): validate, exclude, reopen; edit media, title and roster with prefill from the link; "file missing in Drive"; the offer to mark the planned interview done.
+4. **US3 decisions** (P1): validate, exclude, reopen; edit media, title and roster with prefill from the link; "file missing in Drive"; marking the planned interview done when validating.
 5. **Polish**: FR « Passation » and catalogs; docs (context map, ingestion README, spec 002 note on the moved panel); e2e + axe; update the existing e2e that expects the Analysis tab.
 
 ## Complexity Tracking

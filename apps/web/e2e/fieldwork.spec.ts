@@ -83,8 +83,6 @@ test.describe('spec 008 — the interviews found in the study folder', () => {
     await expect(dialog.getByRole('checkbox', { name: /Interview Sam Example\.mp4/ })).toBeChecked()
     await expectAccessible(page)
     await dialog.getByRole('button', { name: 'Validate' }).click()
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Mark done' }).click()
-    await expect(page.getByText('Marked done in the schedule')).toBeVisible()
     await expect(interviews.getByText('1 validated · 4 proposed')).toBeVisible()
 
     // Exclude another one, then bring it back to review.

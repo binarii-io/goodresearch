@@ -13,6 +13,8 @@ export type ScheduleChange = {
   readonly interviewee?: string
   readonly interviewers?: string
   readonly scheduledAt?: string
+  /** Validating an interview marks its planned interview done (spec 008 FR-009). */
+  readonly status?: 'done'
 }
 
 const names = (s: Session, role: RosterEntry['role']) =>

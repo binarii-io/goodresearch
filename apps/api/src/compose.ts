@@ -123,7 +123,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
             role: row.role,
             interviewers: change.interviewers ?? row.interviewers,
             scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
-            status: row.status,
+            status: change.status ?? row.status,
             notes: row.notes,
           },
           version: row.version,

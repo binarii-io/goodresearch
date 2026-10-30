@@ -1,4 +1,5 @@
 import {
+  deletePlannedInterview,
   type Fieldwork,
   getGetFieldworkQueryKey,
   getListPlannedInterviewsQueryKey,
@@ -289,7 +290,7 @@ export const scheduleEntryOf = (s: Session) => {
 
 /** "Add to the schedule": a planned interview, done, made from the interview, then linked to it. */
 export function useAddToSchedule(studyId: string) {
-  const { t, i18n } = useLingui()
+  const { i18n } = useLingui()
   const queryClient = useQueryClient()
   const add = useAddPlannedInterview()
   const link = useLinkSession()
@@ -301,12 +302,16 @@ export function useAddToSchedule(studyId: string) {
         studyId,
         data: { ...entry, role: '', status: 'done', notes: '' },
       })
-      const next = await link.mutateAsync({
-        sessionId: s.id,
-        data: { plannedInterviewId: created.id, version: s.version },
-      })
-      toast.success(t`Added to the schedule`)
-      return next
+      try {
+        return await link.mutateAsync({
+          sessionId: s.id,
+          data: { plannedInterviewId: created.id, version: s.version },
+        })
+      } catch (failure) {
+        // The new row without its interview would be added again at the next try.
+        await deletePlannedInterview(created.id).catch(() => undefined)
+        throw failure
+      }
     } catch (failure) {
       toast.error(errorMessage(i18n, failure))
       return null

@@ -86,6 +86,15 @@ describe('fieldwork sessions (spec 008)', () => {
     expect(view.unmatchedMedia).toEqual([])
   })
 
+  it('US1: keeps the order of the list when a file is renamed in Drive', async () => {
+    const before = await fieldwork()
+    const sam = before.sessions[1]?.transcript
+    if (!sam) throw new Error('fixture')
+    await world.store.renameFile('study-1', sam.fileId, 'Renamed.txt', '2030-01-01T00:00:00.000Z')
+    const after = await fieldwork()
+    expect(after.sessions.map((s) => s.id)).toEqual(before.sessions.map((s) => s.id))
+  })
+
   it('US2: suggests the planned interview by name, then by date, and lists those without one', async () => {
     const view = await fieldwork()
     const [two, sam] = view.sessions
@@ -183,6 +192,78 @@ describe('fieldwork sessions (spec 008)', () => {
       version: excluded?.version ?? 0,
     })
     expect(reopened.ok).toBe(true)
+  })
+
+  it('US3: validating marks its planned interview done, whichever screen it comes from', async () => {
+    const sam = (await fieldwork()).sessions[1]
+    if (!sam) throw new Error('fixture')
+    const linked = await world.sessions.link({
+      actor: alice,
+      sessionId: sam.id,
+      plannedInterviewId: SAM,
+      version: sam.version,
+    })
+    if (!linked.ok) throw new Error('fixture')
+    const now = (await fieldwork()).sessions[1]
+    await world.sessions.decide({
+      actor: alice,
+      sessionId: sam.id,
+      decision: 'validate',
+      version: now?.version ?? 0,
+    })
+    expect(world.schedules.get('study-1')?.find((p) => p.id === SAM)?.status).toBe('done')
+    expect(world.schedules.get('study-1')?.find((p) => p.id === LEE)?.status).toBe('scheduled')
+  })
+
+  it('US3: validating keeps a planned interview cancelled on the schedule', async () => {
+    const rows = world.schedules.get('study-1') ?? []
+    world.schedules.set(
+      'study-1',
+      rows.map((p) => (p.id === SAM ? { ...p, status: 'cancelled' as const } : p)),
+    )
+    const sam = (await fieldwork()).sessions[1]
+    if (!sam) throw new Error('fixture')
+    await world.sessions.link({
+      actor: alice,
+      sessionId: sam.id,
+      plannedInterviewId: SAM,
+      version: sam.version,
+    })
+    await world.sessions.decide({
+      actor: alice,
+      sessionId: sam.id,
+      decision: 'validate',
+      version: (await fieldwork()).sessions[1]?.version ?? 0,
+    })
+    expect(world.schedules.get('study-1')?.find((p) => p.id === SAM)?.status).toBe('cancelled')
+  })
+
+  it('US3: a schedule that fails does not undo a validation', async () => {
+    const sam = (await fieldwork()).sessions[1]
+    if (!sam) throw new Error('fixture')
+    const linked = await world.sessions.link({
+      actor: alice,
+      sessionId: sam.id,
+      plannedInterviewId: SAM,
+      version: sam.version,
+    })
+    if (!linked.ok) throw new Error('fixture')
+    const version = (await fieldwork()).sessions[1]?.version ?? 0
+    const save = world.store.saveSession.bind(world.store)
+    world.store.saveSession = async (...args) => {
+      const saved = await save(...args)
+      world.schedules.get = () => {
+        throw new Error('schedule down')
+      }
+      return saved
+    }
+    const done = await world.sessions.decide({
+      actor: alice,
+      sessionId: sam.id,
+      decision: 'validate',
+      version,
+    })
+    expect(done.ok).toBe(true)
   })
 
   it('US3: a stale change is refused with "changed meanwhile"', async () => {

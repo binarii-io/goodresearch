@@ -184,7 +184,13 @@ export const makeSessionCommands = (deps: IngestionDeps) => {
       if (!loaded.ok) return loaded
       const next = decide(loaded.value.session, c.decision, c.actor.id, deps.clock.now(), c.reason)
       if (!next.ok) return next
-      return save(next.value, c.version)
+      const saved = await save(next.value, c.version)
+      // The interview is validated whatever happens to its schedule row.
+      if (saved.ok && c.decision === 'validate')
+        await sync.markDone(c.actor, next.value).catch((error: unknown) => {
+          deps.log.warn({ sessionId: c.sessionId, error: String(error) }, 'schedule not reached')
+        })
+      return saved
     },
   }
 }

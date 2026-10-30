@@ -54,7 +54,7 @@
 
 ## R9. Marking the planned interview done
 
-- **Decision**: the web offers it after a validation whose linked planned interview is not "done". It calls research's existing `PUT` for planned interviews (all fields, status "done") with its version. Ingestion never writes research data.
+- **Decision** (update 2026-10-30): the `decide` command marks it done when an interview is validated, from any screen, through the schedule port and the schedule's own command and version check (retried once, logged if it fails). Ingestion never writes research data itself.
 
 ## R10. Moving the source panel
 

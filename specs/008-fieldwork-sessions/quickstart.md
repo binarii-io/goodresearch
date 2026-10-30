@@ -28,7 +28,7 @@ It ships the fake Drive (`DRIVE_FAKE=true`). Its demo folder holds transcripts a
 
 ## Scenario 3: decisions (US3)
 
-1. Validate the linked interview, then accept "Mark the planned interview done": its status becomes Done.
+1. Validate the linked interview: its planned interview becomes Done, with no question.
 2. Exclude another interview with a reason, then refresh: both decisions stay.
 3. Use "Back to review" on the excluded one: it is proposed again.
 
