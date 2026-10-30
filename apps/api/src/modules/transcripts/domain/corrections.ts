@@ -93,7 +93,8 @@ const lexiconMatches = (interview: Interview, terms: readonly LexiconTerm[]): Ma
     return known
   }
   // An acronym matches as written, any other word whatever its case or accents.
-  const byFirstWord = new Map<string, Compiled[]>()
+  const byAcronym = new Map<string, Compiled[]>()
+  const byFolded = new Map<string, Compiled[]>()
   let order = 0
   for (const term of terms) {
     if (!isAccepted(term) || term.category === 'person' || term.language !== interview.language)
@@ -106,10 +107,10 @@ const lexiconMatches = (interview: Interview, terms: readonly LexiconTerm[]): Ma
       })
       const first = wanted[0]
       if (!first) continue
-      const id = `${first.acronym ? 'a' : 'f'}:${first.key}`
-      const list = byFirstWord.get(id) ?? []
+      const index = first.acronym ? byAcronym : byFolded
+      const list = index.get(first.key) ?? []
       list.push({ order: order++, term, spelling, wanted })
-      byFirstWord.set(id, list)
+      index.set(first.key, list)
     }
   }
 
@@ -120,8 +121,8 @@ const lexiconMatches = (interview: Interview, terms: readonly LexiconTerm[]): Ma
     // Where each spelling may match again: its own matches do not overlap.
     const nextFrom = new Map<Compiled, number>()
     for (const [i, word] of all.entries()) {
-      for (const id of [`a:${word.text}`, `f:${foldOf(word.text)}`]) {
-        for (const c of byFirstWord.get(id) ?? []) {
+      for (const index of [byAcronym, byFolded]) {
+        for (const c of index.get(index === byAcronym ? word.text : foldOf(word.text)) ?? []) {
           if ((nextFrom.get(c) ?? 0) > i || i + c.wanted.length > all.length) continue
           const same = c.wanted.every((w, k) => {
             const at = all[i + k]?.text ?? ''
@@ -331,6 +332,21 @@ export const nameCorrections = (
   const usable = patterns
     .filter((p) => p.words.length > 1 || (owners.get(p.words[0] ?? '')?.size ?? 1) <= 1)
     .sort((a, b) => b.words.length - a.words.length)
+  // By first word, the longest first: computed for every interview of a list, in the request.
+  const byFirstWord = new Map<string, NamePattern[]>()
+  for (const p of usable) {
+    const first = p.words[0] ?? ''
+    byFirstWord.set(first, [...(byFirstWord.get(first) ?? []), p])
+  }
+  const foldedWords = new Map<string, string>()
+  const foldOf = (word: string) => {
+    let known = foldedWords.get(word)
+    if (known === undefined) {
+      known = fold(word)
+      foldedWords.set(word, known)
+    }
+    return known
+  }
 
   const make = (
     segment: Segment,
@@ -374,8 +390,11 @@ export const nameCorrections = (
         out.push(make(segment, 'speaker', 0, segment.speaker, hit.label))
     }
     const all = words(segment.text)
+    const folded = all.map((w) => foldOf(w.text))
     for (let i = 0; i < all.length; ) {
-      const hit = usable.find((p) => p.words.every((w, k) => fold(all[i + k]?.text ?? '') === w))
+      const hit = byFirstWord
+        .get(folded[i] ?? '')
+        ?.find((p) => p.words.every((w, k) => folded[i + k] === w))
       const first = all[i]
       const last = hit ? all[i + hit.words.length - 1] : undefined
       if (!hit || !first || !last) {

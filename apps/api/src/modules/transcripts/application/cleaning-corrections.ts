@@ -7,16 +7,17 @@ import {
 import type { Transcript } from '../domain/lexicon-run.ts'
 import type { LexiconTerm } from '../domain/lexicon-term.ts'
 import type { Verdict } from '../domain/occurrences.ts'
+import type { Segment } from '../domain/segments.ts'
 import type { CleaningDeps } from './ports.ts'
 
 /** A stored correction or suggestion still on its turn (the raw version may have changed since). */
 const stillThere = (
-  t: Transcript,
+  segments: ReadonlyMap<string, Segment>,
   c: { segmentId: string; offset: number },
   original?: string,
   target?: string,
 ) => {
-  const segment = t.segments.find((s) => s.id === c.segmentId)
+  const segment = segments.get(c.segmentId)
   if (!segment) return false
   if (original === undefined) return true
   return target === 'speaker'
@@ -68,6 +69,7 @@ export const loadCorrections = async (
             .then((n) => n?.people ?? null),
   ])
   const interview = { sessionId: t.sessionId, language: t.language, segments: t.segments }
+  const segments = new Map(t.segments.map((s) => [s.id, s]))
   const people = names?.[t.sessionId] ?? []
   return {
     terms,
@@ -77,14 +79,15 @@ export const loadCorrections = async (
         interview,
         terms,
         verdicts.filter((v) => v.sessionId === t.sessionId),
-        suggestions.filter((s) => stillThere(t, s)),
+        suggestions.filter((s) => stillThere(segments, s)),
       ),
       ...(input.anonymised
         ? nameCorrections(interview, people, personTerms(terms), decisions)
         : []),
       // An AI name correction is for an anonymised study only (review of PR #11).
       ...stored.filter(
-        (c) => stillThere(t, c, c.original, c.target) && (input.anonymised || c.kind !== 'name'),
+        (c) =>
+          stillThere(segments, c, c.original, c.target) && (input.anonymised || c.kind !== 'name'),
       ),
     ],
   }
