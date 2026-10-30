@@ -139,6 +139,37 @@ describe('runJob', () => {
     expect(s.ai.refs.every((r) => r === `lexicon-reading:${runId}`)).toBe(true)
   })
 
+  it('counts the batches sent to the AI, so a reading shows where it stands', async () => {
+    const s = setup()
+    const runId = await readAll(s)
+    const run = await s.deps.store.getRun(runId)
+    expect(run?.batchesTotal).toBeGreaterThan(0)
+    expect(run?.batchesDone).toBe(run?.batchesTotal)
+  })
+
+  it('keeps the batch count when the reading is stopped during the AI step', async () => {
+    const ai = fakeAi()
+    // More rare words than one batch holds.
+    const rare = Array.from(
+      { length: 40 },
+      (_, i) =>
+        `qzx${String.fromCharCode(97 + (i % 26))}${String.fromCharCode(97 + Math.floor(i / 26))}qz`,
+    )
+    const s = setup([session('a', `Sam Example: ${rare.join(' ')}.`)], ai)
+    const { runId } = value(await s.commands.startRun(ACTOR, 'study', { consent: true }))
+    const propose = ai.ai.propose
+    ai.ai.propose = async (...args) => {
+      const answer = await propose(...args)
+      await s.commands.stopRun(ACTOR, 'study', runId)
+      return answer
+    }
+    await s.commands.runJob({ runId, studyId: 'study' })
+    const run = await s.deps.store.getRun(runId)
+    expect(run?.batchesTotal).toBe(2)
+    expect(run?.batchesDone).toBe(1)
+    expect(run?.finishedAt).not.toBeNull()
+  })
+
   it('never sends a known name nor a whole transcript', async () => {
     const s = setup()
     await readAll(s)

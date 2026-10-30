@@ -100,6 +100,8 @@ describe('one interview taken out of a reading, on PostgreSQL', () => {
       stopRequested: false,
       stoppedSessions: [],
       leftOut: 0,
+      batchesTotal: 0,
+      batchesDone: 0,
       failure: null,
       startedAt: now,
       heartbeatAt: now,
@@ -112,5 +114,11 @@ describe('one interview taken out of a reading, on PostgreSQL', () => {
     expect((await store.getRun(run.id))?.stoppedSessions).toEqual(['b'])
     await store.saveRun({ ...run, phase: 'ai' })
     expect(await store.requestSessionStop(run.id, 'b')).toBe(false)
+    await store.batchProcessed(run.id, 3, now)
+    expect((await store.getRun(run.id))?.batchesDone).toBe(3)
+    await store.saveRun({ ...run, phase: 'finished', batchesDone: 3, finishedAt: now })
+    // A late answer of a run already closed changes nothing.
+    await store.batchProcessed(run.id, 4, now)
+    expect((await store.getRun(run.id))?.batchesDone).toBe(3)
   })
 })

@@ -1,0 +1,2 @@
+ALTER TABLE "transcripts_lexicon_runs" ADD COLUMN "batches_total" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "transcripts_lexicon_runs" ADD COLUMN "batches_done" integer DEFAULT 0 NOT NULL;

@@ -21,8 +21,9 @@ export const READING_STATES: Record<
   MessageDescriptor
 > = {
   waiting: msg`Waiting`,
-  reading: msg`Reading…`,
-  done: msg`Read`,
+  reading: msg`Importing…`,
+  // After its import, the tab says where the interview's words are (preparing, finding, counting).
+  done: msg`Imported`,
   failed: msg`Failed`,
 }
 

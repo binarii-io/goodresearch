@@ -33,7 +33,7 @@ In « 4 · Analysis », the person sees the validated interviews of the study an
 2. **Given** an interview, **When** the AI reads it, **Then** it reads the analysed text (FR-002) in full, in parts of about 60 turns that overlap by a few turns, with the guide's theme sections and the study's research goal, and the names the app knows replaced by placeholders.
 3. **Given** a verbatim proposed by the AI, **When** it comes back, **Then** the app keeps it only if its text is found in that turn, the turn is spoken by an interviewee, and it is within the length limits; otherwise it is dropped and counted as "left out".
 4. **Given** the verbatims of an interview, **When** they are grouped, **Then** each fact has a neutral statement without any person's name, a polarity (positive, negative, neutral), a theme (a theme section of the guide, or "Other") and one or more verbatims of that interview; a verbatim may support more than one fact, and a verbatim no fact uses stays listed as "unused".
-5. **Given** a reading in progress, **When** the person looks at the tab, **Then** each interview shows waiting, verbatims (part X of Y), facts, done or failed (with its reason), and the run can be stopped; what was found is kept.
+5. **Given** a reading in progress, **When** the person looks at the tab, **Then** each interview shows waiting, verbatims (part X of Y), facts, done or failed (with its reason), the list can be folded (update 2026-10-30), and the run can be stopped; what was found is kept.
 6. **Given** a reading, **When** it ends, **Then** its cost is shown on the Analysis tab (this run and the study total) and on each interview's row, and recorded in the usage ledger.
 
 ---

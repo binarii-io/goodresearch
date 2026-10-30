@@ -44,6 +44,7 @@ import {
   TableRow,
 } from '@goodresearch/ui/components/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
+import { plural, t } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -254,9 +255,13 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
         <span className="text-sm">
           {run.phase === 'import'
             ? t`Reading the interviews: ${run.done + run.failed} of ${run.total}`
-            : run.phase === 'ai'
-              ? t`Finding the terms…`
-              : t`Counting the terms…`}
+            : run.phase === 'candidates'
+              ? t`Preparing the terms…`
+              : run.phase === 'ai'
+                ? run.batchesTotal > 0
+                  ? t`Finding the terms: batch ${Math.min(run.batchesDone + 1, run.batchesTotal)} of ${run.batchesTotal}`
+                  : t`Finding the terms…`
+                : t`Counting the terms…`}
         </span>
         <Button
           variant="outline"
@@ -286,6 +291,15 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
   )
 }
 
+/** An imported interview stays in the reading: where its words are, on their way to the lexicon. */
+function afterImport(run: Enrichment['run']): string | null {
+  if (!run || run.finished) return null
+  if (run.phase === 'candidates') return t`Preparing the terms`
+  if (run.phase === 'ai') return t`Finding the terms`
+  if (run.phase === 'counting') return t`Counting the terms`
+  return null
+}
+
 /**
  * Where a reading stands, interview by interview. While the transcripts are imported, one can be
  * taken out; after that their words go to the AI together, and only the whole reading stops.
@@ -297,6 +311,7 @@ function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment 
   const run = data.run
   if (!run) return null
   const importing = run.phase === 'import'
+  const stepAfterImport = afterImport(run)
   const items: ReadingItem[] = data.interviews.flatMap((i) =>
     i.reading === null
       ? []
@@ -304,11 +319,16 @@ function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment 
           {
             sessionId: i.sessionId,
             title: i.title,
-            step: i.reading === 'reading' ? 'working' : i.reading,
+            step:
+              i.reading === 'reading' || (i.reading === 'done' && stepAfterImport)
+                ? 'working'
+                : i.reading,
             label:
               i.reading === 'failed' && i.failure === 'STOPPED'
                 ? t`Taken out`
-                : i18n._(READING_STATES[i.reading]),
+                : i.reading === 'done' && stepAfterImport
+                  ? stepAfterImport
+                  : i18n._(READING_STATES[i.reading]),
             stoppable: importing && (i.reading === 'waiting' || i.reading === 'reading'),
           },
         ],
@@ -316,6 +336,22 @@ function ReadingProgress({ studyId, data }: { studyId: string; data: Enrichment 
   return (
     <ReadingList
       name={t`Reading in progress`}
+      summary={
+        run.phase === 'import'
+          ? plural(run.total, {
+              one: `${run.done} of # interview imported`,
+              other: `${run.done} of # interviews imported`,
+            })
+          : [
+              // Taken out or failed ones no longer count.
+              plural(run.done, { one: '# interview', other: '# interviews' }),
+              ...(run.phase === 'ai' && run.batchesTotal > 0
+                ? [
+                    t`batch ${Math.min(run.batchesDone + 1, run.batchesTotal)} of ${run.batchesTotal}`,
+                  ]
+                : []),
+            ].join(' · ')
+      }
       items={items}
       takeOutLabel={(title) => t`Take out of the reading: ${title}`}
       busy={stopOne.isPending}
@@ -504,6 +540,7 @@ function Interviews({
   onTerms: (sessionId: string) => void
 }) {
   const { t, i18n } = useLingui()
+  const step = afterImport(data.run)
   const day = new Intl.DateTimeFormat(i18n.locale, { dateStyle: 'medium' })
   // One dialog for the table, for the interview whose row asked for it.
   const [one, setOne] = useState<{ sessionId: string; title: string } | null>(null)
@@ -555,6 +592,11 @@ function Interviews({
                       <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
                     )}
                     {i18n._(READING_STATES[i.reading])}
+                  </span>
+                ) : i.reading === 'done' && step ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm">
+                    <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
+                    {step}
                   </span>
                 ) : i.state === 'to-decide' ? (
                   <Button variant="outline" size="xs" onClick={() => onTerms(i.sessionId)}>

@@ -128,7 +128,8 @@ export type TranscriptsStore = {
   openRun(studyId: string): Promise<LexiconRun | null>
   /** Writes the run while it is not finished: a finished run is never opened again. */
   saveRun(run: LexiconRun): Promise<void>
-  heartbeat(runId: string, at: Date): Promise<void>
+  /** One more batch processed; it also counts as a heartbeat. Never reopens a finished run. */
+  batchProcessed(runId: string, batchesDone: number, at: Date): Promise<void>
   /** A person asked to stop it, or it was finished elsewhere (replaced as stale). */
   stopRequested(runId: string): Promise<boolean>
   requestStop(runId: string): Promise<void>

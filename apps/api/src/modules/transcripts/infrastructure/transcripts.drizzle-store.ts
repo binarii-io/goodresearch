@@ -93,6 +93,8 @@ const runValues = (r: LexiconRun) => ({
   sessions: r.sessions.map((s) => ({ ...s })),
   phase: r.phase,
   leftOut: r.leftOut,
+  batchesTotal: r.batchesTotal,
+  batchesDone: r.batchesDone,
   failure: r.failure,
   heartbeatAt: r.heartbeatAt,
   finishedAt: r.finishedAt,
@@ -359,11 +361,11 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
         )
     },
 
-    heartbeat: async (runId, at) => {
+    batchProcessed: async (runId, batchesDone, at) => {
       await db
         .update(transcriptsLexiconRuns)
-        .set({ heartbeatAt: at })
-        .where(eq(transcriptsLexiconRuns.id, runId))
+        .set({ batchesDone, heartbeatAt: at })
+        .where(and(eq(transcriptsLexiconRuns.id, runId), isNull(transcriptsLexiconRuns.finishedAt)))
     },
 
     stopRequested: async (runId) => {

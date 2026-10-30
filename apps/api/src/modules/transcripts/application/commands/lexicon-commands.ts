@@ -193,6 +193,8 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
       stopRequested: false,
       stoppedSessions: [],
       leftOut: 0,
+      batchesTotal: 0,
+      batchesDone: 0,
       failure: null,
       startedAt: at,
       heartbeatAt: at,
@@ -445,10 +447,19 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     const placeholders = withPlaceholders('', names).names
 
     // 3. The AI, batch after batch, one language per batch.
-    await save({ ...(run as LexiconRun), phase: 'ai', leftOut })
     const byLanguage = new Map<TermLanguage, Candidate[]>()
     for (const c of candidates)
       byLanguage.set(c.language, [...(byLanguage.get(c.language) ?? []), c])
+    await save({
+      ...(run as LexiconRun),
+      phase: 'ai',
+      leftOut,
+      batchesTotal: [...byLanguage.values()].reduce(
+        (total, group) => total + Math.ceil(group.length / BATCH_SIZE),
+        0,
+      ),
+      batchesDone: 0,
+    })
     let failure: LexiconFailure | null = null
     for (const [language, group] of byLanguage) {
       if (failure === 'AI_PROVIDER_REQUIRED') break
@@ -473,7 +484,10 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
           }
           failure = error instanceof AiFailed && error.invalid ? 'INVALID_ANSWER' : 'AI_FAILED'
         }
-        await deps.store.heartbeat(run.id, now())
+        // Kept on the run too: a stop or the next phase writes the whole run.
+        const batchesDone: number = (run as LexiconRun).batchesDone + 1
+        run = { ...(run as LexiconRun), batchesDone }
+        await deps.store.batchProcessed(run.id, batchesDone, now())
       }
     }
 

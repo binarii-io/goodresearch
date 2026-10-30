@@ -7627,6 +7627,16 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "batchesTotal": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "batchesDone": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "failure": {
             "anyOf": [
               {
@@ -7683,6 +7693,8 @@
           "done",
           "failed",
           "leftOut",
+          "batchesTotal",
+          "batchesDone",
           "failure",
           "startedBy",
           "finished"
@@ -18474,6 +18486,16 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "batchesTotal": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "batchesDone": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "failure": {
             "anyOf": [
               {
@@ -18531,6 +18553,8 @@
           "done",
           "failed",
           "leftOut",
+          "batchesTotal",
+          "batchesDone",
           "failure",
           "startedBy",
           "finished"

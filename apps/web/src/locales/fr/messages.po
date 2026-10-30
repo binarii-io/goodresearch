@@ -41,12 +41,21 @@ msgstr "(plus dans le texte)"
 msgid "(none)"
 msgstr "(aucun)"
 
+#. placeholder {0}: run.total
+#. placeholder {1}: run.done
+#. placeholder {2}: run.done
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "{0, plural, one {{1} of # interview imported} other {{2} of # interviews imported}}"
+msgstr "{0, plural, one {{1} sur # entretien importé} other {{2} sur # entretiens importés}}"
+
 #. placeholder {0}: slide.facts
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0, plural, one {# fact} other {# facts}}"
 msgstr "{0, plural, one {# fait} other {# faits}}"
 
+#. placeholder {0}: run.done
 #. placeholder {0}: slide.interviews
+#: src/features/enrichment/enrichment-tab.tsx
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0, plural, one {# interview} other {# interviews}}"
 msgstr "{0, plural, one {# entretien} other {# entretiens}}"
@@ -1214,6 +1223,12 @@ msgstr "Retour au nettoyage"
 msgid "Back to the project"
 msgstr "Retour au projet"
 
+#. placeholder {0}: Math.min(run.batchesDone + 1, run.batchesTotal)
+#. placeholder {1}: run.batchesTotal
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "batch {0} of {1}"
+msgstr "lot {0} sur {1}"
+
 #: src/features/preparation/preparation-tab.tsx
 msgid "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews. Each one can be published to the study's Drive folder: edits made there come back here for review."
 msgstr "Avant les entretiens : construire le guide d’entretien à partir de l’objectif de recherche, relire les bonnes pratiques, puis planifier les entretiens. Chacun peut être publié dans le dossier Drive de l’étude : les modifications faites là-bas reviennent ici pour être revues."
@@ -1739,6 +1754,10 @@ msgstr "Décompte des entretiens à nettoyer…"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Counting the interviews to read…"
 msgstr "Calcul des entretiens à lire…"
+
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Counting the terms"
+msgstr "Comptage des termes"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Counting the terms…"
@@ -2431,6 +2450,16 @@ msgid "Finding recommendations…"
 msgstr "Recherche de recommandations…"
 
 #: src/features/enrichment/enrichment-tab.tsx
+msgid "Finding the terms"
+msgstr "Recherche des termes"
+
+#. placeholder {0}: Math.min(run.batchesDone + 1, run.batchesTotal)
+#. placeholder {1}: run.batchesTotal
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Finding the terms: batch {0} of {1}"
+msgstr "Recherche des termes : lot {0} sur {1}"
+
+#: src/features/enrichment/enrichment-tab.tsx
 msgid "Finding the terms…"
 msgstr "Recherche des termes…"
 
@@ -2817,6 +2846,14 @@ msgstr "impact × 2 − effort"
 #: src/features/synthesis/deck-slide.tsx
 msgid "Impact × effort"
 msgstr "Impact × effort"
+
+#: src/features/enrichment/labels.ts
+msgid "Imported"
+msgstr "Importé"
+
+#: src/features/enrichment/labels.ts
+msgid "Importing…"
+msgstr "Import en cours…"
 
 #. placeholder {0}: f.insights
 #: src/features/synthesis/facts-panel.tsx
@@ -4225,6 +4262,14 @@ msgstr "Préparation"
 msgid "Preparation for this type of study is coming in a later version."
 msgstr "La préparation de ce type d’étude arrivera dans une prochaine version."
 
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Preparing the terms"
+msgstr "Préparation des termes"
+
+#: src/features/enrichment/enrichment-tab.tsx
+msgid "Preparing the terms…"
+msgstr "Préparation des termes…"
+
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Present"
 msgstr "Présenter"
@@ -4424,10 +4469,6 @@ msgstr "Lecture en cours"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Reading the interviews: {0} of {1}"
 msgstr "Lecture des entretiens : {0} sur {1}"
-
-#: src/features/enrichment/labels.ts
-msgid "Reading…"
-msgstr "Lecture…"
 
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Recommendation selected"

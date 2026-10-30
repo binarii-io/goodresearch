@@ -15,7 +15,7 @@ All routes need a session (sign-in) and follow the study's access rules (spec 00
   }[],
   toValidate: number,             // sessions of the study not validated yet
   counts: { read, toDecide, accepted },
-  run: { id, phase, total, done, failed, leftOut, startedBy: {id, name} } | null,
+  run: { id, phase, total, done, failed, leftOut, batchesTotal, batchesDone, startedBy: {id, name} } | null,
   lastRunCost: number | null, cost: number | null,   // USD, every account
   consentNeeded: boolean, anonymised: boolean
 }

@@ -109,6 +109,8 @@ export const transcriptsLexiconRuns = pgTable(
     stopRequested: boolean('stop_requested').notNull().default(false),
     stoppedSessions: jsonb('stopped_sessions').$type<string[]>().notNull().default([]),
     leftOut: integer('left_out').notNull().default(0),
+    batchesTotal: integer('batches_total').notNull().default(0),
+    batchesDone: integer('batches_done').notNull().default(0),
     failure: text('failure'),
     startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
     heartbeatAt: timestamp('heartbeat_at', { withTimezone: true }).notNull(),

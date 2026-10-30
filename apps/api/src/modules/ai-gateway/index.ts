@@ -9,5 +9,6 @@ export {
   type ToolSpec,
 } from './application/ports.ts'
 export type { AiFailure } from './domain/failure.ts'
+export { isAuthorisationFailure } from './domain/failure.ts'
 export { registerAiRoutes } from './infrastructure/http.routes.ts'
 export { createAiGatewayModule } from './infrastructure/module.ts'

@@ -206,6 +206,8 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
             done: shown.sessions.filter((r) => r.state === 'done').length,
             failed: shown.sessions.filter((r) => r.state === 'failed').length,
             leftOut: shown.leftOut,
+            batchesTotal: shown.batchesTotal,
+            batchesDone: shown.batchesDone,
             failure: shown.failure,
             startedBy: names.has(shown.startedBy)
               ? { id: shown.startedBy, name: names.get(shown.startedBy) ?? '' }
