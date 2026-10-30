@@ -54,7 +54,7 @@ Pure domain functions over the text read, the file names and the linked planned 
 - **Decision**: a pg-boss queue `ingestion.analysis`, policy `exclusive` with the study id as key: one run per study. The run row (`ingestion_analysis_runs`) keeps who started it, the sessions it covers, and `stopRequested`.
   - The worker analyzes 3 sessions at a time, checks `stopRequested` between sessions, and writes each session's analysis state: waiting, analyzing, done, failed with a reason.
   - A stale run (no progress for 10 minutes) can be replaced.
-  - **One row** ("Analyze" on a row) runs in the HTTP request: the app's rules plus at most one AI call, under the provider timeout. It is refused while a run covers that session.
+  - **One row** ("Analyze" on a row) runs in the HTTP request: the app's rules plus at most one AI call, under a time limit of 2 minutes (update 2026-10-30: long transcripts hit the default limit of 15 seconds, reported as `UNREACHABLE`; the person waits on the row for that long at most). It is refused while a run covers that session.
 - **Rationale**: same pattern as the inventory (spec 002); a request per row keeps the single-row action immediate.
 
 ## R7 — Writing the analysis without losing a person's change (FR-008, edge cases)
