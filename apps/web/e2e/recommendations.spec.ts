@@ -1,5 +1,6 @@
 import {
   ADMIN,
+  acceptAllAndClose,
   createProject,
   ensureHome,
   expect,
@@ -42,15 +43,7 @@ test.describe('spec 014 — Recommendations and key takeaways', () => {
     const sam = interviews.getByRole('row', { name: /Interview Sam Example/ })
     await expect(sam.getByText(/Analyzed · \$/)).toBeVisible({ timeout: 30_000 })
     await sam.getByRole('button', { name: 'Review Interview Sam Example' }).click()
-    await page
-      .getByRole('dialog')
-      .getByRole('region', { name: 'Analysis' })
-      .getByRole('button', { name: 'Accept all' })
-      .click()
-    // Read access only: once all is accepted, the window asks for the editing consent.
-    const renaming = page.getByRole('dialog', { name: 'Rename the files in Drive' })
-    await renaming.getByRole('button', { name: 'Cancel' }).click()
-    await page.keyboard.press('Escape')
+    await acceptAllAndClose(page)
     const validated = interviews.getByRole('switch', {
       name: 'Validated: 2026-10-20 – Sam Example – Lee Example',
     })
