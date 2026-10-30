@@ -12,7 +12,7 @@ CREATE TABLE "transcripts_verdicts" (
 --> statement-breakpoint
 ALTER TABLE "transcripts_lexicon_terms" ADD COLUMN "scope" text DEFAULT 'global' NOT NULL;--> statement-breakpoint
 ALTER TABLE "transcripts_lexicon_terms" ADD COLUMN "scope_decided" boolean DEFAULT false NOT NULL;--> statement-breakpoint
-ALTER TABLE "transcripts_verdicts" ADD CONSTRAINT "transcripts_verdicts_term_id_transcripts_lexicon_terms_id_fk" FOREIGN KEY ("term_id") REFERENCES "public"."transcripts_lexicon_terms"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "transcripts_verdicts" ADD CONSTRAINT "transcripts_verdicts_term_id_transcripts_lexicon_terms_id_fk" FOREIGN KEY ("term_id") REFERENCES "transcripts_lexicon_terms"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "transcripts_verdicts_study_idx" ON "transcripts_verdicts" USING btree ("study_id");--> statement-breakpoint
 -- Foreign keys to another module: in SQL only (docs/standards.md §6).
 ALTER TABLE "transcripts_verdicts" ADD CONSTRAINT "transcripts_verdicts_session_fk" FOREIGN KEY ("session_id") REFERENCES "ingestion_sessions"("id") ON DELETE CASCADE;--> statement-breakpoint

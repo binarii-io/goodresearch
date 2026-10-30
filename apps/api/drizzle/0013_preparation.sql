@@ -23,8 +23,8 @@ CREATE TABLE "research_planned_interviews" (
 	"version" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "research_interview_guides" ADD CONSTRAINT "research_interview_guides_study_id_research_studies_id_fk" FOREIGN KEY ("study_id") REFERENCES "public"."research_studies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "research_interview_guides" ADD CONSTRAINT "research_interview_guides_updated_by_auth_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."auth_users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "research_planned_interviews" ADD CONSTRAINT "research_planned_interviews_study_id_research_studies_id_fk" FOREIGN KEY ("study_id") REFERENCES "public"."research_studies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "research_planned_interviews" ADD CONSTRAINT "research_planned_interviews_created_by_auth_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."auth_users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "research_interview_guides" ADD CONSTRAINT "research_interview_guides_study_id_research_studies_id_fk" FOREIGN KEY ("study_id") REFERENCES "research_studies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "research_interview_guides" ADD CONSTRAINT "research_interview_guides_updated_by_auth_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "auth_users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "research_planned_interviews" ADD CONSTRAINT "research_planned_interviews_study_id_research_studies_id_fk" FOREIGN KEY ("study_id") REFERENCES "research_studies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "research_planned_interviews" ADD CONSTRAINT "research_planned_interviews_created_by_auth_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "auth_users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "research_planned_interviews_study_idx" ON "research_planned_interviews" USING btree ("study_id","scheduled_at");

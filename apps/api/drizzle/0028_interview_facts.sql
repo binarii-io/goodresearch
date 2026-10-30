@@ -84,8 +84,8 @@ CREATE TABLE "evidence_verbatims" (
 );
 --> statement-breakpoint
 ALTER TABLE "research_studies" ADD COLUMN "text_analysed" text DEFAULT 'with-corrections' NOT NULL;--> statement-breakpoint
-ALTER TABLE "evidence_fact_verbatims" ADD CONSTRAINT "evidence_fact_verbatims_fact_id_evidence_facts_id_fk" FOREIGN KEY ("fact_id") REFERENCES "public"."evidence_facts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "evidence_fact_verbatims" ADD CONSTRAINT "evidence_fact_verbatims_verbatim_id_evidence_verbatims_id_fk" FOREIGN KEY ("verbatim_id") REFERENCES "public"."evidence_verbatims"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "evidence_fact_verbatims" ADD CONSTRAINT "evidence_fact_verbatims_fact_id_evidence_facts_id_fk" FOREIGN KEY ("fact_id") REFERENCES "evidence_facts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "evidence_fact_verbatims" ADD CONSTRAINT "evidence_fact_verbatims_verbatim_id_evidence_verbatims_id_fk" FOREIGN KEY ("verbatim_id") REFERENCES "evidence_verbatims"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "evidence_fact_verbatims_verbatim_idx" ON "evidence_fact_verbatims" USING btree ("verbatim_id");--> statement-breakpoint
 CREATE INDEX "evidence_facts_session_idx" ON "evidence_facts" USING btree ("session_id");--> statement-breakpoint
 CREATE INDEX "evidence_facts_study_idx" ON "evidence_facts" USING btree ("study_id","status");--> statement-breakpoint

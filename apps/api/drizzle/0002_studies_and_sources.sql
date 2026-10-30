@@ -68,7 +68,7 @@ CREATE TABLE "ingestion_study_sources" (
 	"version" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "research_studies" ADD CONSTRAINT "research_studies_project_id_research_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."research_projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "research_studies" ADD CONSTRAINT "research_studies_created_by_auth_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "research_studies" ADD CONSTRAINT "research_studies_project_id_research_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "research_projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "research_studies" ADD CONSTRAINT "research_studies_created_by_auth_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "research_studies_project_updated_idx" ON "research_studies" USING btree ("project_id","updated_at");--> statement-breakpoint
 CREATE INDEX "ingestion_inventory_files_kind_idx" ON "ingestion_inventory_files" USING btree ("study_id","kind");

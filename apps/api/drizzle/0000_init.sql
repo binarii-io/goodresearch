@@ -101,14 +101,14 @@ CREATE TABLE "research_projects" (
 	"version" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "auth_accounts" ADD CONSTRAINT "auth_accounts_user_id_auth_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."auth_users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "auth_sessions" ADD CONSTRAINT "auth_sessions_user_id_auth_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."auth_users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "workspace_access_events" ADD CONSTRAINT "workspace_access_events_actor_id_auth_users_id_fk" FOREIGN KEY ("actor_id") REFERENCES "public"."auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "workspace_access_events" ADD CONSTRAINT "workspace_access_events_subject_id_auth_users_id_fk" FOREIGN KEY ("subject_id") REFERENCES "public"."auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "workspace_team_memberships" ADD CONSTRAINT "workspace_team_memberships_team_id_workspace_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."workspace_teams"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "workspace_team_memberships" ADD CONSTRAINT "workspace_team_memberships_account_id_auth_users_id_fk" FOREIGN KEY ("account_id") REFERENCES "public"."auth_users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "workspace_team_memberships" ADD CONSTRAINT "workspace_team_memberships_granted_by_auth_users_id_fk" FOREIGN KEY ("granted_by") REFERENCES "public"."auth_users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "research_projects" ADD CONSTRAINT "research_projects_created_by_auth_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "auth_accounts" ADD CONSTRAINT "auth_accounts_user_id_auth_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "auth_sessions" ADD CONSTRAINT "auth_sessions_user_id_auth_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workspace_access_events" ADD CONSTRAINT "workspace_access_events_actor_id_auth_users_id_fk" FOREIGN KEY ("actor_id") REFERENCES "auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workspace_access_events" ADD CONSTRAINT "workspace_access_events_subject_id_auth_users_id_fk" FOREIGN KEY ("subject_id") REFERENCES "auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workspace_team_memberships" ADD CONSTRAINT "workspace_team_memberships_team_id_workspace_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "workspace_teams"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workspace_team_memberships" ADD CONSTRAINT "workspace_team_memberships_account_id_auth_users_id_fk" FOREIGN KEY ("account_id") REFERENCES "auth_users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workspace_team_memberships" ADD CONSTRAINT "workspace_team_memberships_granted_by_auth_users_id_fk" FOREIGN KEY ("granted_by") REFERENCES "auth_users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "research_projects" ADD CONSTRAINT "research_projects_created_by_auth_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "auth_accounts_userId_idx" ON "auth_accounts" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "auth_sessions_userId_idx" ON "auth_sessions" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "auth_verifications_identifier_idx" ON "auth_verifications" USING btree ("identifier");--> statement-breakpoint
