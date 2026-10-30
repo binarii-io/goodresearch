@@ -490,8 +490,8 @@ export function SessionDialog({
 
   return (
     // "Accept all" goes on for a few requests, each moving the version: closing in between would
-    // let the list act with the version it read.
-    <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
+    // let the list act with the version it read. Any other action can be left at once.
+    <Dialog open onOpenChange={(open) => !open && !deciding && !renameBusy && onClose()}>
       <DialogContent closeLabel={t`Close`} className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{t`Interview: ${name}`}</DialogTitle>
