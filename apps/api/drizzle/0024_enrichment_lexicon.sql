@@ -64,7 +64,7 @@ CREATE TABLE "transcripts_transcripts" (
 	"imported_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "transcripts_occurrences" ADD CONSTRAINT "transcripts_occurrences_term_id_transcripts_lexicon_terms_id_fk" FOREIGN KEY ("term_id") REFERENCES "public"."transcripts_lexicon_terms"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "transcripts_occurrences" ADD CONSTRAINT "transcripts_occurrences_term_id_transcripts_lexicon_terms_id_fk" FOREIGN KEY ("term_id") REFERENCES "transcripts_lexicon_terms"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "transcripts_lexicon_runs_open_idx" ON "transcripts_lexicon_runs" USING btree ("study_id") WHERE "transcripts_lexicon_runs"."finished_at" is null;--> statement-breakpoint
 CREATE INDEX "transcripts_lexicon_runs_study_idx" ON "transcripts_lexicon_runs" USING btree ("study_id","started_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "transcripts_lexicon_terms_form_idx" ON "transcripts_lexicon_terms" USING btree ("team_id","language","folded_form") WHERE "transcripts_lexicon_terms"."status" <> 'merged';--> statement-breakpoint

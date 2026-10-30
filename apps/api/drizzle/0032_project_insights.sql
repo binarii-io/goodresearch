@@ -60,7 +60,7 @@ CREATE TABLE "synthesis_runs" (
 	"finished_at" timestamp with time zone
 );
 --> statement-breakpoint
-ALTER TABLE "synthesis_insight_facts" ADD CONSTRAINT "synthesis_insight_facts_insight_id_synthesis_insights_id_fk" FOREIGN KEY ("insight_id") REFERENCES "public"."synthesis_insights"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "synthesis_insight_facts" ADD CONSTRAINT "synthesis_insight_facts_insight_id_synthesis_insights_id_fk" FOREIGN KEY ("insight_id") REFERENCES "synthesis_insights"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "synthesis_insight_facts_fact_idx" ON "synthesis_insight_facts" USING btree ("fact_id");--> statement-breakpoint
 CREATE INDEX "synthesis_insights_project_idx" ON "synthesis_insights" USING btree ("project_id","status");--> statement-breakpoint
 CREATE UNIQUE INDEX "synthesis_runs_open_idx" ON "synthesis_runs" USING btree ("project_id") WHERE "synthesis_runs"."finished_at" is null;--> statement-breakpoint

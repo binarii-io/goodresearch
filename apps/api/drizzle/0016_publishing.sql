@@ -37,6 +37,6 @@ CREATE TABLE "publishing_documents" (
 	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "publishing_changes" ADD CONSTRAINT "publishing_changes_publication_id_publishing_documents_id_fk" FOREIGN KEY ("publication_id") REFERENCES "public"."publishing_documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "publishing_changes" ADD CONSTRAINT "publishing_changes_publication_id_publishing_documents_id_fk" FOREIGN KEY ("publication_id") REFERENCES "publishing_documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "publishing_changes_publication_idx" ON "publishing_changes" USING btree ("publication_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "publishing_documents_study_kind_idx" ON "publishing_documents" USING btree ("study_id","kind");

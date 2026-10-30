@@ -2,11 +2,16 @@ import { loadConfig } from '@goodresearch/config'
 import { PgBoss } from 'pg-boss'
 import { composeModules } from './compose.ts'
 import { createDb } from './platform/db.ts'
+import { startHealthServer } from './platform/health-server.ts'
 import { createJobQueue, registerHandlers } from './platform/jobs.ts'
 
 // Background jobs entrypoint: runs the jobs of every module (spec 002: Drive inventories).
 const config = loadConfig(process.env)
 const { db, pool } = createDb(config.databaseUrl, config.databasePoolMax)
+// Platforms that only run HTTP services require a listening port; elsewhere the worker opens none.
+// Before any job is taken: a startup probe or a taken port never costs a job.
+const health =
+  config.workerHealthPort === null ? null : await startHealthServer(config.workerHealthPort)
 const boss = new PgBoss({ connectionString: config.databaseUrl, max: config.jobsPoolMax })
 boss.on('error', (error) => console.error(error))
 await boss.start()
@@ -25,6 +30,7 @@ await registerHandlers(boss, [
 console.log('worker started')
 
 const stop = async () => {
+  health?.close()
   await boss.stop({ graceful: true })
   await pool.end()
   process.exit(0)

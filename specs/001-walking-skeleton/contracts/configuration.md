@@ -20,5 +20,6 @@ All configuration comes from environment variables, validated at boot by `packag
 | `AUTH_SIGN_IN_RATE_LIMIT` | no (default `20`) | `60` | sign-in attempts per client IP and minute (raise it when many people share one IP) |
 | `TRUSTED_PROXIES` | no | `10.0.0.0/8` | client IP resolution behind a proxy |
 | `LOG_LEVEL` | no (default `info`) | | pino levels |
+| `PORT` | no (server default `3000`) | `8080` | server's HTTP port; when set, the worker also listens on it with `GET /health` only |
 
 Preset documented in this feature: **Google** (`AUTH_PROVIDERS=google`, issuer `https://accounts.google.com`). `.env.example` ships production-safe defaults (no provider). The `dev` compose profile injects `AUTH_PROVIDERS=mock` (local test provider), sample admin/allow-list values and `S3_CREATE_BUCKET=true`; startup refuses the mock provider when `APP_URL` is https.

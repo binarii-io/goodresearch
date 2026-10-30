@@ -83,6 +83,8 @@ export type AppConfig = {
   }
   readonly logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
   readonly port: number
+  /** `PORT` when it is set: the worker then answers health checks on it. */
+  readonly workerHealthPort: number | null
 }
 
 /** Raised when the environment is invalid; the message names every faulty variable. */
@@ -310,5 +312,6 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     },
     logLevel: values.LOG_LEVEL,
     port: values.PORT,
+    workerHealthPort: env.PORT ? values.PORT : null,
   }
 }
