@@ -5,6 +5,7 @@ import {
   type DriveDocuments,
   DriveRevisionMismatch,
   type FileMeta,
+  type PresentationSlide,
   type TableModel,
   type TableRead,
 } from '../domain/drive-documents.ts'
@@ -20,6 +21,7 @@ type StoredFile = {
   lastEditor: string
   doc?: DocModel
   table?: TableRead
+  slides?: PresentationSlide[]
 }
 
 /**
@@ -109,6 +111,36 @@ export class InMemoryDriveDocuments implements DriveDocuments {
     const { file, account } = this.#editable(refreshToken, fileId)
     if (String(file.revision) !== revision) throw new DriveRevisionMismatch()
     this.#change(file, account, { doc: structuredClone(doc) })
+  }
+
+  async createPresentation(
+    refreshToken: string,
+    folderId: string,
+    name: string,
+    slides: readonly PresentationSlide[],
+  ) {
+    const file = this.#create(refreshToken, folderId, name, {
+      slides: structuredClone([...slides]),
+    })
+    return { ...file, written: true, revision: String(this.files.get(file.id)?.revision ?? 1) }
+  }
+
+  async rewritePresentation(
+    refreshToken: string,
+    fileId: string,
+    slides: readonly PresentationSlide[],
+    expected: string | null,
+  ) {
+    const { file, account } = this.#editable(refreshToken, fileId)
+    if (!file.slides) throw new DriveCannotEdit()
+    if (expected !== null && String(file.revision) !== expected) throw new DriveRevisionMismatch()
+    this.#change(file, account, { slides: structuredClone([...slides]) })
+    return { revision: String(file.revision) }
+  }
+
+  /** The slides of a presentation, as written (tests, the dev stack). */
+  slidesOf(fileId: string): readonly PresentationSlide[] | null {
+    return this.files.get(fileId)?.slides ?? null
   }
 
   async createTable(refreshToken: string, folderId: string, name: string, table: TableModel) {

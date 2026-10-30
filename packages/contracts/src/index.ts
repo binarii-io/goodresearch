@@ -62,6 +62,14 @@ export {
   ValidateClean,
 } from './cleaning.ts'
 export { Created, Id, Language, Timestamp, Version, VersionAck } from './common.ts'
+export {
+  DebriefQuery,
+  DebriefView,
+  DeckSlide,
+  PublishDebrief,
+  PublishedDeck,
+  UpdateDebrief,
+} from './debrief.ts'
 export { ERROR_CODES, type ErrorCode, HTTP_STATUS, Problem } from './errors.ts'
 export {
   AcceptFacts,

@@ -4,6 +4,7 @@ import {
   type DriveDocuments,
   DriveRevisionMismatch,
   type FileMeta,
+  type PresentationSlide,
   type TableModel,
   type TableRead,
 } from '../domain/drive-documents.ts'
@@ -16,6 +17,13 @@ const DOCS = 'https://docs.googleapis.com/v1/documents'
 const SHEETS = 'https://sheets.googleapis.com/v4/spreadsheets'
 const DOC_MIME = 'application/vnd.google-apps.document'
 const SHEET_MIME = 'application/vnd.google-apps.spreadsheet'
+const SLIDES = 'https://slides.googleapis.com/v1/presentations'
+const SLIDES_MIME = 'application/vnd.google-apps.presentation'
+/** The default 16:9 page, in EMU: where a table goes under the title. */
+/** The brand's ink and paper (packages/ui), for the cover slides. */
+const INK = { red: 28 / 255, green: 34 / 255, blue: 48 / 255 }
+const PAPER = { red: 1, green: 1, blue: 1 }
+const PAGE = { width: 9_144_000, left: 311_700, top: 1_150_000, height: 3_600_000 }
 /** Named ranges written by goodresearch carry this prefix; others are left alone. */
 const ANCHOR = 'gr:'
 const ID_HEADER = 'goodresearch id'
@@ -55,6 +63,102 @@ const ok = async <T>(response: Response, what: string): Promise<T> => {
 /** One line of text per block: no line breaks or tabs inside (they would split paragraphs). */
 const clean = (text: string) => text.replace(/\s+/g, ' ').trim()
 
+/**
+ * The requests that add `slides` at the start of a presentation (spec 015). Object ids carry a
+ * prefix of this write, so they never clash with the slides they replace.
+ */
+const slideRequests = (slides: readonly PresentationSlide[], prefix: string): object[] =>
+  slides.flatMap((slide, n) => {
+    const id = `${prefix}_${n}`
+    const lines = (slide.lines ?? []).map(clean).filter(Boolean)
+    const layout = slide.table
+      ? 'TITLE_ONLY'
+      : slide.cover
+        ? 'TITLE'
+        : lines.length > 0
+          ? 'TITLE_AND_BODY'
+          : 'TITLE_ONLY'
+    const title = slide.cover ? 'CENTERED_TITLE' : 'TITLE'
+    const body = slide.cover ? 'SUBTITLE' : 'BODY'
+    const requests: object[] = [
+      {
+        createSlide: {
+          objectId: id,
+          insertionIndex: n,
+          slideLayoutReference: { predefinedLayout: layout },
+          placeholderIdMappings: [
+            { layoutPlaceholder: { type: title, index: 0 }, objectId: `${id}_t` },
+            ...(layout === 'TITLE_ONLY'
+              ? []
+              : [{ layoutPlaceholder: { type: body, index: 0 }, objectId: `${id}_b` }]),
+          ],
+        },
+      },
+    ]
+    if (clean(slide.title))
+      requests.push({ insertText: { objectId: `${id}_t`, text: clean(slide.title) } })
+    if (layout !== 'TITLE_ONLY' && lines.length > 0)
+      requests.push({ insertText: { objectId: `${id}_b`, text: lines.join('\n') } })
+    // The opening and closing slides on the brand's ink, as in the app (spec 015).
+    if (slide.cover) {
+      requests.push({
+        updatePageProperties: {
+          objectId: id,
+          pageProperties: { pageBackgroundFill: { solidFill: { color: { rgbColor: INK } } } },
+          fields: 'pageBackgroundFill.solidFill.color',
+        },
+      })
+      const white = (objectId: string) => ({
+        updateTextStyle: {
+          objectId,
+          style: { foregroundColor: { opaqueColor: { rgbColor: PAPER } } },
+          textRange: { type: 'ALL' },
+          fields: 'foregroundColor',
+        },
+      })
+      if (clean(slide.title)) requests.push(white(`${id}_t`))
+      if (lines.length > 0) requests.push(white(`${id}_b`))
+    }
+    if (slide.table) {
+      const rows = [slide.table.header, ...slide.table.rows]
+      const columns = Math.max(...rows.map((row) => row.length), 1)
+      requests.push({
+        createTable: {
+          objectId: `${id}_tb`,
+          elementProperties: {
+            pageObjectId: id,
+            size: {
+              width: { magnitude: PAGE.width - 2 * PAGE.left, unit: 'EMU' },
+              height: { magnitude: PAGE.height, unit: 'EMU' },
+            },
+            transform: {
+              scaleX: 1,
+              scaleY: 1,
+              translateX: PAGE.left,
+              translateY: PAGE.top,
+              unit: 'EMU',
+            },
+          },
+          rows: rows.length,
+          columns,
+        },
+      })
+      rows.forEach((row, rowIndex) => {
+        row.forEach((cell, columnIndex) => {
+          if (clean(cell))
+            requests.push({
+              insertText: {
+                objectId: `${id}_tb`,
+                cellLocation: { rowIndex, columnIndex },
+                text: clean(cell),
+              },
+            })
+        })
+      })
+    }
+    return requests
+  })
+
 const STYLE: Record<string, string> = { 1: 'HEADING_1', 2: 'HEADING_2', 3: 'HEADING_3' }
 
 /**
@@ -81,6 +185,39 @@ export const createGoogleDocuments = (options: {
       }),
       'drive files.create',
     )
+
+  /**
+   * Adds the slides first, then deletes the ones that were there: never an empty deck. The write
+   * requires the revision just read, so an edit made in between is never lost (review of PR #15).
+   */
+  const writeSlides = async (
+    token: string,
+    id: string,
+    slides: readonly PresentationSlide[],
+    expected: string | null = null,
+  ): Promise<{ revision: string | null }> => {
+    const current = await ok<{ revisionId?: string; slides?: { objectId: string }[] }>(
+      await call(token, `${SLIDES}/${encodeURIComponent(id)}?fields=revisionId,slides.objectId`),
+      'slides get',
+    )
+    if (expected !== null && current.revisionId !== expected) throw new DriveRevisionMismatch()
+    const done = await ok<{ writeControl?: { requiredRevisionId?: string } }>(
+      await call(token, `${SLIDES}/${encodeURIComponent(id)}:batchUpdate`, {
+        method: 'POST',
+        json: {
+          requests: [
+            ...slideRequests(slides, `gr${Date.now().toString(36)}`),
+            ...(current.slides ?? []).map((s) => ({ deleteObject: { objectId: s.objectId } })),
+          ],
+          ...(current.revisionId
+            ? { writeControl: { requiredRevisionId: current.revisionId } }
+            : {}),
+        },
+      }),
+      'slides batchUpdate',
+    )
+    return { revision: done.writeControl?.requiredRevisionId ?? null }
+  }
 
   const getDoc = async (token: string, id: string) =>
     ok<RawDoc>(await call(token, `${DOCS}/${encodeURIComponent(id)}`), 'docs get')
@@ -331,6 +468,19 @@ export const createGoogleDocuments = (options: {
       )
       await anchor(token, fileId, doc.blocks)
     },
+
+    createPresentation: async (token, folderId, name, slides) => {
+      const file = await createFile(token, folderId, name, SLIDES_MIME)
+      // As for documents: the file is returned even if filling it fails; an update rewrites it.
+      const result = await writeSlides(token, file.id, slides).then(
+        (r) => ({ written: true, revision: r.revision }),
+        () => ({ written: false, revision: null }),
+      )
+      return { ...file, ...result }
+    },
+
+    rewritePresentation: (token, fileId, slides, expected) =>
+      writeSlides(token, fileId, slides, expected),
 
     createTable: async (token, folderId, name, table) => {
       const file = await createFile(token, folderId, name, SHEET_MIME)

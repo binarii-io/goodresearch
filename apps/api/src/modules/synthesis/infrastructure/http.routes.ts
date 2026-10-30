@@ -26,11 +26,13 @@ import {
 import type { FastifyInstance, preHandlerAsyncHookHandler } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { reply } from '#platform/http/result.ts'
+import type { makeDebriefCommands } from '../application/commands/debrief-commands.ts'
 import type { makeInsightCommands } from '../application/commands/insight-commands.ts'
 import type { makeInsightRunCommands } from '../application/commands/insight-run-commands.ts'
 import type { makeRecommendationCommands } from '../application/commands/recommendation-commands.ts'
 import type { makeRecommendationRunCommands } from '../application/commands/recommendation-run-commands.ts'
 import type { makeTakeawaysCommands } from '../application/commands/takeaways-commands.ts'
+import type { makeDebriefQueries } from '../application/queries/debrief-queries.ts'
 import type { makeInsightQueries } from '../application/queries/insight-queries.ts'
 import type { makeRecommendationQueries } from '../application/queries/recommendation-queries.ts'
 
@@ -42,6 +44,8 @@ export type SynthesisHandlers = {
   recommendations: ReturnType<typeof makeRecommendationCommands>
   takeaways: ReturnType<typeof makeTakeawaysCommands>
   recommendationQueries: ReturnType<typeof makeRecommendationQueries>
+  debrief: ReturnType<typeof makeDebriefCommands>
+  debriefQueries: ReturnType<typeof makeDebriefQueries>
 }
 
 const version = <T extends { version: number }>(v: T) => ({ version: v.version })

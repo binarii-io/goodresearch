@@ -25,6 +25,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useId, useState } from 'react'
 import { z } from 'zod'
 import { StudyList } from '../../../features/research/study-list.tsx'
+import { DebriefTab } from '../../../features/synthesis/debrief-tab.tsx'
 import { InsightsTab } from '../../../features/synthesis/insights-tab.tsx'
 import { RecommendationsTab } from '../../../features/synthesis/recommendations-tab.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
@@ -35,7 +36,7 @@ import { NotFound } from '../../../features/workspace/not-found.tsx'
 export const Route = createFileRoute('/_authenticated/projects/$projectId')({
   // Spec 013: the project's tabs, Overview (goal and studies) and Insights.
   validateSearch: z.object({
-    tab: z.enum(['overview', 'insights', 'recommendations']).optional().catch(undefined),
+    tab: z.enum(['overview', 'insights', 'recommendations', 'debrief']).optional().catch(undefined),
   }),
   component: ProjectOverview,
 })
@@ -108,6 +109,7 @@ function ProjectOverview() {
             <TabsTrigger value="overview">{t`Overview`}</TabsTrigger>
             <TabsTrigger value="insights">{t`Insights`}</TabsTrigger>
             <TabsTrigger value="recommendations">{t`Recommendations`}</TabsTrigger>
+            <TabsTrigger value="debrief">{t`Debrief`}</TabsTrigger>
           </TabsList>
         }
       />
@@ -198,6 +200,9 @@ function ProjectOverview() {
       </TabsContent>
       <TabsContent value="recommendations">
         <RecommendationsTab projectId={projectId} />
+      </TabsContent>
+      <TabsContent value="debrief">
+        <DebriefTab projectId={projectId} />
       </TabsContent>
     </Tabs>
   )

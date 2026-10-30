@@ -22,6 +22,7 @@ import { createResearchModule, registerResearchRoutes } from './modules/research
 import {
   createInsightsAi,
   createSynthesisModule,
+  registerDebriefRoutes,
   registerRecommendationRoutes,
   registerSynthesisRoutes,
 } from './modules/synthesis/index.ts'
@@ -240,7 +241,14 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     sources: {
       project: async (accountId, projectId) => {
         const project = await r.queries.getProject(accountId, projectId)
-        return project ? { teamId: project.team.id, goal: project.goal } : null
+        return project
+          ? {
+              teamId: project.team.id,
+              goal: project.goal,
+              name: project.name,
+              team: project.team.name || null,
+            }
+          : null
       },
       // A study with a folder is open only to people whose access was confirmed (spec 002 FR-010a).
       studies: async (accountId, projectId) =>
@@ -248,6 +256,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
           id: s.id,
           name: s.name,
           access: !s.hasFolder || s.folderName !== null,
+          type: s.type,
+          hasFolder: s.hasFolder,
         })),
       themes: async (accountId, studyId) => {
         const guide = await r.preparationQueries.getGuide(accountId, studyId)
@@ -262,6 +272,57 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       ],
       language: async (accountId) =>
         (await workspace.handlers.getMe(accountId))?.language === 'fr' ? 'fr' : 'en',
+      // Spec 015: what the debrief deck says of a study, its verbatims and its Slides file.
+      interviews: async (accountId, studyId) => {
+        const interviews = (await enrichment.enrichmentSessions(accountId, studyId))?.sessions
+        const dates = (interviews ?? [])
+          .flatMap((s) => (s.interviewDate ? [s.interviewDate.slice(0, 10)] : []))
+          .sort()
+        return {
+          count: interviews?.length ?? 0,
+          first: dates[0] ?? null,
+          last: dates.at(-1) ?? null,
+        }
+      },
+      guide: async (accountId, studyId) => {
+        const guide = await r.preparationQueries.getGuide(accountId, studyId)
+        const sections = guide.ok && guide.value ? guide.value.content.sections : []
+        return {
+          themes: sections.filter((s) => s.kind === 'theme').map((s) => s.title),
+          questions: sections.reduce((n, s) => n + s.questions.length, 0),
+        }
+      },
+      verbatims: (factIds) => evidenceReads.verbatimsOf(factIds),
+      deckFiles: async (accountId, studyId) => {
+        const files = await ingestion.studyFiles(accountId, studyId, 'write')
+        if (!files.ok) return files
+        const f = files.value
+        return {
+          ok: true,
+          value: {
+            folderId: f.folderId,
+            createPresentation: f.createPresentation,
+            rewritePresentation: f.rewritePresentation,
+            metadata: async (fileId) => {
+              const meta = await f.metadata(fileId)
+              return meta.ok && meta.value
+                ? {
+                    ok: true,
+                    value: {
+                      trashed: meta.value.trashed,
+                      canEdit: meta.value.canEdit,
+                      ownerName: meta.value.ownerName,
+                      version: meta.value.version,
+                      webViewLink: meta.value.webViewLink,
+                    },
+                  }
+                : meta.ok
+                  ? { ok: true, value: null }
+                  : meta
+            },
+          },
+        }
+      },
     },
     ai: createInsightsAi({
       gateway: () => bound(ai).gateway,
@@ -414,6 +475,7 @@ export const composeApp = async (
       registerEvidenceRoutes(instance, { guard, handlers: evidence.handlers })
       registerSynthesisRoutes(instance, { guard, handlers: synthesis.handlers })
       registerRecommendationRoutes(instance, { guard, handlers: synthesis.handlers })
+      registerDebriefRoutes(instance, { guard, handlers: synthesis.handlers })
     },
   })
   return { app, auth, modules }

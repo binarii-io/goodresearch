@@ -129,3 +129,19 @@ Teams want the study preparation (guide, best practices, schedule) in their shar
 - Good: teammates edit the same files; nothing in Drive is lost silently; another connector can implement the port.
 - Bad: a broader Drive scope (still in Google's restricted class, already required by `drive.readonly`); a spreadsheet update has a short race window (no revision control in Sheets).
 
+
+## Update 2026-10-29 — the debrief deck as a Google Slides presentation (spec 015)
+
+### Context
+
+The project's debrief deck is built from its data each time it is opened and must leave the app in the team's own tools. A PowerPoint library would add a dependency (the one considered pulls an unmaintained `https` package) and a file the team still has to upload.
+
+### Decision
+
+- **A neutral presentation model** (`PresentationSlide`: title, lines, table, cover) joins the `DriveDocuments` port (`createPresentation`, `rewritePresentation`). The Google adapter creates the file through Drive (`application/vnd.google-apps.presentation`, in a study folder) and writes it with the Slides API `batchUpdate` (predefined layouts, placeholders, tables); a rewrite adds the new slides first, then deletes the old ones: same file, link and sharing. No new dependency; the `drive` scope already covers Slides.
+- **One-way, with a guard**: unlike documents and tables, slides edited in Google Slides are not read back as proposals. The app keeps the presentation's content revision after its own write; an update writes only at that revision, required in the write itself (`writeControl`), so a change in Slides, even one made meanwhile, is replaced only once the person confirms. Sharing or renaming the file does not count. Nothing is deleted or trashed in Drive.
+
+### Consequences
+
+- Good: the deck is shared and presented from Google Slides; another connector can implement the same model.
+- Bad: edits made in Slides are not merged back (an update replaces them after confirmation); the look stays the default theme's.

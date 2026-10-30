@@ -2,12 +2,14 @@ import type { Clock } from '@goodresearch/shared'
 import { z } from 'zod'
 import type { Db } from '#platform/db.ts'
 import { type JobHandler, QUEUES } from '#platform/jobs.ts'
+import { makeDebriefCommands } from '../application/commands/debrief-commands.ts'
 import { makeInsightCommands } from '../application/commands/insight-commands.ts'
 import { makeInsightRunCommands } from '../application/commands/insight-run-commands.ts'
 import { makeRecommendationCommands } from '../application/commands/recommendation-commands.ts'
 import { makeRecommendationRunCommands } from '../application/commands/recommendation-run-commands.ts'
 import { makeTakeawaysCommands } from '../application/commands/takeaways-commands.ts'
 import type { InsightsAi, SynthesisDeps, SynthesisSources } from '../application/ports.ts'
+import { makeDebriefQueries } from '../application/queries/debrief-queries.ts'
 import { makeInsightQueries } from '../application/queries/insight-queries.ts'
 import { makeRecommendationQueries } from '../application/queries/recommendation-queries.ts'
 import type { SynthesisHandlers } from './http.routes.ts'
@@ -41,7 +43,7 @@ const TakeawaysJobPayload = z.object({
   withProposed: z.boolean().optional(),
 })
 
-/** Builds the synthesis module: the project's insights (spec 013). */
+/** Builds the synthesis module: insights (spec 013), recommendations (014), the debrief (015). */
 export const createSynthesisModule = (deps: {
   db: Db
   clock: Clock
@@ -70,6 +72,7 @@ export const createSynthesisModule = (deps: {
   const recommendationRuns = makeRecommendationRunCommands(synthesis)
   const recommendations = makeRecommendationCommands(synthesis)
   const takeaways = makeTakeawaysCommands(synthesis)
+  const debrief = makeDebriefCommands(synthesis)
   const handlers: SynthesisHandlers = {
     runs,
     insights,
@@ -78,6 +81,8 @@ export const createSynthesisModule = (deps: {
     recommendations,
     takeaways,
     recommendationQueries: makeRecommendationQueries(synthesis),
+    debrief,
+    debriefQueries: makeDebriefQueries(synthesis),
   }
   const parsed = <T>(schema: z.ZodType<T>, data: unknown, what: string): T | null => {
     // Job payloads cross a process boundary: validate them (AGENTS.md).

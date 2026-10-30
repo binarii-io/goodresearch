@@ -7,6 +7,18 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: fr\n"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid " · in English"
+msgstr " · en anglais"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid " · in French"
+msgstr " · en français"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid " · with what is still to decide"
+msgstr " · avec ce qui reste à décider"
+
 #. placeholder {0}: v.minutes
 #: src/features/preparation/drive-review.tsx
 msgid "({0} min)"
@@ -29,6 +41,21 @@ msgstr "(plus dans le texte)"
 msgid "(none)"
 msgstr "(aucun)"
 
+#. placeholder {0}: slide.facts
+#: src/features/synthesis/deck-slide.tsx
+msgid "{0, plural, one {# fact} other {# facts}}"
+msgstr "{0, plural, one {# fait} other {# faits}}"
+
+#. placeholder {0}: slide.interviews
+#: src/features/synthesis/deck-slide.tsx
+msgid "{0, plural, one {# interview} other {# interviews}}"
+msgstr "{0, plural, one {# entretien} other {# entretiens}}"
+
+#. placeholder {0}: slide.participants
+#: src/features/synthesis/deck-slide.tsx
+msgid "{0, plural, one {# participant} other {# participants}}"
+msgstr "{0, plural, one {# participant} other {# participants}}"
+
 #. placeholder {0}: team.projectCount
 #: src/routes/_authenticated/teams.tsx
 msgid "{0, plural, one {# project} other {# projects}}"
@@ -39,10 +66,30 @@ msgstr "{0, plural, one {# projet} other {# projets}}"
 msgid "{0, plural, one {Anonymisation is on: # interview has a name in its file names. Analyze it and rename its files.} other {Anonymisation is on: # interviews have a name in their file names. Analyze them and rename their files.}}"
 msgstr "{0, plural, one {L'anonymisation est activée : # entretien a un nom dans ses noms de fichiers. Analysez-le et renommez ses fichiers.} other {L'anonymisation est activée : # entretiens ont un nom dans leurs noms de fichiers. Analysez-les et renommez leurs fichiers.}}"
 
+#. placeholder {0}: s.questions
+#: src/features/synthesis/deck-slide.tsx
+msgid "{0, plural, one {guide question} other {guide questions}}"
+msgstr "{0, plural, one {question du guide} other {questions du guide}}"
+
+#. placeholder {0}: slide.toValidate
+#: src/features/synthesis/deck-slide.tsx
+msgid "{0, plural, one {Including # participant known only from facts still to validate} other {Including # participants known only from facts still to validate}}"
+msgstr "{0, plural, one {Dont # participant connu seulement par des faits encore à valider} other {Dont # participants connus seulement par des faits encore à valider}}"
+
+#. placeholder {0}: s.interviews
+#: src/features/synthesis/deck-slide.tsx
+msgid "{0, plural, one {interview retained} other {interviews retained}}"
+msgstr "{0, plural, one {entretien retenu} other {entretiens retenus}}"
+
 #. placeholder {0}: active.length
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{0, plural, one {of # interview} other {of # interviews}}"
 msgstr "{0, plural, one {sur # entretien} other {sur # entretiens}}"
+
+#. placeholder {0}: slide.toValidate
+#: src/features/synthesis/deck-slide.tsx
+msgid "{0, plural, one {Rests on # item to validate} other {Rests on # items to validate}}"
+msgstr "{0, plural, one {Repose sur # élément à valider} other {Repose sur # éléments à valider}}"
 
 #. placeholder {0}: i18n._(REC_KINDS[r.kindShown])
 #. placeholder {1}: r.priority
@@ -217,6 +264,12 @@ msgstr "{0} participants de plus ont des faits encore à valider."
 msgid "{0} more transcripts are in the folder: a study holds at most 500 interviews."
 msgstr "{0} autres transcriptions sont dans le dossier : une étude contient au plus 500 entretiens."
 
+#. placeholder {0}: slide.support
+#. placeholder {1}: slide.panel
+#: src/features/synthesis/deck-slide.tsx
+msgid "{0} of {1} participants"
+msgstr "{0} participants sur {1}"
+
 #. placeholder {0}: c.support
 #. placeholder {1}: c.counter
 #. placeholder {2}: c.panel
@@ -249,6 +302,11 @@ msgstr "{0} recommandations ne reposent que sur des insights encore à décider 
 #: src/features/analysis/interview-facts.tsx
 msgid "{0} shown of {1}"
 msgstr "{0} affichés sur {1}"
+
+#. placeholder {0}: data.slides.length
+#: src/features/synthesis/debrief-tab.tsx
+msgid "{0} slides"
+msgstr "{0} slides"
 
 #. placeholder {0}: data.toValidate
 #: src/features/enrichment/enrichment-tab.tsx
@@ -335,6 +393,10 @@ msgstr "{published} publiées dans Drive"
 msgid "{sectionCount} sections · {questions} main questions · {minutes} min"
 msgstr "{sectionCount} sections · {questions} questions principales · {minutes} min"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "{toDecide} insights and recommendations not validated yet; each slide holding one says \"to validate\"."
+msgstr "{toDecide} insights et recommandations pas encore validés ; chaque slide concernée porte la mention « à valider »."
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{toDecideCount} to decide"
 msgstr "{toDecideCount} à décider"
@@ -370,6 +432,12 @@ msgstr "{without} sans transcription"
 #: src/features/enrichment/lexicon-table.tsx
 msgid "{yes} confirmed · {no} not this term"
 msgstr "{yes} confirmées · {no} pas ce terme"
+
+#. placeholder {0}: items.length - 3
+#. placeholder {1}: items .slice(3) .map((i) => i.number) .join(', ')
+#: src/features/synthesis/deck-slide.tsx
+msgid "+ {0} more: {1}"
+msgstr "+ {0} autre(s) : {1}"
 
 #. placeholder {0}: i.confidence.panelIfAccepted - i.confidence.panel
 #. placeholder {0}: i.confidence.pendingCounter
@@ -429,6 +497,10 @@ msgstr "Un dossier est rattaché à cette étude : connectez votre Drive pour le
 #: src/features/preparation/guide-editor.tsx
 msgid "A follow-up has more than 600 characters."
 msgstr "Une relance dépasse 600 caractères."
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "A Google Slides presentation of the deck is created in the study's Drive folder, with your own Drive access. Nothing is ever deleted in Drive."
+msgstr "Une présentation Google Slides de la restitution est créée dans le dossier Drive de l’étude, avec votre propre accès Drive. Rien n’est jamais supprimé dans Drive."
 
 #: src/features/preparation/guide-editor.tsx
 msgid "A hypothesis has more than 600 characters."
@@ -620,6 +692,7 @@ msgstr "Compte réactivé"
 msgid "Acronym"
 msgstr "Sigle"
 
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Action"
@@ -773,6 +846,10 @@ msgstr "IA"
 msgid "AI draft"
 msgstr "Brouillon IA"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "AI draft of the key takeaways, not saved yet"
+msgstr "Brouillon IA des points clés, pas encore enregistré"
+
 #: src/features/synthesis/takeaways.tsx
 msgid "AI draft, not saved"
 msgstr "Brouillon IA, non enregistré"
@@ -833,6 +910,10 @@ msgstr "Tous les entretiens"
 #: src/features/ingestion/source-panel.tsx
 msgid "All kinds"
 msgstr "Tous les types"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "All slides"
+msgstr "Toutes les slides"
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "All sources"
@@ -1015,6 +1096,10 @@ msgstr "Un autre terme du lexique a déjà cette forme : fusionnez-les plutôt."
 msgid "Any confidence"
 msgstr "Toute confiance"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "Any questions?"
+msgstr "Des questions ?"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "API key"
 msgstr "Clé d'API"
@@ -1160,6 +1245,10 @@ msgstr "« Construire » affiché en « Tester » : ses insights ont tous une co
 msgid "built by the app"
 msgstr "construit par l'app"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "But"
+msgstr "Mais"
+
 #. placeholder {0}: view.decidedBy.name ?? '—'
 #. placeholder {1}: formatDate(view.decidedAt)
 #: src/features/fieldwork/session-dialog.tsx
@@ -1197,6 +1286,7 @@ msgstr "Je ne sais pas : {excerpt}"
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/guide-editor.tsx
 #: src/features/preparation/schedule.tsx
+#: src/features/synthesis/debrief-tab.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
@@ -1264,6 +1354,10 @@ msgstr "Modifié dans le Drive"
 #: src/features/preparation/drive-publishing.tsx
 msgid "Changed in Drive: to review"
 msgstr "Modifié dans le Drive : à revoir"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Changed in Google Slides"
+msgstr "Modifiée dans Google Slides"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Changed in the app and in Drive"
@@ -1443,6 +1537,7 @@ msgstr "Cliquer pour modifier"
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/features/research/study-settings.tsx
+#: src/features/synthesis/debrief-tab.tsx
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
@@ -1478,6 +1573,7 @@ msgid "coming later"
 msgstr "bientôt disponible"
 
 #: src/features/enrichment/interview-cleaning.tsx
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/insights-picker.tsx
 #: src/features/synthesis/insights-tab.tsx
@@ -1522,6 +1618,10 @@ msgstr "Connecté en tant que {account} depuis le {since}. Lecture seule."
 #: src/routes/_authenticated/sources.tsx
 msgid "Connected sources"
 msgstr "Sources connectées"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Context"
+msgstr "Contexte"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Continue to Google"
@@ -1719,6 +1819,15 @@ msgstr "Désactiver"
 #: src/features/workspace/member-labels.ts
 msgid "Deactivated"
 msgstr "Désactivé"
+
+#: src/features/synthesis/debrief-tab.tsx
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Debrief"
+msgstr "Restitution"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Debrief presentation"
+msgstr "Présentation de la restitution"
 
 #: src/features/workspace/errors.ts
 msgid "Decide every correction before validating the clean version."
@@ -1955,6 +2064,7 @@ msgctxt "feminine"
 msgid "Edited"
 msgstr "Modifiée"
 
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Effort"
@@ -1979,6 +2089,7 @@ msgstr "se terminant par"
 
 #: src/features/enrichment/labels.ts
 #: src/features/fieldwork/labels.ts
+#: src/features/synthesis/debrief-tab.tsx
 msgid "English"
 msgstr "Anglais"
 
@@ -2091,6 +2202,10 @@ msgstr "Partout"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Everywhere: Cleaning corrects every occurrence, except those you mark as not this term; those you can't tell yet are left to decide there."
 msgstr "Partout : le nettoyage corrige toutes les occurrences, sauf celles que vous marquez comme « pas ce terme » ; celles dont vous n'êtes pas sûr restent à décider au nettoyage."
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Evidence"
+msgstr "Preuves"
 
 #. placeholder {0}: insight.evidenceChanged
 #: src/features/synthesis/insight-card.tsx
@@ -2336,9 +2451,21 @@ msgstr "Recherche des verbatims : partie {0} sur {1}"
 msgid "Finding verbatims…"
 msgstr "Recherche des verbatims…"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "Findings"
+msgstr "Constats"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Findings and mixed topics"
+msgstr "Constats et sujets mitigés"
+
 #: src/features/research/study-list.tsx
 msgid "Folder attached"
 msgstr "Dossier rattaché"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Folder of the study"
+msgstr "Dossier de l’étude"
 
 #: src/features/preparation/guide-view.tsx
 #: src/features/preparation/labels.ts
@@ -2414,6 +2541,7 @@ msgstr "Cadrage"
 
 #: src/features/enrichment/labels.ts
 #: src/features/fieldwork/labels.ts
+#: src/features/synthesis/debrief-tab.tsx
 msgid "French"
 msgstr "Français"
 
@@ -2458,6 +2586,14 @@ msgstr "Obtenir une clé chez {name}"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Go to Fieldwork"
 msgstr "Aller à la Passation"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Go to Insights"
+msgstr "Aller aux insights"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Go to Recommendations"
+msgstr "Aller aux recommandations"
 
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Goal saved"
@@ -2546,6 +2682,10 @@ msgstr "Google Drive n'a pas été connecté. Vous pouvez réessayer."
 msgid "Google no longer accepts goodresearch's access to Google Cloud."
 msgstr "Google n’accepte plus l’accès de goodresearch à Google Cloud."
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Google Slides presentation updated"
+msgstr "Présentation Google Slides mise à jour"
+
 #: src/features/preparation/drive-publishing.tsx
 msgid "Google will ask you to let goodresearch edit the Drive files you can edit."
 msgstr "Google vous demandera d’autoriser goodresearch à modifier les fichiers Drive que vous pouvez modifier."
@@ -2566,6 +2706,10 @@ msgstr "Regroupement en faits…"
 #: src/features/assistant/proposal-card.tsx
 msgid "Guide design progress"
 msgstr "Avancement du guide"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "guide themes"
+msgstr "thématiques du guide"
 
 #: src/features/preparation/preparation-tab.tsx
 msgid "Help me design the interview guide for this study."
@@ -2626,6 +2770,10 @@ msgstr "Comment nettoyer"
 msgid "How to run a neutral interview: phases, questions, follow-ups, biases, what is measured."
 msgstr "Comment mener un entretien neutre : phases, questions, relances, biais, ce qui est mesuré."
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "How we ran the research"
+msgstr "Comment nous avons mené la recherche"
+
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
@@ -2641,10 +2789,15 @@ msgstr "Hypothèses (une par ligne)"
 msgid "hypothetical"
 msgstr "hypothétique"
 
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Impact"
 msgstr "Impact"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Impact (rows) × effort (columns)"
+msgstr "Impact (lignes) × effort (colonnes)"
 
 #. placeholder {0}: i18n._(RATINGS[impact])
 #: src/features/synthesis/recommendation-matrix.tsx
@@ -2667,6 +2820,10 @@ msgstr "Impact {0}, effort {1}"
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "impact × 2 − effort"
 msgstr "impact × 2 − effort"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Impact × effort"
+msgstr "Impact × effort"
 
 #. placeholder {0}: f.insights
 #: src/features/synthesis/facts-panel.tsx
@@ -2695,6 +2852,7 @@ msgid "In no insight"
 msgstr "Dans aucun insight"
 
 #: src/features/preparation/drive-publishing.tsx
+#: src/features/synthesis/debrief-tab.tsx
 msgid "In sync"
 msgstr "À jour"
 
@@ -2702,9 +2860,26 @@ msgstr "À jour"
 msgid "In the app"
 msgstr "Dans l’app"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Include what is still to decide"
+msgstr "Inclure ce qui reste à décider"
+
 #: src/features/synthesis/takeaways.tsx
 msgid "Includes insights or recommendations still to validate."
 msgstr "Contient des insights ou recommandations encore à valider."
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Individual interviews, recorded and transcribed."
+msgstr "Entretiens individuels enregistrés et transcrits."
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Insight"
+msgstr "Insight"
+
+#. placeholder {0}: slide.number
+#: src/features/synthesis/deck-slide.tsx
+msgid "Insight {0}"
+msgstr "Insight {0}"
 
 #: src/features/synthesis/insight-panel.tsx
 msgid "Insight selected"
@@ -2774,6 +2949,10 @@ msgstr "Conception du guide d’entretien"
 msgid "Interview guide design progress"
 msgstr "Avancement de la conception du guide d’entretien"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "Interview guide themes"
+msgstr "Thématiques du guide d’entretien"
+
 #: src/features/preparation/drive-publishing.tsx
 #: src/features/preparation/schedule.tsx
 msgid "Interview schedule"
@@ -2827,6 +3006,7 @@ msgstr "Intervieweurs"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/research/study-list.tsx
+#: src/features/synthesis/deck-slide.tsx
 msgid "Interviews"
 msgstr "Entretiens"
 
@@ -2866,6 +3046,10 @@ msgstr "Entretiens par statut"
 msgid "Interviews read"
 msgstr "Entretiens lus"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "interviews retained"
+msgstr "entretiens retenus"
+
 #: src/features/preparation/guide-editor.tsx
 #: src/features/preparation/labels.ts
 msgid "Introduction"
@@ -2899,6 +3083,10 @@ msgstr "Invité"
 msgid "it could not be started; try again in a moment"
 msgstr "il n'a pas pu démarrer ; réessayez dans un instant"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "It includes what is still to decide, marked \"to validate\"."
+msgstr "Elle inclut ce qui reste à décider, marqué « à valider »."
+
 #. placeholder {0}: c.replacement
 #. placeholder {1}: c.term?.form ?? c.replacement
 #: src/features/enrichment/interview-cleaning.tsx
@@ -2908,6 +3096,10 @@ msgstr "Elle donne « {0} », d’après le terme « {1} » du lexique. Acceptez
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "It should read"
 msgstr "Il faut lire"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "It shows what is validated only."
+msgstr "Elle ne montre que ce qui est validé."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "it stopped before the end; refresh to run it again"
@@ -2950,6 +3142,7 @@ msgstr "Garder la version de l’app"
 msgid "kept"
 msgstr "gardée"
 
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/takeaways.tsx
 msgid "Key takeaways"
 msgstr "Points clés"
@@ -2958,11 +3151,16 @@ msgstr "Points clés"
 msgid "Key takeaways saved"
 msgstr "Points clés enregistrés"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "Key takeaways to write in the Recommendations tab."
+msgstr "Points clés à rédiger dans l’onglet Recommandations."
+
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/guide-editor.tsx
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 #: src/features/synthesis/recommendations-tab.tsx
@@ -2973,6 +3171,10 @@ msgstr "Type"
 #: src/features/workspace/language-switch.tsx
 msgid "Language"
 msgstr "Langue"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Language of the presentation"
+msgstr "Langue de la présentation"
 
 #. placeholder {0}: money(data.lastRunCost)
 #: src/features/enrichment/cleaning-table.tsx
@@ -3020,6 +3222,10 @@ msgstr "Dernière vérification réussie"
 #: src/features/analysis/analysis-tab.tsx
 msgid "Last: {0}"
 msgstr "Dernière : {0}"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Leave the presentation"
+msgstr "Quitter la présentation"
 
 #: src/features/workspace/errors.ts
 msgid "Let goodresearch edit your Drive files first."
@@ -3109,6 +3315,10 @@ msgstr "Confiance faible"
 msgid "Main"
 msgstr "Principale"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "Major projects"
+msgstr "Chantiers structurants"
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Mark done"
 msgstr "Marquer réalisé"
@@ -3193,9 +3403,18 @@ msgstr "Fusionné avec {0}"
 msgid "Message to the assistant"
 msgstr "Message à l'assistant"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "Method"
+msgstr "Méthode"
+
 #: src/features/synthesis/insight-panel.tsx
 msgid "Minority view"
 msgstr "Point de vue minoritaire"
+
+#. placeholder {0}: slide.minorityView
+#: src/features/synthesis/deck-slide.tsx
+msgid "Minority view: {0}"
+msgstr "Point de vue minoritaire : {0}"
 
 #: src/features/preparation/guide-editor.tsx
 msgid "Minutes"
@@ -3371,6 +3590,14 @@ msgstr "Nouveau verbatim"
 msgid "Next"
 msgstr "Suivant"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Next slide"
+msgstr "Slide suivante"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Next steps"
+msgstr "Prochaines étapes"
+
 #: src/features/synthesis/labels.ts
 msgid "No accepted fact to read."
 msgstr "Aucun fait accepté à lire."
@@ -3402,6 +3629,10 @@ msgstr "Aucune conversation pour l'instant."
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "No correction matches these filters."
 msgstr "Aucune correction ne correspond à ces filtres."
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "No counter-evidence found."
+msgstr "Aucun contre-exemple relevé."
 
 #: src/features/analysis/labels.ts
 msgid "No fact"
@@ -3450,6 +3681,10 @@ msgstr "Aucun insight à lire : validez d'abord des insights dans l'onglet Insig
 msgid "No insight yet. Insights are found and validated in the Insights tab of the project."
 msgstr "Aucun insight pour l'instant. Les insights se trouvent et se valident dans l'onglet Insights du projet."
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "No interview guide for this study."
+msgstr "Pas de guide d’entretien pour cette étude."
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "No interview matches these filters."
 msgstr "Aucun entretien ne correspond à ces filtres."
@@ -3485,6 +3720,10 @@ msgstr "Aucune recommandation ne correspond à ces filtres."
 #: src/features/fieldwork/session-dialog.tsx
 msgid "No recording found for this interview."
 msgstr "Aucun enregistrement trouvé pour cet entretien."
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "No research goal written (project page)."
+msgstr "Enjeu non renseigné (page du projet)."
 
 #: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/interview-cleaning.tsx
@@ -3642,6 +3881,14 @@ msgstr "Rien pour l'instant"
 msgid "now:"
 msgstr "devient :"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "Numbers"
+msgstr "Bilan"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Numbers: the recommendations table."
+msgstr "Numéros : tableau des recommandations."
+
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
@@ -3655,6 +3902,10 @@ msgstr "Objectifs et thématiques de recherche"
 #: src/features/preparation/labels.ts
 msgid "Objectives and themes"
 msgstr "Objectifs et thématiques"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Obstacles and irritants"
+msgstr "Freins et irritants"
 
 #. placeholder {0}: data.interviews.length
 #: src/features/analysis/analysis-tab.tsx
@@ -3734,6 +3985,15 @@ msgstr "Ouvrir dans le Drive (version {0})"
 msgid "Open in Drive: {0}"
 msgstr "Ouvrir dans le Drive : {0}"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Open in Google Slides"
+msgstr "Ouvrir dans Google Slides"
+
+#. placeholder {0}: n + 1
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Open slide {0}"
+msgstr "Ouvrir la slide {0}"
+
 #: src/features/assistant/panel.tsx
 msgid "Open the AI provider page"
 msgstr "Ouvrir la page Fournisseur IA"
@@ -3803,6 +4063,7 @@ msgstr "Organisation"
 #: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/labels.ts
 #: src/features/ingestion/source-panel.tsx
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/insights-picker.tsx
@@ -3816,6 +4077,10 @@ msgstr "Autre"
 #: src/features/fieldwork/labels.ts
 msgid "Other language"
 msgstr "Autre langue"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Out of date"
+msgstr "Pas à jour"
 
 #: src/features/enrichment/labels.ts
 msgid "Out of date in Drive"
@@ -3833,6 +4098,7 @@ msgstr "Hors du projet"
 msgid "Overview"
 msgstr "Vue d'ensemble"
 
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Owner"
 msgstr "Responsable"
@@ -3878,9 +4144,14 @@ msgstr "Participant"
 msgid "Participant not identified"
 msgstr "Participant non identifié"
 
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/insight-panel.tsx
 msgid "participants"
 msgstr "participants"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Participants"
+msgstr "Participants"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Passed"
@@ -3901,6 +4172,10 @@ msgstr "Les personnes arrivent en se connectant avec un e-mail autorisé. Donnez
 #: src/features/fieldwork/session-dialog.tsx
 msgid "People of the interview"
 msgstr "Personnes de l'entretien"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Period: {when}"
+msgstr "Période : {when}"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Permission to call models"
@@ -3973,11 +4248,27 @@ msgstr "Préparation"
 msgid "Preparation for this type of study is coming in a later version."
 msgstr "La préparation de ce type d’étude arrivera dans une prochaine version."
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Present"
+msgstr "Présenter"
+
 #: src/features/analysis/facts-list.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/synthesis/facts-panel.tsx
 msgid "Previous"
 msgstr "Précédent"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Previous slide"
+msgstr "Slide précédente"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Print or save as PDF"
+msgstr "Imprimer ou enregistrer en PDF"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Prioritisation"
+msgstr "Priorisation"
 
 #: src/features/synthesis/recommendation-matrix.tsx
 msgid "Prioritisation matrix"
@@ -4040,19 +4331,41 @@ msgstr "Proposés, ou avec de nouvelles graphies"
 msgid "Provider"
 msgstr "Fournisseur"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Publish"
+msgstr "Publier"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Publish a new copy"
+msgstr "Publier une nouvelle copie"
+
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-publishing.tsx
 msgid "Publish to Drive"
 msgstr "Publier dans le Drive"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Publish to Google Slides"
+msgstr "Publier dans Google Slides"
+
 #: src/features/enrichment/labels.ts
 msgid "Published"
 msgstr "Publié"
+
+#. placeholder {0}: formatRelative(published.publishedAt)
+#. placeholder {1}: published.publishedBy.name ?? '…'
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Published {0} by {1}"
+msgstr "Publiée {0} par {1}"
 
 #. placeholder {0}: data.folder.name
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Published clean transcripts go to the folder “{0}” of the study folder."
 msgstr "Les transcriptions nettoyées publiées vont dans le dossier « {0} » du dossier de l’étude."
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Published from studies you cannot all open (or more of them): only someone with the same access can update it."
+msgstr "Publiée à partir d’études différentes de celles que vous pouvez ouvrir : seule une personne avec les mêmes accès peut la mettre à jour."
 
 #. placeholder {0}: r.versionNumber
 #: src/features/enrichment/interview-cleaning.tsx
@@ -4062,6 +4375,14 @@ msgstr "Publiée dans le Drive (version {0})."
 #: src/features/preparation/drive-publishing.tsx
 msgid "Published to Drive"
 msgstr "Publié dans le Drive"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Published to Google Slides"
+msgstr "Publiée dans Google Slides"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Publishing needs a study of the project with a Drive folder you can open."
+msgstr "Pour publier, il faut une étude du projet avec un dossier Drive que vous pouvez ouvrir."
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Publishing…"
@@ -4088,6 +4409,7 @@ msgstr "Vérification des questions"
 msgid "Question, objectives, hypotheses"
 msgstr "Question, objectifs, hypothèses"
 
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/recommendation-matrix.tsx
 msgid "Quick wins"
 msgstr "Gains rapides"
@@ -4134,6 +4456,7 @@ msgstr "Lecture…"
 msgid "Recommendation selected"
 msgstr "Recommandation sélectionnée"
 
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/recommendations-tab.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Recommendations"
@@ -4325,9 +4648,17 @@ msgstr "Remplacer la version du Drive"
 msgid "Replace the Drive version?"
 msgstr "Remplacer la version du Drive ?"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Replace the Google Slides version"
+msgstr "Remplacer la version Google Slides"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Replaces the current guide of the study."
 msgstr "Remplace le guide actuel de l’étude."
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Research debrief"
+msgstr "Restitution de la recherche"
 
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
@@ -4593,6 +4924,29 @@ msgstr "Skill"
 msgid "Skip to content"
 msgstr "Aller au contenu"
 
+#. placeholder {0}: at + 1
+#. placeholder {1}: slides.length
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Slide {0} of {1}"
+msgstr "Slide {0} sur {1}"
+
+#. placeholder {0}: at + 1
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Slide {0} of {count}"
+msgstr "Slide {0} sur {count}"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Slide by slide"
+msgstr "Slide par slide"
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Slides"
+msgstr "Slides"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Small extras"
+msgstr "Petits plus"
+
 #: src/features/workspace/errors.ts
 msgid "Some fields are not valid."
 msgstr "Certains champs ne sont pas valides."
@@ -4691,6 +5045,14 @@ msgstr "Arrêt après l'appel en cours…"
 msgid "Stopping…"
 msgstr "Arrêt en cours…"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "Strengths and existing levers"
+msgstr "Points forts et leviers existants"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "studies"
+msgstr "études"
+
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "Studies"
@@ -4721,6 +5083,7 @@ msgstr "Phases de l'étude"
 msgid "Study settings"
 msgstr "Paramètres de l'étude"
 
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Success measure"
 msgstr "Mesure du succès"
@@ -4763,8 +5126,13 @@ msgid "Supports"
 msgstr "Soutient"
 
 #: src/features/research/study-list.tsx
+#: src/features/synthesis/deck-slide.tsx
 msgid "Survey"
 msgstr "Questionnaire"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Survey answers."
+msgstr "Réponses au questionnaire."
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Take back"
@@ -4809,6 +5177,11 @@ msgstr "Retiré de la lecture : trouvez ses termes quand vous voulez."
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Team"
 msgstr "Équipe"
+
+#. placeholder {0}: slide.team
+#: src/features/synthesis/deck-slide.tsx
+msgid "Team {0}"
+msgstr "Équipe {0}"
 
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Team access"
@@ -4898,6 +5271,14 @@ msgstr "Texte analysé"
 #: src/features/research/study-settings.tsx
 msgid "Text analysed changed"
 msgstr "Texte analysé modifié"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Thank you"
+msgstr "Merci"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Thank you!"
+msgstr "Merci !"
 
 #: src/features/ai/labels.ts
 msgid "The account has no credit or quota left."
@@ -4998,6 +5379,14 @@ msgid "The cost could not be estimated: the draft can still be asked for."
 msgstr "Le coût n'a pas pu être estimé : le brouillon peut quand même être demandé."
 
 #: src/features/workspace/errors.ts
+msgid "The debrief has not been published to Google Slides yet."
+msgstr "La restitution n’a pas encore été publiée dans Google Slides."
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "The deck shows the validated insights and recommendations only. Validate them first, or include what is still to decide."
+msgstr "La restitution ne montre que les insights et recommandations validés. Validez-les d’abord, ou incluez ce qui reste à décider."
+
+#: src/features/workspace/errors.ts
 msgid "The document was changed in Drive since it was published."
 msgstr "Le document a été modifié dans le Drive depuis sa publication."
 
@@ -5070,6 +5459,10 @@ msgstr "Les insights et recommandations sont envoyés à votre fournisseur d'IA,
 msgid "The interview with {0} is validated. Its row in the schedule can be marked done."
 msgstr "L'entretien avec {0} est validé. Sa ligne du planning peut être marquée réalisée."
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "The interviews in numbers"
+msgstr "Les entretiens en chiffres"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "The interviews read now go to the AI together: one can no longer be taken out, only the whole reading stopped."
 msgstr "Les entretiens lus partent maintenant ensemble à l’IA : on ne peut plus en retirer un, seulement arrêter toute la lecture."
@@ -5127,6 +5520,22 @@ msgstr "L'autorisation est révoquée chez Google. Il faudra vous reconnecter po
 msgid "The permission no longer works (revoked or expired). Open a study to connect again."
 msgstr "L'autorisation ne fonctionne plus (révoquée ou expirée). Ouvrez une étude pour vous reconnecter."
 
+#: src/features/workspace/errors.ts
+msgid "The presentation was changed in Google Slides since it was published."
+msgstr "La présentation a été modifiée dans Google Slides depuis sa publication."
+
+#: src/features/workspace/errors.ts
+msgid "The presentation was created in Drive but its slides could not be written: update it."
+msgstr "La présentation a été créée dans Drive mais ses slides n’ont pas pu être écrites : mettez-la à jour."
+
+#: src/features/workspace/errors.ts
+msgid "The presentation was deleted or moved to the trash in Drive: publish a new one."
+msgstr "La présentation a été supprimée ou mise à la corbeille dans Drive : publiez-en une nouvelle."
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "The presentation was edited in Google Slides since it was published. Updating replaces those changes with the deck as it is now."
+msgstr "La présentation a été modifiée dans Google Slides depuis sa publication. La mettre à jour remplace ces modifications par la restitution telle qu’elle est maintenant."
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "The provider answered."
 msgstr "Le fournisseur a répondu."
@@ -5142,6 +5551,10 @@ msgstr "Le fournisseur limite les requêtes en ce moment."
 #: src/features/enrichment/labels.ts
 msgid "The reading was interrupted: find the terms again."
 msgstr "La lecture a été interrompue : relancez la recherche des termes."
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "The research question"
+msgstr "L’enjeu de la recherche"
 
 #: src/features/synthesis/labels.ts
 msgid "The run was interrupted: find insights again."
@@ -5192,6 +5605,7 @@ msgstr "Questions thématiques"
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx
 #: src/features/preparation/labels.ts
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/insights-tab.tsx
@@ -5380,6 +5794,10 @@ msgid "This planned interview is linked to another interview. Moving it removes 
 msgstr "Cet entretien planifié est rattaché à un autre entretien. Le déplacer supprime ce lien."
 
 #: src/features/workspace/errors.ts
+msgid "This presentation was published from other studies than those you can open: someone with the same access must update it."
+msgstr "Cette présentation a été publiée à partir d’autres études que celles que vous pouvez ouvrir : une personne avec les mêmes accès doit la mettre à jour."
+
+#: src/features/workspace/errors.ts
 msgid "This project does not exist or you do not have access to it."
 msgstr "Ce projet n'existe pas ou vous n'y avez pas accès."
 
@@ -5448,6 +5866,10 @@ msgstr "Titre enregistré"
 msgid "To analyse again"
 msgstr "À analyser de nouveau"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "to assign"
+msgstr "à attribuer"
+
 #: src/features/analysis/interview-facts.tsx
 msgid "To attribute"
 msgstr "À attribuer"
@@ -5505,6 +5927,15 @@ msgstr "Pour trouver les termes, l'application lit d'abord elle-même les transc
 msgid "To find who took part and when, the beginning of each transcript (about 4,000 characters) is sent to your AI provider, with your own connection. This text may contain names of people."
 msgstr "Pour trouver qui a participé et quand, le début de chaque transcription (environ 4 000 caractères) est envoyé à votre fournisseur IA, avec votre propre connexion. Ce texte peut contenir des noms de personnes."
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "To reconsider"
+msgstr "À reconsidérer"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "to validate"
+msgstr "à valider"
+
+#: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insights-picker.tsx
 #: src/features/synthesis/labels.ts
@@ -5621,6 +6052,10 @@ msgstr "Délier"
 msgid "Update in Drive"
 msgstr "Mettre à jour dans le Drive"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Update in Google Slides"
+msgstr "Mettre à jour dans Google Slides"
+
 #: src/features/research/study-list.tsx
 msgid "Updated {updated}"
 msgstr "Modifié le {updated}"
@@ -5630,8 +6065,13 @@ msgid "Updated in Drive"
 msgstr "Mis à jour dans le Drive"
 
 #: src/features/research/study-list.tsx
+#: src/features/synthesis/deck-slide.tsx
 msgid "Usability test"
 msgstr "Test utilisateur"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Usability test sessions."
+msgstr "Sessions de test utilisateur."
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Usage"
@@ -5734,6 +6174,7 @@ msgstr "Version {0} · modifiée à la main par {who} {when}"
 msgid "Version {0} · written with the assistant, applied by {who} {when}"
 msgstr "Version {0} · rédigée avec l’assistant, appliquée par {who} {when}"
 
+#: src/features/synthesis/debrief-tab.tsx
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "View"
 msgstr "Vue"
@@ -5768,9 +6209,17 @@ msgstr "était :"
 msgid "Welcome to goodresearch"
 msgstr "Bienvenue dans goodresearch"
 
+#: src/features/synthesis/deck-slide.tsx
+msgid "What holds back"
+msgstr "Ce qui freine"
+
 #: src/features/enrichment/term-dialogs.tsx
 msgid "What it should read"
 msgstr "Ce qui devrait être écrit"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "What qualifies it"
+msgstr "Ce qui nuance"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "What the AI proposes stays a proposal until a person accepts it."
@@ -5783,6 +6232,22 @@ msgstr "Ce que l'IA propose reste une proposition tant que vous ne l'acceptez pa
 #: src/features/research/study-settings.tsx
 msgid "What the Analysis phase reads to find verbatims and facts."
 msgstr "Ce que la phase d'analyse lit pour trouver les verbatims et les faits."
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "What to remember"
+msgstr "Ce qu’il faut retenir"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "What we also heard"
+msgstr "Ce que nous avons aussi entendu"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "What we recommend"
+msgstr "Ce que nous recommandons"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "What works"
+msgstr "Ce qui fonctionne"
 
 #: src/features/fieldwork/analysis.tsx
 msgid "What you accepted or rejected stays; only the proposals still to decide are replaced."
@@ -5799,6 +6264,10 @@ msgstr "Où il a été trouvé"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Where to correct"
 msgstr "Où corriger"
+
+#: src/features/synthesis/deck-slide.tsx
+msgid "Who does what"
+msgstr "Qui fait quoi"
 
 #: src/features/analysis/interview-facts.tsx
 msgid "Who speaks"
@@ -5910,6 +6379,10 @@ msgstr "Vous ne pouvez pas modifier ce fichier dans Drive"
 #: src/features/fieldwork/proposals.tsx
 msgid "You cannot edit this file in Drive."
 msgstr "Vous ne pouvez pas modifier ce fichier dans Drive."
+
+#: src/features/synthesis/debrief-tab.tsx
+msgid "You cannot edit this presentation in Google Slides: ask its owner, {owner}."
+msgstr "Vous ne pouvez pas modifier cette présentation dans Google Slides : demandez à {owner}, qui en est propriétaire."
 
 #: src/features/workspace/errors.ts
 msgid "You cannot open one of the studies chosen."

@@ -29,7 +29,7 @@ Every AI-produced object follows the same lifecycle and the same protections. Th
 | 4 | **Transcripts** | Supporting | Domain model | Transcript, LexiconTerm, CorrectionRun |
 | 5 | **Interview Quality** | Core | Domain model + policies | Evaluation |
 | 6 | **Evidence** | Core | Domain model | Participant, Fact |
-| 7 | **Synthesis** | Core | Domain model + policies | Insight, Recommendation, KeyTakeaways |
+| 7 | **Synthesis** | Core | Domain model + policies | Insight, Recommendation, KeyTakeaways, PublishedDeck |
 | 8 | **Reporting** | Supporting | Read models only (no aggregates) | — (deck, graph, evidence chain, exports) |
 | 9 | **AI Gateway** | Generic | Adapters + ledger | AI provider connection, UsageEntry (append-only), PricingCatalog |
 | 10 | **Assistant** | Supporting | Plain handlers + proposal rules | Conversation (messages, action proposals) |
@@ -149,7 +149,7 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 
 ### 8. Reporting (read models)
 
-Deck (debrief presentation), project graph, evidence chain (recommendation → insights → facts → sessions), anonymised fact export (CSV: no names, no session titles), costs. Built from queries; no aggregates, no writes.
+**Debrief deck** (spec 015, built by Synthesis as a read model): the project's slides built from its data each time it is opened, never stored, in the prototype's layout; only what is validated, or also what is still to decide, marked "to validate". Its next steps are written from the data; no limits slide for now. Its Google Slides copy, **PublishedDeck** (file, folder, language, the deck's fingerprint to tell "out of date", the presentation's content revision to tell "changed in Google Slides"), is kept by Synthesis. Then: project graph, evidence chain (recommendation → insights → facts → sessions), anonymised fact export (CSV: no names, no session titles), costs. Built from queries; no aggregates, no writes.
 
 ### 10. Assistant (spec 005)
 
@@ -269,7 +269,11 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Kind: build / test / investigate | Type : construire / tester / investiguer | |
 | Impact / Effort | Impact / Effort | |
 | Key takeaways | Points clés | |
-| Debrief deck | Restitution | |
+| Debrief deck | Restitution | Spec 015, the project's 4th tab |
+| Who does what (debrief) | Qui fait quoi | Spec 015, written from the data |
+| Quick wins / Major projects / Small extras / To reconsider | Gains rapides / Chantiers structurants / Petits plus / À reconsidérer | Quadrants of the impact × effort matrix |
+| To validate | À valider | Shown on what is still to decide |
+| Out of date / In sync (published deck) | Pas à jour / À jour | Spec 015 |
 | Evidence chain | Chaîne de preuves | |
 | Review policy (auto / manual) | Mode de revue (automatique / manuel) | |
 | Proposed / Validated / Rejected | Proposé / Validé / Rejeté | |

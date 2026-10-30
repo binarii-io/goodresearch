@@ -6,6 +6,7 @@ import {
   type DriveDocuments,
   DriveRevisionMismatch,
   type FileMeta,
+  type PresentationSlide,
   type TableModel,
   type TableRead,
 } from '../domain/drive-documents.ts'
@@ -40,6 +41,16 @@ export type StudyFiles = {
     table: Pick<TableModel, 'columns' | 'timeZone'>,
   ): Promise<Result<TableRead, FileError>>
   rewriteTable(fileId: string, table: TableModel): Promise<Result<void, FileError>>
+  /** Spec 015: a presentation in the study's folder, then rewritten in place. */
+  createPresentation(
+    name: string,
+    slides: readonly PresentationSlide[],
+  ): Promise<Result<CreatedFile & { written: boolean; revision: string | null }, FileError>>
+  rewritePresentation(
+    fileId: string,
+    slides: readonly PresentationSlide[],
+    expected: string | null,
+  ): Promise<Result<{ revision: string | null }, FileError>>
   metadata(fileId: string): Promise<Result<FileMeta | null, FileError>>
   renameFile(fileId: string, name: string): Promise<Result<FileMeta | null, FileError>>
   /** Spec 011: a folder inside the study folder, found again by its id while it is still there. */
@@ -100,6 +111,10 @@ export const makeStudyFiles =
       createTable: (name, table) => run(() => documents.createTable(token, folderId, name, table)),
       readTable: (fileId, table) => run(() => documents.readTable(token, fileId, table)),
       rewriteTable: (fileId, table) => run(() => documents.rewriteTable(token, fileId, table)),
+      createPresentation: (name, slides) =>
+        run(() => documents.createPresentation(token, folderId, name, slides)),
+      rewritePresentation: (fileId, slides, expected) =>
+        run(() => documents.rewritePresentation(token, fileId, slides, expected)),
       metadata: (fileId) => run(() => documents.metadata(token, fileId)),
       renameFile: (fileId, name) => run(() => documents.renameFile(token, fileId, name)),
       ensureFolder: (name, knownId) =>

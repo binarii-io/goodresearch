@@ -1,5 +1,5 @@
 import { err, fold, ok } from '@goodresearch/shared'
-import { confidence, panelOf, polarity } from '../../domain/confidence.ts'
+import { confidence, panelOf, polarity, supportFacts } from '../../domain/confidence.ts'
 import { themeOf } from '../../domain/fact-lines.ts'
 import {
   type InsightRun,
@@ -38,8 +38,13 @@ const sum = (values: Iterable<number | null | undefined>) => {
 /** Read models of the Insights tab: queries only, computed values derived, never written. */
 export const makeInsightQueries = (deps: SynthesisDeps) => {
   /** The project's facts now: those of its studies, then the linked ones that left or changed. */
-  const factsNow = async (studyIds: ReadonlySet<string>, insights: readonly Insight[]) => {
-    const own = await deps.sources.facts([...studyIds])
+  const factsNow = async (
+    studyIds: ReadonlySet<string>,
+    insights: readonly Insight[],
+    /** The studies' facts when the caller already read them. */
+    loaded?: readonly SourceFact[],
+  ) => {
+    const own = loaded ?? (await deps.sources.facts([...studyIds]))
     const known = new Set(own.map((f) => f.id))
     const missing = [
       ...new Set(
@@ -66,6 +71,9 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
     translation: i.translation,
     confidence: confidence(i.links, facts, studyIds, panel, panelIfAccepted),
     polarity: polarity(i.links, facts, studyIds),
+    polarityIfAccepted: polarity(i.links, facts, studyIds, true),
+    supportFacts: supportFacts(i.links, facts, studyIds),
+    supportFactsIfAccepted: supportFacts(i.links, facts, studyIds, true),
     evidenceChanged: evidenceChanged(i.links, facts, studyIds),
     suggested: i.links.filter((l) => l.state === 'suggested').length,
     // Linked facts still to decide in their study: counted once accepted.
@@ -88,8 +96,12 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
    * The project's insights with their computed values, as recommendations read them (spec 014
    * research R1): status, statement, theme, confidence level, polarity, participants.
    */
-  const now = async (studyIds: ReadonlySet<string>, insights: readonly Insight[]) => {
-    const { own, byId } = await factsNow(studyIds, insights)
+  const now = async (
+    studyIds: ReadonlySet<string>,
+    insights: readonly Insight[],
+    loaded?: readonly SourceFact[],
+  ) => {
+    const { own, byId } = await factsNow(studyIds, insights, loaded)
     const panel = panelOf(own, studyIds)
     const panelIfAccepted = panelOf(own, studyIds, true)
     return insights.map((i) => cardOf(i, byId, studyIds, panel, panelIfAccepted))

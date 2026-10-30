@@ -86,6 +86,11 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   RECOMMENDATIONS_RUNNING: msg`Recommendations are already being found for this project.`,
   NO_INSIGHTS: msg`No insight to read: validate insights first.`,
   TAKEAWAYS_DRAFTING: msg`A draft of the key takeaways is already being written.`,
+  DECK_NOT_PUBLISHED: msg`The debrief has not been published to Google Slides yet.`,
+  DECK_CHANGED_IN_SLIDES: msg`The presentation was changed in Google Slides since it was published.`,
+  DECK_FILE_GONE: msg`The presentation was deleted or moved to the trash in Drive: publish a new one.`,
+  DECK_NOT_WRITTEN: msg`The presentation was created in Drive but its slides could not be written: update it.`,
+  DECK_ACCESS_DIFFERS: msg`This presentation was published from other studies than those you can open: someone with the same access must update it.`,
 }
 
 /** One translated sentence for an error code (never technical details). */

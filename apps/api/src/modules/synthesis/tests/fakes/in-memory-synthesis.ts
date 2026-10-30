@@ -1,4 +1,5 @@
-import type { Clock } from '@goodresearch/shared'
+import { type Clock, err, ok } from '@goodresearch/shared'
+import { InMemoryDriveDocuments } from '../../../ingestion/index.ts'
 import {
   AiUnavailable,
   type InsightRequest,
@@ -12,6 +13,7 @@ import {
   type SynthesisStore,
   type TakeawaysJob,
 } from '../../application/ports.ts'
+import type { PublishedDeck } from '../../domain/debrief.ts'
 import type { InsightRun, RecommendationRun } from '../../domain/insight-run.ts'
 import type { Insight, InsightAnswer } from '../../domain/insights.ts'
 import type { Recommendation, RecommendationAnswer } from '../../domain/recommendations.ts'
@@ -25,6 +27,7 @@ export const inMemorySynthesisStore = () => {
   const recRuns = new Map<string, RecommendationRun>()
   const recommendations = new Map<string, Recommendation>()
   const takeaways = new Map<string, Takeaways>()
+  const decks = new Map<string, PublishedDeck>()
   const blank = (projectId: string): Takeaways => ({
     projectId,
     text: { en: '', fr: '' },
@@ -128,13 +131,19 @@ export const inMemorySynthesisStore = () => {
     saveDraft: async (projectId, draft) => {
       takeaways.set(projectId, { ...(takeaways.get(projectId) ?? blank(projectId)), draft })
     },
+    getPublishedDeck: async (projectId) => decks.get(projectId) ?? null,
+    savePublishedDeck: async (d, expected) => {
+      if (expected !== null && decks.get(d.projectId)?.version !== expected) return 'stale'
+      decks.set(d.projectId, d)
+      return 'ok'
+    },
     hasConsent: async (a, p, provider) => consents.get(`${a}|${p}`) === provider,
     giveConsent: async (a, p, provider) => {
       consents.set(`${a}|${p}`, provider)
     },
     accountNames: async (ids) => new Map(ids.map((id) => [id, `Name of ${id}`])),
   }
-  return { store, runs, insights, recRuns, recommendations, takeaways }
+  return { store, runs, insights, recRuns, recommendations, takeaways, decks }
 }
 
 /** The other modules, as Synthesis sees them. */
@@ -145,12 +154,45 @@ export const fakeSources = (input: {
   names?: string[]
   themes?: Record<string, { id: string; title: string }[]>
   access?: (accountId: string) => boolean
+  verbatims?: { factId: string; studyId: string; participant: string; text: string }[]
 }) => {
-  const state = { facts: input.facts, studies: input.studies, language: 'en' as 'en' | 'fr' }
+  const state = {
+    facts: input.facts,
+    studies: input.studies,
+    language: 'en' as 'en' | 'fr',
+    verbatims: input.verbatims ?? [],
+    /** People who gave the Drive write consent (spec 007). */
+    canWrite: new Set<string>(['ana']),
+    /** The next presentation is created but its slides are not written (Slides API failure). */
+    unwritten: false,
+  }
+  // Spec 015: the study folders, in memory; a token is the account itself.
+  const drive = new InMemoryDriveDocuments((token) => token)
+  const fileError = (error: unknown) => {
+    const name = (error as Error).name
+    if (name === 'DriveCannotEdit') return err('DRIVE_CANNOT_EDIT' as const)
+    if (name === 'DriveConnectionLost') return err('DRIVE_NOT_CONNECTED' as const)
+    if (name === 'DriveRevisionMismatch') return err('DRIVE_CHANGED_MEANWHILE' as const)
+    throw error
+  }
+  const wrap = async <T>(f: () => Promise<T>) => {
+    try {
+      return ok(await f())
+    } catch (error) {
+      return fileError(error)
+    }
+  }
   const allowed = input.access ?? (() => true)
   const sources: SynthesisSources = {
     project: async (accountId) =>
-      allowed(accountId) ? { teamId: 'team', goal: input.goal ?? 'How teams find data' } : null,
+      allowed(accountId)
+        ? {
+            teamId: 'team',
+            goal: input.goal ?? 'How teams find data',
+            name: 'Finding data',
+            team: 'Research',
+          }
+        : null,
     studies: async () => state.studies,
     themes: async (_a, studyId) => input.themes?.[studyId] ?? [],
     facts: async (studyIds) =>
@@ -158,8 +200,36 @@ export const fakeSources = (input: {
     factsByIds: async (ids) => ids.flatMap((id) => state.facts.find((f) => f.id === id) ?? []),
     knownNames: async () => input.names ?? [],
     language: async () => state.language,
+    interviews: async (_a, studyId) => ({
+      count: new Set(state.facts.filter((f) => f.studyId === studyId).map((f) => f.sessionId)).size,
+      first: '2026-10-01',
+      last: '2026-10-20',
+    }),
+    guide: async (_a, studyId) => ({
+      themes: (input.themes?.[studyId] ?? []).map((t) => t.title),
+      questions: 12,
+    }),
+    verbatims: async (ids) => state.verbatims.filter((v) => ids.includes(v.factId)),
+    deckFiles: async (accountId, studyId) => {
+      if (!state.studies.some((s) => s.id === studyId)) return err('STUDY_NOT_FOUND')
+      if (!state.canWrite.has(accountId)) return err('DRIVE_WRITE_REQUIRED')
+      const folderId = `folder-${studyId}`
+      return ok({
+        folderId,
+        createPresentation: (name, pages) =>
+          wrap(async () => {
+            const file = await drive.createPresentation(accountId, folderId, name, pages)
+            if (!state.unwritten) return file
+            state.unwritten = false
+            return { ...file, written: false, revision: null }
+          }),
+        rewritePresentation: (fileId, pages, expected) =>
+          wrap(() => drive.rewritePresentation(accountId, fileId, pages, expected)),
+        metadata: (fileId) => wrap(() => drive.metadata(accountId, fileId)),
+      })
+    },
   }
-  return { sources, state }
+  return { sources, state, drive }
 }
 
 /**

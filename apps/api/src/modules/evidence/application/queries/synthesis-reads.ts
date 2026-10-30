@@ -52,5 +52,24 @@ export const makeSynthesisReads = (store: EvidenceStore) => {
       const found = new Map((await store.factsByIds(ids)).map((f) => [f.id, f]))
       return withParticipants(ids.flatMap((id) => found.get(id) ?? []))
     },
+    /**
+     * Spec 015: the verbatims of these facts for the debrief deck, with their participant's code;
+     * a verbatim set aside or still to attribute is left out. The caller replaces names.
+     */
+    verbatimsOf: async (factIds: readonly string[]) => {
+      const facts = await store.factsByIds(factIds)
+      const verbatims = await store.verbatimsByIds([
+        ...new Set(facts.flatMap((f) => f.verbatimIds)),
+      ])
+      const byId = new Map(verbatims.map((v) => [v.id, v]))
+      return facts.flatMap((f) =>
+        f.verbatimIds.flatMap((id) => {
+          const v = byId.get(id)
+          return v && !v.setAside && v.participant
+            ? [{ factId: f.id, studyId: f.studyId, participant: v.participant, text: v.text }]
+            : []
+        }),
+      )
+    },
   }
 }

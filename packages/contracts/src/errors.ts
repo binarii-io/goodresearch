@@ -97,6 +97,11 @@ export const ERROR_CODES = [
   'RECOMMENDATIONS_RUNNING',
   'NO_INSIGHTS',
   'TAKEAWAYS_DRAFTING',
+  'DECK_NOT_PUBLISHED',
+  'DECK_CHANGED_IN_SLIDES',
+  'DECK_FILE_GONE',
+  'DECK_NOT_WRITTEN',
+  'DECK_ACCESS_DIFFERS',
 ] as const
 
 export type ErrorCode = (typeof ERROR_CODES)[number]
@@ -197,6 +202,11 @@ export const HTTP_STATUS: Readonly<Record<ErrorCode, number>> = {
   RECOMMENDATIONS_RUNNING: 409,
   NO_INSIGHTS: 409,
   TAKEAWAYS_DRAFTING: 409,
+  DECK_NOT_PUBLISHED: 404,
+  DECK_CHANGED_IN_SLIDES: 409,
+  DECK_FILE_GONE: 409,
+  DECK_NOT_WRITTEN: 502,
+  DECK_ACCESS_DIFFERS: 403,
 }
 
 /** RFC 9457 problem details with a stable `code`. */

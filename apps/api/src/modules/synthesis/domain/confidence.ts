@@ -39,6 +39,14 @@ const countedFacts = (
     return counts(state) || (withToDecide && state === 'to-decide') ? [fact] : []
   })
 
+/** Spec 015: the supporting facts counted, now or once those still to decide are accepted. */
+export const supportFacts = (
+  links: readonly Link[],
+  facts: ReadonlyMap<string, FactNow>,
+  projectStudyIds: ReadonlySet<string>,
+  withToDecide = false,
+): number => countedFacts(links, facts, projectStudyIds, 'support', withToDecide).length
+
 const participantsOf = (facts: readonly FactNow[]) =>
   new Set(facts.flatMap((f) => f.participants.map((p) => keyOf(f.studyId, p)))).size
 
@@ -114,8 +122,10 @@ export const polarity = (
   links: readonly Link[],
   facts: ReadonlyMap<string, FactNow>,
   projectStudyIds: ReadonlySet<string>,
+  /** Also the linked facts still to decide: the polarity once they are accepted (spec 015). */
+  withToDecide = false,
 ): InsightPolarity => {
-  const supporting = countedFacts(links, facts, projectStudyIds, 'support')
+  const supporting = countedFacts(links, facts, projectStudyIds, 'support', withToDecide)
   const positive = supporting.filter((f) => f.polarity === 'positive').length
   const negative = supporting.filter((f) => f.polarity === 'negative').length
   const polarised = positive + negative

@@ -210,3 +210,21 @@ export const synthesisTakeaways = pgTable('synthesis_takeaways', {
   draftBy: text('draft_by'),
   draftAt: timestamp('draft_at', { withTimezone: true }),
 })
+
+/** Spec 015: the project's deck published to Google Slides; the file itself stays in Drive. */
+export const synthesisPublishedDecks = pgTable('synthesis_published_decks', {
+  projectId: text('project_id').primaryKey(),
+  fileId: text('file_id').notNull(),
+  folderId: text('folder_id').notNull(),
+  studyId: text('study_id').notNull(),
+  link: text('link').notNull(),
+  language: text('language').notNull(),
+  withProposed: boolean('with_proposed').notNull(),
+  fingerprint: text('fingerprint').notNull(),
+  studyIds: jsonb('study_ids').$type<string[]>().notNull().default([]),
+  /** The presentation's content revision just after the app wrote it (spec 015 FR-009). */
+  revision: text('revision'),
+  publishedBy: text('published_by').notNull(),
+  publishedAt: timestamp('published_at', { withTimezone: true }).notNull(),
+  version: integer('version').notNull().default(1),
+})

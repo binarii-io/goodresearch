@@ -224,3 +224,37 @@
   text-transform: uppercase;
   color: var(--muted-foreground);
 }
+
+/* Spec 015: the debrief deck printed (or saved as PDF), one 16:9 slide per page. Off screen but
+   laid out at the page's size until printed, so each slide is fitted before the print starts. */
+[data-print-deck] {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  width: 297mm;
+}
+[data-print-slide] {
+  width: 297mm;
+  height: 167mm;
+}
+[data-print-slide] > article {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+}
+@media print {
+  @page {
+    size: 297mm 167mm;
+    margin: 0;
+  }
+  body > :not([data-print-deck]) {
+    display: none;
+  }
+  [data-print-deck] {
+    position: static;
+  }
+  [data-print-slide] {
+    break-after: page;
+    print-color-adjust: exact;
+  }
+}

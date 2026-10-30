@@ -1,4 +1,6 @@
-import type { Clock } from '@goodresearch/shared'
+import type { Clock, Result } from '@goodresearch/shared'
+import type { PublishedDeck } from '../domain/debrief.ts'
+import type { PresentationPage } from '../domain/deck-pages.ts'
 import type { InsightRun, RecommendationRun } from '../domain/insight-run.ts'
 import type { Bilingual, FactNow, Insight, InsightAnswer } from '../domain/insights.ts'
 import type { Recommendation, RecommendationAnswer } from '../domain/recommendations.ts'
@@ -8,12 +10,22 @@ import type { Takeaways } from '../domain/takeaways.ts'
 export type SourceFact = FactNow & { readonly sessionId: string }
 
 /** A study of the project, with the person's own access to its folder (spec 002 FR-010a). */
-export type ProjectStudy = { readonly id: string; readonly name: string; readonly access: boolean }
+export type ProjectStudy = {
+  readonly id: string
+  readonly name: string
+  readonly access: boolean
+  /** Spec 015: the study's type and whether it has a Drive folder. */
+  readonly type?: string | undefined
+  readonly hasFolder?: boolean | undefined
+}
 
 /** What Synthesis reads from the other modules, through `compose.ts` (research R1). */
 export type SynthesisSources = {
   /** The project's team and research goal; null without access. */
-  project(accountId: string, projectId: string): Promise<{ teamId: string; goal: string } | null>
+  project(
+    accountId: string,
+    projectId: string,
+  ): Promise<{ teamId: string; goal: string; name: string; team?: string | null } | null>
   studies(accountId: string, projectId: string): Promise<readonly ProjectStudy[]>
   /** The theme sections of a study's guide. */
   themes(accountId: string, studyId: string): Promise<readonly { id: string; title: string }[]>
@@ -25,6 +37,63 @@ export type SynthesisSources = {
   knownNames(accountId: string, studyId: string): Promise<readonly string[]>
   /** The person's language: the statements sent are in it (spec 013 assumptions). */
   language(accountId: string): Promise<'en' | 'fr'>
+  /** Spec 015: a study's validated interviews, and their first and last dates (`YYYY-MM-DD`). */
+  interviews(
+    accountId: string,
+    studyId: string,
+  ): Promise<{ count: number; first: string | null; last: string | null }>
+  /** Spec 015: the theme sections of a study's guide and its count of main questions. */
+  guide(accountId: string, studyId: string): Promise<{ themes: string[]; questions: number }>
+  /** Spec 015: the verbatims of these facts (set aside and unattributed ones left out). */
+  verbatims(
+    factIds: readonly string[],
+  ): Promise<readonly { factId: string; studyId: string; participant: string; text: string }[]>
+  /** Spec 015: the study folder's presentations, with the person's own Drive write access. */
+  deckFiles(accountId: string, studyId: string): Promise<Result<DeckFiles, DeckFilesError>>
+}
+
+/** One slide as written to Google Slides (spec 015). */
+export type { PresentationPage } from '../domain/deck-pages.ts'
+
+export type DeckFileError = 'DRIVE_NOT_CONNECTED' | 'DRIVE_CANNOT_EDIT' | 'DRIVE_CHANGED_MEANWHILE'
+export type DeckFilesError =
+  | 'STUDY_NOT_FOUND'
+  | 'FOLDER_ACCESS_REQUIRED'
+  | 'NO_SOURCE_FOLDER'
+  | 'DRIVE_NOT_CONNECTED'
+  | 'DRIVE_NOT_CONFIGURED'
+  | 'DRIVE_UNAVAILABLE'
+  | 'DRIVE_WRITE_REQUIRED'
+
+export type DeckFiles = {
+  readonly folderId: string
+  createPresentation(
+    name: string,
+    pages: readonly PresentationPage[],
+  ): Promise<
+    Result<
+      { id: string; webViewLink: string; written: boolean; revision: string | null },
+      DeckFileError
+    >
+  >
+  /** Only while the content is still at `expected` (null: whatever it is); DRIVE_CHANGED_MEANWHILE else. */
+  rewritePresentation(
+    fileId: string,
+    pages: readonly PresentationPage[],
+    expected: string | null,
+  ): Promise<Result<{ revision: string | null }, DeckFileError>>
+  metadata(fileId: string): Promise<
+    Result<
+      {
+        trashed: boolean
+        canEdit: boolean
+        ownerName: string | null
+        version: number
+        webViewLink: string
+      } | null,
+      DeckFileError
+    >
+  >
 }
 
 /** The provider is not connected (anymore). */
@@ -161,6 +230,10 @@ export type SynthesisStore = {
   saveTakeaways(t: Takeaways, expected: number): Promise<SaveOutcome>
   /** The draft alone, whatever the text's version. */
   saveDraft(projectId: string, draft: Takeaways['draft']): Promise<void>
+
+  getPublishedDeck(projectId: string): Promise<PublishedDeck | null>
+  /** `expected` null: a new publication, whatever was there; else only at that version. */
+  savePublishedDeck(d: PublishedDeck, expected: number | null): Promise<SaveOutcome>
 
   hasConsent(accountId: string, projectId: string, provider: string): Promise<boolean>
   giveConsent(accountId: string, projectId: string, provider: string, at: Date): Promise<void>

@@ -267,6 +267,13 @@
       "when": 1793305528384,
       "tag": "0037_takeaways_draft_basis",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793308117513,
+      "tag": "0038_debrief_deck",
+      "breakpoints": true
     }
   ]
 }

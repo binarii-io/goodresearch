@@ -1,6 +1,6 @@
 import type { Insight } from '../domain/insights.ts'
 import type { InsightNow } from '../domain/recommendations.ts'
-import type { SynthesisDeps } from './ports.ts'
+import type { SourceFact, SynthesisDeps } from './ports.ts'
 import type { ProjectView } from './project.ts'
 import { makeInsightQueries } from './queries/insight-queries.ts'
 
@@ -26,15 +26,15 @@ export const insightsNow = async (
   projectId: string,
   /** The project's insights when the caller already read them. */
   loaded?: readonly Insight[],
+  /**
+   * Spec 015: the values once the linked facts still to decide are accepted (participants for
+   * and against, panel, confidence, polarity), as the debrief shows them with what is to decide.
+   */
+  options: { withToDecide?: boolean; facts?: readonly SourceFact[] } = {},
 ): Promise<ReadonlyMap<string, InsightLine>> => {
+  const all = options.withToDecide === true
   const insights = loaded ?? (await deps.store.insightsOf(projectId))
-  const cards = await makeInsightQueries(deps).now(project.studyIds, insights)
-  const factsOf = new Map(
-    insights.map((i) => [
-      i.id,
-      i.links.filter((l) => l.role === 'support' && l.state === 'counted').length,
-    ]),
-  )
+  const cards = await makeInsightQueries(deps).now(project.studyIds, insights, options.facts)
   return new Map(
     cards.map((c) => [
       c.id,
@@ -45,12 +45,12 @@ export const insightsNow = async (
         statement: c.statement,
         themeKey: c.theme.key,
         themeTitle: c.theme.title,
-        level: c.confidence.level,
-        polarity: c.polarity,
-        support: c.confidence.support,
-        counter: c.confidence.counter,
-        panel: c.confidence.panel,
-        facts: factsOf.get(c.id) ?? 0,
+        level: all ? c.confidence.levelIfAccepted : c.confidence.level,
+        polarity: all ? c.polarityIfAccepted : c.polarity,
+        support: c.confidence.support + (all ? c.confidence.pendingSupport : 0),
+        counter: c.confidence.counter + (all ? c.confidence.pendingCounter : 0),
+        panel: all ? c.confidence.panelIfAccepted : c.confidence.panel,
+        facts: all ? c.supportFactsIfAccepted : c.supportFacts,
         version: c.version,
       },
     ]),

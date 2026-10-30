@@ -152,5 +152,93 @@ test.describe('spec 014 — Recommendations and key takeaways', () => {
     await expect(takeaways.getByText(/Saved by/)).toBeVisible()
     await expect(takeaways.getByText(/AI drafts so far \$/)).toBeVisible()
     await expectAccessible(page)
+
+    // Spec 015: the debrief deck, built from what was decided, presented, then in Google Slides.
+    await main.getByRole('tab', { name: 'Debrief' }).click()
+    await expect(page).toHaveURL(/tab=debrief/)
+    const debrief = main.getByRole('tabpanel', { name: 'Debrief' })
+    const slides = debrief.getByRole('list', { name: 'Slides' })
+    for (const title of [
+      'What to remember',
+      'The research question',
+      'What we recommend',
+      'Impact × effort',
+      'Who does what',
+    ])
+      await expect(slides.getByRole('article', { name: title, exact: true })).toBeVisible()
+    await expect(slides).not.toContainText('Sam Example')
+    await expectAccessible(page)
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await expectAccessible(page)
+    await page.emulateMedia({ colorScheme: 'light' })
+
+    // FR-006: the next steps say who does what, from the recommendations.
+    await expect(slides.getByRole('article', { name: 'Who does what', exact: true })).toContainText(
+      'Data team',
+    )
+
+    // FR-005: one slide at a time in the page, moved with the arrows; back to all slides.
+    await debrief.getByRole('button', { name: 'Slide by slide' }).click()
+    const one = debrief.getByRole('region', { name: /^Slide \d+ of \d+$/ })
+    await expect(one.getByText(/^Slide 1 of \d+$/)).toBeVisible()
+    await page.keyboard.press('ArrowRight')
+    await expect(one.getByText(/^Slide 2 of \d+$/)).toBeVisible()
+    await one.getByRole('button', { name: 'Previous slide' }).click()
+    await expect(one.getByText(/^Slide 1 of \d+$/)).toBeVisible()
+    await expectAccessible(page)
+    await debrief.getByRole('button', { name: 'All slides' }).click()
+    await slides.getByRole('button', { name: 'Open slide 3' }).click()
+    await expect(one.getByText(/^Slide 3 of \d+$/)).toBeVisible()
+    await debrief.getByRole('button', { name: 'All slides' }).click()
+
+    // FR-005: the presentation mode, with the keyboard.
+    await debrief.getByRole('button', { name: 'Present', exact: true }).click()
+    const show = page.getByRole('dialog', { name: 'Debrief presentation' })
+    await expect(show.getByText(/^Slide 1 of \d+$/)).toBeVisible()
+    await page.keyboard.press('ArrowRight')
+    await expect(show.getByText(/^Slide 2 of \d+$/)).toBeVisible()
+    await page.keyboard.press('Home')
+    await expect(show.getByText(/^Slide 1 of \d+$/)).toBeVisible()
+    await expectAccessible(page)
+    await show.getByRole('button', { name: 'Leave the presentation' }).click()
+    await expect(show).toBeHidden()
+
+    // US2: published to Google Slides (the simulated Drive), then updated in place.
+    const sources = (await (await page.request.get('/api/me/sources')).json()) as {
+      canWrite: boolean
+    }[]
+    const publishDeck = async () => {
+      await debrief.getByRole('button', { name: 'Publish to Google Slides' }).click()
+      const dialog = page.getByRole('dialog', { name: 'Publish to Google Slides' })
+      await expectAccessible(page)
+      await dialog.getByRole('button', { name: 'Publish', exact: true }).click()
+    }
+    await publishDeck()
+    if (!sources[0]?.canWrite) {
+      await expect(page).toHaveURL(/tab=debrief/)
+      await publishDeck()
+    }
+    await expect(debrief.getByText('In sync')).toBeVisible()
+    const deckLink = debrief.getByRole('link', { name: 'Open in Google Slides' })
+    // A recommendation's owner changes: the deck is out of date.
+    await main.getByRole('tab', { name: 'Recommendations' }).click()
+    await pane.getByRole('button', { name: /Owner/ }).click()
+    await pane.getByRole('textbox', { name: 'Owner' }).fill('Product team')
+    await page.keyboard.press('Enter')
+    await expect(tab.getByRole('article').first()).toContainText('Product team')
+    await main.getByRole('tab', { name: 'Debrief' }).click()
+    await expect(debrief.getByText('Out of date')).toBeVisible()
+    await debrief.getByRole('button', { name: 'Update in Google Slides' }).click()
+    await expect(debrief.getByText('In sync')).toBeVisible()
+
+    // FR-009: edited in Google Slides meanwhile, replaced only once confirmed.
+    const deckId = (await deckLink.getAttribute('href'))?.split('/').at(-1) ?? ''
+    const edited = await page.request.post(`/api/dev/drive-documents/${deckId}/edit`, { data: {} })
+    expect(edited.status()).toBe(204)
+    await debrief.getByRole('button', { name: 'Update in Google Slides' }).click()
+    const replace = page.getByRole('alertdialog', { name: 'Changed in Google Slides' })
+    await expectAccessible(page)
+    await replace.getByRole('button', { name: 'Replace the Google Slides version' }).click()
+    await expect(page.getByText('Google Slides presentation updated')).toBeVisible()
   })
 })

@@ -7,7 +7,10 @@ export type ProjectError = 'PROJECT_NOT_FOUND'
 
 export type ProjectView = {
   readonly teamId: string
+  readonly name: string
   readonly goal: string
+  /** Spec 015: the name of the project's team. */
+  readonly team?: string | null | undefined
   readonly studies: readonly ProjectStudy[]
   readonly studyIds: ReadonlySet<string>
 }

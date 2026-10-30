@@ -79,7 +79,40 @@ export class DriveCannotEdit extends Error {
   override name = 'DriveCannotEdit'
 }
 
+/** One slide of a presentation written by goodresearch (spec 015): a title, lines, a table. */
+export type PresentationSlide = {
+  readonly title: string
+  /** The opening and closing slides: a centred title, the lines under it. */
+  readonly cover?: boolean | undefined
+  readonly lines?: readonly string[] | undefined
+  readonly table?:
+    | { readonly header: readonly string[]; readonly rows: readonly (readonly string[])[] }
+    | undefined
+}
+
 export interface DriveDocuments {
+  /**
+   * A new presentation in `folderId` with these slides (spec 015); `written` is false when the
+   * file was created but its slides could not be written (it is returned so it can be tracked).
+   * `revision`: the presentation's content revision after the write, null when unknown.
+   */
+  createPresentation(
+    refreshToken: string,
+    folderId: string,
+    name: string,
+    slides: readonly PresentationSlide[],
+  ): Promise<CreatedFile & { written: boolean; revision: string | null }>
+  /**
+   * Replaces every slide of the same presentation (same file, link and sharing). With `expected`,
+   * only while its content is still at that revision, checked in the write itself: else
+   * DriveRevisionMismatch. Sharing or renaming the file does not change it.
+   */
+  rewritePresentation(
+    refreshToken: string,
+    fileId: string,
+    slides: readonly PresentationSlide[],
+    expected: string | null,
+  ): Promise<{ revision: string | null }>
   /** A new folder inside `parentId` (spec 011: the clean transcripts). */
   createFolder(refreshToken: string, parentId: string, name: string): Promise<CreatedFile>
   createDocument(

@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 import type { Db } from '#platform/db.ts'
 import type { SynthesisStore } from '../application/ports.ts'
+import type { PublishedDeck } from '../domain/debrief.ts'
 import type { InsightRun, InsightsFailure, RecommendationRun } from '../domain/insight-run.ts'
 import type { FactPolarity, Insight, Link } from '../domain/insights.ts'
 import type { RecLink, Recommendation } from '../domain/recommendations.ts'
@@ -10,6 +11,7 @@ import {
   synthesisConsents,
   synthesisInsightFacts,
   synthesisInsights,
+  synthesisPublishedDecks,
   synthesisRecommendationInsights,
   synthesisRecommendationRuns,
   synthesisRecommendations,
@@ -194,6 +196,22 @@ const takeawaysOf = (r: typeof synthesisTakeaways.$inferSelect): Takeaways => ({
     by: r.draftBy,
     at: r.draftAt,
   },
+})
+
+const deckOf = (r: typeof synthesisPublishedDecks.$inferSelect): PublishedDeck => ({
+  projectId: r.projectId,
+  fileId: r.fileId,
+  folderId: r.folderId,
+  studyId: r.studyId,
+  link: r.link,
+  language: r.language === 'fr' ? 'fr' : 'en',
+  withProposed: r.withProposed,
+  fingerprint: r.fingerprint,
+  studyIds: r.studyIds ?? [],
+  revision: r.revision,
+  publishedBy: r.publishedBy,
+  publishedAt: r.publishedAt,
+  version: r.version,
 })
 
 export const createSynthesisStore = (db: Db): SynthesisStore => {
@@ -478,6 +496,40 @@ export const createSynthesisStore = (db: Db): SynthesisStore => {
         .insert(synthesisTakeaways)
         .values({ projectId, ...values })
         .onConflictDoUpdate({ target: synthesisTakeaways.projectId, set: values })
+    },
+    getPublishedDeck: async (projectId) => {
+      const [row] = await db
+        .select()
+        .from(synthesisPublishedDecks)
+        .where(eq(synthesisPublishedDecks.projectId, projectId))
+      return row ? deckOf(row) : null
+    },
+    savePublishedDeck: async (d, expected) => {
+      const values = {
+        fileId: d.fileId,
+        folderId: d.folderId,
+        studyId: d.studyId,
+        link: d.link,
+        language: d.language,
+        withProposed: d.withProposed,
+        fingerprint: d.fingerprint,
+        studyIds: [...d.studyIds],
+        revision: d.revision,
+        publishedBy: d.publishedBy,
+        publishedAt: d.publishedAt,
+        version: d.version,
+      }
+      // A new publication replaces the record whatever it was; an update only at the version seen.
+      const saved = await db
+        .insert(synthesisPublishedDecks)
+        .values({ projectId: d.projectId, ...values })
+        .onConflictDoUpdate({
+          target: synthesisPublishedDecks.projectId,
+          set: values,
+          ...(expected === null ? {} : { setWhere: eq(synthesisPublishedDecks.version, expected) }),
+        })
+        .returning({ version: synthesisPublishedDecks.version })
+      return saved.length > 0 && saved[0]?.version === d.version ? 'ok' : 'stale'
     },
     hasConsent: async (accountId, projectId, provider) => {
       const [row] = await db

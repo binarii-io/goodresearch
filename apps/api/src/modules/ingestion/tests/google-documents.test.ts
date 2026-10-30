@@ -260,3 +260,128 @@ describe('Google documents adapter (spec 007)', () => {
     ])
   })
 })
+
+describe('Google Slides through the documents adapter (spec 015)', () => {
+  const slidesFetch = (existing: string[]) =>
+    fakeFetch((c) => {
+      if (c.url.pathname === '/drive/v3/files' && c.method === 'POST')
+        return { status: 200, body: { id: 'deck-1', webViewLink: 'https://slides/deck-1' } }
+      if (c.url.pathname === '/v1/presentations/deck-1' && c.method === 'GET')
+        return { status: 200, body: { slides: existing.map((objectId) => ({ objectId })) } }
+      if (c.url.pathname === '/v1/presentations/deck-1:batchUpdate')
+        return { status: 200, body: {} }
+      return undefined
+    })
+  const pages = [
+    { title: 'Finding data', cover: true, lines: ['29 October 2026'] },
+    { title: 'Insight', lines: ['Theme: Finding data', '“I ask\naround.” (P02)'] },
+    {
+      title: 'Recommendations',
+      table: { header: ['#', 'Action'], rows: [['1', 'Add a catalogue']] },
+    },
+  ]
+
+  it('creates the presentation in the folder, adds the slides, then removes the blank one', async () => {
+    const { fetch, calls } = slidesFetch(['p'])
+    const created = await documents(fetch).createPresentation('token', 'folder-1', 'Debrief', pages)
+    expect(created).toMatchObject({
+      id: 'deck-1',
+      webViewLink: 'https://slides/deck-1',
+      written: true,
+    })
+    expect(
+      JSON.parse(calls.find((c) => c.url.pathname === '/drive/v3/files')?.body ?? '{}'),
+    ).toEqual({
+      name: 'Debrief',
+      mimeType: 'application/vnd.google-apps.presentation',
+      parents: ['folder-1'],
+    })
+    const { requests } = JSON.parse(
+      calls.find((c) => c.url.pathname.endsWith(':batchUpdate'))?.body ?? '{}',
+    ) as { requests: Record<string, Record<string, unknown>>[] }
+    const layouts = requests.flatMap((r) =>
+      r.createSlide
+        ? [(r.createSlide.slideLayoutReference as { predefinedLayout: string }).predefinedLayout]
+        : [],
+    )
+    expect(layouts).toEqual(['TITLE', 'TITLE_AND_BODY', 'TITLE_ONLY'])
+    const texts = requests.flatMap((r) => (r.insertText ? [r.insertText.text] : []))
+    expect(texts).toEqual([
+      'Finding data',
+      '29 October 2026',
+      'Insight',
+      'Theme: Finding data\n“I ask around.” (P02)',
+      'Recommendations',
+      '#',
+      'Action',
+      '1',
+      'Add a catalogue',
+    ])
+    expect(requests.find((r) => r.createTable)?.createTable).toMatchObject({ rows: 2, columns: 2 })
+    // New slides first, the old one last: the deck is never empty.
+    expect(requests.at(-1)).toEqual({ deleteObject: { objectId: 'p' } })
+  })
+
+  it('rewrites the same file in place, with ids that never clash with the old slides', async () => {
+    const { fetch, calls } = slidesFetch(['a', 'b'])
+    await documents(fetch).rewritePresentation('token', 'deck-1', pages, null)
+    expect(calls.some((c) => c.url.pathname === '/drive/v3/files')).toBe(false)
+    const { requests } = JSON.parse(
+      calls.find((c) => c.url.pathname.endsWith(':batchUpdate'))?.body ?? '{}',
+    ) as { requests: Record<string, Record<string, unknown>>[] }
+    expect(requests.slice(-2)).toEqual([
+      { deleteObject: { objectId: 'a' } },
+      { deleteObject: { objectId: 'b' } },
+    ])
+    const ids = requests.flatMap((r) => (r.createSlide ? [String(r.createSlide.objectId)] : []))
+    expect(ids.every((id) => /^gr[a-z0-9]+_\d+$/.test(id) && id.length >= 5)).toBe(true)
+  })
+
+  it('returns the file created even when its slides could not be written, saying so', async () => {
+    const { fetch } = fakeFetch((c) =>
+      c.url.pathname === '/drive/v3/files' && c.method === 'POST'
+        ? { status: 200, body: { id: 'deck-1', webViewLink: 'https://slides/deck-1' } }
+        : c.url.pathname.startsWith('/v1/presentations')
+          ? { status: 500, body: {} }
+          : undefined,
+    )
+    expect(
+      await documents(fetch).createPresentation('token', 'folder-1', 'Debrief', pages),
+    ).toEqual({
+      id: 'deck-1',
+      webViewLink: 'https://slides/deck-1',
+      written: false,
+      revision: null,
+    })
+  })
+
+  it('writes only at the revision expected, required in the write itself (review of PR #15)', async () => {
+    const { fetch, calls } = fakeFetch((c) => {
+      if (c.url.pathname === '/v1/presentations/deck-1' && c.method === 'GET')
+        return { status: 200, body: { revisionId: 'rev-2', slides: [{ objectId: 'a' }] } }
+      if (c.url.pathname === '/v1/presentations/deck-1:batchUpdate')
+        return { status: 200, body: { writeControl: { requiredRevisionId: 'rev-3' } } }
+      return undefined
+    })
+    await expect(
+      documents(fetch).rewritePresentation('token', 'deck-1', pages, 'rev-1'),
+    ).rejects.toBeInstanceOf(DriveRevisionMismatch)
+    expect(calls.some((c) => c.url.pathname.endsWith(':batchUpdate'))).toBe(false)
+    expect(await documents(fetch).rewritePresentation('token', 'deck-1', pages, 'rev-2')).toEqual({
+      revision: 'rev-3',
+    })
+    const body = JSON.parse(
+      calls.find((c) => c.url.pathname.endsWith(':batchUpdate'))?.body ?? '{}',
+    )
+    expect(body.writeControl).toEqual({ requiredRevisionId: 'rev-2' })
+  })
+
+  it('maps a refusal to "cannot edit"', async () => {
+    const { fetch } = fakeFetch((c) =>
+      c.url.pathname.startsWith('/v1/presentations') ? { status: 403, body: {} } : undefined,
+    )
+    await expect(
+      documents(fetch).rewritePresentation('token', 'deck-1', pages, null),
+    ).rejects.toBeInstanceOf(DriveCannotEdit)
+  })
+})
