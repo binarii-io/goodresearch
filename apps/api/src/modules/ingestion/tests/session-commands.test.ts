@@ -86,6 +86,15 @@ describe('fieldwork sessions (spec 008)', () => {
     expect(view.unmatchedMedia).toEqual([])
   })
 
+  it('US1: keeps the order of the list when a file is renamed in Drive', async () => {
+    const before = await fieldwork()
+    const sam = before.sessions[1]?.transcript
+    if (!sam) throw new Error('fixture')
+    await world.store.renameFile('study-1', sam.fileId, 'Renamed.txt', '2030-01-01T00:00:00.000Z')
+    const after = await fieldwork()
+    expect(after.sessions.map((s) => s.id)).toEqual(before.sessions.map((s) => s.id))
+  })
+
   it('US2: suggests the planned interview by name, then by date, and lists those without one', async () => {
     const view = await fieldwork()
     const [two, sam] = view.sessions

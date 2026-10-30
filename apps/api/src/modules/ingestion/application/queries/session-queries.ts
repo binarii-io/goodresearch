@@ -309,10 +309,11 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
       let analysisCost: number | null = 0
       for (const c of costs.values())
         analysisCost = analysisCost === null || c === null ? null : analysisCost + c
-      const fileAt = new Map(files.map((f) => [f.id, f.modifiedAt]))
-      const at = (s: Session) =>
-        fileAt.get(s.transcriptFileId ?? s.media[0]?.fileId ?? '') ?? s.createdAt.toISOString()
-      const sorted = [...sessions].sort((a, b) => at(b).localeCompare(at(a)))
+      // Newest found first, in a stable order: a file's date moves when it is renamed or edited in
+      // Drive, and the row a person just worked on must not jump.
+      const sorted = [...sessions].sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime() || a.id.localeCompare(b.id),
+      )
       const used = new Set(
         sessions.flatMap((s) => [
           ...(s.transcriptFileId ? [s.transcriptFileId] : []),

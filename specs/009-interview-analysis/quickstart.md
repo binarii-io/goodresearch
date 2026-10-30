@@ -20,7 +20,7 @@ The demo folder (`dev-drive.ts`) gains transcript content:
 2. **AI and quotes** (US1, SC-001): analyze "Interview 2".
    - Expected: the interviewee with its quote, and no proposal for the quote not in the text.
    - The row shows a cost; the ledger has one entry with `ref = session-analysis:<id>`.
-3. **Accept all** (SC-002): open the dialog and choose "Accept all". The roster, date, language and title are updated. Then "Rename in Drive", confirm: the fake Drive shows the new names, and a refresh keeps the interview and its files (SC-006).
+3. **Accept all** (SC-002): open the dialog and choose "Accept all". The roster, date, language and title are updated. The files are renamed at once, with no window (the first time, after the editing consent): the fake Drive shows the new names, and a refresh keeps the interview and its files (SC-006).
 4. **Run** (US2): "Analyze interviews".
    - The confirmation shows the count and the estimated cost; confirm.
    - The rows go waiting → done. Stopping a second run leaves the rows already analyzed as they are.

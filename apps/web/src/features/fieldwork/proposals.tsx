@@ -27,7 +27,6 @@ import {
   XIcon,
 } from '@goodresearch/ui/components/icons'
 import { Input } from '@goodresearch/ui/components/input'
-import { Label } from '@goodresearch/ui/components/label'
 import {
   Select,
   SelectContent,
@@ -40,7 +39,7 @@ import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
+import { type ReactNode, useId, useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorCode, errorMessage } from '../workspace/errors.ts'
@@ -57,6 +56,13 @@ type Decision = DecideProposalsDecisionsItem
 
 const keyOf = (p: SessionProposal) =>
   p.field === 'attachment' ? `attachment:${p.attachment?.fileId ?? ''}` : p.field
+
+/** "Accept all": every open proposal, the name last as it follows the people and date. */
+export const acceptAllDecisions = (view: Session): Decision[] =>
+  (view.analysis?.proposals ?? [])
+    .filter((p) => p.status === 'proposed')
+    .sort((x, y) => +(x.field === 'name') - +(y.field === 'name'))
+    .map((p) => decisionOf(p, 'accept'))
 
 const decisionOf = (p: SessionProposal, action: Decision['action']): Decision => ({
   field: p.field,
@@ -271,6 +277,7 @@ export function Proposals({
   editable,
   busy,
   onDecide,
+  plannedPending = false,
   onAnalyze,
   onRename,
   renaming = false,
@@ -282,6 +289,8 @@ export function Proposals({
   editable: boolean
   busy: boolean
   onDecide: (decisions: Decision[], options?: { acceptAll?: boolean }) => Promise<void>
+  /** The planned interview also waits: "Accept all" settles it too. */
+  plannedPending?: boolean
   onAnalyze: () => void
   onRename: () => void
   /** The files are being renamed in Drive now (with or without the rename dialog). */
@@ -321,20 +330,11 @@ export function Proposals({
               {a ? t`Analyze again` : t`Analyze`}
             </Button>
           ) : null}
-          {editable && open.length > 1 ? (
+          {editable && open.length + (plannedPending ? 1 : 0) > 1 ? (
             <Button
               size="sm"
               disabled={busy}
-              onClick={() =>
-                void onDecide(
-                  // The name last: it follows the people and date accepted with it.
-                  [...open]
-                    .sort((x, y) => +(x.field === 'name') - +(y.field === 'name'))
-                    .slice(0, 10)
-                    .map((p) => decisionOf(p, 'accept')),
-                  { acceptAll: true },
-                )
-              }
+              onClick={() => void onDecide(acceptAllDecisions(view), { acceptAll: true })}
             >
               <CheckIcon aria-hidden />
               {t`Accept all`}
@@ -446,25 +446,6 @@ export function Proposals({
   )
 }
 
-const RENAME_KEY = 'goodresearch.renameWithoutAsking'
-
-/** "Don't ask me again" for renaming, kept in this browser (storage may be unavailable). */
-const renameWithoutAsking = (): boolean => {
-  try {
-    return globalThis.localStorage?.getItem(RENAME_KEY) === 'yes'
-  } catch {
-    return false
-  }
-}
-const rememberRenameWithoutAsking = (on: boolean) => {
-  try {
-    if (on) globalThis.localStorage?.setItem(RENAME_KEY, 'yes')
-    else globalThis.localStorage?.removeItem(RENAME_KEY)
-  } catch {
-    // Only the memory of the choice is lost.
-  }
-}
-
 /** Goes to Google's consent for editing, then back to the Fieldwork tab (spec 007 flow). */
 const askWriteConsent = (studyId: string) => {
   const back = `/studies/${studyId}?phase=fieldwork`
@@ -474,8 +455,8 @@ const askWriteConsent = (studyId: string) => {
 }
 
 /**
- * US3: each file of the interview with its current and new name; nothing is renamed before the
- * person confirms, and the result is shown file by file, failed ones offered again.
+ * US3: opened from the name's row, for files still to rename: each with its current and new name,
+ * the reason it cannot be renamed, and the result file by file, failed ones offered again.
  */
 export function RenameDialog({
   studyId,
@@ -483,8 +464,6 @@ export function RenameDialog({
   onClose,
   onRenamed,
   onBusy,
-  afterAccept = false,
-  withoutAsking = false,
 }: {
   studyId: string
   session: Session
@@ -493,10 +472,6 @@ export function RenameDialog({
   onRenamed?: () => Promise<void>
   /** Tells the page the files are being renamed, so the rename button shows it. */
   onBusy?: (busy: boolean) => void
-  /** Opened because a name was just accepted: renames at once if the person said not to ask. */
-  afterAccept?: boolean
-  /** "Accept all": the person already decided, the files are renamed at once. */
-  withoutAsking?: boolean
 }) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
@@ -504,10 +479,6 @@ export function RenameDialog({
   const rename = useRenameSessionFiles()
   const [chosen, setChosen] = useState<Set<string> | null>(null)
   const [results, setResults] = useState<RenameResult['results'] | null>(null)
-  const [skip, setSkip] = useState(renameWithoutAsking)
-  // Without asking: the dialog shows only when something needs the person.
-  const [silent, setSilent] = useState(withoutAsking || (afterAccept && renameWithoutAsking()))
-  const skipId = useId()
   const outcome = (o: RenameResult['results'][number]['outcome']) =>
     o === 'renamed'
       ? t`Renamed`
@@ -528,8 +499,7 @@ export function RenameDialog({
       setResults(done.results)
       if (done.results.every((r) => r.outcome === 'renamed')) {
         toast.success(t`Files renamed in Drive`)
-        if (silent) onClose()
-      } else setSilent(false)
+      }
       setChosen(new Set(done.results.filter((r) => r.outcome !== 'renamed').map((r) => r.fileId)))
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: getGetFieldworkQueryKey(studyId) }),
@@ -537,7 +507,6 @@ export function RenameDialog({
       ])
       await onRenamed?.()
     } catch (failure) {
-      setSilent(false)
       if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED') return askWriteConsent(studyId)
       toast.error(errorMessage(i18n, failure))
     } finally {
@@ -545,18 +514,6 @@ export function RenameDialog({
     }
   }
 
-  // Not asking: rename what can be, as soon as the plan is known.
-  const started = useRef(false)
-  useEffect(() => {
-    if (!silent || started.current || !plan.data) return
-    started.current = true
-    if (!plan.data.writeAccess) return setSilent(false)
-    const ids = plan.data.files.filter((f) => f.canEdit && f.current !== f.next)
-    if (!ids.length) return onClose()
-    void submit(ids.map((f) => f.fileId))
-  })
-
-  if (silent) return null
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent closeLabel={t`Close`} className="sm:max-w-2xl">
@@ -605,20 +562,6 @@ export function RenameDialog({
             )
           })}
         </ul>
-        <div className="flex items-start gap-2">
-          <Checkbox
-            id={skipId}
-            checked={skip}
-            onCheckedChange={(checked) => {
-              setSkip(checked === true)
-              rememberRenameWithoutAsking(checked === true)
-            }}
-          />
-          <Label htmlFor={skipId} className="grid gap-0.5 font-normal">
-            <span>{t`Don't ask me again`}</span>
-            <span className="text-muted-foreground text-xs">{t`When a name is accepted, its files are renamed in Drive right away.`}</span>
-          </Label>
-        </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             {results && !failed.length ? t`Close` : t`Cancel`}

@@ -583,6 +583,7 @@ msgstr "Accepter « {0} » → « {1} »"
 
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/proposals.tsx
+#: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Accept all"
 msgstr "Tout accepter"
@@ -784,10 +785,6 @@ msgstr "ajouté à la main"
 #: src/features/preparation/drive-review.tsx
 msgid "Added in Drive"
 msgstr "Ajouté dans le Drive"
-
-#: src/features/fieldwork/analysis.tsx
-msgid "Added to the schedule"
-msgstr "Ajouté au planning"
 
 #: src/features/workspace/account-menu.tsx
 #: src/features/workspace/member-labels.ts
@@ -1976,10 +1973,6 @@ msgstr "Ignorée"
 #: src/features/preparation/drive-review.tsx
 msgid "Document text"
 msgstr "Texte du document"
-
-#: src/features/fieldwork/proposals.tsx
-msgid "Don't ask me again"
-msgstr "Ne plus me demander"
 
 #: src/features/analysis/labels.ts
 #: src/features/preparation/labels.ts
@@ -3319,18 +3312,6 @@ msgstr "Principale"
 msgid "Major projects"
 msgstr "Chantiers structurants"
 
-#: src/features/fieldwork/session-dialog.tsx
-msgid "Mark done"
-msgstr "Marquer réalisé"
-
-#: src/features/fieldwork/session-dialog.tsx
-msgid "Mark the planned interview done?"
-msgstr "Marquer l'entretien planifié comme réalisé ?"
-
-#: src/features/fieldwork/session-dialog.tsx
-msgid "Marked done in the schedule"
-msgstr "Marqué réalisé dans le planning"
-
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "Matrix"
 msgstr "Matrice"
@@ -3812,10 +3793,6 @@ msgstr "Dans aucun insight"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Not in the schedule yet. This row will be added:"
 msgstr "Pas encore dans le planning. Cette ligne sera ajoutée :"
-
-#: src/features/fieldwork/session-dialog.tsx
-msgid "Not now"
-msgstr "Pas maintenant"
 
 #: src/features/enrichment/labels.ts
 msgid "Not read"
@@ -4951,6 +4928,10 @@ msgstr "Petits plus"
 msgid "Some fields are not valid."
 msgstr "Certains champs ne sont pas valides."
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Some files could not be renamed in Drive: use “Rename in Drive” to see why."
+msgstr "Certains fichiers n’ont pas pu être renommés dans Drive : utilisez « Renommer dans Drive » pour en voir la raison."
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Someone changed this document in Drive since it was published. Updating it replaces those changes with the clean version; the app does not bring them back."
 msgstr "Quelqu’un a modifié ce document dans le Drive depuis sa publication. Le mettre à jour remplace ces modifications par la version propre ; l’app ne les récupère pas."
@@ -5453,11 +5434,6 @@ msgstr "Le guide contient le cadrage (objectifs, hypothèses, cible, format) et 
 #: src/features/synthesis/takeaways.tsx
 msgid "The insights and recommendations are sent to your AI provider, with your own connection: their statements, theme, confidence and participant counts."
 msgstr "Les insights et recommandations sont envoyés à votre fournisseur d'IA, avec votre propre connexion : leurs énoncés, thème, confiance et nombre de participants."
-
-#. placeholder {0}: view.link?.interviewee ?? ''
-#: src/features/fieldwork/session-dialog.tsx
-msgid "The interview with {0} is validated. Its row in the schedule can be marked done."
-msgstr "L'entretien avec {0} est validé. Sa ligne du planning peut être marquée réalisée."
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "The interviews in numbers"
@@ -6252,10 +6228,6 @@ msgstr "Ce qui fonctionne"
 #: src/features/fieldwork/analysis.tsx
 msgid "What you accepted or rejected stays; only the proposals still to decide are replaced."
 msgstr "Ce que vous avez accepté ou rejeté reste ; seules les propositions encore à décider sont remplacées."
-
-#: src/features/fieldwork/proposals.tsx
-msgid "When a name is accepted, its files are renamed in Drive right away."
-msgstr "Quand un nom est accepté, ses fichiers sont renommés dans Drive tout de suite."
 
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Where it was found"

@@ -1,7 +1,10 @@
 import {
   type Fieldwork,
   getGetFieldworkQueryKey,
+  getGetRenamePlanQueryKey,
   getListPlannedInterviewsQueryKey,
+  getRenamePlan,
+  renameSessionFiles,
   type Session,
   useDecideProposals,
   useDecideSession,
@@ -54,7 +57,13 @@ import { useFormatDate } from '../workspace/format.ts'
 import { useMe } from '../workspace/me.ts'
 import { scheduleEntryOf, useAddToSchedule, useAnalyzeOne } from './analysis.tsx'
 import { excludedReason, matchReason, SESSION_STATES, SUGGESTION_RULES } from './labels.ts'
-import { ProposalAction, ProposalCard, Proposals, RenameDialog } from './proposals.tsx'
+import {
+  acceptAllDecisions,
+  ProposalAction,
+  ProposalCard,
+  Proposals,
+  RenameDialog,
+} from './proposals.tsx'
 
 type Person = {
   key: string
@@ -94,11 +103,7 @@ export function SessionDialog({
   const proposals = useDecideProposals()
   const analyzer = useAnalyzeOne(studyId)
   const schedule = useAddToSchedule(studyId)
-  /**
-   * `accepted`: opened by accepting a name (renames at once when the person said not to ask).
-   * `accepted-all`: opened by "Accept all", which renames at once.
-   */
-  const [renaming, setRenaming] = useState<false | 'asked' | 'accepted' | 'accepted-all'>(false)
+  const [renaming, setRenaming] = useState(false)
   const [renameBusy, setRenameBusy] = useState(false)
   const [choosing, setChoosing] = useState(false)
   const [view, setView] = useState(session)
@@ -108,7 +113,6 @@ export function SessionDialog({
   const [reason, setReason] = useState('')
   const [excluding, setExcluding] = useState(false)
   const [moving, setMoving] = useState<string | null>(null)
-  const [offerDone, setOfferDone] = useState(false)
   const ids = {
     title: useId(),
     reason: useId(),
@@ -120,7 +124,13 @@ export function SessionDialog({
   // Open to changes until a person decides: proposed, or validated by the app (spec 008).
   const proposed = view.state === 'proposed' || (view.state === 'validated' && !view.decidedBy)
   const busy =
-    link.isPending || edit.isPending || decide.isPending || proposals.isPending || analyzer.pending
+    link.isPending ||
+    edit.isPending ||
+    decide.isPending ||
+    proposals.isPending ||
+    analyzer.pending ||
+    schedule.pending ||
+    renameBusy
 
   const refresh = () =>
     Promise.all([
@@ -144,6 +154,40 @@ export function SessionDialog({
     await queryClient.refetchQueries({ queryKey: key })
     const fresh = queryClient.getQueryData<Fieldwork>(key)?.sessions.find((s) => s.id === view.id)
     if (fresh) await took(fresh)
+  }
+
+  /**
+   * An accepted name reaches the files in Drive with no window (FR-027): one shows only for the
+   * editing consent. What cannot be renamed stays on the name's row, which says why.
+   */
+  const renameFiles = async (sessionId: string) => {
+    setRenameBusy(true)
+    try {
+      const plan = await getRenamePlan(sessionId)
+      if (!plan.writeAccess) return setRenaming(true)
+      const differing = plan.files.filter((f) => f.current !== f.next)
+      const fileIds = differing.filter((f) => f.canEdit).map((f) => f.fileId)
+      const results = fileIds.length
+        ? (await renameSessionFiles(sessionId, { fileIds })).results
+        : []
+      if (fileIds.length < differing.length || results.some((r) => r.outcome !== 'renamed'))
+        toast.warning(
+          t`Some files could not be renamed in Drive: use “Rename in Drive” to see why.`,
+        )
+      await queryClient.invalidateQueries({ queryKey: getGetRenamePlanQueryKey(sessionId) })
+      // Only the version and the files changed: what the person is typing stays.
+      const key = getGetFieldworkQueryKey(studyId)
+      await queryClient.refetchQueries({ queryKey: key })
+      const fresh = queryClient
+        .getQueryData<Fieldwork>(key)
+        ?.sessions.find((s) => s.id === sessionId)
+      if (fresh) setView(fresh)
+    } catch (failure) {
+      if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED') setRenaming(true)
+      else toast.error(errorMessage(i18n, failure))
+    } finally {
+      setRenameBusy(false)
+    }
   }
 
   /** Someone changed it meanwhile: show the session as it now is, so the next action works. */
@@ -226,8 +270,9 @@ export function SessionDialog({
         }),
       )
       setExcluding(false)
-      // FR-009: the planned interview can be marked done in one action.
-      if (decision === 'validate' && next.link && next.link.status !== 'done') setOfferDone(true)
+      // FR-009: validating marks the planned interview done, with no question.
+      if (decision === 'validate' && next.link && next.link.status !== 'done')
+        await markPlannedDone(next)
       else if (decision !== 'reopen') onClose()
     } catch (failure) {
       await fail(failure)
@@ -240,21 +285,40 @@ export function SessionDialog({
     options: { acceptAll?: boolean } = {},
   ) => {
     try {
-      const current = dirty ? await save() : view
-      const next = await took(
-        await proposals.mutateAsync({
-          sessionId: view.id,
-          data: { version: current.version, decisions },
-        }),
-      )
-      // An accepted name renames the files in Drive (asked first, unless "don't ask again" or
-      // "Accept all").
+      let next = dirty ? await save() : view
+      // A request carries at most 10 decisions; the order is kept (the name comes last).
+      for (let at = 0; at < decisions.length; at += 10) {
+        next = await took(
+          await proposals.mutateAsync({
+            sessionId: view.id,
+            data: { version: next.version, decisions: decisions.slice(at, at + 10) },
+          }),
+        )
+      }
+      // "Accept all" also settles the planned interview: the suggestion, or a new row (FR-017).
+      if (options.acceptAll && !next.link) {
+        if (next.suggestion) {
+          next = await took(
+            await link.mutateAsync({
+              sessionId: view.id,
+              data: {
+                plannedInterviewId: next.suggestion.plannedInterviewId,
+                version: next.version,
+                confirmSuggestion: true,
+              },
+            }),
+          )
+        } else {
+          const added = await schedule.add(next)
+          if (added) next = await took(added)
+        }
+      }
       const name = next.analysis?.proposals.find((p) => p.field === 'name')
       if (
         decisions.some((d) => d.field === 'name' && d.action !== 'reject') &&
         (name?.status === 'accepted' || name?.status === 'edited')
       )
-        setRenaming(options.acceptAll ? 'accepted-all' : 'accepted')
+        await renameFiles(view.id)
     } catch (failure) {
       await fail(failure)
     }
@@ -270,8 +334,8 @@ export function SessionDialog({
     if (next) await took(next)
   }
 
-  const markPlannedDone = async () => {
-    const row = planned.data?.find((p) => p.id === view.link?.plannedInterviewId)
+  const markPlannedDone = async (validated: Session) => {
+    const row = planned.data?.find((p) => p.id === validated.link?.plannedInterviewId)
     if (!row) return onClose()
     try {
       await markDone.mutateAsync({
@@ -286,7 +350,6 @@ export function SessionDialog({
           version: row.version,
         },
       })
-      toast.success(t`Marked done in the schedule`)
       await refresh()
     } catch (failure) {
       await fail(failure)
@@ -454,10 +517,9 @@ export function SessionDialog({
       }
     />
   )
+  const openProposals = view.analysis?.proposals.filter((p) => p.status === 'proposed').length ?? 0
   /** What waits for the person here: open proposals and the planned interview. */
-  const waiting =
-    (view.analysis?.proposals.filter((p) => p.status === 'proposed').length ?? 0) +
-    (!view.link && (view.suggestion || entry) ? 1 : 0)
+  const waiting = openProposals + (!view.link && (view.suggestion || entry) ? 1 : 0)
 
   const available = [
     ...view.media,
@@ -506,8 +568,9 @@ export function SessionDialog({
               editable={proposed}
               busy={busy}
               onDecide={decideProposals}
+              plannedPending={!view.link && Boolean(view.suggestion || entry)}
               onAnalyze={() => void analyzeAgain()}
-              onRename={() => setRenaming('asked')}
+              onRename={() => setRenaming(true)}
               renaming={renameBusy}
               lead={plannedCard}
             />
@@ -702,9 +765,22 @@ export function SessionDialog({
                   {t`Exclude`}
                 </Button>
               )}
-              <Button disabled={busy || unnamed} onClick={() => void run('validate')}>
-                {t`Validate`}
-              </Button>
+              {/* Validating comes once the proposals are decided, not before them. */}
+              {openProposals > 0 ? (
+                <Button
+                  disabled={busy}
+                  onClick={() =>
+                    void decideProposals(acceptAllDecisions(view), { acceptAll: true })
+                  }
+                >
+                  <CheckIcon aria-hidden />
+                  {t`Accept all`}
+                </Button>
+              ) : (
+                <Button disabled={busy || unnamed} onClick={() => void run('validate')}>
+                  {t`Validate`}
+                </Button>
+              )}
             </>
           ) : (
             <>
@@ -721,8 +797,6 @@ export function SessionDialog({
           <RenameDialog
             studyId={studyId}
             session={view}
-            afterAccept={renaming === 'accepted'}
-            withoutAsking={renaming === 'accepted-all'}
             onClose={() => setRenaming(false)}
             onRenamed={reload}
             onBusy={setRenameBusy}
@@ -745,21 +819,6 @@ export function SessionDialog({
                 }}
               >
                 {t`Move the link`}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={offerDone} onOpenChange={(open) => !open && onClose()}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t`Mark the planned interview done?`}</AlertDialogTitle>
-              <AlertDialogDescription>{t`The interview with ${view.link?.interviewee ?? ''} is validated. Its row in the schedule can be marked done.`}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t`Not now`}</AlertDialogCancel>
-              <AlertDialogAction onClick={() => void markPlannedDone()}>
-                {t`Mark done`}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

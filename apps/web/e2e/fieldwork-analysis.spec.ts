@@ -45,6 +45,12 @@ test.describe('spec 009 — analyze the interviews', () => {
     const sam = interviews.getByRole('row', { name: /Interview Sam Example/ })
     await expect(sam.getByText(/Analyzed · \$/)).toBeVisible()
 
+    // Editing in Drive is allowed, so an accepted name renames the files with no window (FR-027).
+    const { pathname, search } = new URL(page.url())
+    await page.goto(
+      `/api/sources/google-drive/connect?access=write&returnTo=${encodeURIComponent(pathname + search)}`,
+    )
+
     // The proposals, each with where it comes from; "Accept all" fills the interview.
     await sam.getByRole('button', { name: 'Review Interview Sam Example' }).click()
     const dialog = page.getByRole('dialog', { name: 'Interview: Interview Sam Example' })
@@ -55,16 +61,12 @@ test.describe('spec 009 — analyze the interviews', () => {
     await expect(analysis.getByText('Nobody Here')).toHaveCount(0)
     await expectAccessible(page)
     await analysis.getByRole('button', { name: 'Accept all' }).click()
-    // FR-027: without editing access in Drive the window still shows, with "don't ask me again".
-    const renaming = page.getByRole('dialog', { name: 'Rename the files in Drive' })
-    await expect(renaming.getByRole('checkbox', { name: /Don't ask me again/ })).toBeVisible()
-    await renaming.getByRole('button', { name: 'Cancel' }).click()
     const renamed = page.getByRole('dialog', {
       name: 'Interview: 2026-10-20 – Sam Example – Lee Example',
     })
     await expect(renamed).toBeVisible()
-    // FR-028: on the name's row, the files are not renamed yet: the button says how many differ.
-    await expect(renamed.getByRole('button', { name: /^Rename in Drive \(\d+\)/ })).toBeVisible()
+    await expect(renamed.getByText('Files named in Drive')).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Rename the files in Drive' })).toHaveCount(0)
     await renamed.getByRole('tab', { name: 'Interview' }).click()
     await expect(renamed.getByLabel('Name of person 1')).toHaveValue('Sam Example')
     await page.keyboard.press('Escape')
@@ -93,7 +95,6 @@ test.describe('spec 009 — analyze the interviews', () => {
     // FR-017: no planned interview matches the person found: the interview joins the schedule.
     const two = interviews.getByRole('row', { name: /Interview 2 - transcript/ })
     await two.getByRole('button', { name: 'Add Casey Test to the schedule' }).click()
-    await expect(page.getByText('Added to the schedule')).toBeVisible()
     await expect(two.getByText('Casey Test').first()).toBeVisible()
     // FR-019, FR-020: "To decide (N)" opens the interview.
     await two.getByRole('button', { name: /To decide \(\d+\)/ }).click()
