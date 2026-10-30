@@ -4929,8 +4929,8 @@ msgid "Some fields are not valid."
 msgstr "Some fields are not valid."
 
 #: src/features/fieldwork/proposals.tsx
-msgid "Some files could not be renamed in Drive: use “Rename in Drive” to see why."
-msgstr "Some files could not be renamed in Drive: use “Rename in Drive” to see why."
+msgid "Some files could not be renamed in Drive: use “Rename in Drive” to try again."
+msgstr "Some files could not be renamed in Drive: use “Rename in Drive” to try again."
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Someone changed this document in Drive since it was published. Updating it replaces those changes with the clean version; the app does not bring them back."

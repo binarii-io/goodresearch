@@ -61,7 +61,7 @@ For each proposed interview, the app suggests the planned interview of the sched
 1. **Given** a planned interview whose interviewee name (or first name) appears in a transcript file name, **When** interviews are proposed, **Then** that planned interview is suggested, with the reason ("name in the file name").
 2. **Given** no name match, **When** a planned interview has a date within 24 hours of the transcript's date and no other planned interview is that close, **Then** it is suggested with the reason ("same date"). With several candidates, nothing is suggested and the person picks.
 3. **Given** a suggestion, **When** the person confirms it or picks another planned interview, **Then** the link is saved. A planned interview is linked to at most one interview; picking one already linked asks to move the link.
-4. **Given** a linked planned interview whose status is not "done", **When** the person validates the interview, **Then** the planned interview is marked "done", with no question (update 2026-10-30).
+4. **Given** a linked planned interview whose status is not "done", **When** the person validates the interview, **Then** the planned interview is marked "done", with no question, unless it is cancelled or postponed (update 2026-10-30).
 5. **Given** the schedule on the Preparation tab, **When** a planned interview is linked, **Then** its row shows that its transcript was found, with a link to the Fieldwork phase.
 6. **Given** planned interviews without any linked interview, **When** Fieldwork is shown, **Then** they are listed as "no transcript yet", with their status and date.
 

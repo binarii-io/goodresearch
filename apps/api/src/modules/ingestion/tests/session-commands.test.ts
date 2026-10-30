@@ -215,6 +215,29 @@ describe('fieldwork sessions (spec 008)', () => {
     expect(world.schedules.get('study-1')?.find((p) => p.id === LEE)?.status).toBe('scheduled')
   })
 
+  it('US3: validating keeps a planned interview cancelled on the schedule', async () => {
+    const rows = world.schedules.get('study-1') ?? []
+    world.schedules.set(
+      'study-1',
+      rows.map((p) => (p.id === SAM ? { ...p, status: 'cancelled' as const } : p)),
+    )
+    const sam = (await fieldwork()).sessions[1]
+    if (!sam) throw new Error('fixture')
+    await world.sessions.link({
+      actor: alice,
+      sessionId: sam.id,
+      plannedInterviewId: SAM,
+      version: sam.version,
+    })
+    await world.sessions.decide({
+      actor: alice,
+      sessionId: sam.id,
+      decision: 'validate',
+      version: (await fieldwork()).sessions[1]?.version ?? 0,
+    })
+    expect(world.schedules.get('study-1')?.find((p) => p.id === SAM)?.status).toBe('cancelled')
+  })
+
   it('US3: a schedule that fails does not undo a validation', async () => {
     const sam = (await fieldwork()).sessions[1]
     if (!sam) throw new Error('fixture')

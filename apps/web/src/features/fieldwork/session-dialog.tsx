@@ -100,7 +100,8 @@ export function SessionDialog({
   const proposals = useDecideProposals()
   const analyzer = useAnalyzeOne(studyId)
   const schedule = useAddToSchedule(studyId)
-  const [renaming, setRenaming] = useState(false)
+  /** `consent`: an accepted name needs the editing consent, and renames after it. */
+  const [renaming, setRenaming] = useState<false | 'asked' | 'consent'>(false)
   const [renameBusy, setRenameBusy] = useState(false)
   const [choosing, setChoosing] = useState(false)
   const [view, setView] = useState(session)
@@ -157,7 +158,7 @@ export function SessionDialog({
   const renameFiles = async (sessionId: string) => {
     setRenameBusy(true)
     const outcome = await quietRename(sessionId)
-    if (outcome === 'consent') setRenaming(true)
+    if (outcome === 'consent') setRenaming('consent')
     // Only the version and the files changed: what the person is typing stays.
     const fresh = queryClient
       .getQueryData<Fieldwork>(getGetFieldworkQueryKey(studyId))
@@ -271,9 +272,7 @@ export function SessionDialog({
       // "Accept all" also settles the planned interview: a suggestion found by name, or a new row
       // (FR-017). A suggestion by date alone may be someone else: it stays for the person.
       if (options.acceptAll && !next.link) {
-        if (next.suggestion?.rule === 'date') {
-          // Decided on its card.
-        } else if (next.suggestion) {
+        if (next.suggestion && next.suggestion.rule !== 'date') {
           const plannedInterviewId = next.suggestion.plannedInterviewId
           // A failed link never stops the renaming: the proposals are already accepted.
           try {
@@ -287,7 +286,7 @@ export function SessionDialog({
             if (errorCode(failure) === 'PLANNED_INTERVIEW_LINKED') setMoving(plannedInterviewId)
             else await fail(failure)
           }
-        } else {
+        } else if (!next.suggestion) {
           const added = await schedule.add(next)
           if (added) next = await took(added)
         }
@@ -526,7 +525,7 @@ export function SessionDialog({
               onDecide={decideProposals}
               plannedPending={!view.link && Boolean(view.suggestion || entry)}
               onAnalyze={() => void analyzeAgain()}
-              onRename={() => setRenaming(true)}
+              onRename={() => setRenaming('asked')}
               renaming={renameBusy}
               lead={plannedCard}
             />
@@ -753,6 +752,7 @@ export function SessionDialog({
           <RenameDialog
             studyId={studyId}
             session={view}
+            resumeAfterConsent={renaming === 'consent'}
             onClose={() => setRenaming(false)}
             onRenamed={reload}
             onBusy={setRenameBusy}

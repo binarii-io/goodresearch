@@ -36,7 +36,8 @@ export const makePlannedSync = (deps: IngestionDeps) => ({
       const planned = (await deps.schedule.list(actor.id, s.studyId))?.find(
         (p) => p.id === s.plannedInterviewId,
       )
-      if (!planned || planned.status === 'done') return
+      // Cancelled or postponed is a person's decision on the schedule: it stays.
+      if (!planned || !['to-contact', 'invited', 'scheduled'].includes(planned.status)) return
       if (await deps.schedule.update(actor, s.studyId, planned.id, { status: 'done' })) return
     }
     deps.log.warn({ sessionId: s.id }, 'planned interview not marked done')

@@ -73,7 +73,7 @@ The person opens the interview (pencil) and reviews each proposal: accept, edit 
 
 ### User Story 3 - Rename the files in Drive (Priority: P2)
 
-Once the name of an interview is accepted, its files are renamed in Drive (update 2026-10-30: at once, FR-027). The transcript and its recordings get the same base name, followed by their kind (`Transcript`, `Video`, `Audio`). The result is shown file by file.
+Once the name of an interview is accepted, its files are renamed in Drive (update 2026-10-30: at once, FR-027). The transcript and its recordings get the same base name, followed by their kind (`Transcript`, `Video`, `Audio`). Files that could not be renamed are reported, and "Rename in Drive" lists them file by file.
 
 **Why this priority**: A clear folder in Drive is what the team uses outside the app; but the analysis is useful even without renaming.
 
@@ -85,7 +85,7 @@ Once the name of an interview is accepted, its files are renamed in Drive (updat
 2. **Given** the person can edit the files in Drive, **When** the name is accepted, **Then** each file is renamed, its extension kept; the interview keeps its files and decisions.
 3. **Given** a file the person cannot edit, or a rename that fails, **When** the renaming ends, **Then** the failed files are listed with the reason, the others stay renamed, and the person can retry the failed ones.
 4. **Given** two files of the interview that would get the same name (two videos), **When** the names are built, **Then** they are numbered (`Video 1`, `Video 2`).
-5. **Given** a file renamed in Drive by someone else meanwhile, **When** the person confirms, **Then** the new name is still applied and the confirmation showed the name read last.
+5. **Given** a file renamed in Drive by someone else meanwhile, **When** the name is accepted, **Then** the new name is still applied (update 2026-10-30).
 
 ---
 

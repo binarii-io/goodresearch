@@ -481,7 +481,7 @@ export function useQuietRename(studyId: string) {
         : []
       if (fileIds.length < differing.length || results.some((r) => r.outcome !== 'renamed'))
         toast.warning(
-          t`Some files could not be renamed in Drive: use “Rename in Drive” to see why.`,
+          t`Some files could not be renamed in Drive: use “Rename in Drive” to try again.`,
         )
       await queryClient.invalidateQueries({ queryKey: getGetRenamePlanQueryKey(sessionId) })
       await queryClient.refetchQueries({ queryKey: getGetFieldworkQueryKey(studyId) })
@@ -521,6 +521,7 @@ export function RenameDialog({
   onClose,
   onRenamed,
   onBusy,
+  resumeAfterConsent = false,
 }: {
   studyId: string
   session: Session
@@ -529,6 +530,8 @@ export function RenameDialog({
   onRenamed?: () => Promise<void>
   /** Tells the page the files are being renamed, so the rename button shows it. */
   onBusy?: (busy: boolean) => void
+  /** Opened by an accepted name: the renaming goes on after the consent, with no list. */
+  resumeAfterConsent?: boolean
 }) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
@@ -565,7 +568,7 @@ export function RenameDialog({
       await onRenamed?.()
     } catch (failure) {
       if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED')
-        return askWriteConsent(studyId, chosen ? null : session.id)
+        return askWriteConsent(studyId, resumeAfterConsent && !chosen ? session.id : null)
       toast.error(errorMessage(i18n, failure))
     } finally {
       onBusy?.(false)
@@ -586,7 +589,9 @@ export function RenameDialog({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => askWriteConsent(studyId, chosen ? null : session.id)}
+              onClick={() =>
+                askWriteConsent(studyId, resumeAfterConsent && !chosen ? session.id : null)
+              }
             >
               {t`Allow editing in Drive`}
             </Button>
