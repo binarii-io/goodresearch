@@ -483,7 +483,9 @@ export function SessionDialog({
   const name = view.title ?? view.defaultTitle
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
+    // "Accept all" goes on for a few requests, each moving the version: closing in between would
+    // let the list act with the version it read.
+    <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent closeLabel={t`Close`} className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{t`Interview: ${name}`}</DialogTitle>

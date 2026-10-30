@@ -382,7 +382,11 @@ function Interviews({
           queryClient.invalidateQueries({ queryKey: getListPlannedInterviewsQueryKey(studyId) }),
         ]),
       )
-      .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
+      .catch((failure: unknown) => {
+        toast.error(errorMessage(i18n, failure))
+        // Changed meanwhile: the next click must carry the version as it now is.
+        return queryClient.invalidateQueries({ queryKey: getGetFieldworkQueryKey(studyId) })
+      })
 
   /** One row per interview: name, people, files, planned interview, state and action. */
   const table = (list: readonly Session[]) => (

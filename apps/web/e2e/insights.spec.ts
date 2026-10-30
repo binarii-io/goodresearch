@@ -47,8 +47,9 @@ test.describe('spec 013 — Project insights', () => {
       .getByRole('region', { name: 'Analysis' })
       .getByRole('button', { name: 'Accept all' })
       .click()
+    // Read access only: once all is accepted, the window asks for the editing consent.
     const renaming = page.getByRole('dialog', { name: 'Rename the files in Drive' })
-    if (await renaming.isVisible()) await renaming.getByRole('button', { name: 'Cancel' }).click()
+    await renaming.getByRole('button', { name: 'Cancel' }).click()
     await page.keyboard.press('Escape')
     const validated = interviews.getByRole('switch', {
       name: 'Validated: 2026-10-20 – Sam Example – Lee Example',
