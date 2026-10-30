@@ -62,20 +62,12 @@ const isAccepted = (t: LexiconTerm) => t.status === 'accepted' || t.status === '
 
 type Span = { readonly start: number; readonly end: number }
 
-/** Every whole-word match of a spelling in a text, with the lexicon match rule (shared package). */
-const spansOf = (text: string, spelling: string, all = words(text)): Span[] => {
-  const wanted = words(spelling).map((w) => w.text)
-  if (wanted.length === 0) return []
-  const same = (w: string, found: string) => (isAcronym(w) ? w === found : fold(w) === fold(found))
-  const out: Span[] = []
-  for (let i = 0; i + wanted.length <= all.length; i++) {
-    if (!wanted.every((w, k) => same(w, all[i + k]?.text ?? ''))) continue
-    const first = all[i]
-    const last = all[i + wanted.length - 1]
-    if (first && last) out.push({ start: first.start, end: last.end })
-    i += wanted.length - 1
-  }
-  return out
+/** A spelling ready to be compared: `order` keeps the terms' order where two match the same words. */
+type Compiled = {
+  readonly order: number
+  readonly term: LexiconTerm
+  readonly spelling: string
+  readonly wanted: readonly { readonly key: string; readonly acronym: boolean }[]
 }
 
 type Match = Span & {
@@ -87,23 +79,69 @@ type Match = Span & {
 /**
  * The places of the accepted terms in an interview: their form and accepted variants (proposed
  * variants are not used yet), the longest wins where spellings overlap (as spec 010 counts them).
+ * Runs on every list of interviews, in the request: spellings are looked up by their first word,
+ * not compared with every word of every turn.
  */
 const lexiconMatches = (interview: Interview, terms: readonly LexiconTerm[]): Match[] => {
-  const used = terms.filter(
-    (t) => isAccepted(t) && t.category !== 'person' && t.language === interview.language,
-  )
+  const folded = new Map<string, string>()
+  const foldOf = (word: string) => {
+    let known = folded.get(word)
+    if (known === undefined) {
+      known = fold(word)
+      folded.set(word, known)
+    }
+    return known
+  }
+  // An acronym matches as written, any other word whatever its case or accents.
+  const byFirstWord = new Map<string, Compiled[]>()
+  let order = 0
+  for (const term of terms) {
+    if (!isAccepted(term) || term.category === 'person' || term.language !== interview.language)
+      continue
+    const accepted = term.variants.filter((v) => v.status === 'accepted').map((v) => v.spelling)
+    for (const spelling of [term.form, ...accepted]) {
+      const wanted = words(spelling).map(({ text }) => {
+        const acronym = isAcronym(text)
+        return { acronym, key: acronym ? text : foldOf(text) }
+      })
+      const first = wanted[0]
+      if (!first) continue
+      const id = `${first.acronym ? 'a' : 'f'}:${first.key}`
+      const list = byFirstWord.get(id) ?? []
+      list.push({ order: order++, term, spelling, wanted })
+      byFirstWord.set(id, list)
+    }
+  }
+
   const out: Match[] = []
   for (const segment of interview.segments) {
     const all = words(segment.text)
-    const found: Match[] = []
-    for (const term of used)
-      for (const spelling of [
-        term.form,
-        ...term.variants.filter((v) => v.status === 'accepted').map((v) => v.spelling),
-      ])
-        for (const span of spansOf(segment.text, spelling, all))
-          found.push({ ...span, term, segment, spelling })
-    found.sort((a, b) => a.start - b.start || b.end - a.end)
+    const found: (Match & { readonly order: number })[] = []
+    // Where each spelling may match again: its own matches do not overlap.
+    const nextFrom = new Map<Compiled, number>()
+    for (const [i, word] of all.entries()) {
+      for (const id of [`a:${word.text}`, `f:${foldOf(word.text)}`]) {
+        for (const c of byFirstWord.get(id) ?? []) {
+          if ((nextFrom.get(c) ?? 0) > i || i + c.wanted.length > all.length) continue
+          const same = c.wanted.every((w, k) => {
+            const at = all[i + k]?.text ?? ''
+            return w.acronym ? w.key === at : w.key === foldOf(at)
+          })
+          const last = all[i + c.wanted.length - 1]
+          if (!same || !last) continue
+          nextFrom.set(c, i + c.wanted.length)
+          found.push({
+            start: word.start,
+            end: last.end,
+            term: c.term,
+            segment,
+            spelling: c.spelling,
+            order: c.order,
+          })
+        }
+      }
+    }
+    found.sort((a, b) => a.start - b.start || b.end - a.end || a.order - b.order)
     let end = -1
     for (const m of found) {
       if (m.start < end) continue

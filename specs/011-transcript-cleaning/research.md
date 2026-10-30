@@ -13,6 +13,8 @@
 
 ## R2 — Which corrections are stored, which are computed
 
+- **Update 2026-10-30**: the lexicon's corrections are computed in the request for every interview of the list, so spellings are looked up by their first word instead of being compared with every word of every turn (57 interviews, 14,330 turns: 23 s to 0.15 s, same corrections). A test keeps the volume and the equivalence with the plain rule.
+
 - **Decision**: Corrections are computed live, or stored, depending on their source.
 
   | Source | Kept as | Status comes from |
