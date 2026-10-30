@@ -94,8 +94,11 @@ export function SessionDialog({
   const proposals = useDecideProposals()
   const analyzer = useAnalyzeOne(studyId)
   const schedule = useAddToSchedule(studyId)
-  /** `accepted`: opened by accepting a name (renames at once when the person said not to ask). */
-  const [renaming, setRenaming] = useState<false | 'asked' | 'accepted'>(false)
+  /**
+   * `accepted`: opened by accepting a name (renames at once when the person said not to ask).
+   * `accepted-all`: opened by "Accept all", which renames at once.
+   */
+  const [renaming, setRenaming] = useState<false | 'asked' | 'accepted' | 'accepted-all'>(false)
   const [renameBusy, setRenameBusy] = useState(false)
   const [choosing, setChoosing] = useState(false)
   const [view, setView] = useState(session)
@@ -234,6 +237,7 @@ export function SessionDialog({
   /** Spec 009: decisions on the proposals; typed edits are saved first, never lost. */
   const decideProposals = async (
     decisions: Parameters<typeof proposals.mutateAsync>[0]['data']['decisions'],
+    options: { acceptAll?: boolean } = {},
   ) => {
     try {
       const current = dirty ? await save() : view
@@ -243,13 +247,14 @@ export function SessionDialog({
           data: { version: current.version, decisions },
         }),
       )
-      // An accepted name renames the files in Drive (asked first, unless "don't ask again").
+      // An accepted name renames the files in Drive (asked first, unless "don't ask again" or
+      // "Accept all").
       const name = next.analysis?.proposals.find((p) => p.field === 'name')
       if (
         decisions.some((d) => d.field === 'name' && d.action !== 'reject') &&
         (name?.status === 'accepted' || name?.status === 'edited')
       )
-        setRenaming('accepted')
+        setRenaming(options.acceptAll ? 'accepted-all' : 'accepted')
     } catch (failure) {
       await fail(failure)
     }
@@ -717,6 +722,7 @@ export function SessionDialog({
             studyId={studyId}
             session={view}
             afterAccept={renaming === 'accepted'}
+            withoutAsking={renaming === 'accepted-all'}
             onClose={() => setRenaming(false)}
             onRenamed={reload}
             onBusy={setRenameBusy}

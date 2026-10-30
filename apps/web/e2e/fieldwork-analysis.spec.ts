@@ -55,7 +55,7 @@ test.describe('spec 009 — analyze the interviews', () => {
     await expect(analysis.getByText('Nobody Here')).toHaveCount(0)
     await expectAccessible(page)
     await analysis.getByRole('button', { name: 'Accept all' }).click()
-    // FR-027: an accepted name asks to rename the files in Drive, with "don't ask me again".
+    // FR-027: without editing access in Drive the window still shows, with "don't ask me again".
     const renaming = page.getByRole('dialog', { name: 'Rename the files in Drive' })
     await expect(renaming.getByRole('checkbox', { name: /Don't ask me again/ })).toBeVisible()
     await renaming.getByRole('button', { name: 'Cancel' }).click()

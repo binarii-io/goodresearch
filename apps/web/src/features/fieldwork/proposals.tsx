@@ -281,7 +281,7 @@ export function Proposals({
   view: Session
   editable: boolean
   busy: boolean
-  onDecide: (decisions: Decision[]) => Promise<void>
+  onDecide: (decisions: Decision[], options?: { acceptAll?: boolean }) => Promise<void>
   onAnalyze: () => void
   onRename: () => void
   /** The files are being renamed in Drive now (with or without the rename dialog). */
@@ -332,6 +332,7 @@ export function Proposals({
                     .sort((x, y) => +(x.field === 'name') - +(y.field === 'name'))
                     .slice(0, 10)
                     .map((p) => decisionOf(p, 'accept')),
+                  { acceptAll: true },
                 )
               }
             >
@@ -483,6 +484,7 @@ export function RenameDialog({
   onRenamed,
   onBusy,
   afterAccept = false,
+  withoutAsking = false,
 }: {
   studyId: string
   session: Session
@@ -493,6 +495,8 @@ export function RenameDialog({
   onBusy?: (busy: boolean) => void
   /** Opened because a name was just accepted: renames at once if the person said not to ask. */
   afterAccept?: boolean
+  /** "Accept all": the person already decided, the files are renamed at once. */
+  withoutAsking?: boolean
 }) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
@@ -502,7 +506,7 @@ export function RenameDialog({
   const [results, setResults] = useState<RenameResult['results'] | null>(null)
   const [skip, setSkip] = useState(renameWithoutAsking)
   // Without asking: the dialog shows only when something needs the person.
-  const [silent, setSilent] = useState(afterAccept && renameWithoutAsking())
+  const [silent, setSilent] = useState(withoutAsking || (afterAccept && renameWithoutAsking()))
   const skipId = useId()
   const outcome = (o: RenameResult['results'][number]['outcome']) =>
     o === 'renamed'
