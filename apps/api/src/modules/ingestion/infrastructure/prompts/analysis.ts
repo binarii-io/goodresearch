@@ -5,6 +5,9 @@ import { AiFailed, AiUnavailable, type Analyzer } from '../../application/ports.
 /** The ledger task of the analyses (spec 009). */
 export const ANALYSIS_TASK = 'session-analysis'
 
+/** A long transcript may take more than the default limit of a call (as a cleaning chunk). */
+const ANALYSIS_TIMEOUT_MS = 120_000
+
 /** Marks the request for the test provider, which answers it from the transcript (dev, e2e). */
 export const ANALYSIS_MARKER = '<transcript>'
 
@@ -62,7 +65,7 @@ export const createAiAnalyzer = (ai: {
           // answer cannot be read).
           maxOutputTokens: 4_000,
         },
-        { ref },
+        { ref, timeoutMs: ANALYSIS_TIMEOUT_MS },
       )
       return object
     } catch (error) {
