@@ -48,6 +48,15 @@ describe('loadConfig', () => {
     expect(config.logLevel).toBe('info')
     expect(config.port).toBe(3000)
     expect(config.s3.createBucket).toBe(false)
+    expect(config.databasePoolMax).toBe(10)
+    expect(config.jobsPoolMax).toBe(10)
+  })
+
+  it('sizes the connection pools', () => {
+    const config = loadConfig({ ...valid, DATABASE_POOL_MAX: '4', JOBS_POOL_MAX: '2' })
+    expect(config.databasePoolMax).toBe(4)
+    expect(config.jobsPoolMax).toBe(2)
+    expect(errorOf({ ...valid, DATABASE_POOL_MAX: '0' })).toContain('DATABASE_POOL_MAX')
   })
 
   it('allows no provider (sign-in not configured)', () => {

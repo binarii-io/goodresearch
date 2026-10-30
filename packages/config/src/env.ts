@@ -52,6 +52,9 @@ export type AppConfig = {
   readonly appUrl: URL
   readonly authSecret: string
   readonly databaseUrl: string
+  /** Connections per process: the app's pool and the job queue's pool (sized to the database's limit). */
+  readonly databasePoolMax: number
+  readonly jobsPoolMax: number
   readonly s3: {
     readonly endpoint: string
     readonly region: string
@@ -120,6 +123,8 @@ const baseSchema = z.object({
   APP_URL: z.url(),
   AUTH_SECRET: z.string().min(32, 'must be at least 32 characters'),
   DATABASE_URL: z.string().startsWith('postgres', 'must be a PostgreSQL connection URL'),
+  DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
+  JOBS_POOL_MAX: z.coerce.number().int().positive().default(10),
   S3_ENDPOINT: z.url(),
   S3_REGION: z.string().min(1),
   S3_BUCKET: z.string().min(3),
@@ -275,6 +280,8 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     appUrl,
     authSecret: values.AUTH_SECRET,
     databaseUrl: values.DATABASE_URL,
+    databasePoolMax: values.DATABASE_POOL_MAX,
+    jobsPoolMax: values.JOBS_POOL_MAX,
     s3: {
       endpoint: values.S3_ENDPOINT,
       region: values.S3_REGION,

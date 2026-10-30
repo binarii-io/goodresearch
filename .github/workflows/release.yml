@@ -1,0 +1,39 @@
+name: Release image
+
+# Publishes the image to GHCR for each version tag (ADR-0005): ghcr.io/<owner>/<repo>:<version>.
+# :latest only moves to the highest stable version, never to a prerelease or a backport.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions: read-all
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build and push
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+          REPOSITORY: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          image="ghcr.io/${REPOSITORY,,}"
+          version="${TAG#v}"
+          echo "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          docker build -f docker/Dockerfile \
+            --label org.opencontainers.image.source="https://github.com/$REPOSITORY" \
+            --label org.opencontainers.image.version="$version" \
+            --label org.opencontainers.image.licenses=AGPL-3.0-only \
+            -t "$image:$version" -t "$image:latest" .
+          docker push "$image:$version"
+          if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            git fetch --force --tags origin
+            highest="$(git tag --list 'v*.*.*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)"
+            if [ "$TAG" = "$highest" ]; then docker push "$image:latest"; fi
+          fi

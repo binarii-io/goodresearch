@@ -55,6 +55,26 @@ describe('US1 — chat', () => {
     expect(view?.messages.at(-1)).toMatchObject({ text: 'First part. ', status: 'stopped' })
   })
 
+  it('shows an answer cut off by a server restart as stopped, not as still writing', async () => {
+    world.model.answer([{ type: 'text', delta: 'Never saved.' }])
+    const events = world.send.send({
+      actor: ada,
+      conversationId,
+      text: 'Go',
+      page: { kind: 'home' },
+      language: 'en',
+    })
+    // The process stops after the answer was opened: nothing closes it.
+    await events.next()
+    expect((await world.queries.get('ada', conversationId))?.messages.at(-1)?.status).toBe(
+      'streaming',
+    )
+    await world.clock.advance(31 * 60_000)
+    expect((await world.queries.get('ada', conversationId))?.messages.at(-1)?.status).toBe(
+      'stopped',
+    )
+  })
+
   it('stores a provider failure with its reason', async () => {
     world.model.failWith(new ProviderCallError('NO_CREDIT_OR_QUOTA'))
     const events = await send('Hi')
