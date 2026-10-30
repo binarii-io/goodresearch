@@ -215,6 +215,34 @@ describe('fieldwork sessions (spec 008)', () => {
     expect(world.schedules.get('study-1')?.find((p) => p.id === LEE)?.status).toBe('scheduled')
   })
 
+  it('US3: a schedule that fails does not undo a validation', async () => {
+    const sam = (await fieldwork()).sessions[1]
+    if (!sam) throw new Error('fixture')
+    const linked = await world.sessions.link({
+      actor: alice,
+      sessionId: sam.id,
+      plannedInterviewId: SAM,
+      version: sam.version,
+    })
+    if (!linked.ok) throw new Error('fixture')
+    const version = (await fieldwork()).sessions[1]?.version ?? 0
+    const save = world.store.saveSession.bind(world.store)
+    world.store.saveSession = async (...args) => {
+      const saved = await save(...args)
+      world.schedules.get = () => {
+        throw new Error('schedule down')
+      }
+      return saved
+    }
+    const done = await world.sessions.decide({
+      actor: alice,
+      sessionId: sam.id,
+      decision: 'validate',
+      version,
+    })
+    expect(done.ok).toBe(true)
+  })
+
   it('US3: a stale change is refused with "changed meanwhile"', async () => {
     const sam = (await fieldwork()).sessions[1]
     if (!sam) throw new Error('fixture')

@@ -450,12 +450,13 @@ export function Proposals({
 
 const RENAME_AFTER_CONSENT = 'goodresearch.renameAfterConsent'
 
-/** The interview to rename once back from the consent, if any; read once. */
-export const takeRenameAfterConsent = (): string | null => {
+/** The interview of this study to rename once back from the consent, if any; read once. */
+export const takeRenameAfterConsent = (studyId: string): string | null => {
   try {
-    const sessionId = globalThis.sessionStorage?.getItem(RENAME_AFTER_CONSENT) ?? null
+    const saved = globalThis.sessionStorage?.getItem(RENAME_AFTER_CONSENT) ?? ''
     globalThis.sessionStorage?.removeItem(RENAME_AFTER_CONSENT)
-    return sessionId
+    const [study, sessionId] = saved.split('|')
+    return study === studyId && sessionId ? sessionId : null
   } catch {
     return null
   }
@@ -471,8 +472,9 @@ export function useQuietRename(studyId: string) {
   return async (sessionId: string): Promise<'done' | 'consent' | 'failed'> => {
     try {
       const plan = await getRenamePlan(sessionId)
-      if (!plan.writeAccess) return 'consent'
       const differing = plan.files.filter((f) => f.current !== f.next)
+      if (!differing.length) return 'done'
+      if (!plan.writeAccess) return 'consent'
       const fileIds = differing.filter((f) => f.canEdit).map((f) => f.fileId)
       const results = fileIds.length
         ? (await renameSessionFiles(sessionId, { fileIds })).results
@@ -494,11 +496,12 @@ export function useQuietRename(studyId: string) {
 
 /**
  * Goes to Google's consent for editing, then back to the Fieldwork tab (spec 007 flow), where the
- * renaming that needed it goes on.
+ * renaming that needed it goes on, unless the person chose the files (`sessionId` null).
  */
-const askWriteConsent = (studyId: string, sessionId: string) => {
+const askWriteConsent = (studyId: string, sessionId: string | null) => {
   try {
-    globalThis.sessionStorage?.setItem(RENAME_AFTER_CONSENT, sessionId)
+    if (sessionId)
+      globalThis.sessionStorage?.setItem(RENAME_AFTER_CONSENT, `${studyId}|${sessionId}`)
   } catch {
     // The person then uses "Rename in Drive".
   }
@@ -561,7 +564,8 @@ export function RenameDialog({
       ])
       await onRenamed?.()
     } catch (failure) {
-      if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED') return askWriteConsent(studyId, session.id)
+      if (errorCode(failure) === 'DRIVE_WRITE_REQUIRED')
+        return askWriteConsent(studyId, chosen ? null : session.id)
       toast.error(errorMessage(i18n, failure))
     } finally {
       onBusy?.(false)
@@ -582,7 +586,7 @@ export function RenameDialog({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => askWriteConsent(studyId, session.id)}
+              onClick={() => askWriteConsent(studyId, chosen ? null : session.id)}
             >
               {t`Allow editing in Drive`}
             </Button>

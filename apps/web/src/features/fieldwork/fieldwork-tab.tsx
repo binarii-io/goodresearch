@@ -319,9 +319,9 @@ function Interviews({
   const quietRename = useQuietRename(studyId)
   // Back from the editing consent: the renaming that needed it goes on.
   useEffect(() => {
-    const sessionId = takeRenameAfterConsent()
+    const sessionId = takeRenameAfterConsent(studyId)
     if (sessionId) void quietRename(sessionId)
-  })
+  }, [])
   const link = useLinkSession()
   const decide = useDecideSession()
   const [state, setState] = useState<string>(ALL)

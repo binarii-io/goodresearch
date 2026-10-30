@@ -268,9 +268,12 @@ export function SessionDialog({
           }),
         )
       }
-      // "Accept all" also settles the planned interview: the suggestion, or a new row (FR-017).
+      // "Accept all" also settles the planned interview: a suggestion found by name, or a new row
+      // (FR-017). A suggestion by date alone may be someone else: it stays for the person.
       if (options.acceptAll && !next.link) {
-        if (next.suggestion) {
+        if (next.suggestion?.rule === 'date') {
+          // Decided on its card.
+        } else if (next.suggestion) {
           const plannedInterviewId = next.suggestion.plannedInterviewId
           // A failed link never stops the renaming: the proposals are already accepted.
           try {
