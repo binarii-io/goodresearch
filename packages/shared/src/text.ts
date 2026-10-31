@@ -17,6 +17,12 @@ export const nameKey = (name: string): string => withoutMarks(name).replace(/\s+
 export const personName = (label: string): string =>
   (label.split(/\s+[-–]|\s*[(|[]/)[0] ?? '').trim()
 
+/** What a meeting tool writes at the end of a transcript, followed by a duration: not a speaker. */
+export const isTranscriptEnd = (label: string): boolean =>
+  /^(transcription terminee apres|transcription ended after)$/.test(
+    fold(label).trim().replace(/\s+/g, ' '),
+  )
+
 export type Word = { readonly text: string; readonly start: number; readonly end: number }
 
 const WORD = /[\p{L}\p{N}]+(?:['‘’ʼ-][\p{L}\p{N}]+)*/gu

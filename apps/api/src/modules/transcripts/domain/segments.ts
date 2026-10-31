@@ -1,4 +1,4 @@
-import { personName } from '@goodresearch/shared'
+import { isTranscriptEnd, personName } from '@goodresearch/shared'
 
 /** One speaker turn of a transcript; its id stays the same across imports (research R3). */
 export type Segment = {
@@ -18,6 +18,17 @@ const VOICE = /^\s*<v\s+([^>]{1,60})>\s*(.*?)(?:<\/v>)?\s*$/
 /** Teams, Otter: "Name   0:03" or "Name (00:01:15)" on its own line, the words below. */
 const TIMED = new RegExp(String.raw`^\s*([^\s:\d(\[][^:\n(\[]{0,59}?)\s+[(\[]?${TIME}[)\]]?\s*$`)
 const LABEL = /^\s*([^\s:\d][^:\n]{0,59}?)\s*:\s+(\S.*)$/
+/**
+ * A meeting tool's label with its office and no colon, at the start or inside a line, when a
+ * document holds turns glued together: "…any questions? Ann SMITH -OFFICE PARIS- Well, no."
+ * Two to four capitalised words ending in a surname in capitals, and an office in capitals, so
+ * that ordinary dashes stay text. A capitalised word just before the name cannot be told from it.
+ */
+const PARTICLE = String.raw`(?:(?:de|du|des|la|le|van|von) +)?`
+const INLINE_LABEL = new RegExp(
+  String.raw`(\p{Lu}[\p{L}'’-]*(?: +${PARTICLE}\p{Lu}[\p{L}'’-]*){0,2} +${PARTICLE}\p{Lu}[\p{Lu}'’-]+ +-\p{Lu}[\p{Lu}\d'’ -]{1,40}-)\s*:?(?=\s|$)`,
+  'gu',
+)
 
 const seconds = (m: RegExpExecArray, at: number): number =>
   Number(m[at] ?? 0) * 3600 + Number(m[at + 1]) * 60 + Number(m[at + 2])
@@ -35,8 +46,8 @@ const cleanName = (label: string) => label.trim().replace(/,+$/, '')
 
 /**
  * The speaker turns of a plain-text transcript: `Name: text`, `<v Name>text`, `Name 0:03` with the
- * words below, an optional leading `[hh:mm:ss]`. Lines without a label continue the turn; text
- * before the first label has no speaker.
+ * words below, `Name -OFFICE- text` anywhere in a line, an optional leading `[hh:mm:ss]`. Lines
+ * without a label continue the turn; text before the first label has no speaker.
  */
 export const parseSegments = (text: string): ParsedSegment[] => {
   const out: { speaker: string | null; start: number | null; lines: string[] }[] = []
@@ -44,6 +55,28 @@ export const parseSegments = (text: string): ParsedSegment[] => {
   const open = (speaker: string | null, start: number | null, first: string) => {
     out.push({ speaker, start: start ?? pendingStart, lines: first ? [first] : [] })
     pendingStart = null
+  }
+  const write = (raw: string, start: number | null) => {
+    const line = raw.trim()
+    const labels = [...line.matchAll(INLINE_LABEL)]
+    // A header before the first turn may list people with their offices: those are not turns.
+    const found = out.at(-1)?.speaker || labels[0]?.index === 0 ? labels : []
+    const before = (found[0] ? line.slice(0, found[0].index) : line).trim()
+    if (before) {
+      const last = out.at(-1)
+      if (last) last.lines.push(before)
+      else open(null, start, before)
+    }
+    found.forEach((m, i) => {
+      const end = found[i + 1]?.index ?? line.length
+      const words = line.slice(m.index + m[0].length, end).trim()
+      open(cleanName(m[1] ?? ''), i === 0 && !before ? start : null, words)
+    })
+  }
+  /** A turn with its words, which may hold other turns; none when they start with another's. */
+  const opened = (speaker: string, start: number | null, words: string) => {
+    if (words.search(INLINE_LABEL) !== 0) open(speaker, start, '')
+    write(words, null)
   }
   for (const raw of text.split(/\r?\n/)) {
     if (raw.trim() === '') continue
@@ -54,24 +87,27 @@ export const parseSegments = (text: string): ParsedSegment[] => {
     }
     const voice = VOICE.exec(raw)
     if (voice?.[1] && isName(cleanName(voice[1]))) {
-      open(cleanName(voice[1]), null, (voice[2] ?? '').trim())
+      opened(cleanName(voice[1]), null, (voice[2] ?? '').trim())
       continue
     }
     const timed = TIMED.exec(raw)
+    if (timed?.[1] && isTranscriptEnd(timed[1])) {
+      open(null, seconds(timed, 2), '')
+      continue
+    }
     if (timed?.[1] && isName(cleanName(timed[1]))) {
       open(cleanName(timed[1]), seconds(timed, 2), '')
       continue
     }
     const lead = LEADING_TIME.exec(raw)
     const line = lead ? raw.slice(lead[0].length) : raw
-    const label = LABEL.exec(line)
+    const start = lead ? seconds(lead, 1) : null
+    const label = line.trim().search(INLINE_LABEL) === 0 ? null : LABEL.exec(line)
     if (label?.[1] && isName(cleanName(label[1]))) {
-      open(cleanName(label[1]), lead ? seconds(lead, 1) : null, (label[2] ?? '').trim())
+      opened(cleanName(label[1]), start, (label[2] ?? '').trim())
       continue
     }
-    const last = out.at(-1)
-    if (last) last.lines.push(line.trim())
-    else open(null, lead ? seconds(lead, 1) : null, line.trim())
+    write(line, start)
   }
   return out
     .map((s) => ({ speaker: s.speaker, start: s.start, text: s.lines.join('\n') }))
@@ -80,10 +116,12 @@ export const parseSegments = (text: string): ParsedSegment[] => {
 
 /**
  * Turns read by an older rule: a line after a turn's first one is itself a speaker label (a
- * meeting tool's label with its office, once refused as too long). Imported again to split them.
+ * meeting tool's label with its office, once refused as too long), or a line holds a label inside.
+ * Imported again to split them.
  */
 export const hasUnsplitTurns = (segments: readonly ParsedSegment[]): boolean =>
   segments.some((s) => {
+    if (s.speaker && s.text.search(INLINE_LABEL) >= 0) return true
     const rest = s.text.split('\n').slice(1).join('\n')
     return rest !== '' && parseSegments(rest).some((p) => p.speaker !== null)
   })

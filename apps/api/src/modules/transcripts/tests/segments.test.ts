@@ -2,6 +2,87 @@ import { describe, expect, it } from 'vitest'
 import { hasUnsplitTurns, keepIds, parseSegments, type Segment } from '../domain/segments.ts'
 
 describe('parseSegments', () => {
+  it('reads a label with its office and no colon, at the start or inside a line', () => {
+    expect(
+      parseSegments(
+        [
+          'Lee EXAMPLE -CAMPUS- 0:08',
+          'How many are you? Sam DOE SMITH -OFFICE NORTH 2- We are ten.',
+          "Sam DOE SMITH -OFFICE NORTH 2- That's it.Lee EXAMPLE -CAMPUS-  Thanks.",
+        ].join('\n'),
+      ),
+    ).toEqual([
+      { speaker: 'Lee EXAMPLE -CAMPUS-', start: 8, text: 'How many are you?' },
+      { speaker: 'Sam DOE SMITH -OFFICE NORTH 2-', start: null, text: 'We are ten.' },
+      { speaker: 'Sam DOE SMITH -OFFICE NORTH 2-', start: null, text: "That's it." },
+      { speaker: 'Lee EXAMPLE -CAMPUS-', start: null, text: 'Thanks.' },
+    ])
+  })
+
+  it('reads what follows such a label as its words, even with a colon', () => {
+    expect(parseSegments('Sam DOE -OFFICE NORTH- Well: yes.')).toEqual([
+      { speaker: 'Sam DOE -OFFICE NORTH-', start: null, text: 'Well: yes.' },
+    ])
+  })
+
+  it('leaves a header listing people with their offices before the first turn', () => {
+    const header = 'Attending Lee and Sam DOE -OFFICE NORTH- and more'
+    expect(parseSegments(`${header}\nLee: Hello`)).toEqual([
+      { speaker: null, start: null, text: header },
+      { speaker: 'Lee', start: null, text: 'Hello' },
+    ])
+    expect(hasUnsplitTurns([{ speaker: null, start: null, text: header }])).toBe(false)
+  })
+
+  it('does not take the note ending a transcript for a speaker', () => {
+    expect(
+      parseSegments('Lee: Hi\nTranscription  terminee\u0301 apre\u0300s 0:10\nNote')[1]?.speaker,
+    ).toBeNull()
+    expect(
+      parseSegments('Lee 0:03\nHello\nTranscription terminée après 00:42:50\nGenerated.'),
+    ).toEqual([
+      { speaker: 'Lee', start: 3, text: 'Hello' },
+      { speaker: null, start: 2570, text: 'Generated.' },
+    ])
+  })
+
+  it('reads such labels in voice tags and after a colon, without an empty turn', () => {
+    const voice = [{ speaker: 'Lee', start: null, text: 'Well?' }]
+    const parsed = parseSegments('<v Lee>Well? Sam DOE -OFFICE NORTH- Yes.</v>')
+    expect(parsed).toEqual([
+      ...voice,
+      { speaker: 'Sam DOE -OFFICE NORTH-', start: null, text: 'Yes.' },
+    ])
+    expect(hasUnsplitTurns(parsed)).toBe(false)
+    expect(parseSegments('Lee: Sam DOE -OFFICE- Hello')).toEqual([
+      { speaker: 'Sam DOE -OFFICE-', start: null, text: 'Hello' },
+    ])
+  })
+
+  it('reads the colon, particles and hyphens of such a label', () => {
+    expect(parseSegments('Sam DOE -OFFICE NORTH- : Bonjour')[0]?.text).toBe('Bonjour')
+    expect(parseSegments('Lee: Hello? Jean de LA FONTAINE -SAINT-DENIS- Yes')).toEqual([
+      { speaker: 'Lee', start: null, text: 'Hello?' },
+      { speaker: 'Jean de LA FONTAINE -SAINT-DENIS-', start: null, text: 'Yes' },
+    ])
+  })
+
+  it('leaves ordinary dashes in the text', () => {
+    for (const text of [
+      'Lee: The North Team -as we call it- agreed.',
+      'Lee: The Data Team -- SALES -- agreed.',
+      'Lee: Sales -NORTH- agreed.',
+      'Lee: The Data Team -SALES- agreed.',
+    ])
+      expect(parseSegments(text)).toHaveLength(1)
+  })
+
+  it('imports again a turn holding such a label inside a line', () => {
+    expect(
+      hasUnsplitTurns([{ speaker: 'Lee', start: null, text: 'Well? Sam DOE -OFFICE NORTH- Yes.' }]),
+    ).toBe(true)
+  })
+
   it('reads "Name: text" turns and joins continuation lines', () => {
     expect(parseSegments('Lee Example: Hello\nand welcome.\n\nSam Example: Hi')).toEqual([
       { speaker: 'Lee Example', start: null, text: 'Hello\nand welcome.' },
