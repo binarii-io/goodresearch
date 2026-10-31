@@ -50,24 +50,17 @@ function useBreakdown() {
 /** FR-002, FR-006: what happened, in counts out of their total: no score, no verdict, no colour. */
 export function Figures({
   figures,
-  before,
   after,
 }: {
-  /** No figures yet: only the tiles around them. */
+  /** No figures yet: only the tile after them. */
   figures: QualityFigures | null
-  /** Tiles on the same line, around the figures. */
-  before?: ReactNode
+  /** A tile on the same line, after the figures. */
   after?: ReactNode
 }) {
   const { t, i18n } = useLingui()
   const breakdown = useBreakdown()
   if (!figures)
-    return (
-      <StatTiles aria-label={t`How the interviews were conducted`}>
-        {before}
-        {after}
-      </StatTiles>
-    )
+    return <StatTiles aria-label={t`How the interviews were conducted`}>{after}</StatTiles>
   const { words, minutes, leading } = figures
   const total = words.interviewers + words.interviewees + words.unknown
   const percent = new Intl.NumberFormat(i18n.locale, { style: 'percent' })
@@ -80,7 +73,6 @@ export function Figures({
   return (
     <div className="grid gap-3">
       <StatTiles aria-label={t`How the interviews were conducted`}>
-        {before}
         <StatTile
           label={
             <>

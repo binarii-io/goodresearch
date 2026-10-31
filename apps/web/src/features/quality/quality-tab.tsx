@@ -7,7 +7,6 @@ import {
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
 import {
-  FileTextIcon,
   HourglassIcon,
   LoaderCircleIcon,
   SparklesIcon,
@@ -100,19 +99,11 @@ function Overview({ studyId }: { studyId: string }) {
     })
   const row = view === 'person' ? data.people.find((p) => p.key === person) : undefined
   const shown = row ? row.figures : data.overall
-  const { reviewed, total } = data
+  const { reviewed } = data
   return (
     <div className="grid gap-6">
       <Figures
         figures={shown ?? null}
-        before={
-          <StatTile
-            icon={<FileTextIcon aria-hidden />}
-            label={t`Interviews reviewed`}
-            value={reviewed}
-            detail={t`of ${total} validated`}
-          />
-        }
         after={
           <StatTile
             icon={<SparklesIcon aria-hidden />}

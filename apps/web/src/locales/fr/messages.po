@@ -3250,10 +3250,6 @@ msgstr "Entretiens lus"
 msgid "interviews retained"
 msgstr "entretiens retenus"
 
-#: src/features/quality/quality-tab.tsx
-msgid "Interviews reviewed"
-msgstr "Entretiens relus"
-
 #: src/features/preparation/guide-editor.tsx
 #: src/features/preparation/labels.ts
 msgid "Introduction"
@@ -4178,10 +4174,6 @@ msgstr "Freins et irritants"
 #: src/features/analysis/analysis-tab.tsx
 msgid "of {0} validated"
 msgstr "sur {0} validés"
-
-#: src/features/quality/quality-tab.tsx
-msgid "of {total} validated"
-msgstr "sur {total} validés"
 
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
