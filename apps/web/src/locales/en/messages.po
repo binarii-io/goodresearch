@@ -1358,13 +1358,15 @@ msgstr "by {0}, {1}"
 msgid "by {actor}"
 msgstr "by {actor}"
 
+#. placeholder {0}: data.interviews.length
 #: src/features/quality/quality-tab.tsx
-msgid "By interview"
-msgstr "By interview"
+msgid "By interview ({0})"
+msgstr "By interview ({0})"
 
+#. placeholder {0}: data.people.length
 #: src/features/quality/quality-tab.tsx
-msgid "By person"
-msgstr "By person"
+msgid "By person ({0})"
+msgstr "By person ({0})"
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "by the app: its transcript was found"

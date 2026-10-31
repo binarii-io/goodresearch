@@ -71,10 +71,10 @@ test.describe('spec 016 — Interview quality', () => {
     await page.keyboard.press('Escape')
 
     // The views.
-    await main.getByRole('button', { name: 'By person' }).click()
+    await main.getByRole('tab', { name: /^By person/ }).click()
     await expect(main.getByRole('row', { name: /Lee Example/ })).toBeVisible()
     await expectAccessible(page)
-    await main.getByRole('button', { name: 'By interview' }).click()
+    await main.getByRole('tab', { name: /^By interview/ }).click()
 
     // The state button opens the interview: its transcript, with what was flagged marked in text.
     await main
