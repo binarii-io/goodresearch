@@ -9,7 +9,7 @@ import { Button } from '@goodresearch/ui/components/button'
 import { HourglassIcon, LoaderCircleIcon, SparklesIcon } from '@goodresearch/ui/components/icons'
 import { Progress } from '@goodresearch/ui/components/progress'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
-import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
+import { StatTile } from '@goodresearch/ui/components/stat-tile'
 import {
   Table,
   TableBody,

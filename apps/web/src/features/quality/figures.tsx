@@ -82,13 +82,11 @@ export function Figures({
     <div className="grid gap-3">
       <StatTiles aria-label={t`How the interviews were conducted`}>
         <StatTile
-          label={
-            <>
-              {t`Interviewer talk share`}
-              <Hint label={talkHint}>
-                {t`The share of all the words of the interviews spoken by interviewers, computed by the app. Reference value: 30% at most.`}
-              </Hint>
-            </>
+          label={t`Interviewer talk share`}
+          hint={
+            <Hint
+              label={talkHint}
+            >{t`The share of all the words of the interviews spoken by interviewers, computed by the app. Reference value: 30% at most.`}</Hint>
           }
           value={share(words.interviewers)}
           detail={
@@ -103,13 +101,11 @@ export function Figures({
           detail={ratio(counted(leading.questions), figures.questions, leading.questions)}
         />
         <StatTile
-          label={
-            <>
-              {t`Leading sentences`}
-              <Hint label={leadingHint}>
-                {t`Leading questions, reformulations with opinion and opinions, out of all the interviewers' sentences. Reference value: 5% at most.`}
-              </Hint>
-            </>
+          label={t`Leading sentences`}
+          hint={
+            <Hint
+              label={leadingHint}
+            >{t`Leading questions, reformulations with opinion and opinions, out of all the interviewers' sentences. Reference value: 5% at most.`}</Hint>
           }
           value={rate(counted(allLeading), figures.sentences)}
           detail={ratio(counted(allLeading), figures.sentences, allLeading)}
@@ -120,13 +116,11 @@ export function Figures({
           detail={ratio(counted(leading.reformulations), figures.sentences, leading.reformulations)}
         />
         <StatTile
-          label={
-            <>
-              {t`Simple reformulations`}
-              <Hint label={sentenceHint}>
-                {t`A simple reformulation rests only on what the interviewee said, to check understanding: good practice, never counted as leading. The app cuts sentences at their ends; a turn without punctuation is one sentence, and "OK." or "I see." is not counted.`}
-              </Hint>
-            </>
+          label={t`Simple reformulations`}
+          hint={
+            <Hint
+              label={sentenceHint}
+            >{t`A simple reformulation rests only on what the interviewee said, to check understanding: good practice, never counted as leading. The app cuts sentences at their ends; a turn without punctuation is one sentence, and "OK." or "I see." is not counted.`}</Hint>
           }
           value={rate(figures.simpleReformulations, figures.sentences)}
           detail={
