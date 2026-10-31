@@ -45,7 +45,7 @@ import {
   TableHeader,
   TableRow,
 } from '@goodresearch/ui/components/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
+import { Tabs, TabsBar, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
 import { plural, t } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -147,13 +147,12 @@ export function EnrichmentTab({
     <div className="grid gap-6">
       <Overview data={data} />
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <div className="flex flex-wrap items-center gap-3">
+        <TabsBar action={<FindTerms studyId={studyId} data={data} />}>
           <TabsList aria-label={t`Lexicon`}>
             <TabsTrigger value="lexicon">{t`Lexicon (${data.counts.toDecide} to decide)`}</TabsTrigger>
             <TabsTrigger value="interviews">{t`Interviews (${data.interviews.length})`}</TabsTrigger>
           </TabsList>
-          <FindTerms studyId={studyId} data={data} />
-        </div>
+        </TabsBar>
         {reading(data) ? <ReadingProgress studyId={studyId} data={data} /> : null}
         {data.run?.finished && data.run.failure ? (
           <p className="flex items-center gap-2 text-sm" role="status">

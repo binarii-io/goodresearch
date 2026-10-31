@@ -16,6 +16,20 @@ describe('speakingTimes (research R6)', () => {
     expect(t.minutes).toBeNull()
   })
 
+  it('counts no one for a document title or the note ending a transcript', () => {
+    const t = speakingTimes(
+      [
+        turn(null, 30),
+        turn('A', 5, 0),
+        turn('B', 5, 60),
+        turn('Transcription ended after', 20, 90),
+      ],
+      role,
+    )
+    expect(t.words).toEqual({ interviewers: 5, interviewees: 5, unknown: 0 })
+    expect(t.minutes).toEqual({ interviewers: 1, interviewees: 0, unknown: 0 })
+  })
+
   it('gets the minutes from the gaps between turn starts, leaving out the last turn', () => {
     const t = speakingTimes([turn('A', 5, 0), turn('B', 5, 60), turn('A', 5, 240)], role)
     expect(t.minutes).toEqual({ interviewers: 1, interviewees: 3, unknown: 0 })

@@ -1,3 +1,4 @@
+import type { Locator } from '@playwright/test'
 import {
   ADMIN,
   acceptAllAndClose,
@@ -9,6 +10,12 @@ import {
   signedInPage,
   test,
 } from './fixtures.ts'
+
+const box = async (element: Locator) => {
+  const found = await element.boundingBox()
+  if (!found) throw new Error('Not on the page')
+  return found
+}
 
 test.describe('spec 016 — Interview quality', () => {
   test('reviews one interview from its row, reads it, and gives an opinion', async ({
@@ -65,9 +72,21 @@ test.describe('spec 016 — Interview quality', () => {
     await dialog.getByRole('button', { name: 'Agree and review' }).click()
     await expect(row.getByRole('button', { name: 'Reviewed' })).toBeVisible({ timeout: 60_000 })
 
+    // The tabs at the left of the line above the table, the run button at its right.
+    const tabs = await box(main.getByRole('tablist', { name: 'View' }))
+    const run = await box(main.getByRole('button', { name: 'Review the interviews' }))
+    const table = await box(main.getByRole('table').first())
+    expect(Math.abs(tabs.x - table.x)).toBeLessThan(2)
+    expect(Math.abs(run.x + run.width - (table.x + table.width))).toBeLessThan(2)
+    expect(run.y).toBeLessThan(tabs.y + tabs.height)
+    expect(run.y + run.height).toBeLessThan(table.y)
     // Its reference value is reachable by keyboard.
-    await main.getByRole('button', { name: "How the interviewer's talk share is counted" }).focus()
-    await expect(page.getByRole('tooltip')).toContainText('30%')
+    const hint = main.getByRole('button', { name: "How the interviewer's talk share is counted" })
+    await hint.focus()
+    await page.keyboard.press('Shift+Tab')
+    await page.keyboard.press('Tab')
+    await expect(hint).toBeFocused()
+    await expect(page.getByText('Reference value: 30% at most.')).toBeVisible()
     await page.keyboard.press('Escape')
 
     // The views.

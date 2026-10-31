@@ -1,4 +1,4 @@
-import { type Role, words } from '@goodresearch/shared'
+import { isTranscriptEnd, type Role, words } from '@goodresearch/shared'
 
 /** Above this share of interviewer words, the labels are probably wrong (FR-002). */
 const NOT_MEASURABLE_ABOVE = 0.95
@@ -39,9 +39,11 @@ const add = (a: ByRole, b: ByRole): ByRole => ({
 
 /** Words per role, and minutes from the gaps between turn starts (the last turn has none). */
 export const speakingTimes = (
-  turns: readonly Turn[],
+  all: readonly Turn[],
   roleOf: (speaker: string | null) => Role,
 ): SpeakingTimes => {
+  // A document's title or the note ending it: nobody speaks them.
+  const turns = all.filter((t) => t.speaker !== null && !isTranscriptEnd(t.speaker))
   let count = NO_ONE
   let seconds = NO_ONE
   const timed = turns.length > 0 && turns.every((t) => t.start !== null)

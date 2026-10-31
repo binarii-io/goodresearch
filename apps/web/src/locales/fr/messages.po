@@ -5408,6 +5408,10 @@ msgstr "Locuteur non identifié"
 msgid "Speaker not identified: {0} of the words."
 msgstr "Locuteur non identifié : {0} des mots."
 
+#: src/features/quality/figures.tsx
+msgid "Speaker not identified: less than 1% of the words."
+msgstr "Locuteur non identifié : moins de 1 % des mots."
+
 #: src/features/analysis/interview-facts.tsx
 msgid "speaker to attribute"
 msgstr "locuteur à attribuer"

@@ -92,6 +92,7 @@ The prototype's main error, handled at three levels:
 Seen on real transcripts, reproduced on synthetic fixtures:
 - **Turns glued together**: labels with no colon inside a line went to the previous speaker. Fixed in the transcripts parser (`fix/transcript-inline-speaker-labels`).
 - **The end note read as a speaker**: "Transcription ended after 00:42:50" made one more unknown label, so a room name was no longer the only label left to give to the only interviewer. Ignored by `conductRoles`; new imports no longer read it as a speaker. No forced re-import: it would mark every interview "To analyse again".
+- **Words nobody speaks**: a document's title or the end note counted as unknown words, and a null start kept minutes off. Left out of the speaking times.
 - **One voice in the source**: both people on one microphone gives one label. The app cannot split them; the row says so, and "Review anyway" would flag the interviewee's sentences.
 
 ## R15. An interview not imported yet

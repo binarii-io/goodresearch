@@ -164,7 +164,7 @@ The same thing looks the same in every phase; `features/analysis` is the referen
 - **Numbers**: `StatTile`s above the table on one line, the cost last ("Last: …" as its detail). In a row, a dash when nothing has run, "unknown" when a price is unknown.
 - **Decisions**: two `xs` buttons side by side with `CheckIcon` and `XIcon`, the choice made `default`, the other `outline`; they never move or vanish.
 - **Interview views**: the page header holds the title and the way back; the panel beside the transcript holds the count, the cost, the state only when it asks for something, and the run button.
-- **Views over a table**: `Tabs` right above it, with their counts, and the run button on the same line at the right; `Segmented` is for filters.
+- **Views over a table**: `TabsBar` from the design system right above it, its `Tabs` with their counts at the left and the run button at the right, never rewritten by hand; `Segmented` is for filters.
 - **Rows**: the whole row opens the item when it can be opened, and its state button is the keyboard way; the action cell does not open it.
 
 ## 4. Testing

@@ -135,7 +135,9 @@ export function Figures({
       </StatTiles>
       {words.unknown > 0 ? (
         <p className="text-muted-foreground text-sm">
-          {t`Speaker not identified: ${share(words.unknown)} of the words.`}{' '}
+          {words.unknown / total < 0.01
+            ? t`Speaker not identified: less than 1% of the words.`
+            : t`Speaker not identified: ${share(words.unknown)} of the words.`}{' '}
           {figures.turnsSkipped > 0
             ? t`${figures.turnsSkipped} turns were not reviewed; attribute their speakers in Analysis.`
             : null}

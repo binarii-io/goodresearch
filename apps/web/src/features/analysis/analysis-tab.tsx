@@ -28,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from '@goodresearch/ui/components/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
+import { Tabs, TabsBar, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -104,13 +104,12 @@ export function AnalysisTab({
     <div className="grid gap-6">
       <Numbers data={data} />
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <div className="flex flex-wrap items-center gap-3">
+        <TabsBar action={<FindFacts studyId={studyId} data={data} />}>
           <TabsList aria-label={t`Analysis`}>
             <TabsTrigger value="interviews">{t`Interviews (${data.interviews.length})`}</TabsTrigger>
             <TabsTrigger value="facts">{t`Facts (${data.counts.toDecide} to decide)`}</TabsTrigger>
           </TabsList>
-          <FindFacts studyId={studyId} data={data} />
-        </div>
+        </TabsBar>
         {running(data) ? <ReadingProgress studyId={studyId} data={data} /> : null}
         {data.run?.finished && data.run.failure ? (
           <p className="flex items-center gap-2 text-sm" role="status">

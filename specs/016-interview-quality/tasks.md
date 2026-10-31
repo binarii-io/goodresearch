@@ -89,7 +89,7 @@ Domain rules are written test-first (constitution V): the test task comes before
 - [X] T035 [P] `pnpm --filter @goodresearch/web i18n:extract`, French translations using the glossary (Remarque, Reformulation simple, Reformulation avec opinion, D'accord, Pas d'accord, Sans avis, Part de parole for the shares, Temps de parole for the minutes, Intervieweur non identifié).
 - [X] T036 [P] Docs in the same change: `docs/domain/context-map.md` (Interview Quality rewritten: Evaluation, Remark, Opinion, sentence kinds, reference values replacing verdicts; assessments and opinions, per constitution 1.2.0; glossary; `EvaluationCompleted`, if still unused, removed), `docs/domain/prototype-reference.md` note, `quality/README.md`, `apps/api` README (module, queue, migration).
 - [X] T037 Postgres component tests in `quality/tests/`: store, routes, migration, cascade on session deletion.
-- [ ] T038 `apps/web/e2e/quality-review.spec.ts`: quickstart scenarios 1, 2, 4, 6, with axe in light and dark (SC-010); Storybook only if a new `packages/ui` piece was needed.
+- [X] T038 `apps/web/e2e/quality-review.spec.ts`: quickstart scenarios 1, 2, 4, 6, with axe in light and dark (SC-010); Storybook only if a new `packages/ui` piece was needed.
 - [X] T039 Measure the overview on 30 interviews (research R6); cache by fingerprint only if slow.
 - [ ] T040 Final reference run on a real provider; rates and cost in the PR description (SC-001, SC-002), and the duration for 30 one-hour interviews, measured or extrapolated from it and said so (SC-009). Below target: tune the prompt before release. Run `pnpm check`, `pnpm test`, `pnpm build`, and walk through [quickstart.md](quickstart.md).
 

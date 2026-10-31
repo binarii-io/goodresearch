@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@goodresearch/ui/components/table'
-import { Tabs, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
+import { Tabs, TabsBar, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
 import { useLingui } from '@lingui/react/macro'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -127,22 +127,19 @@ function Overview({ studyId }: { studyId: string }) {
       {reviewed === 0 ? (
         <p className="text-sm">{t`No interview reviewed yet: the figures come after a review.`}</p>
       ) : null}
-      <Tabs
-        value={view}
-        onValueChange={(next) => choose(next as 'overall' | 'person' | 'interview')}
-        className="flex flex-row flex-wrap items-center gap-3"
-      >
-        {reviewed > 0 ? (
-          <TabsList aria-label={t`View`}>
-            <TabsTrigger value="overall">{t`Overall`}</TabsTrigger>
-            <TabsTrigger value="person">{t`By person (${data.people.length})`}</TabsTrigger>
-            <TabsTrigger value="interview">
-              {t`By interview (${data.interviews.length})`}
-            </TabsTrigger>
-          </TabsList>
-        ) : null}
-        {row ? <p className="font-medium text-sm">{personLabel(row.name)}</p> : null}
-        <Review studyId={studyId} data={data} />
+      <Tabs value={view} onValueChange={(next) => choose(next as typeof view)} className="gap-4">
+        <TabsBar action={<Review studyId={studyId} data={data} />}>
+          {reviewed > 0 ? (
+            <TabsList aria-label={t`View`}>
+              <TabsTrigger value="overall">{t`Overall`}</TabsTrigger>
+              <TabsTrigger value="person">{t`By person (${data.people.length})`}</TabsTrigger>
+              <TabsTrigger value="interview">
+                {t`By interview (${data.interviews.length})`}
+              </TabsTrigger>
+            </TabsList>
+          ) : null}
+          {row ? <p className="font-medium text-sm">{personLabel(row.name)}</p> : null}
+        </TabsBar>
       </Tabs>
       {running(data) ? <ReviewProgress data={data} /> : null}
       {data.run?.finished && data.run.leftOut > 0 ? (
