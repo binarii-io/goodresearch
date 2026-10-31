@@ -18,6 +18,7 @@ export {
   fromPlaceholders,
   holdsName,
   isAcronym,
+  isTranscriptEnd,
   languageOf,
   nameKey,
   normaliseQuote,
