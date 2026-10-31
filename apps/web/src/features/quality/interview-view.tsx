@@ -2,12 +2,13 @@ import {
   type QualityInterview,
   useAttributeSpeaker,
   useGetQualityInterview,
+  useGetQualityOverview,
 } from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
+import { LoaderCircleIcon } from '@goodresearch/ui/components/icons'
 import { Segmented, SegmentedItem } from '@goodresearch/ui/components/segmented'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { useLingui } from '@lingui/react/macro'
-import { Link } from '@tanstack/react-router'
 import { type ReactNode, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Choice } from '../analysis/choice.tsx'
@@ -17,6 +18,7 @@ import { Figures } from './figures.tsx'
 import { EVALUATION_REASONS, EVALUATION_STATES, REMARK_KINDS } from './labels.ts'
 import { RemarkCard } from './remark-card.tsx'
 import { ReformulationList } from './remarks-list.tsx'
+import { ReviewOneButton } from './review-dialog.tsx'
 import { useRefreshQuality } from './use-refresh.ts'
 
 type Turn = NonNullable<QualityInterview['turns']>[number]
@@ -43,7 +45,21 @@ export function InterviewView({
 }) {
   const { t, i18n } = useLingui()
   const money = useMoney()
-  const view = useGetQualityInterview(studyId, sessionId, { query: { refetchOnMount: 'always' } })
+  const overview = useGetQualityOverview(studyId, {
+    query: {
+      refetchInterval: (query) =>
+        query.state.data?.run && !query.state.data.run.finished ? 2000 : false,
+    },
+  })
+  const live = !!overview.data?.run && !overview.data.run.finished
+  const view = useGetQualityInterview(studyId, sessionId, {
+    query: { refetchOnMount: 'always', refetchInterval: live ? 2000 : false },
+  })
+  const { refetch } = view
+  // What the run found shows as soon as it ends.
+  useEffect(() => {
+    if (!live) void refetch()
+  }, [live, refetch])
   const [selected, setSelected] = useState<string | null>(null)
   const [showing, setShowing] = useState<'remarks' | 'reformulations'>('remarks')
   const data = view.data
@@ -51,22 +67,7 @@ export function InterviewView({
   useEffect(() => {
     if (shown && turn) scrollTo(`quality-turn-${turn}`)
   }, [shown, turn])
-  const back = (
-    <Link
-      to="."
-      search={(previous) => ({ ...previous, interview: undefined, turn: undefined })}
-      className="w-fit text-sm underline"
-    >
-      ← {t`Back to the interviews`}
-    </Link>
-  )
-  if (view.isError)
-    return (
-      <div className="grid gap-3">
-        {back}
-        <p className="text-base">{errorMessage(i18n, view.error)}</p>
-      </div>
-    )
+  if (view.isError) return <p className="text-base">{errorMessage(i18n, view.error)}</p>
   if (!data) return <Skeleton className="h-80 w-full" />
   const reason = EVALUATION_REASONS[data.state]
   const pickFromCard = (id: string, segmentId: string, hasPlace: boolean) => {
@@ -99,15 +100,9 @@ export function InterviewView({
   const hasReview = data.figures !== null
   return (
     <div className="grid gap-5">
-      {back}
-      <div className="flex flex-wrap items-center gap-2">
-        <h2 className="font-semibold text-lg">{data.title}</h2>
-        <Badge variant="ghost">{i18n._(EVALUATION_STATES[data.state])}</Badge>
-        {data.cost !== null ? (
-          <span className="text-muted-foreground text-sm">{t`Cost: ${money(data.cost)}`}</span>
-        ) : null}
-      </div>
-      {reason ? <p className="max-w-prose text-sm">{i18n._(reason)}</p> : null}
+      {reason ? (
+        <p className="max-w-prose text-muted-foreground text-sm">{i18n._(reason)}</p>
+      ) : null}
       {asks ? <WhoSpeaks studyId={studyId} data={data} /> : null}
       {data.figures ? <Figures figures={data.figures} /> : null}
       {!data.turns ? (
@@ -115,9 +110,7 @@ export function InterviewView({
           <p className="text-muted-foreground text-base">{t`This interview has no transcript.`}</p>
         ) : null
       ) : (
-        <div
-          className={`grid items-start gap-5 ${hasReview ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]' : ''}`}
-        >
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <section aria-label={t`Transcript`}>
             <ol className="grid max-w-prose gap-3">
               {data.turns.map((item) => (
@@ -148,23 +141,73 @@ export function InterviewView({
               ))}
             </ol>
           </section>
-          {hasReview ? (
-            <aside aria-label={t`Remarks`} className="grid gap-3 lg:sticky lg:top-4">
-              <Segmented aria-label={t`What to read`}>
-                <SegmentedItem
-                  pressed={showing === 'remarks'}
-                  onClick={() => setShowing('remarks')}
-                >
-                  {t`Remarks`}
-                </SegmentedItem>
-                <SegmentedItem
-                  pressed={showing === 'reformulations'}
-                  onClick={() => setShowing('reformulations')}
-                >
-                  {t`Simple reformulations`}
-                </SegmentedItem>
-              </Segmented>
-              {showing === 'remarks' ? (
+          {/* A panel of its own, as the facts': it stays in view while the transcript scrolls. */}
+          <section
+            aria-label={t`Remarks`}
+            className="flex flex-col overflow-hidden rounded-lg border bg-card lg:sticky lg:self-start lg:top-20 lg:max-h-[calc(100svh-6rem)]"
+          >
+            <header className="flex min-h-14 flex-wrap items-center gap-x-2 gap-y-1 border-b px-4 py-2.5">
+              <h2 className="font-semibold text-base">{t`Remarks`}</h2>
+              <span className="text-muted-foreground text-sm">
+                {data.remarks.length}
+                {data.cost !== null ? (
+                  <>
+                    {' '}
+                    -{' '}
+                    <span title={t`Cost of the reviews`}>
+                      <span className="sr-only">{t`Cost:`} </span>
+                      {money(data.cost, { narrow: true })}
+                    </span>
+                  </>
+                ) : null}
+              </span>
+              {data.state === 'to-review-again' ? (
+                <Badge variant="highlight">{i18n._(EVALUATION_STATES[data.state])}</Badge>
+              ) : null}
+              <span className="ml-auto flex items-center gap-2">
+                {data.state === 'reviewing' ? (
+                  <span className="flex items-center gap-1.5 text-sm" role="status">
+                    <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
+                    {i18n._(EVALUATION_STATES.reviewing)}
+                  </span>
+                ) : null}
+                <ReviewOneButton
+                  studyId={studyId}
+                  interview={{ sessionId, title: data.title }}
+                  action={
+                    data.state === 'not-measurable'
+                      ? 'review-anyway'
+                      : hasReview
+                        ? 'review-again'
+                        : 'review'
+                  }
+                  disabled={live}
+                  primary
+                />
+              </span>
+            </header>
+            {hasReview ? (
+              <div className="border-b px-4 py-3">
+                <Segmented aria-label={t`What to read`}>
+                  <SegmentedItem
+                    pressed={showing === 'remarks'}
+                    onClick={() => setShowing('remarks')}
+                  >
+                    {t`Remarks`}
+                  </SegmentedItem>
+                  <SegmentedItem
+                    pressed={showing === 'reformulations'}
+                    onClick={() => setShowing('reformulations')}
+                  >
+                    {t`Simple reformulations`}
+                  </SegmentedItem>
+                </Segmented>
+              </div>
+            ) : null}
+            <div className="grid flex-1 content-start gap-3 overflow-y-auto p-4">
+              {!hasReview ? (
+                <p className="text-muted-foreground text-sm">{t`No review yet: the remarks come after one.`}</p>
+              ) : showing === 'remarks' ? (
                 data.remarks.length === 0 ? (
                   <p className="text-muted-foreground text-sm">{t`No remark here.`}</p>
                 ) : (
@@ -192,8 +235,8 @@ export function InterviewView({
                   onSelect={(r) => pickFromCard(r.id, r.segmentId, r.offset !== null)}
                 />
               )}
-            </aside>
-          ) : null}
+            </div>
+          </section>
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ import {
   useDeleteStudy,
   useGetEnrichment,
   useGetInterviewFacts,
+  useGetQualityInterview,
   useGetStudy,
   useGetStudySource,
   useRenameStudy,
@@ -76,17 +77,25 @@ function StudyPage() {
   const remove = useDeleteStudy()
   const [error, setError] = useState<unknown>(null)
   // Deeper than the study: the interview is the page, the study one of its parents.
-  const deep = (phase === 'analysis' || phase === 'enrichment') && interview ? interview : null
+  const deep =
+    (phase === 'analysis' || phase === 'enrichment' || phase === 'quality') && interview
+      ? interview
+      : null
   const facts = useGetInterviewFacts(studyId, deep ?? '', {
     query: { enabled: deep !== null && phase === 'analysis' },
   })
   const enrichment = useGetEnrichment(studyId, {
     query: { enabled: deep !== null && phase === 'enrichment' },
   })
+  const quality = useGetQualityInterview(studyId, deep ?? '', {
+    query: { enabled: deep !== null && phase === 'quality' },
+  })
   const deepTitle =
     phase === 'analysis'
       ? facts.data?.title
-      : enrichment.data?.interviews.find((i) => i.sessionId === deep)?.title
+      : phase === 'quality'
+        ? quality.data?.title
+        : enrichment.data?.interviews.find((i) => i.sessionId === deep)?.title
   const openInterview = (sessionId: string | null, segmentId?: string) =>
     void navigate({
       to: '.',
@@ -157,7 +166,9 @@ function StudyPage() {
           deep
             ? phase === 'analysis'
               ? t`Back to the analysis`
-              : t`Back to the cleaning`
+              : phase === 'quality'
+                ? t`Back to the interviews`
+                : t`Back to the cleaning`
             : t`Back to the project`
         }
         foldedLabel={t`Pages above`}

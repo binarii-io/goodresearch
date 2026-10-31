@@ -15,7 +15,7 @@ import {
 } from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
-import { CheckIcon, PlusIcon, XIcon } from '@goodresearch/ui/components/icons'
+import { CheckIcon, PlusIcon, SparklesIcon, XIcon } from '@goodresearch/ui/components/icons'
 import { InlineEdit } from '@goodresearch/ui/components/inline-edit'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
@@ -208,6 +208,7 @@ export function RecommendationPanel({
                   )
                 }
               >
+                <SparklesIcon aria-hidden />
                 {t`Translate again`}
               </Button>
             </p>

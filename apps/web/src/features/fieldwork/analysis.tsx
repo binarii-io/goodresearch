@@ -23,7 +23,12 @@ import {
 } from '@goodresearch/ui/components/alert-dialog'
 import { Button } from '@goodresearch/ui/components/button'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
-import { FileSearchIcon, SquareIcon } from '@goodresearch/ui/components/icons'
+import {
+  HourglassIcon,
+  LoaderCircleIcon,
+  SparklesIcon,
+  SquareIcon,
+} from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -176,6 +181,11 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
   if (data.run)
     return (
       <div className="ml-auto flex items-center gap-2" role="status">
+        {data.run.done + data.run.failed === 0 ? (
+          <HourglassIcon aria-hidden className="size-4" />
+        ) : (
+          <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
+        )}
         <span className="text-sm">
           {data.run.stopRequested
             ? t`Stopping…`
@@ -203,7 +213,7 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
   return (
     <>
       <Button className="ml-auto" onClick={() => setOpen(true)}>
-        <FileSearchIcon aria-hidden />
+        <SparklesIcon aria-hidden />
         {t`Analyze interviews`}
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -257,6 +267,7 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
                   .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
               }}
             >
+              <SparklesIcon aria-hidden />
               {e?.consentNeeded ? t`Agree and analyze` : t`Analyze`}
             </AlertDialogAction>
           </AlertDialogFooter>

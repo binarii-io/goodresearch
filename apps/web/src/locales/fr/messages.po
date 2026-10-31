@@ -433,10 +433,6 @@ msgstr "{proposed} proposés"
 msgid "{published} published in Drive"
 msgstr "{published} publiées dans Drive"
 
-#: src/features/quality/quality-tab.tsx
-msgid "{reviewed} of {total} interviews reviewed."
-msgstr "{reviewed} entretiens relus sur {total}."
-
 #: src/features/assistant/proposal-card.tsx
 msgid "{sectionCount} sections · {questions} main questions · {minutes} min"
 msgstr "{sectionCount} sections · {questions} questions principales · {minutes} min"
@@ -761,7 +757,6 @@ msgstr "Compte réactivé"
 msgid "Acronym"
 msgstr "Sigle"
 
-#: src/features/quality/quality-tab.tsx
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -777,6 +772,7 @@ msgstr "Action enregistrée"
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/preparation/schedule.tsx
+#: src/features/quality/quality-tab.tsx
 msgid "Actions"
 msgstr "Actions"
 
@@ -1302,7 +1298,7 @@ msgstr "Retour à l'analyse"
 msgid "Back to the cleaning"
 msgstr "Retour au nettoyage"
 
-#: src/features/quality/interview-view.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Back to the interviews"
 msgstr "Retour aux entretiens"
 
@@ -1799,10 +1795,10 @@ msgstr "Coût des nettoyages"
 msgid "Cost of the readings"
 msgstr "Coût des lectures"
 
-#. placeholder {0}: data.cost === null ? DASH : money(data.cost)
+#: src/features/quality/interview-view.tsx
 #: src/features/quality/quality-tab.tsx
-msgid "Cost of the reviews: {0}"
-msgstr "Coût des relectures : {0}"
+msgid "Cost of the reviews"
+msgstr "Coût des revues"
 
 #: src/features/assistant/cost.tsx
 msgid "Cost of this conversation: {total}. Last message: {last}."
@@ -1814,12 +1810,12 @@ msgid "cost unknown"
 msgstr "coût inconnu"
 
 #: src/features/analysis/interview-facts.tsx
+#: src/features/quality/interview-view.tsx
 msgid "Cost:"
 msgstr "Coût :"
 
 #. placeholder {0}: money(data.cost)
 #: src/features/enrichment/interview-cleaning.tsx
-#: src/features/quality/interview-view.tsx
 msgid "Cost: {0}"
 msgstr "Coût : {0}"
 
@@ -2474,12 +2470,12 @@ msgstr "Trouver les faits"
 
 #: src/features/analysis/find-facts.tsx
 msgid "Find facts again"
-msgstr "Retrouver les faits"
+msgstr "Trouver les faits à nouveau"
 
 #. placeholder {0}: interview.title
 #: src/features/analysis/find-facts.tsx
 msgid "Find facts again: {0}"
-msgstr "Retrouver les faits : {0}"
+msgstr "Trouver les faits à nouveau : {0}"
 
 #. placeholder {0}: interview.title
 #: src/features/analysis/find-facts.tsx
@@ -2510,12 +2506,12 @@ msgstr "Trouver les termes"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Find terms again"
-msgstr "Retrouver les termes"
+msgstr "Trouver les termes à nouveau"
 
 #. placeholder {0}: interview.title
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Find terms again: {0}"
-msgstr "Retrouver les termes : {0}"
+msgstr "Trouver les termes à nouveau : {0}"
 
 #. placeholder {0}: interview.title
 #: src/features/enrichment/enrichment-tab.tsx
@@ -3247,6 +3243,10 @@ msgstr "Entretiens lus"
 msgid "interviews retained"
 msgstr "entretiens retenus"
 
+#: src/features/quality/quality-tab.tsx
+msgid "Interviews reviewed"
+msgstr "Entretiens relus"
+
 #: src/features/preparation/guide-editor.tsx
 #: src/features/preparation/labels.ts
 msgid "Introduction"
@@ -3958,6 +3958,14 @@ msgstr "Aucune remarque ici."
 msgid "No research goal written (project page)."
 msgstr "Enjeu non renseigné (page du projet)."
 
+#: src/features/quality/quality-tab.tsx
+msgid "No review yet"
+msgstr "Pas encore de revue"
+
+#: src/features/quality/interview-view.tsx
+msgid "No review yet: the remarks come after one."
+msgstr "Pas encore de revue : les remarques viennent après."
+
 #: src/features/quality/remarks-list.tsx
 msgid "No simple reformulation here."
 msgstr "Aucune reformulation simple ici."
@@ -4164,6 +4172,10 @@ msgstr "Freins et irritants"
 msgid "of {0} validated"
 msgstr "sur {0} validés"
 
+#: src/features/quality/quality-tab.tsx
+msgid "of {total} validated"
+msgstr "sur {total} validés"
+
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "of {withTranscript} with a transcript"
@@ -4297,6 +4309,7 @@ msgstr "Projet ouvert :"
 msgid "Opened the study"
 msgstr "Étude ouverte :"
 
+#: src/features/quality/remark-card.tsx
 #: src/features/quality/remarks-list.tsx
 msgid "Opinion"
 msgstr "Avis"
@@ -4304,6 +4317,10 @@ msgstr "Avis"
 #: src/features/quality/labels.ts
 msgid "Opinion or suggestion"
 msgstr "Opinion ou suggestion"
+
+#: src/features/quality/review-dialog.tsx
+msgid "Opinions already given stay as they are."
+msgstr "Les avis déjà donnés restent tels quels."
 
 #: src/features/preparation/drive-review.tsx
 msgid "Order changed in Drive"
@@ -4399,6 +4416,12 @@ msgstr "Pages du lexique"
 #: src/features/synthesis/insight-panel.tsx
 msgid "Panel"
 msgstr "Panel"
+
+#. placeholder {0}: i.reading.chunksDone
+#. placeholder {1}: i.reading.chunks
+#: src/features/quality/quality-tab.tsx
+msgid "Part {0} of {1}"
+msgstr "Partie {0} sur {1}"
 
 #: src/features/preparation/labels.ts
 msgid "partial"
@@ -4672,6 +4695,10 @@ msgstr "Q{n}"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Quality for this type of study is coming in a later version."
 msgstr "La qualité pour ce type d'étude arrivera dans une prochaine version."
+
+#: src/features/quality/quality-tab.tsx
+msgid "Quality in numbers"
+msgstr "La qualité en chiffres"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Question"
@@ -4985,6 +5012,11 @@ msgctxt "interview quality"
 msgid "Review"
 msgstr "Relire"
 
+#. placeholder {0}: interview.title
+#: src/features/quality/review-dialog.tsx
+msgid "Review “{0}”?"
+msgstr "Relire « {0} » ?"
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Review {name}"
 msgstr "Revoir {name}"
@@ -5027,6 +5059,12 @@ msgstr "Relu"
 #: src/features/quality/labels.ts
 msgid "Reviewing"
 msgstr "En relecture"
+
+#. placeholder {0}: run.done + run.failed
+#. placeholder {1}: run.total
+#: src/features/quality/quality-tab.tsx
+msgid "Reviewing: {0} of {1} interviews"
+msgstr "Relecture : {0} entretiens sur {1}"
 
 #. placeholder {0}: run.chunksDone
 #. placeholder {1}: run.chunks
@@ -6468,6 +6506,7 @@ msgstr "Indisponible dans le Drive"
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/analysis.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/quality/quality-tab.tsx
 #: src/features/quality/review-dialog.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/recommendation-run-dialog.tsx
@@ -6634,6 +6673,10 @@ msgstr "En attente d'analyse"
 #: src/features/analysis/analysis-tab.tsx
 msgid "Waiting for the analysis"
 msgstr "En attente de l'analyse"
+
+#: src/features/quality/quality-tab.tsx
+msgid "Waiting for the review"
+msgstr "En attente de la revue"
 
 #: src/features/preparation/labels.ts
 msgid "Warm-up questions"

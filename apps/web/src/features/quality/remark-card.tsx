@@ -6,6 +6,7 @@ import {
 } from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
+import { CheckIcon, XIcon } from '@goodresearch/ui/components/icons'
 import { useLingui } from '@lingui/react/macro'
 import { Link } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -77,13 +78,13 @@ export function RemarkCard({
         <button
           type="button"
           aria-pressed={selected}
-          className="cursor-pointer text-left font-medium text-base hover:underline"
+          className="cursor-pointer text-left font-medium text-sm"
           onClick={onSelect}
         >
           « {remark.text} »
         </button>
       ) : (
-        <p className="font-medium text-base">« {remark.text} »</p>
+        <p className="font-medium text-sm">« {remark.text} »</p>
       )}
       {remark.after ? (
         <p className="text-muted-foreground text-sm">
@@ -98,7 +99,7 @@ export function RemarkCard({
       {remark.recommendation ? (
         <p className="text-sm">{t`Rather: « ${remark.recommendation} »`}</p>
       ) : null}
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1">
         {remark.origin === 'person' ? (
           <Button
             size="xs"
@@ -118,7 +119,8 @@ export function RemarkCard({
             {t`Withdraw`}
           </Button>
         ) : (
-          <>
+          <fieldset className="flex gap-1">
+            <legend className="sr-only">{t`Opinion`}</legend>
             <Button
               size="xs"
               variant={remark.stance === 'agree' ? 'default' : 'outline'}
@@ -126,6 +128,7 @@ export function RemarkCard({
               disabled={pending}
               onClick={() => say('agree')}
             >
+              <CheckIcon aria-hidden />
               {t`Agree`}
             </Button>
             <Button
@@ -135,9 +138,10 @@ export function RemarkCard({
               disabled={pending}
               onClick={() => say('disagree')}
             >
+              <XIcon aria-hidden />
               {t`Disagree`}
             </Button>
-          </>
+          </fieldset>
         )}
         {onSelect ? null : (
           <Link

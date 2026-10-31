@@ -127,6 +127,7 @@ export function FindFactsDialog({
                 .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
             }}
           >
+            <SparklesIcon aria-hidden />
             {e?.consentNeeded ? t`Agree and find the facts` : t`Find the facts`}
           </AlertDialogAction>
         </AlertDialogFooter>

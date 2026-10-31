@@ -456,6 +456,7 @@ export function CleanDialog({
                 .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
             }}
           >
+            {needsAi ? <SparklesIcon aria-hidden /> : null}
             {needsAi && e?.consentNeeded ? t`Agree and clean` : t`Clean`}
           </AlertDialogAction>
         </AlertDialogFooter>

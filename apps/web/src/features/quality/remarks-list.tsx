@@ -4,6 +4,7 @@ import {
   useListQualityRemarks,
   useListSimpleReformulations,
 } from '@goodresearch/api-client'
+import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
 import { Segmented, SegmentedItem } from '@goodresearch/ui/components/segmented'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
@@ -137,10 +138,14 @@ export function ReformulationList({
           id={`reformulation-${r.id}`}
           className={`grid gap-1.5 rounded-md border p-3 ${selected === r.id ? 'border-primary ring-1 ring-primary' : ''}`}
         >
-          <p className="text-muted-foreground text-xs">
-            {personLabel(r.person)}
-            {showInterview ? ` · ${r.interviewTitle}` : ''}
-          </p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="ghost">{personLabel(r.person)}</Badge>
+            {showInterview ? (
+              <span className="truncate text-muted-foreground text-xs" title={r.interviewTitle}>
+                {r.interviewTitle}
+              </span>
+            ) : null}
+          </div>
           {r.before ? (
             <p className="text-muted-foreground text-sm">{r.before.slice(0, 220)}</p>
           ) : null}

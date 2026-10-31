@@ -58,12 +58,12 @@ test.describe('spec 016 — Interview quality', () => {
 
     // The row's button reviews that interview alone, and does not open it.
     await row.getByRole('button', { name: /^Review:/ }).click()
-    const dialog = page.getByRole('alertdialog', { name: 'Review the interviews?' })
+    const dialog = page.getByRole('alertdialog', { name: /^Review “.*Sam Example/ })
     await expect(dialog).toContainText('1 interviews')
     await expect(dialog).toContainText('the text of each transcript is sent')
     await expectAccessible(page)
     await dialog.getByRole('button', { name: 'Agree and review' }).click()
-    await expect(main.getByText('1 of 1 interviews reviewed.')).toBeVisible({ timeout: 60_000 })
+    await expect(row.getByRole('button', { name: 'Reviewed' })).toBeVisible({ timeout: 60_000 })
 
     // Its reference value is reachable by keyboard.
     await main.getByRole('button', { name: "How the interviewer's talk share is counted" }).focus()
@@ -76,14 +76,13 @@ test.describe('spec 016 — Interview quality', () => {
     await expectAccessible(page)
     await main.getByRole('button', { name: 'By interview' }).click()
 
-    // A real link opens the interview: its transcript, with what was flagged marked in text.
-    await main.getByRole('link', { name: /Sam Example/ }).click()
+    // The state button opens the interview: its transcript, with what was flagged marked in text.
+    await main
+      .getByRole('row', { name: /Sam Example/ })
+      .getByRole('button', { name: 'Reviewed' })
+      .click()
     await expect(main.getByRole('region', { name: 'Transcript' })).toBeVisible()
-    await expect(
-      main
-        .getByRole('button', { name: 'Back to the interviews' })
-        .or(main.getByRole('link', { name: /Back to the interviews/ })),
-    ).toBeVisible()
+    await expect(page.getByRole('link', { name: /Back to the interviews/ }).first()).toBeVisible()
     await expectAccessible(page)
 
     const cards = main.getByRole('article')

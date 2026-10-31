@@ -152,6 +152,20 @@ apps/web/src/
 - Apps never hard-code colours, radii or fonts: tokens and components only. Links inside design-system components come from the app through `render` props.
 - Stories run in light and dark (`ui` project, two browser instances); plain functions are tested in `ui:unit`.
 
+### Interface patterns
+
+The same thing looks the same in every phase; `features/analysis` is the reference.
+
+- **AI**: a button that starts an AI call, its confirmation included, shows `SparklesIcon`; a button that does not, never.
+- **Work in progress**: `LoaderCircleIcon` spinning with its text, in a `role="status"`; waiting in a run's queue: `HourglassIcon` with its text. A row's or a page's actions stay in view, `disabled`, rather than vanishing. `Stop` shows `SquareIcon`.
+- **States**: a `Badge`, or a button with the same words when it opens what it names, never plain text; why it is so goes under it in small muted text. A state inside a sentence of metadata stays text.
+- **Naming**: a repeat action is the same words plus "again" ("Find facts again"; in French "… à nouveau"); a confirmation asks the same words with "?", naming the interview when it is one ("Find the facts of “…”?"); consent adds "Agree and …". Terms come from the glossary of the context map.
+- **Run dialogs**: title, what it does and what stays, the estimate, the consent, "Also … again" for a run over several interviews, Cancel then the action.
+- **Numbers**: `StatTile`s above the table, the cost last ("Last: …" as its detail). In a row, a dash when nothing has run, "unknown" when a price is unknown.
+- **Decisions**: two `xs` buttons side by side with `CheckIcon` and `XIcon`, the choice made `default`, the other `outline`; they never move or vanish.
+- **Interview views**: the page header holds the title and the way back; the panel beside the transcript holds the count, the cost, the state only when it asks for something, and the run button.
+- **Rows**: the whole row opens the item when it can be opened, and its state button is the keyboard way; the action cell does not open it.
+
 ## 4. Testing
 
 | Level | Tool | Scope | Location |

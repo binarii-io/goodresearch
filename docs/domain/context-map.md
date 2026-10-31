@@ -260,7 +260,7 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Verbatim | Verbatim | An exact excerpt of what an interviewee says (spec 012) |
 | Set aside (a verbatim) | Écarter | |
 | Text analysed: with the corrections / validated clean version only | Texte analysé : avec les corrections / version propre validée seulement | Study setting (spec 012) |
-| Find facts | Trouver les faits | |
+| Find facts | Trouver les faits | Again: « … à nouveau », as every repeat action |
 | Quote | Citation | |
 | Polarity (positive / negative / neutral) | Polarité (positive / négative / neutre) | |
 | Insight | Insight | Common term in French UX research |

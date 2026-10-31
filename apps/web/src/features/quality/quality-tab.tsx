@@ -6,9 +6,16 @@ import {
 } from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
-import { LoaderCircleIcon, SparklesIcon } from '@goodresearch/ui/components/icons'
+import {
+  FileTextIcon,
+  HourglassIcon,
+  LoaderCircleIcon,
+  SparklesIcon,
+  SquareIcon,
+} from '@goodresearch/ui/components/icons'
 import { Segmented, SegmentedItem } from '@goodresearch/ui/components/segmented'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
+import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
 import {
   Table,
   TableBody,
@@ -25,14 +32,9 @@ import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
 import { Figures } from './figures.tsx'
 import { InterviewView } from './interview-view.tsx'
-import {
-  EVALUATION_REASONS,
-  EVALUATION_STATES,
-  QUALITY_FAILURES,
-  REVIEW_ACTIONS,
-} from './labels.ts'
+import { EVALUATION_REASONS, EVALUATION_STATES, QUALITY_FAILURES } from './labels.ts'
 import { RemarksList } from './remarks-list.tsx'
-import { ReviewDialog } from './review-dialog.tsx'
+import { ReviewDialog, ReviewOneButton } from './review-dialog.tsx'
 import { usePersonLabel } from './use-person-label.ts'
 import { useRefreshQuality } from './use-refresh.ts'
 
@@ -100,13 +102,27 @@ function Overview({ studyId }: { studyId: string }) {
   return (
     <div className="grid gap-6">
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm" aria-live="polite">
-          {reviewed === 0
-            ? t`No interview reviewed yet: the figures come after a review.`
-            : t`${reviewed} of ${total} interviews reviewed.`}
-        </p>
+        {reviewed === 0 ? (
+          <p className="text-sm">{t`No interview reviewed yet: the figures come after a review.`}</p>
+        ) : null}
         <Review studyId={studyId} data={data} />
       </div>
+      <StatTiles aria-label={t`Quality in numbers`}>
+        <StatTile
+          icon={<FileTextIcon aria-hidden />}
+          label={t`Interviews reviewed`}
+          value={reviewed}
+          detail={t`of ${total} validated`}
+        />
+        <StatTile
+          icon={<SparklesIcon aria-hidden />}
+          label={t`Cost of the reviews`}
+          value={data.cost !== null ? money(data.cost) : reviewed > 0 ? t`unknown` : DASH}
+          detail={
+            data.lastRunCost === null ? t`No review yet` : t`Last: ${money(data.lastRunCost)}`
+          }
+        />
+      </StatTiles>
       {reviewed > 0 ? (
         <Segmented aria-label={t`View`} className="w-fit">
           <SegmentedItem pressed={view === 'overall'} onClick={() => choose('overall')}>
@@ -122,12 +138,6 @@ function Overview({ studyId }: { studyId: string }) {
       ) : null}
       {row ? <p className="font-medium text-sm">{personLabel(row.name)}</p> : null}
       {shown ? <Figures figures={shown} /> : null}
-      <p className="text-muted-foreground text-sm">
-        {t`Cost of the reviews: ${data.cost === null ? DASH : money(data.cost)}`}
-        {data.lastRunCost !== null && data.lastRunCost !== data.cost
-          ? ` · ${t`Last: ${money(data.lastRunCost)}`}`
-          : null}
-      </p>
       {data.run?.finished && data.run.leftOut > 0 ? (
         <p className="text-muted-foreground text-sm">
           {t`The app's checks left out ${data.run.leftOut} remarks (not in the text, or a reformulation that adds nothing the interviewee had not said).`}
@@ -153,9 +163,15 @@ function Review({ studyId, data }: { studyId: string; data: QualityOverview }) {
   if (run && !run.finished)
     return (
       <div className="ml-auto flex items-center gap-2" role="status">
-        <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
+        {run.done + run.failed === 0 && run.chunksDone === 0 ? (
+          <HourglassIcon aria-hidden className="size-4" />
+        ) : (
+          <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
+        )}
         <span className="text-sm">
-          {t`Reviewing: part ${run.chunksDone} of ${run.chunks}, ${run.done + run.failed} of ${run.total} interviews`}
+          {run.chunks > 0
+            ? t`Reviewing: part ${run.chunksDone} of ${run.chunks}, ${run.done + run.failed} of ${run.total} interviews`
+            : t`Reviewing: ${run.done + run.failed} of ${run.total} interviews`}
         </span>
         <Button
           variant="outline"
@@ -168,13 +184,14 @@ function Review({ studyId, data }: { studyId: string; data: QualityOverview }) {
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
         >
+          <SquareIcon aria-hidden />
           {t`Stop`}
         </Button>
       </div>
     )
   return (
     <>
-      <Button size="sm" className="ml-auto" onClick={() => setOpen(true)}>
+      <Button className="ml-auto" onClick={() => setOpen(true)}>
         <SparklesIcon aria-hidden />
         {t`Review the interviews`}
       </Button>
@@ -240,8 +257,10 @@ function People({
 function Interviews({ studyId, data }: { studyId: string; data: QualityOverview }) {
   const { t, i18n } = useLingui()
   const money = useMoney()
+  const navigate = useNavigate()
   const percent = new Intl.NumberFormat(i18n.locale, { style: 'percent' })
-  const [reviewing, setReviewing] = useState<string | null>(null)
+  const day = new Intl.DateTimeFormat(i18n.locale, { dateStyle: 'medium' })
+  const [reviewing, setReviewing] = useState<{ sessionId: string; title: string } | null>(null)
   const live = running(data)
   const share = (i: QualityInterviewRow) => {
     if (!i.figures) return DASH
@@ -260,7 +279,7 @@ function Interviews({ studyId, data }: { studyId: string; data: QualityOverview 
             <TableHead>{t`Leading questions`}</TableHead>
             <TableHead>{t`Cost`}</TableHead>
             <TableHead>
-              <span className="sr-only">{t`Action`}</span>
+              <span className="sr-only">{t`Actions`}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -268,26 +287,70 @@ function Interviews({ studyId, data }: { studyId: string; data: QualityOverview 
           {data.interviews.map((i) => {
             const reason = EVALUATION_REASONS[i.state]
             const { leading, questions } = i.figures ?? {}
+            // The whole row opens the interview when it has a text (the state button is the keyboard way).
+            const openable = i.state !== 'no-transcript' && i.state !== 'not-clean'
+            const open = () =>
+              void navigate({
+                to: '.',
+                search: (previous: object) => ({
+                  ...previous,
+                  interview: i.sessionId,
+                  turn: undefined,
+                }),
+              })
             return (
-              <TableRow key={i.sessionId}>
-                <TableCell className="font-medium">
-                  <Link
-                    to="."
-                    search={(previous) => ({
-                      ...previous,
-                      interview: i.sessionId,
-                      turn: undefined,
-                    })}
-                    className="underline"
-                  >
-                    {i.title}
-                  </Link>
+              <TableRow
+                key={i.sessionId}
+                className={openable ? 'cursor-pointer' : undefined}
+                onClick={openable ? open : undefined}
+              >
+                <TableCell>
+                  <span className="grid min-w-0 max-w-80">
+                    {/* Long names are cut with an ellipsis; the full name shows on hover. */}
+                    <span className="truncate font-medium" title={i.title}>
+                      {i.title}
+                    </span>
+                    {i.interviewDate ? (
+                      <span className="text-muted-foreground text-xs">
+                        {day.format(new Date(`${i.interviewDate}T12:00:00Z`))}
+                      </span>
+                    ) : null}
+                  </span>
                 </TableCell>
                 <TableCell className="whitespace-normal">
                   <span className="grid gap-0.5">
-                    <Badge variant="ghost" className="w-fit">
-                      {i18n._(EVALUATION_STATES[i.state])}
-                    </Badge>
+                    {i.reading?.state === 'reading' ? (
+                      <span className="flex items-center gap-1.5 text-sm" role="status">
+                        <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
+                        {i.reading.chunks > 0
+                          ? t`Part ${i.reading.chunksDone} of ${i.reading.chunks}`
+                          : i18n._(EVALUATION_STATES.reviewing)}
+                      </span>
+                    ) : i.reading?.state === 'waiting' ? (
+                      <span
+                        className="flex items-center gap-1 text-muted-foreground text-xs"
+                        role="status"
+                      >
+                        <HourglassIcon aria-hidden className="size-3" />
+                        {t`Waiting for the review`}
+                      </span>
+                    ) : openable ? (
+                      <Button
+                        variant={i.state === 'reviewed' ? 'ghost' : 'outline'}
+                        size="xs"
+                        className="w-fit"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          open()
+                        }}
+                      >
+                        {i18n._(EVALUATION_STATES[i.state])}
+                      </Button>
+                    ) : (
+                      <Badge variant="ghost" className="w-fit">
+                        {i18n._(EVALUATION_STATES[i.state])}
+                      </Badge>
+                    )}
                     {i.failure ? (
                       <span className="text-muted-foreground text-xs">
                         {i18n._(QUALITY_FAILURES[i.failure])}
@@ -303,30 +366,28 @@ function Interviews({ studyId, data }: { studyId: string; data: QualityOverview 
                     ? t`${leading.questions.agreed + leading.questions.noOpinion} of ${questions}`
                     : DASH}
                 </TableCell>
-                <TableCell>{i.cost === null ? DASH : money(i.cost)}</TableCell>
-                <TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {i.cost === null ? DASH : money(i.cost)}
+                </TableCell>
+                {/* Its button and dialog are not part of the row's click (portals bubble in React). */}
+                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   {i.state === 'speakers-not-identified' ? (
-                    <Link
-                      to="."
-                      search={(previous) => ({
-                        ...previous,
-                        interview: i.sessionId,
-                        turn: undefined,
-                      })}
-                      className="text-sm underline"
+                    <Button
+                      variant="ghost"
+                      size="xs"
                       aria-label={t`Say who speaks: ${i.title}`}
+                      onClick={open}
                     >
                       {t`Say who speaks`}
-                    </Link>
-                  ) : i.action && !live ? (
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      aria-label={`${i18n._(REVIEW_ACTIONS[i.action])}: ${i.title}`}
-                      onClick={() => setReviewing(i.sessionId)}
-                    >
-                      {i18n._(REVIEW_ACTIONS[i.action])}
                     </Button>
+                  ) : openable ? (
+                    <ReviewOneButton
+                      studyId={studyId}
+                      interview={{ sessionId: i.sessionId, title: i.title }}
+                      action={i.action ?? (i.figures ? 'review-again' : 'review')}
+                      disabled={live}
+                      onOpen={() => setReviewing({ sessionId: i.sessionId, title: i.title })}
+                    />
                   ) : null}
                 </TableCell>
               </TableRow>
@@ -336,7 +397,7 @@ function Interviews({ studyId, data }: { studyId: string; data: QualityOverview 
       </Table>
       <ReviewDialog
         studyId={studyId}
-        sessionId={reviewing ?? undefined}
+        interview={reviewing ?? undefined}
         open={reviewing !== null}
         onOpenChange={(open) => (open ? null : setReviewing(null))}
       />

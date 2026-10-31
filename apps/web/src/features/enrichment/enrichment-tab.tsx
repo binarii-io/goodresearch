@@ -28,6 +28,7 @@ import {
   FileTextIcon,
   HourglassIcon,
   LoaderCircleIcon,
+  SparklesIcon,
   SpellCheckIcon,
   SquareIcon,
   TriangleAlertIcon,
@@ -283,7 +284,7 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
   return (
     <>
       <Button className="ml-auto" onClick={() => setOpen(true)}>
-        <SpellCheckIcon aria-hidden />
+        <SparklesIcon aria-hidden />
         {t`Find terms`}
       </Button>
       <FindTermsDialog studyId={studyId} open={open} onOpenChange={setOpen} />
@@ -470,6 +471,7 @@ function FindTermsDialog({
                 .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
             }}
           >
+            <SparklesIcon aria-hidden />
             {e?.consentNeeded ? t`Agree and find terms` : t`Find terms`}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -506,7 +508,7 @@ function FindTermsOneButton({
         }
         onClick={() => (onOpen ? onOpen() : setOpen(true))}
       >
-        <SpellCheckIcon aria-hidden />
+        <SparklesIcon aria-hidden />
         {read ? t`Find terms again` : t`Find terms`}
       </Button>
       {onOpen ? null : (
@@ -585,7 +587,7 @@ function Interviews({
               </TableCell>
               <TableCell>
                 {i.reading === 'waiting' || i.reading === 'reading' ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm">
+                  <span className="inline-flex items-center gap-1.5 text-sm" role="status">
                     {i.reading === 'waiting' ? (
                       <HourglassIcon aria-hidden className="size-4" />
                     ) : (
@@ -594,7 +596,7 @@ function Interviews({
                     {i18n._(READING_STATES[i.reading])}
                   </span>
                 ) : i.reading === 'done' && step ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm">
+                  <span className="inline-flex items-center gap-1.5 text-sm" role="status">
                     <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
                     {step}
                   </span>

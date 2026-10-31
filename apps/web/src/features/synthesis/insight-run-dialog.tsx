@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from '@goodresearch/ui/components/alert-dialog'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
+import { SparklesIcon } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
 import { RadioGroup, RadioGroupItem } from '@goodresearch/ui/components/radio-group'
 import { useLingui } from '@lingui/react/macro'
@@ -169,6 +170,7 @@ export function InsightRunDialog({
                 .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
             }}
           >
+            <SparklesIcon aria-hidden />
             {e?.consentNeeded ? t`Agree and find insights` : t`Find insights`}
           </AlertDialogAction>
         </AlertDialogFooter>

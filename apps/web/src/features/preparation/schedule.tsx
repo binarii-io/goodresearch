@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@goodresearch/ui/components/alert-dialog'
+import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
 import { SectionTitle } from '@goodresearch/ui/components/count'
 import {
@@ -30,7 +31,6 @@ import {
 import { DownloadIcon, PencilIcon, PlusIcon, Trash2Icon } from '@goodresearch/ui/components/icons'
 import { Input } from '@goodresearch/ui/components/input'
 import { Label } from '@goodresearch/ui/components/label'
-import { Pill } from '@goodresearch/ui/components/page-header'
 import {
   Select,
   SelectContent,
@@ -326,9 +326,9 @@ export function InterviewSchedule({ studyId, studyName }: { studyId: string; stu
         <ul aria-label={t`Interviews per status`} className="flex flex-wrap gap-2">
           {counts.map(([status, n]) => (
             <li key={status}>
-              <Pill>
+              <Badge variant="ghost">
                 {i18n._(PLANNED_STATUSES[status])} · {n}
-              </Pill>
+              </Badge>
             </li>
           ))}
         </ul>
@@ -359,7 +359,9 @@ export function InterviewSchedule({ studyId, studyName }: { studyId: string; stu
                   <TableCell className="whitespace-nowrap">
                     {r.scheduledAt ? date.format(new Date(r.scheduledAt)) : '—'}
                   </TableCell>
-                  <TableCell>{i18n._(PLANNED_STATUSES[r.status])}</TableCell>
+                  <TableCell>
+                    <Badge variant="ghost">{i18n._(PLANNED_STATUSES[r.status])}</Badge>
+                  </TableCell>
                   <TableCell className="whitespace-nowrap">
                     {found.has(r.id) ? (
                       <Link
