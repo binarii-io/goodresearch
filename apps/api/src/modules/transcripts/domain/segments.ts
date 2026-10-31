@@ -21,10 +21,14 @@ const LABEL = /^\s*([^\s:\d][^:\n]{0,59}?)\s*:\s+(\S.*)$/
 /**
  * A meeting tool's label with its office and no colon, at the start or inside a line, when a
  * document holds turns glued together: "…any questions? Ann SMITH -OFFICE PARIS- Well, no."
- * Two to four capitalised words and an office in capitals, so that ordinary dashes stay text.
+ * Two to four capitalised words ending in a surname in capitals, and an office in capitals, so
+ * that ordinary dashes stay text. A capitalised word just before the name cannot be told from it.
  */
-const INLINE_LABEL =
-  /\p{Lu}[\p{L}'’-]*(?: +\p{Lu}[\p{L}'’-]*){1,3} +-\p{Lu}[\p{Lu}\d' ]{1,40}-(?=\s|$)/gu
+const PARTICLE = String.raw`(?:(?:de|du|des|la|le|van|von) +)?`
+const INLINE_LABEL = new RegExp(
+  String.raw`(\p{Lu}[\p{L}'’-]*(?: +${PARTICLE}\p{Lu}[\p{L}'’-]*){0,2} +${PARTICLE}\p{Lu}[\p{Lu}'’-]+ +-\p{Lu}[\p{Lu}\d'’ -]{1,40}-)\s*:?(?=\s|$)`,
+  'gu',
+)
 
 const seconds = (m: RegExpExecArray, at: number): number =>
   Number(m[at] ?? 0) * 3600 + Number(m[at + 1]) * 60 + Number(m[at + 2])
@@ -66,8 +70,13 @@ export const parseSegments = (text: string): ParsedSegment[] => {
     found.forEach((m, i) => {
       const end = found[i + 1]?.index ?? line.length
       const words = line.slice(m.index + m[0].length, end).trim()
-      open(cleanName(m[0]), i === 0 && !before ? start : null, words)
+      open(cleanName(m[1] ?? ''), i === 0 && !before ? start : null, words)
     })
+  }
+  /** A turn with its words, which may hold other turns; none when they start with another's. */
+  const opened = (speaker: string, start: number | null, words: string) => {
+    if (words.search(INLINE_LABEL) !== 0) open(speaker, start, '')
+    write(words, null)
   }
   for (const raw of text.split(/\r?\n/)) {
     if (raw.trim() === '') continue
@@ -78,7 +87,7 @@ export const parseSegments = (text: string): ParsedSegment[] => {
     }
     const voice = VOICE.exec(raw)
     if (voice?.[1] && isName(cleanName(voice[1]))) {
-      open(cleanName(voice[1]), null, (voice[2] ?? '').trim())
+      opened(cleanName(voice[1]), null, (voice[2] ?? '').trim())
       continue
     }
     const timed = TIMED.exec(raw)
@@ -95,8 +104,7 @@ export const parseSegments = (text: string): ParsedSegment[] => {
     const start = lead ? seconds(lead, 1) : null
     const label = line.trim().search(INLINE_LABEL) === 0 ? null : LABEL.exec(line)
     if (label?.[1] && isName(cleanName(label[1]))) {
-      open(cleanName(label[1]), start, '')
-      write((label[2] ?? '').trim(), null)
+      opened(cleanName(label[1]), start, (label[2] ?? '').trim())
       continue
     }
     write(line, start)

@@ -36,10 +36,34 @@ describe('parseSegments', () => {
 
   it('does not take the note ending a transcript for a speaker', () => {
     expect(
+      parseSegments('Lee: Hi\nTranscription  terminee\u0301 apre\u0300s 0:10\nNote')[1]?.speaker,
+    ).toBeNull()
+    expect(
       parseSegments('Lee 0:03\nHello\nTranscription terminée après 00:42:50\nGenerated.'),
     ).toEqual([
       { speaker: 'Lee', start: 3, text: 'Hello' },
       { speaker: null, start: 2570, text: 'Generated.' },
+    ])
+  })
+
+  it('reads such labels in voice tags and after a colon, without an empty turn', () => {
+    const voice = [{ speaker: 'Lee', start: null, text: 'Well?' }]
+    const parsed = parseSegments('<v Lee>Well? Sam DOE -OFFICE NORTH- Yes.</v>')
+    expect(parsed).toEqual([
+      ...voice,
+      { speaker: 'Sam DOE -OFFICE NORTH-', start: null, text: 'Yes.' },
+    ])
+    expect(hasUnsplitTurns(parsed)).toBe(false)
+    expect(parseSegments('Lee: Sam DOE -OFFICE- Hello')).toEqual([
+      { speaker: 'Sam DOE -OFFICE-', start: null, text: 'Hello' },
+    ])
+  })
+
+  it('reads the colon, particles and hyphens of such a label', () => {
+    expect(parseSegments('Sam DOE -OFFICE NORTH- : Bonjour')[0]?.text).toBe('Bonjour')
+    expect(parseSegments('Lee: Hello? Jean de LA FONTAINE -SAINT-DENIS- Yes')).toEqual([
+      { speaker: 'Lee', start: null, text: 'Hello?' },
+      { speaker: 'Jean de LA FONTAINE -SAINT-DENIS-', start: null, text: 'Yes' },
     ])
   })
 
@@ -48,6 +72,7 @@ describe('parseSegments', () => {
       'Lee: The North Team -as we call it- agreed.',
       'Lee: The Data Team -- SALES -- agreed.',
       'Lee: Sales -NORTH- agreed.',
+      'Lee: The Data Team -SALES- agreed.',
     ])
       expect(parseSegments(text)).toHaveLength(1)
   })

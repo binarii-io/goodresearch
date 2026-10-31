@@ -19,7 +19,9 @@ export const personName = (label: string): string =>
 
 /** What a meeting tool writes at the end of a transcript, followed by a duration: not a speaker. */
 export const isTranscriptEnd = (label: string): boolean =>
-  /^(transcription terminée après|transcription ended after)$/i.test(label.trim())
+  /^(transcription terminee apres|transcription ended after)$/.test(
+    fold(label).trim().replace(/\s+/g, ' '),
+  )
 
 export type Word = { readonly text: string; readonly start: number; readonly end: number }
 
