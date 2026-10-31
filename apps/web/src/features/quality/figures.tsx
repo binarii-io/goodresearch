@@ -66,6 +66,14 @@ export function Figures({
   const percent = new Intl.NumberFormat(i18n.locale, { style: 'percent' })
   const share = (n: number) => (total > 0 ? percent.format(n / total) : '–')
   const round = (n: number) => Math.round(n)
+  const fine = new Intl.NumberFormat(i18n.locale, { style: 'percent', maximumFractionDigits: 1 })
+  const rate = (n: number, of: number) => (of > 0 ? fine.format(n / of) : '–')
+  const ratio = (n: number, of: number, b: Breakdown) => (
+    <>
+      <span className="block">{t`${n} of ${of}`}</span>
+      <span className="block">{breakdown(b)}</span>
+    </>
+  )
   const allLeading = add(add(leading.questions, leading.reformulations), leading.opinions)
   const talkHint = t`How the interviewer's talk share is counted`
   const leadingHint = t`How leading sentences are counted`
@@ -91,8 +99,8 @@ export function Figures({
         />
         <StatTile
           label={t`Leading questions`}
-          value={t`${counted(leading.questions)} of ${figures.questions}`}
-          detail={breakdown(leading.questions)}
+          value={rate(counted(leading.questions), figures.questions)}
+          detail={ratio(counted(leading.questions), figures.questions, leading.questions)}
         />
         <StatTile
           label={
@@ -103,13 +111,13 @@ export function Figures({
               </Hint>
             </>
           }
-          value={t`${counted(allLeading)} of ${figures.sentences}`}
-          detail={breakdown(allLeading)}
+          value={rate(counted(allLeading), figures.sentences)}
+          detail={ratio(counted(allLeading), figures.sentences, allLeading)}
         />
         <StatTile
           label={t`Reformulations with opinion`}
-          value={counted(leading.reformulations)}
-          detail={breakdown(leading.reformulations)}
+          value={rate(counted(leading.reformulations), figures.sentences)}
+          detail={ratio(counted(leading.reformulations), figures.sentences, leading.reformulations)}
         />
         <StatTile
           label={
@@ -120,8 +128,13 @@ export function Figures({
               </Hint>
             </>
           }
-          value={figures.simpleReformulations}
-          detail={t`Not counted as leading`}
+          value={rate(figures.simpleReformulations, figures.sentences)}
+          detail={
+            <>
+              <span className="block">{t`${figures.simpleReformulations} of ${figures.sentences}`}</span>
+              <span className="block">{t`Not counted as leading`}</span>
+            </>
+          }
         />
         {after}
       </StatTiles>

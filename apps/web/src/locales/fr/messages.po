@@ -280,9 +280,7 @@ msgstr "{0} participants de plus ont des faits encore à valider."
 msgid "{0} more transcripts are in the folder: a study holds at most 500 interviews."
 msgstr "{0} autres transcriptions sont dans le dossier : une étude contient au plus 500 entretiens."
 
-#. placeholder {0}: counted(allLeading)
-#. placeholder {0}: counted(leading.questions)
-#. placeholder {1}: figures.questions
+#. placeholder {0}: figures.simpleReformulations
 #. placeholder {1}: figures.sentences
 #: src/features/quality/figures.tsx
 msgid "{0} of {1}"
@@ -416,6 +414,10 @@ msgstr "{linked} avec transcription · {0} sans"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{missing} missing in Drive"
 msgstr "{missing} absentes de Drive"
+
+#: src/features/quality/figures.tsx
+msgid "{n} of {of}"
+msgstr "{n} sur {of}"
 
 #: src/features/ai/provider-forms.tsx
 msgid "{name} API key"
