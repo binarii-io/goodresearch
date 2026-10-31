@@ -1,5 +1,6 @@
-import { fold, words } from '@goodresearch/shared'
-import type { Role } from './verbatims.ts'
+import { fold, words } from './text.ts'
+
+export type Role = 'interviewee' | 'interviewer' | 'unknown'
 
 /** A person of the interview's roster (ingestion), with their study code (`P01`, `I01`). */
 export type Person = {
@@ -90,4 +91,47 @@ export const speakerRole = (
   if (label && found.length === 0 && !nearInterviewer && all.length === 1 && all[0])
     return { role: 'interviewee', participant: all[0].code }
   return { role: 'unknown', participant: null }
+}
+
+/**
+ * Spec 016 research R5: which interviewer speaks a turn already known as an interviewer's. A label
+ * matching one is theirs; the only interviewer of the roster takes the others; with several, it is
+ * unknown (a person's attribution only says "an interviewer").
+ */
+export const interviewerCode = (label: string | null, people: readonly Person[]): string | null => {
+  const interviewers = people.filter((p) => p.role === 'interviewer')
+  const found = label ? interviewers.filter((p) => matches(label, p)) : []
+  const only = found.length === 1 ? found : interviewers.length === 1 ? interviewers : []
+  return only[0]?.code ?? null
+}
+
+/**
+ * Spec 016: who speaks, for the figures on how an interview was conducted. `speakerRole` looks at one
+ * label at a time: with one interviewee it gives them any label it does not know, or leaves unknown
+ * one close to an interviewer's name, so an interviewer spelt otherwise made a false 0%. Looking at
+ * all the labels: the only one left goes to the only interviewer of the roster when no label is
+ * theirs; a guess holds only when no one else speaks; the others wait for a person.
+ */
+export const conductRoles = (
+  labels: readonly (string | null)[],
+  people: readonly Person[],
+  attributions: ReadonlyMap<string, string>,
+): Map<string | null, ReturnType<typeof speakerRole>> => {
+  const roles = new Map<string | null, ReturnType<typeof speakerRole>>()
+  const guessed: { label: string; role: ReturnType<typeof speakerRole> }[] = []
+  for (const label of new Set(labels)) {
+    const role = speakerRole(label, people, attributions)
+    const known = label === null || attributions.has(label) || people.some((p) => matches(label, p))
+    if (role.role !== 'interviewer' && !known) guessed.push({ label: label ?? '', role })
+    else roles.set(label, role)
+  }
+  const has = (wanted: Role) => [...roles.values()].some((r) => r.role === wanted)
+  const interviewers = people.filter((p) => p.role === 'interviewer')
+  for (const { label, role } of guessed) {
+    if (guessed.length === 1 && !has('interviewee')) roles.set(label, role)
+    else if (guessed.length === 1 && !has('interviewer') && interviewers.length === 1)
+      roles.set(label, { role: 'interviewer', participant: null })
+    else roles.set(label, { role: 'unknown', participant: null })
+  }
+  return roles
 }

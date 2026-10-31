@@ -52,7 +52,7 @@ test.describe('spec 012 — Verbatims and facts', () => {
     await expect(validated).toBeChecked()
 
     // US1: find the facts, after their own consent (FR-014).
-    await page.getByRole('tab', { name: '5 · Analysis' }).click()
+    await page.getByRole('tab', { name: '6 · Analysis' }).click()
     await main.getByRole('button', { name: 'Find facts' }).first().click()
     const dialog = page.getByRole('alertdialog', { name: 'Find the facts?' })
     await expect(dialog).toContainText('the text of each transcript is sent')

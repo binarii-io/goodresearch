@@ -11,6 +11,7 @@ export * from './preparation/preparation.ts';
 export * from './projects/projects.ts';
 export * from './public/public.ts';
 export * from './publishing/publishing.ts';
+export * from './quality/quality.ts';
 export * from './recommendations/recommendations.ts';
 export * from './sources/sources.ts';
 export * from './studies/studies.ts';

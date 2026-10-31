@@ -74,5 +74,7 @@ export const createEvidenceModule = (deps: {
     isFactsRunLive(await store.openRun(studyId), deps.clock.now())
   /** The facts the project's insights read (spec 013 research R1). */
   const reads = makeSynthesisReads(store)
-  return { handlers, jobs, factsLive, reads }
+  /** A person's attributions of an interview's speaker labels (spec 016 research R5). */
+  const speakerAttributions = (sessionId: string) => store.speakersOf(sessionId)
+  return { handlers, jobs, factsLive, reads, speakerAttributions }
 }

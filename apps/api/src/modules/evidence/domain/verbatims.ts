@@ -1,12 +1,10 @@
-import { normaliseQuote, withPlaceholders, words } from '@goodresearch/shared'
+import { normaliseQuote, type Role, withPlaceholders, words } from '@goodresearch/shared'
 
 /** FR-005: a verbatim says one idea in the interviewee's own words. */
 export const VERBATIM_MIN_WORDS = 3
 export const VERBATIM_MAX_WORDS = 120
 /** Longest text the AI may quote for one verbatim (characters). */
 export const VERBATIM_MAX_CHARS = 1_200
-
-export type Role = 'interviewee' | 'interviewer' | 'unknown'
 
 /** One turn (or part of a long turn) of a chunk, as it is sent: known names as placeholders. */
 export type SentTurn = {

@@ -180,6 +180,8 @@ export type TranscriptsDeps = {
   readonly enqueue: (job: { runId: string; studyId: string }) => Promise<boolean>
   /** A cleaning is live for the study (spec 011): a lexicon reading waits. */
   readonly otherRunLive?: (studyId: string) => Promise<boolean>
+  /** A review of the study's interviews is running (spec 016 FR-013). */
+  readonly reviewLive?: (studyId: string) => Promise<boolean>
   readonly clock: Clock
   readonly log: { warn(object: object, message: string): void }
 }

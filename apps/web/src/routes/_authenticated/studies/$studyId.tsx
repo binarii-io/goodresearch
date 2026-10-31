@@ -38,6 +38,7 @@ import { FieldworkTab } from '../../../features/fieldwork/fieldwork-tab.tsx'
 import { FolderButton } from '../../../features/ingestion/folder-button.tsx'
 import { SourcePanel } from '../../../features/ingestion/source-panel.tsx'
 import { PreparationTab } from '../../../features/preparation/preparation-tab.tsx'
+import { QualityTab } from '../../../features/quality/quality-tab.tsx'
 import { StudySettingsButton } from '../../../features/research/study-settings.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useMe } from '../../../features/workspace/me.ts'
@@ -49,12 +50,15 @@ export const Route = createFileRoute('/_authenticated/studies/$studyId')({
     drive: z.enum(['connected', 'error']).optional().catch(undefined),
     // Opens on Fieldwork, where the source folder and the interviews are (spec 008).
     phase: z
-      .enum(['preparation', 'fieldwork', 'lexicon', 'enrichment', 'analysis'])
+      .enum(['preparation', 'fieldwork', 'lexicon', 'enrichment', 'quality', 'analysis'])
       .optional()
       .catch(undefined),
     // An interview open in Enrichment (its cleaning) or Analysis (spec 012), and the turn to show.
     interview: z.string().min(1).max(64).optional().catch(undefined),
     turn: z.string().min(1).max(64).optional().catch(undefined),
+    // The Quality tab's view (spec 016 US4).
+    view: z.enum(['overall', 'person', 'interview']).optional().catch(undefined),
+    person: z.string().min(1).max(64).optional().catch(undefined),
   }),
   component: StudyPage,
 })
@@ -218,7 +222,8 @@ function StudyPage() {
               <TabsTrigger value="fieldwork">{t`2 · Fieldwork`}</TabsTrigger>
               <TabsTrigger value="lexicon">{t`3 · Lexicon`}</TabsTrigger>
               <TabsTrigger value="enrichment">{t`4 · Enrichment`}</TabsTrigger>
-              <TabsTrigger value="analysis">{t`5 · Analysis`}</TabsTrigger>
+              <TabsTrigger value="quality">{t`5 · Quality`}</TabsTrigger>
+              <TabsTrigger value="analysis">{t`6 · Analysis`}</TabsTrigger>
             </TabsList>
           </>
         }
@@ -267,6 +272,17 @@ function StudyPage() {
             reviewing={interview ?? null}
             onReview={(sessionId) => openInterview(sessionId)}
           />
+        ) : (
+          <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see its interviews.`}</p>
+        )}
+      </TabsContent>
+      <TabsContent value="quality">
+        {s.type !== 'interviews' ? (
+          <p className="text-muted-foreground text-base">{t`Quality for this type of study is coming in a later version.`}</p>
+        ) : source.isPending ? (
+          <Skeleton className="h-40 w-full" />
+        ) : canAct ? (
+          <QualityTab studyId={studyId} interview={interview} turn={turn} />
         ) : (
           <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see its interviews.`}</p>
         )}

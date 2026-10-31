@@ -1,8 +1,7 @@
-import type { Clock } from '@goodresearch/shared'
+import type { Clock, Person } from '@goodresearch/shared'
 import type { FactsRun } from '../domain/analysis-run.ts'
 import type { TextAnalysed } from '../domain/analysis-state.ts'
 import type { Fact, Polarity } from '../domain/facts.ts'
-import type { Person } from '../domain/speakers.ts'
 
 /** A turn of the analysed text (same ids as the raw version). */
 export type Turn = {
@@ -65,6 +64,8 @@ export type AnalysisSources = {
   ): Promise<{ goal: string; themes: readonly { id: string; title: string }[] }>
   /** A lexicon reading or a cleaning of the study runs (FR-012). */
   enrichmentLive(studyId: string): Promise<boolean>
+  /** A review of the interviews of the study runs (spec 016 FR-013). */
+  qualityLive(studyId: string): Promise<boolean>
 }
 
 /** The provider is not connected (anymore). */

@@ -13,6 +13,15 @@ export { newId } from './id.ts'
 export { err, ok, type Result } from './result.ts'
 export { safeReturnPath, withQuery } from './return-path.ts'
 export {
+  conductRoles,
+  INTERVIEWER,
+  interviewerCode,
+  isGenericLabel,
+  type Person,
+  type Role,
+  speakerRole,
+} from './speakers.ts'
+export {
   findMatches,
   fold,
   fromPlaceholders,
