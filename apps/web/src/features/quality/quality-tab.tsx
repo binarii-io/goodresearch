@@ -317,7 +317,7 @@ function Interviews({ studyId, data }: { studyId: string; data: QualityOverview 
                     ) : null}
                   </span>
                 </TableCell>
-                <TableCell className="whitespace-normal">
+                <TableCell className="w-56 max-w-56 whitespace-normal">
                   <span className="grid gap-0.5">
                     {i.reading?.state === 'reading' ? (
                       <span className="flex items-center gap-1.5 text-sm" role="status">
