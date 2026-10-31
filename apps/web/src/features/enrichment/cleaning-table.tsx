@@ -27,7 +27,6 @@ import {
   HourglassIcon,
   LoaderCircleIcon,
   SparklesIcon,
-  SquareIcon,
   TriangleAlertIcon,
 } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
@@ -47,6 +46,7 @@ import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
+import { StopButton } from '../workspace/stop-button.tsx'
 import { CLEANING_FAILURES, CLEANING_STATES } from './labels.ts'
 
 /** A cleaning is going on: the view follows its progress. */
@@ -299,20 +299,15 @@ function CleanTranscripts({ studyId, data }: { studyId: string; data: Cleaning }
             ? t`Cleaning: part ${run.chunksDone} of ${run.chunks}, ${run.done + run.failed} of ${run.total} interviews`
             : t`Cleaning: ${run.done + run.failed} of ${run.total} interviews`}
         </span>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={stop.isPending}
+        <StopButton
+          stopping={stop.variables?.runId === run.id && !stop.isError}
           onClick={() =>
             void stop
               .mutateAsync({ studyId, runId: run.id })
               .then(refresh)
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
-        >
-          <SquareIcon aria-hidden />
-          {t`Stop`}
-        </Button>
+        />
       </div>
     )
 

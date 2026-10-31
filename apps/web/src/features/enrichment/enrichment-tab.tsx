@@ -30,7 +30,6 @@ import {
   LoaderCircleIcon,
   SparklesIcon,
   SpellCheckIcon,
-  SquareIcon,
   TriangleAlertIcon,
 } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
@@ -55,6 +54,7 @@ import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
 import { type ReadingItem, ReadingList } from '../workspace/reading-list.tsx'
+import { StopButton } from '../workspace/stop-button.tsx'
 import { CleaningTable, cleaning } from './cleaning-table.tsx'
 import { InterviewCleaningView } from './interview-cleaning.tsx'
 import { ENRICHMENT_STATES, LEXICON_FAILURES, READING_STATES } from './labels.ts'
@@ -271,20 +271,15 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
           }
           max={run.phase === 'ai' && run.batchesTotal > 0 ? run.batchesTotal : run.total}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={stop.isPending}
+        <StopButton
+          stopping={stop.variables?.runId === run.id && !stop.isError}
           onClick={() =>
             void stop
               .mutateAsync({ studyId, runId: run.id })
               .then(() => refreshLexicon(queryClient, studyId))
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
-        >
-          <SquareIcon aria-hidden />
-          {t`Stop`}
-        </Button>
+        />
       </div>
     )
 

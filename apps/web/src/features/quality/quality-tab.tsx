@@ -6,12 +6,7 @@ import {
 } from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
-import {
-  HourglassIcon,
-  LoaderCircleIcon,
-  SparklesIcon,
-  SquareIcon,
-} from '@goodresearch/ui/components/icons'
+import { HourglassIcon, LoaderCircleIcon, SparklesIcon } from '@goodresearch/ui/components/icons'
 import { Progress } from '@goodresearch/ui/components/progress'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
@@ -31,6 +26,7 @@ import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
 import { type ReadingItem, ReadingList } from '../workspace/reading-list.tsx'
+import { StopButton } from '../workspace/stop-button.tsx'
 import { Figures } from './figures.tsx'
 import { InterviewView } from './interview-view.tsx'
 import { EVALUATION_REASONS, EVALUATION_STATES, QUALITY_FAILURES, REVIEW_STATES } from './labels.ts'
@@ -195,20 +191,15 @@ function Review({ studyId, data }: { studyId: string; data: QualityOverview }) {
           value={run.chunks > 0 ? run.chunksDone : run.done + run.failed}
           max={run.chunks > 0 ? run.chunks : run.total}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={stop.isPending}
+        <StopButton
+          stopping={stop.variables?.runId === run.id && !stop.isError}
           onClick={() =>
             void stop
               .mutateAsync({ studyId, runId: run.id })
               .then(refresh)
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
-        >
-          <SquareIcon aria-hidden />
-          {t`Stop`}
-        </Button>
+        />
       </div>
     )
   return (

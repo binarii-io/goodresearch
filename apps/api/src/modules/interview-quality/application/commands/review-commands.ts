@@ -46,12 +46,8 @@ const INTERVIEWS_PARALLEL = 3
 const CHUNKS_PARALLEL = 2
 /** The prompt around each call. */
 const CALL_OVERHEAD_CHARS = 2_500
-/**
- * PROVISIONAL (research R10): tokens of one part's answer. On the reference set, a single short
- * excerpt took 874 on average, so a part of 60 turns takes more; half of `maxOutputTokens` until a
- * real interview calibrates it.
- */
-const PROVISIONAL_ANSWER_TOKENS = 4_000
+/** Research R10: tokens of one part's answer, measured on 217 parts of real interviews. */
+const ANSWER_TOKENS = 3_200
 
 const REASON_MAX = 200
 
@@ -142,7 +138,7 @@ export const makeReviewCommands = (deps: QualityDeps) => {
       chunks,
       cost:
         provider && chunks > 0
-          ? await deps.ai.estimate(accountId, chars, chunks * PROVISIONAL_ANSWER_TOKENS, chunks)
+          ? await deps.ai.estimate(accountId, chars, chunks * ANSWER_TOKENS, chunks)
           : provider
             ? 0
             : null,

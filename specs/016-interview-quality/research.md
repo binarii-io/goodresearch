@@ -62,6 +62,8 @@ The prototype's main error, handled at three levels:
 
 - **Decision**: same formula as spec 012 (`deps.ai.estimate`), with a constant for the answer size set from the first reference run. Ledger ref `quality:<runId>:<sessionId>`, consent kept per person and provider in `quality_consents` (a separate consent since the purpose differs). No figure is promised before that measure.
 
+**Measured (2026-10-31)**, on Vertex `gemini-3.8-flash`, 217 parts of real interviews: 3,136 output tokens on average, 7,685 at most among those that fit, 25 s per part. The constant is now 3,200. Answers cut at the 8,000 limit failed 2 of 51 interviews, so the limit is 16,000.
+
 ## R11. Tab placement
 
 - **Decision**: phase value `quality`, label "5 · Quality"; Analysis becomes "6 · Analysis". It follows the prototype's order and stays usable during fieldwork; it blocks nothing.

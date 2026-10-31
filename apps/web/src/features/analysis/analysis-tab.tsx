@@ -14,7 +14,6 @@ import {
   HourglassIcon,
   LoaderCircleIcon,
   SparklesIcon,
-  SquareIcon,
   TriangleAlertIcon,
 } from '@goodresearch/ui/components/icons'
 import { Progress } from '@goodresearch/ui/components/progress'
@@ -37,6 +36,7 @@ import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
 import { type ReadingItem, ReadingList } from '../workspace/reading-list.tsx'
+import { StopButton } from '../workspace/stop-button.tsx'
 import { FactsList } from './facts-list.tsx'
 import { FindFactsDialog, FindFactsOneButton } from './find-facts.tsx'
 import { InterviewFactsView } from './interview-facts.tsx'
@@ -379,10 +379,8 @@ function FindFacts({ studyId, data }: { studyId: string; data: FactsOverview }) 
           value={run.chunks > 0 ? run.chunksDone : run.done + run.failed}
           max={run.chunks > 0 ? run.chunks : run.total}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={stop.isPending}
+        <StopButton
+          stopping={stop.variables?.runId === run.id && !stop.isError}
           onClick={() =>
             void stop
               .mutateAsync({ studyId, runId: run.id })
@@ -391,10 +389,7 @@ function FindFacts({ studyId, data }: { studyId: string; data: FactsOverview }) 
               )
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
-        >
-          <SquareIcon aria-hidden />
-          {t`Stop`}
-        </Button>
+        />
       </div>
     )
   return (

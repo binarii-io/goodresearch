@@ -119,7 +119,8 @@ export const createQualityAi = (ai: {
           system: REVIEW_SYSTEM,
           prompt: renderReview(request),
           schema: ReviewAnswer,
-          maxOutputTokens: 8_000,
+          // A long part went past 8,000 and its cut answer failed the interview.
+          maxOutputTokens: 16_000,
         },
         { ref, timeoutMs: TIMEOUT_MS },
       )

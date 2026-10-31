@@ -23,12 +23,7 @@ import {
 } from '@goodresearch/ui/components/alert-dialog'
 import { Button } from '@goodresearch/ui/components/button'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
-import {
-  HourglassIcon,
-  LoaderCircleIcon,
-  SparklesIcon,
-  SquareIcon,
-} from '@goodresearch/ui/components/icons'
+import { HourglassIcon, LoaderCircleIcon, SparklesIcon } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -36,6 +31,7 @@ import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorCode, errorMessage } from '../workspace/errors.ts'
+import { StopButton } from '../workspace/stop-button.tsx'
 import { ANALYSIS_FAILURES, ANALYSIS_STATES } from './labels.ts'
 
 /** Open to changes until a person decides (validated by the app included). */
@@ -191,20 +187,15 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
             ? t`Stopping…`
             : t`Analyzing: ${data.run.done + data.run.failed} of ${data.run.total}`}
         </span>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={data.run.stopRequested || stop.isPending}
+        <StopButton
+          stopping={data.run.stopRequested || stop.isPending}
           onClick={() =>
             void stop
               .mutateAsync({ studyId, runId: data.run?.id ?? '' })
               .then(refresh)
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
-        >
-          <SquareIcon aria-hidden />
-          {t`Stop`}
-        </Button>
+        />
       </div>
     )
 

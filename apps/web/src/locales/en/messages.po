@@ -5456,14 +5456,10 @@ msgstr "Statement saved"
 msgid "Status"
 msgstr "Status"
 
-#: src/features/analysis/analysis-tab.tsx
 #: src/features/assistant/panel.tsx
-#: src/features/enrichment/cleaning-table.tsx
-#: src/features/enrichment/enrichment-tab.tsx
-#: src/features/fieldwork/analysis.tsx
-#: src/features/quality/quality-tab.tsx
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/recommendations-tab.tsx
+#: src/features/workspace/stop-button.tsx
 msgid "Stop"
 msgstr "Stop"
 
@@ -5477,6 +5473,7 @@ msgstr "Stopping after the current call…"
 
 #: src/features/fieldwork/analysis.tsx
 #: src/features/synthesis/recommendations-tab.tsx
+#: src/features/workspace/stop-button.tsx
 msgid "Stopping…"
 msgstr "Stopping…"
 
