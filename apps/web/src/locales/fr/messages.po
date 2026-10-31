@@ -1316,6 +1316,10 @@ msgstr "lot {0} sur {1}"
 msgid "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews. Each one can be published to the study's Drive folder: edits made there come back here for review."
 msgstr "Avant les entretiens : construire le guide d’entretien à partir de l’objectif de recherche, relire les bonnes pratiques, puis planifier les entretiens. Chacun peut être publié dans le dossier Drive de l’étude : les modifications faites là-bas reviennent ici pour être revues."
 
+#: src/features/quality/labels.ts
+msgid "Being reviewed"
+msgstr "En cours de revue"
+
 #: src/features/fieldwork/labels.ts
 msgid "Belongs to the interview"
 msgstr "Fait partie de l'entretien"
@@ -2427,6 +2431,7 @@ msgstr "Faits à valider ({0})"
 #: src/features/ai/provider-forms.tsx
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
+#: src/features/quality/labels.ts
 msgid "Failed"
 msgstr "Échec"
 
@@ -4418,7 +4423,9 @@ msgid "Panel"
 msgstr "Panel"
 
 #. placeholder {0}: i.reading.chunksDone
+#. placeholder {0}: reading.chunksDone
 #. placeholder {1}: i.reading.chunks
+#. placeholder {1}: reading.chunks
 #: src/features/quality/quality-tab.tsx
 msgid "Part {0} of {1}"
 msgstr "Partie {0} sur {1}"
@@ -4588,6 +4595,12 @@ msgstr "Priorité {0}"
 msgid "Product"
 msgstr "Produit"
 
+#: src/features/analysis/analysis-tab.tsx
+#: src/features/enrichment/enrichment-tab.tsx
+#: src/features/quality/quality-tab.tsx
+msgid "Progress"
+msgstr "Progression"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Project"
 msgstr "Projet"
@@ -4695,10 +4708,6 @@ msgstr "Q{n}"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Quality for this type of study is coming in a later version."
 msgstr "La qualité pour ce type d'étude arrivera dans une prochaine version."
-
-#: src/features/quality/quality-tab.tsx
-msgid "Quality in numbers"
-msgstr "La qualité en chiffres"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Question"
@@ -5029,6 +5038,10 @@ msgstr "Relire à nouveau"
 msgid "Review anyway"
 msgstr "Relire quand même"
 
+#: src/features/quality/quality-tab.tsx
+msgid "Review in progress"
+msgstr "Revue en cours"
+
 #: src/features/preparation/drive-publishing.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Review the changes from Drive"
@@ -5046,6 +5059,7 @@ msgstr "Relire les entretiens ?"
 msgid "Review them first"
 msgstr "Les revoir d’abord"
 
+#: src/features/quality/labels.ts
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Reviewed"
@@ -6674,6 +6688,7 @@ msgstr "En attente d'analyse"
 msgid "Waiting for the analysis"
 msgstr "En attente de l'analyse"
 
+#: src/features/quality/labels.ts
 #: src/features/quality/quality-tab.tsx
 msgid "Waiting for the review"
 msgstr "En attente de la revue"

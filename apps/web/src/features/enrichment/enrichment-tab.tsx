@@ -34,6 +34,7 @@ import {
   TriangleAlertIcon,
 } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
+import { Progress } from '@goodresearch/ui/components/progress'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
 import {
@@ -264,6 +265,13 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
                   : t`Finding the terms…`
                 : t`Counting the terms…`}
         </span>
+        <Progress
+          aria-label={t`Progress`}
+          value={
+            run.phase === 'ai' && run.batchesTotal > 0 ? run.batchesDone : run.done + run.failed
+          }
+          max={run.phase === 'ai' && run.batchesTotal > 0 ? run.batchesTotal : run.total}
+        />
         <Button
           variant="outline"
           size="sm"

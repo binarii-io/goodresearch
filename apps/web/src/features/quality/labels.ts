@@ -3,6 +3,17 @@ import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { LEXICON_FAILURES } from '../enrichment/labels.ts'
 
+/** Where an interview stands in a review going on. */
+export const REVIEW_STATES: Record<
+  NonNullable<QualityInterviewRow['reading']>['state'],
+  MessageDescriptor
+> = {
+  waiting: msg`Waiting for the review`,
+  reading: msg`Being reviewed`,
+  done: msg`Reviewed`,
+  failed: msg`Failed`,
+}
+
 /** Spec 016: where each validated interview stands in the Quality tab. */
 export const EVALUATION_STATES: Record<QualityInterviewRow['state'], MessageDescriptor> = {
   'no-transcript': msg`No transcript`,

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Badge } from './badge.tsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card.tsx'
+import { Progress } from './progress.tsx'
 import { Skeleton } from './skeleton.tsx'
 import { GoogleDriveIcon } from './source-icons.tsx'
 import { StatTile, StatTiles } from './stat-tile.tsx'
@@ -8,6 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 
 const meta = { title: 'Display' } satisfies Meta
 export default meta
+
+export const RunProgress: StoryObj = {
+  render: () => <Progress aria-label="Progress" value={3} max={8} />,
+}
 
 export const ProjectCard: StoryObj = {
   render: () => (

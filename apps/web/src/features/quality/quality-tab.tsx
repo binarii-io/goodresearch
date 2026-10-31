@@ -13,6 +13,7 @@ import {
   SparklesIcon,
   SquareIcon,
 } from '@goodresearch/ui/components/icons'
+import { Progress } from '@goodresearch/ui/components/progress'
 import { Segmented, SegmentedItem } from '@goodresearch/ui/components/segmented'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
@@ -30,9 +31,10 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
+import { type ReadingItem, ReadingList } from '../workspace/reading-list.tsx'
 import { Figures } from './figures.tsx'
 import { InterviewView } from './interview-view.tsx'
-import { EVALUATION_REASONS, EVALUATION_STATES, QUALITY_FAILURES } from './labels.ts'
+import { EVALUATION_REASONS, EVALUATION_STATES, QUALITY_FAILURES, REVIEW_STATES } from './labels.ts'
 import { RemarksList } from './remarks-list.tsx'
 import { ReviewDialog, ReviewOneButton } from './review-dialog.tsx'
 import { usePersonLabel } from './use-person-label.ts'
@@ -101,43 +103,48 @@ function Overview({ studyId }: { studyId: string }) {
   const { reviewed, total } = data
   return (
     <div className="grid gap-6">
+      <Figures
+        figures={shown ?? null}
+        before={
+          <StatTile
+            icon={<FileTextIcon aria-hidden />}
+            label={t`Interviews reviewed`}
+            value={reviewed}
+            detail={t`of ${total} validated`}
+          />
+        }
+        after={
+          <StatTile
+            icon={<SparklesIcon aria-hidden />}
+            label={t`Cost of the reviews`}
+            value={data.cost !== null ? money(data.cost) : reviewed > 0 ? t`unknown` : DASH}
+            detail={
+              data.lastRunCost === null ? t`No review yet` : t`Last: ${money(data.lastRunCost)}`
+            }
+          />
+        }
+      />
+      {reviewed === 0 ? (
+        <p className="text-sm">{t`No interview reviewed yet: the figures come after a review.`}</p>
+      ) : null}
       <div className="flex flex-wrap items-center gap-3">
-        {reviewed === 0 ? (
-          <p className="text-sm">{t`No interview reviewed yet: the figures come after a review.`}</p>
+        {reviewed > 0 ? (
+          <Segmented aria-label={t`View`} className="w-fit">
+            <SegmentedItem pressed={view === 'overall'} onClick={() => choose('overall')}>
+              {t`Overall`}
+            </SegmentedItem>
+            <SegmentedItem pressed={view === 'person'} onClick={() => choose('person')}>
+              {t`By person`}
+            </SegmentedItem>
+            <SegmentedItem pressed={view === 'interview'} onClick={() => choose('interview')}>
+              {t`By interview`}
+            </SegmentedItem>
+          </Segmented>
         ) : null}
+        {row ? <p className="font-medium text-sm">{personLabel(row.name)}</p> : null}
         <Review studyId={studyId} data={data} />
       </div>
-      <StatTiles aria-label={t`Quality in numbers`}>
-        <StatTile
-          icon={<FileTextIcon aria-hidden />}
-          label={t`Interviews reviewed`}
-          value={reviewed}
-          detail={t`of ${total} validated`}
-        />
-        <StatTile
-          icon={<SparklesIcon aria-hidden />}
-          label={t`Cost of the reviews`}
-          value={data.cost !== null ? money(data.cost) : reviewed > 0 ? t`unknown` : DASH}
-          detail={
-            data.lastRunCost === null ? t`No review yet` : t`Last: ${money(data.lastRunCost)}`
-          }
-        />
-      </StatTiles>
-      {reviewed > 0 ? (
-        <Segmented aria-label={t`View`} className="w-fit">
-          <SegmentedItem pressed={view === 'overall'} onClick={() => choose('overall')}>
-            {t`Overall`}
-          </SegmentedItem>
-          <SegmentedItem pressed={view === 'person'} onClick={() => choose('person')}>
-            {t`By person`}
-          </SegmentedItem>
-          <SegmentedItem pressed={view === 'interview'} onClick={() => choose('interview')}>
-            {t`By interview`}
-          </SegmentedItem>
-        </Segmented>
-      ) : null}
-      {row ? <p className="font-medium text-sm">{personLabel(row.name)}</p> : null}
-      {shown ? <Figures figures={shown} /> : null}
+      {running(data) ? <ReviewProgress data={data} /> : null}
       {data.run?.finished && data.run.leftOut > 0 ? (
         <p className="text-muted-foreground text-sm">
           {t`The app's checks left out ${data.run.leftOut} remarks (not in the text, or a reformulation that adds nothing the interviewee had not said).`}
@@ -152,6 +159,28 @@ function Overview({ studyId }: { studyId: string }) {
       ) : null}
     </div>
   )
+}
+
+/** Where a review stands, interview by interview. */
+function ReviewProgress({ data }: { data: QualityOverview }) {
+  const { t, i18n } = useLingui()
+  const items: ReadingItem[] = data.interviews.flatMap((i) => {
+    const reading = i.reading
+    if (!reading) return []
+    return [
+      {
+        sessionId: i.sessionId,
+        title: i.title,
+        step: reading.state === 'reading' ? 'working' : reading.state,
+        label:
+          reading.state === 'reading' && reading.chunks > 0
+            ? t`Part ${reading.chunksDone} of ${reading.chunks}`
+            : i18n._(REVIEW_STATES[reading.state]),
+        stoppable: false,
+      },
+    ]
+  })
+  return <ReadingList name={t`Review in progress`} items={items} />
 }
 
 function Review({ studyId, data }: { studyId: string; data: QualityOverview }) {
@@ -173,6 +202,11 @@ function Review({ studyId, data }: { studyId: string; data: QualityOverview }) {
             ? t`Reviewing: part ${run.chunksDone} of ${run.chunks}, ${run.done + run.failed} of ${run.total} interviews`
             : t`Reviewing: ${run.done + run.failed} of ${run.total} interviews`}
         </span>
+        <Progress
+          aria-label={t`Progress`}
+          value={run.chunks > 0 ? run.chunksDone : run.done + run.failed}
+          max={run.chunks > 0 ? run.chunks : run.total}
+        />
         <Button
           variant="outline"
           size="sm"

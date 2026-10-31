@@ -17,6 +17,7 @@ import {
   SquareIcon,
   TriangleAlertIcon,
 } from '@goodresearch/ui/components/icons'
+import { Progress } from '@goodresearch/ui/components/progress'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
 import {
@@ -374,6 +375,11 @@ function FindFacts({ studyId, data }: { studyId: string; data: FactsOverview }) 
             ? t`Finding facts: part ${run.chunksDone} of ${run.chunks}, ${run.done + run.failed} of ${run.total} interviews`
             : t`Finding facts: ${run.done + run.failed} of ${run.total} interviews`}
         </span>
+        <Progress
+          aria-label={t`Progress`}
+          value={run.chunks > 0 ? run.chunksDone : run.done + run.failed}
+          max={run.chunks > 0 ? run.chunks : run.total}
+        />
         <Button
           variant="outline"
           size="sm"
