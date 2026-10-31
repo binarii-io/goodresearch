@@ -18,8 +18,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@goodresearch/ui/components/alert-dialog'
+import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
-import { Pill } from '@goodresearch/ui/components/page-header'
 import { GoogleDriveIcon } from '@goodresearch/ui/components/source-icons'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
@@ -101,7 +101,7 @@ function PublicationRow({ studyId, publication }: { studyId: string; publication
           <GoogleDriveIcon />
           <span className="truncate">{p.fileName}</span>
         </span>
-        <Pill>{i18n._(STATES[p.state])}</Pill>
+        <Badge variant="ghost">{i18n._(STATES[p.state])}</Badge>
       </div>
       <p className="text-muted-foreground text-xs">
         {p.state === 'unavailable' && p.unavailableReason

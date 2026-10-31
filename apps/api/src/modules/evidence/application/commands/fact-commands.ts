@@ -1,4 +1,13 @@
-import { err, holdsName, newId, ok, type Result, words } from '@goodresearch/shared'
+import {
+  err,
+  holdsName,
+  INTERVIEWER,
+  newId,
+  ok,
+  type Result,
+  speakerRole,
+  words,
+} from '@goodresearch/shared'
 import { translationRef } from '../../domain/analysis-run.ts'
 import {
   attachVerbatim,
@@ -11,7 +20,6 @@ import {
   STATEMENT_MAX,
   type Theme,
 } from '../../domain/facts.ts'
-import { INTERVIEWER, speakerRole } from '../../domain/speakers.ts'
 import { VERBATIM_MAX_WORDS, VERBATIM_MIN_WORDS } from '../../domain/verbatims.ts'
 import { type StudyError, studyOf } from '../interviews.ts'
 import type { EvidenceDeps, StoredVerbatim, TranslateJob } from '../ports.ts'

@@ -23,9 +23,9 @@ import {
 } from '@goodresearch/ui/components/dialog'
 import {
   CheckIcon,
-  FileSearchIcon,
   LoaderCircleIcon,
   PencilIcon,
+  SparklesIcon,
   XIcon,
 } from '@goodresearch/ui/components/icons'
 import { Input } from '@goodresearch/ui/components/input'
@@ -328,7 +328,7 @@ export function Proposals({
               disabled={busy || a?.state === 'waiting' || a?.state === 'analyzing'}
               onClick={onAnalyze}
             >
-              <FileSearchIcon aria-hidden />
+              <SparklesIcon aria-hidden />
               {a ? t`Analyze again` : t`Analyze`}
             </Button>
           ) : null}

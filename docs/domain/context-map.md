@@ -27,7 +27,7 @@ Every AI-produced object follows the same lifecycle and the same protections. Th
 | 2 | **Research** | Core | Domain model | Project, Study, InterviewGuide, PlannedInterview |
 | 3 | **Ingestion** | Supporting | Domain model (matching rules) | Source, Session (with its roster) |
 | 4 | **Transcripts** | Supporting | Domain model | Transcript, LexiconTerm, CorrectionRun |
-| 5 | **Interview Quality** | Core | Domain model + policies | Evaluation |
+| 5 | **Interview Quality** | Core | Domain model | Evaluation, Remark, ReviewRun |
 | 6 | **Evidence** | Core | Domain model | Participant, Fact |
 | 7 | **Synthesis** | Core | Domain model + policies | Insight, Recommendation, KeyTakeaways, PublishedDeck |
 | 8 | **Reporting** | Supporting | Read models only (no aggregates) | — (deck, graph, evidence chain, exports) |
@@ -112,16 +112,14 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 
 ### 5. Interview Quality
 
-- **Evaluation** — per session, assesses interviewer neutrality. Each **interviewer intervention** (a segment spoken by an interviewer) is classified (`guide | follow-up | reformulation | context | opinion`).
-- **Policies** (app-computed, word-weighted):
+Spec 016: how the interviews were conducted, as facts to read: no score, no verdict, no ranking.
 
-  | Metric | OK | Watch | Bad |
-  |---|---|---|---|
-  | Interviewer talk share | ≤30% | ≤40% | >40% |
-  | Opinion / leading share | ≤5% | ≤10% | >10% |
-  | Follow-up + guide share | ≥60% | ≥40% | <40% |
-
-  >95% interviewer words → *not measurable* (no verdict, excluded from averages). Guide coverage is indicative only (lower bound, no verdict).
+- **Evaluation** — the last review of one interview: what it read, the sentences counted per speaker label, what the checks left out. State derived: no transcript, not clean yet, speakers not identified, not measurable, not reviewed, reviewing, to review again, reviewed.
+- **Review** ("Review the interviews", one per study, never with a lexicon reading, a cleaning or a facts reading; queue `quality.review`; ledger ref `quality:<runId>:<sessionId>`) — the app cuts interviewers' turns into numbered sentences (fragments of at most 2 words not counted), and the AI answers on those that are a question, a simple reformulation or that orient the answer.
+- **Simple reformulation** — rests only on what the interviewee said, to check understanding: good practice, counted apart, no remark. A person can requalify one, writing the reason.
+- **Remark** — a flagged sentence, exact by construction: **leading question**, **reformulation with opinion** (adds something the interviewee did not say, and names it; checked against what they said before) or **opinion or suggestion**; a reason (English and French), a recommended wording, origin `ai | person`. It applies nothing.
+- **Opinion** (`stance` in code) — a person's `agree` or `disagree` on a remark: an **assessment that applies nothing**, outside the proposal lifecycle (constitution IV, 1.2.0). A remark counts until someone disagrees; every total shows agreed, no opinion, disagreed. The project's review policy does not apply. A new review keeps opinions and never flags again what was disagreed with.
+- **Figures** — computed by the app, shown only for interviews reviewed, adding up across Overall, By person and By interview: talk share and speaking times, sentences and questions, leading ones. Reference values, in tooltips only: interviewer talk share 30% at most, leading sentences 5% at most. Above 95% of interviewer words: not measurable. No interviewer word, or more than 20% of the words of no known person: speakers not identified, never a false 0%.
 
 ### 6. Evidence
 
@@ -227,7 +225,6 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Pseudonym | Pseudonyme | `P01`… per study for now |
 | Interviewer | Intervieweur | |
 | Interviewee | Personne interviewée | |
-| Interviewer intervention | Intervention de l'intervieweur | Segment spoken by an interviewer (Interview Quality) |
 | Participant | Participant | Pseudonym `P01`… in both languages |
 | Lexicon | Lexique | |
 | Term (domain / suspect) | Terme (métier / douteux) | UI kinds: "Term / Terme" and "Transcription error / Erreur de transcription" |
@@ -246,11 +243,24 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Publish (a transcript version) | Publier | |
 | Evaluation | Évaluation | |
 | Talk share | Part de parole | Percentage of words |
+| Speaking time | Temps de parole | The minutes (spec 016) |
+| Quality (tab) | Qualité | Spec 016 |
+| Review the interviews / Review / Review again / Review anyway | Relire les entretiens / Relire / Relire à nouveau / Relire quand même | Spec 016 |
+| Remark | Remarque | A flagged sentence |
+| Leading question | Question orientée | |
+| Simple reformulation | Reformulation simple | Never counted as leading |
+| Reformulation with opinion | Reformulation avec opinion | |
+| Opinion or suggestion | Opinion ou suggestion | A kind of remark |
+| Opinion: agree / disagree / no opinion | Avis : d'accord / pas d'accord / sans avis | `stance` in code, never "accept" or "reject" |
+| Overall / By person / By interview | Global / Par personne / Par entretien | |
+| Not reviewed / To review again / Reviewed | Non relu / À relire / Relu | |
+| Not measurable / Speakers not identified / Not clean yet | Non mesurable / Locuteurs non identifiés / Pas encore propre | |
+| Interviewer not identified | Intervieweur non identifié | |
 | Fact | Fait | |
 | Verbatim | Verbatim | An exact excerpt of what an interviewee says (spec 012) |
 | Set aside (a verbatim) | Écarter | |
 | Text analysed: with the corrections / validated clean version only | Texte analysé : avec les corrections / version propre validée seulement | Study setting (spec 012) |
-| Find facts | Trouver les faits | |
+| Find facts | Trouver les faits | Again: « … à nouveau », as every repeat action |
 | Quote | Citation | |
 | Polarity (positive / negative / neutral) | Polarité (positive / négative / neutre) | |
 | Insight | Insight | Common term in French UX research |
@@ -292,7 +302,7 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 
 ## Domain events (initial list)
 
-`SessionValidated`, `RosterChanged`, `TranscriptImported`, `TranscriptVersionPublished`, `LexiconTermDecided`, `CorrectionRunCompleted`, `EvaluationCompleted`, `SpeakerMappingChanged`, `FactValidated`, `FactRejected`, `InsightValidated`, `StudyAttachedToProject`, `StudyDetachedFromProject`.
+`SessionValidated`, `RosterChanged`, `TranscriptImported`, `TranscriptVersionPublished`, `LexiconTermDecided`, `CorrectionRunCompleted`, `SpeakerMappingChanged`, `FactValidated`, `FactRejected`, `InsightValidated`, `StudyAttachedToProject`, `StudyDetachedFromProject`.
 
 Events are enqueued in the same transaction as the state change (pg-boss, see ADR-0004); consumers are idempotent.
 

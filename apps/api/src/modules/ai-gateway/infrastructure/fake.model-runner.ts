@@ -142,6 +142,33 @@ const factsAnswer = (prompt: string) => {
 }
 
 /**
+ * Spec 016: a sentence ending in a question mark is a question; "right?" or "non ?" makes it
+ * leading; "so you" or "donc vous" makes it a simple reformulation.
+ */
+const reviewAnswer = (prompt: string) => ({
+  sentences: [...prompt.matchAll(/^ {2}(t\d+\.\d+): (.*)$/gm)].flatMap((m): object[] => {
+    const id = m[1] ?? ''
+    const text = (m[2] ?? '').trim()
+    if (/(right\?|non \?)$/i.test(text))
+      return [
+        {
+          id,
+          kind: 'question',
+          flag: {
+            kind: 'leading-question',
+            reason: { en: 'It suggests the answer.', fr: 'Elle suggère la réponse.' },
+            recommendation: 'How did this go for you?',
+            addedElement: null,
+            excerpt: null,
+          },
+        },
+      ]
+    if (/^(so you|donc vous)/i.test(text)) return [{ id, kind: 'simple-reformulation', flag: null }]
+    return text.endsWith('?') ? [{ id, kind: 'question', flag: null }] : []
+  }),
+})
+
+/**
  * Spec 013: one insight per theme of the fact lines, supported by its facts that are not positive
  * and countered by the positive ones, plus a citation of a fact not sent (the app drops it).
  */
@@ -502,6 +529,13 @@ export const createFakeRunner = (): ModelRunner => {
         const parsed = request.schema.safeParse(verbatimsAnswer(request.prompt))
         if (!parsed.success) throw new ProviderCallError('UNKNOWN')
         return { object: parsed.data, usage: { inputTokens: 5000, outputTokens: 400 } }
+      }
+      // Spec 016: questions, simple reformulations and one kind of leading sentence, from the prompt.
+      if (request.prompt?.includes('\n<review-turns>\n')) {
+        await sleep(300)
+        const parsed = request.schema.safeParse(reviewAnswer(request.prompt))
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 4000, outputTokens: 300 } }
       }
       if (request.prompt?.includes('\n<verbatims>\n')) {
         await sleep(300)

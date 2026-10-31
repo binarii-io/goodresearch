@@ -22,6 +22,7 @@ function StatTile({
   value,
   detail,
   icon,
+  hint,
   ...props
 }: Omit<React.ComponentProps<'div'>, 'children'> & {
   label: React.ReactNode
@@ -29,14 +30,23 @@ function StatTile({
   detail?: React.ReactNode
   /** Decorative: the label names the tile. */
   icon?: React.ReactNode
+  /** A help button, at the top right of the tile. */
+  hint?: React.ReactNode
 }) {
   return (
     <div
       data-slot="stat-tile"
-      className={cn('grid content-start gap-1 rounded-lg border bg-card p-4', className)}
+      className={cn('relative grid content-start gap-1 rounded-lg border bg-card p-4', className)}
       {...props}
     >
-      <dt className="flex items-center gap-1.5 text-muted-foreground text-sm [&>svg]:size-4">
+      <dt
+        className={cn(
+          'flex items-center gap-1.5 text-muted-foreground text-sm [&>svg]:size-4',
+          hint && 'pr-5',
+        )}
+      >
+        {/* A list group holds only terms and values: placed from the tile, written in the term. */}
+        {hint ? <span className="absolute top-2 right-2">{hint}</span> : null}
         {icon}
         {label}
       </dt>

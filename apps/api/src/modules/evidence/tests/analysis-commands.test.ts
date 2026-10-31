@@ -46,6 +46,15 @@ const runAll = async (s: ReturnType<typeof setup>, input = { all: false, consent
 }
 
 describe('Find facts (US1)', () => {
+  it('waits for a review of the interviews of the study (spec 016 FR-013)', async () => {
+    const s = setup()
+    s.src.state.qualityLive = true
+    expect(await s.commands.start('a1', 'st', { all: false, consent: true })).toEqual({
+      ok: false,
+      error: 'QUALITY_RUNNING',
+    })
+  })
+
   it('asks for consent once, then reads interviewee verbatims and proposes a fact over them', async () => {
     const s = setup()
     expect(await s.commands.start('a1', 'st', { all: false, consent: false })).toEqual({

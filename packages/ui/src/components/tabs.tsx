@@ -1,6 +1,7 @@
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from 'cn'
+import type * as React from 'react'
 
 function Tabs({ className, orientation = 'horizontal', ...props }: TabsPrimitive.Root.Props) {
   return (
@@ -57,6 +58,25 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
   )
 }
 
+/** The line above a table: its tabs at the left, what acts on the table at the right. */
+function TabsBar({
+  action,
+  className,
+  children,
+  ...props
+}: React.ComponentProps<'div'> & { action?: React.ReactNode }) {
+  return (
+    <div
+      data-slot="tabs-bar"
+      className={cn('flex flex-wrap items-center gap-3', className)}
+      {...props}
+    >
+      {children}
+      {action ? <div className="ml-auto flex flex-wrap items-center gap-2">{action}</div> : null}
+    </div>
+  )
+}
+
 function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   return (
     <TabsPrimitive.Panel
@@ -67,4 +87,4 @@ function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   )
 }
 
-export { Tabs, TabsContent, TabsList, TabsTrigger, tabsListVariants }
+export { Tabs, TabsBar, TabsContent, TabsList, TabsTrigger, tabsListVariants }

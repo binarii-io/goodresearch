@@ -69,6 +69,7 @@ export type StartError =
   | 'LEXICON_CONSENT_REQUIRED'
   | 'LEXICON_RUNNING'
   | 'ENRICHMENT_RUNNING'
+  | 'QUALITY_RUNNING'
 
 export type DecideError =
   | 'STUDY_NOT_FOUND'
@@ -176,6 +177,7 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     }
     // One Enrichment run per study (spec 011 research R6): a live cleaning blocks a reading.
     if (await deps.otherRunLive?.(studyId)) return err('ENRICHMENT_RUNNING')
+    if (await deps.reviewLive?.(studyId)) return err('QUALITY_RUNNING')
     const open = await deps.store.openRun(studyId)
     if (open) {
       if (isLive(open, now())) return err('LEXICON_RUNNING')

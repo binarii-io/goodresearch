@@ -11,7 +11,7 @@
    1. **Sessions**: connect the source folder, scan, review proposed transcript ↔ media matches (tabs *To review / Validated / Excluded / No transcript*), bulk-validate high-confidence ones.
    2. **Lexicon**: import transcripts, extract terms, decide them (tabs *Suspect / Domain / Validated / Ignored*), choose scope, give yes/no verdicts in context.
    3. **Correction**: run or replay a correction pass, review inline strike-and-replace edits, publish the clean version, export markdown.
-   4. **Quality**: per-interviewer and per-session neutrality tables, detail with explained calculations, unasked guide questions, interventions filterable by category.
+   4. **Quality**: per-interviewer and per-session neutrality tables, detail with explained calculations, unasked guide questions, interventions filterable by category. (Spec 016 replaces these verdicts with figures and remarks: confirmation reformulations were wrongly read as leading.)
    5. **Participants**: review and validate profiles.
    6. **Fact extraction**: per-session status, cost, extract or replay.
    7. **Facts**: filter; full-session view with colour-coded quotes; hover card to edit/validate/delete; create a fact by selecting text.

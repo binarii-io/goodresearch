@@ -14,9 +14,9 @@ import {
   HourglassIcon,
   LoaderCircleIcon,
   SparklesIcon,
-  SquareIcon,
   TriangleAlertIcon,
 } from '@goodresearch/ui/components/icons'
+import { Progress } from '@goodresearch/ui/components/progress'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
 import {
@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from '@goodresearch/ui/components/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
+import { Tabs, TabsBar, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -36,6 +36,7 @@ import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
 import { type ReadingItem, ReadingList } from '../workspace/reading-list.tsx'
+import { StopButton } from '../workspace/stop-button.tsx'
 import { FactsList } from './facts-list.tsx'
 import { FindFactsDialog, FindFactsOneButton } from './find-facts.tsx'
 import { InterviewFactsView } from './interview-facts.tsx'
@@ -103,13 +104,12 @@ export function AnalysisTab({
     <div className="grid gap-6">
       <Numbers data={data} />
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <div className="flex flex-wrap items-center gap-3">
+        <TabsBar action={<FindFacts studyId={studyId} data={data} />}>
           <TabsList aria-label={t`Analysis`}>
             <TabsTrigger value="interviews">{t`Interviews (${data.interviews.length})`}</TabsTrigger>
             <TabsTrigger value="facts">{t`Facts (${data.counts.toDecide} to decide)`}</TabsTrigger>
           </TabsList>
-          <FindFacts studyId={studyId} data={data} />
-        </div>
+        </TabsBar>
         {running(data) ? <ReadingProgress studyId={studyId} data={data} /> : null}
         {data.run?.finished && data.run.failure ? (
           <p className="flex items-center gap-2 text-sm" role="status">
@@ -374,10 +374,13 @@ function FindFacts({ studyId, data }: { studyId: string; data: FactsOverview }) 
             ? t`Finding facts: part ${run.chunksDone} of ${run.chunks}, ${run.done + run.failed} of ${run.total} interviews`
             : t`Finding facts: ${run.done + run.failed} of ${run.total} interviews`}
         </span>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={stop.isPending}
+        <Progress
+          aria-label={t`Progress`}
+          value={run.chunks > 0 ? run.chunksDone : run.done + run.failed}
+          max={run.chunks > 0 ? run.chunks : run.total}
+        />
+        <StopButton
+          stopping={stop.variables?.runId === run.id && !stop.isError}
           onClick={() =>
             void stop
               .mutateAsync({ studyId, runId: run.id })
@@ -386,10 +389,7 @@ function FindFacts({ studyId, data }: { studyId: string; data: FactsOverview }) 
               )
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
-        >
-          <SquareIcon aria-hidden />
-          {t`Stop`}
-        </Button>
+        />
       </div>
     )
   return (

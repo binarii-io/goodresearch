@@ -43,6 +43,8 @@ export const createTranscriptsModule = (deps: {
   enqueue: (queue: string, data: object, options: { singletonKey: string }) => Promise<boolean>
   /** Spec 012: a "Find facts" of the study is running (Evidence module, bound late). */
   factsLive?: (studyId: string) => Promise<boolean>
+  /** Spec 016: a review of the interviews of the study is running (Quality module, bound late). */
+  qualityLive?: (studyId: string) => Promise<boolean>
   /** Replaces the word lists (tests). */
   common?: CommonWords
   log?: { warn(object: object, message: string): void }
@@ -54,6 +56,7 @@ export const createTranscriptsModule = (deps: {
     otherRunLive: async (studyId) =>
       isCleaningLive(await cleaningStore.openCleaningRun(studyId), deps.clock.now()) ||
       ((await deps.factsLive?.(studyId)) ?? false),
+    reviewLive: async (studyId) => (await deps.qualityLive?.(studyId)) ?? false,
     studies: deps.studies,
     sources: deps.sources,
     ai: deps.ai,

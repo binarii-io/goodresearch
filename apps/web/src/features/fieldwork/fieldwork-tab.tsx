@@ -22,6 +22,7 @@ import {
   MicIcon,
   PencilIcon,
   RefreshCwIcon,
+  SparklesIcon,
   TriangleAlertIcon,
   UsersIcon,
   VideoIcon,
@@ -292,7 +293,11 @@ function RefreshButton({ studyId, running }: { studyId: string; running: boolean
           .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
       }
     >
-      <RefreshCwIcon aria-hidden className={running ? 'animate-spin' : undefined} />
+      {running ? (
+        <LoaderCircleIcon aria-hidden className="animate-spin" />
+      ) : (
+        <RefreshCwIcon aria-hidden />
+      )}
       {running ? t`Refreshing…` : t`Refresh`}
     </Button>
   )
@@ -545,7 +550,7 @@ function Interviews({
                       ) : analyzer.stage(s) === 'waiting' ? (
                         <HourglassIcon aria-hidden className="text-muted-foreground" />
                       ) : (
-                        <FileSearchIcon aria-hidden />
+                        <SparklesIcon aria-hidden />
                       )}
                     </Button>
                   ) : null}
@@ -689,7 +694,9 @@ function Interviews({
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.interviewee}</TableCell>
                       <TableCell>{formatDate(p.scheduledAt)}</TableCell>
-                      <TableCell>{i18n._(PLANNED_STATUSES[p.status])}</TableCell>
+                      <TableCell>
+                        <Badge variant="ghost">{i18n._(PLANNED_STATUSES[p.status])}</Badge>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

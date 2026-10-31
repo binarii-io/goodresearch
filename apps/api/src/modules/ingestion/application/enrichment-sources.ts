@@ -121,12 +121,15 @@ export const makeEnrichmentSources = (deps: IngestionDeps) => {
      * Spec 011 research R5: the people of the study's validated interviews with their codes —
      * interviewees their pseudonym (`P01`…), interviewers their own code (`I01`…), both numbered
      * once per study in the order of interview dates. Codes are given only with `assign` (a
-     * cleaning run, a validation); reads see those given already. Null without access.
+     * cleaning run, a validation); reads see those given already. With `uncoded`, a person without
+     * a code yet stays, with an empty code: who speaks must not depend on a run having happened
+     * (spec 016: dropped, an interviewer's label fell to the interviewee, a false 0%). Null without
+     * access.
      */
     cleaningNames: async (
       accountId: string,
       studyId: string,
-      options: { assign: boolean },
+      options: { assign: boolean; uncoded?: boolean },
     ): Promise<{
       anonymised: boolean
       people: Record<string, { name: string; role: 'interviewer' | 'interviewee'; code: string }[]>
@@ -162,7 +165,8 @@ export const makeEnrichmentSources = (deps: IngestionDeps) => {
           const code = (r.role === 'interviewer' ? interviewers : interviewees).get(
             keyOf(r.role, r.name),
           )
-          return code ? [{ name: r.name, role: r.role, code }] : []
+          if (code) return [{ name: r.name, role: r.role, code }]
+          return options.uncoded ? [{ name: r.name, role: r.role, code: '' }] : []
         })
       return { anonymised: access.anonymised, people }
     },

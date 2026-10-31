@@ -1,4 +1,14 @@
-import { err, makeChunks, newId, ok, type Result, withPlaceholders } from '@goodresearch/shared'
+import {
+  err,
+  isGenericLabel,
+  makeChunks,
+  newId,
+  ok,
+  type Person,
+  type Result,
+  speakerRole,
+  withPlaceholders,
+} from '@goodresearch/shared'
 import {
   canStopFacts,
   type FactsFailure,
@@ -9,7 +19,6 @@ import {
   isFactsRunLive,
 } from '../../domain/analysis-run.ts'
 import { checkFacts, type Fact, isRepeated, isReproposal, type Theme } from '../../domain/facts.ts'
-import { isGenericLabel, type Person, speakerRole } from '../../domain/speakers.ts'
 import {
   checkVerbatims,
   type FoundVerbatim,
@@ -43,6 +52,7 @@ export type StartError =
   | StudyError
   | 'AI_PROVIDER_REQUIRED'
   | 'ENRICHMENT_RUNNING'
+  | 'QUALITY_RUNNING'
   | 'FACTS_RUNNING'
   | 'FACTS_CONSENT_REQUIRED'
   | 'NOTHING_TO_ANALYSE'
@@ -159,6 +169,7 @@ export const makeAnalysisCommands = (deps: EvidenceDeps) => {
     const provider = await deps.ai.providerOf(accountId)
     if (!provider) return err('AI_PROVIDER_REQUIRED')
     if (await deps.sources.enrichmentLive(studyId)) return err('ENRICHMENT_RUNNING')
+    if (await deps.sources.qualityLive(studyId)) return err('QUALITY_RUNNING')
     if (await liveRun(studyId)) return err('FACTS_RUNNING')
     if (!(await deps.store.hasConsent(accountId, studyId, provider))) {
       if (!input.consent) return err('FACTS_CONSENT_REQUIRED')

@@ -17,6 +17,11 @@ import {
   createIngestionModule,
   registerIngestionRoutes,
 } from './modules/ingestion/index.ts'
+import {
+  createInterviewQualityModule,
+  createQualityAi,
+  registerQualityRoutes,
+} from './modules/interview-quality/index.ts'
 import { createPublishingModule, registerPublishingRoutes } from './modules/publishing/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
 import {
@@ -68,6 +73,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
   let ai: ReturnType<typeof createAiGatewayModule> | undefined
   let assistant: ReturnType<typeof createAssistantModule> | undefined
   let evidence: ReturnType<typeof createEvidenceModule> | undefined
+  let quality: ReturnType<typeof createInterviewQualityModule> | undefined
   const bound = <T>(module: T | undefined): T => {
     if (!module) throw new Error('module not composed yet')
     return module
@@ -192,6 +198,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
     // Spec 012: an Analysis run of the study waits for the Enrichment runs, and the reverse.
     factsLive: (studyId) => bound(evidence).factsLive(studyId),
+    // Spec 016: so does a review of the interviews.
+    qualityLive: (studyId) => bound(quality).qualityLive(studyId),
   })
   const r = research.handlers
   evidence = createEvidenceModule({
@@ -225,8 +233,50 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         }
       },
       enrichmentLive: (studyId) => transcripts.enrichmentLive(studyId),
+      qualityLive: (studyId) => bound(quality).qualityLive(studyId),
     },
     ai: createFactsAi({
+      gateway: () => bound(ai).gateway,
+      estimateCost: (...args) => bound(ai).estimateCost(...args),
+      studyCosts: (refs) => bound(ai).studyCosts(refs),
+    }),
+    enqueue: (queue, data, options) => jobs.send(queue, data, options),
+  })
+  const facts = evidence
+  // Spec 016: how the interviews were conducted; it reads what Evidence reads, plus its attributions.
+  quality = createInterviewQualityModule({
+    db: infra.db,
+    clock,
+    sources: {
+      studyAccess: (accountId, studyId) => research.getStudyAccess(accountId, studyId),
+      sessions: async (accountId, studyId) =>
+        (await enrichment.enrichmentSessions(accountId, studyId))?.sessions ?? null,
+      people: async (accountId, studyId, options) =>
+        (await enrichment.cleaningNames(accountId, studyId, { ...options, uncoded: true }))
+          ?.people ?? null,
+      knownNames: async (accountId, studyId) => [
+        ...(await enrichment.knownNames(accountId, studyId)),
+        ...(await transcripts.personNames(accountId, studyId)),
+      ],
+      analysedText: (accountId, studyId, sessionId, mode, options) =>
+        transcripts.analysedText(accountId, studyId, sessionId, mode, options),
+      importTranscripts: (accountId, studyId, sessionIds) =>
+        transcripts.importTranscripts(accountId, studyId, sessionIds),
+      context: async (accountId, studyId) => {
+        const study = await r.studyQueries.getStudy(accountId, studyId)
+        const project = study ? await r.queries.getProject(accountId, study.project.id) : null
+        const guide = await r.preparationQueries.getGuide(accountId, studyId)
+        const sections = guide.ok && guide.value ? guide.value.content.sections : []
+        return {
+          goal: project?.goal ?? '',
+          guide: sections.flatMap((s) => s.questions.map((q) => q.text)),
+        }
+      },
+      speakerAttributions: (sessionId) => facts.speakerAttributions(sessionId),
+      enrichmentLive: (studyId) => transcripts.enrichmentLive(studyId),
+      factsLive: (studyId) => facts.factsLive(studyId),
+    },
+    ai: createQualityAi({
       gateway: () => bound(ai).gateway,
       estimateCost: (...args) => bound(ai).estimateCost(...args),
       studyCosts: (refs) => bound(ai).studyCosts(refs),
@@ -428,6 +478,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     publishing,
     transcripts,
     evidence,
+    quality,
     synthesis,
   }
 }
@@ -449,6 +500,7 @@ export const composeApp = async (
     publishing,
     transcripts,
     evidence,
+    quality,
     synthesis,
   } = modules
   const auth = createAuth({
@@ -473,6 +525,7 @@ export const composeApp = async (
       registerPublishingRoutes(instance, { guard, handlers: publishing.handlers })
       registerTranscriptsRoutes(instance, { guard, handlers: transcripts.handlers })
       registerEvidenceRoutes(instance, { guard, handlers: evidence.handlers })
+      registerQualityRoutes(instance, { guard, handlers: quality.handlers })
       registerSynthesisRoutes(instance, { guard, handlers: synthesis.handlers })
       registerRecommendationRoutes(instance, { guard, handlers: synthesis.handlers })
       registerDebriefRoutes(instance, { guard, handlers: synthesis.handlers })
