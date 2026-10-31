@@ -1,6 +1,7 @@
 <!--
 Sync Impact Report
-- Version: 1.0.0 → 1.1.0 (principle III: sign-in only through external OpenID Connect providers; no passwords)
+- Version: 1.1.0 → 1.2.0 (principle IV: an assessment that applies nothing takes an opinion, spec 016)
+- Previous: 1.0.0 → 1.1.0 (principle III: sign-in only through external OpenID Connect providers; no passwords)
 - Previous: 0.0.0 → 1.0.0 (initial ratification)
 - Principles added: I–IX
 - Templates: plan-template.md "Constitution Check" applies these principles as gates (no template change needed)
@@ -41,6 +42,7 @@ Every feature goes through Spec Kit: `/speckit-specify` → (`/speckit-clarify`)
 ### IV. AI Proposes, Humans Decide
 
 - AI output is a **proposal** (`proposed`) until a human validates or rejects it. A new AI pass never overwrites a human decision or an `edited` object, never re-adds a removed link, and never re-proposes a rejected item.
+- An AI **assessment** of something already done, which applies nothing, may take a person's opinion (agree, disagree) instead of a validation. It counts until someone disagrees, every total shows how much of it people agreed with, disagreed with or have not read, and a new AI pass never overwrites an opinion nor raises again what was disagreed with.
 - Anything the AI quotes from a source is verified verbatim, otherwise discarded.
 - Metrics and scores (confidence, polarity, shares, priority) are computed deterministically by the app, never by the model.
 - Every AI call goes through the AI Gateway, uses schema-constrained output and is recorded in the usage ledger.
@@ -95,4 +97,4 @@ Every feature goes through Spec Kit: `/speckit-specify` → (`/speckit-clarify`)
 - Amendments go through a PR that updates this file, bumps its version (MAJOR: principle removed or redefined; MINOR: principle added or materially extended; PATCH: wording), and updates impacted templates, standards and ADRs.
 - Runtime guidance for contributors and coding agents lives in [AGENTS.md](../../AGENTS.md).
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-24
+**Version**: 1.2.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-31

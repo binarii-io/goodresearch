@@ -33,7 +33,6 @@ import {
 import { CheckIcon, PencilIcon, PlusIcon, Trash2Icon } from '@goodresearch/ui/components/icons'
 import { Input } from '@goodresearch/ui/components/input'
 import { Label } from '@goodresearch/ui/components/label'
-import { Pill } from '@goodresearch/ui/components/page-header'
 import {
   Select,
   SelectContent,
@@ -747,7 +746,7 @@ export function SessionDialog({
             </>
           ) : (
             <>
-              <Pill>{i18n._(SESSION_STATES[view.state])}</Pill>
+              <Badge variant="ghost">{i18n._(SESSION_STATES[view.state])}</Badge>
               <Button variant="outline" disabled={busy} onClick={() => void run('reopen')}>
                 {t`Back to review`}
               </Button>

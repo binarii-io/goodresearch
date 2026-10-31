@@ -1,7 +1,7 @@
 import { type Fact, useDecideFact, useTranslateFact } from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
-import { CheckIcon, PencilIcon, RefreshCwIcon, XIcon } from '@goodresearch/ui/components/icons'
+import { CheckIcon, PencilIcon, SparklesIcon, XIcon } from '@goodresearch/ui/components/icons'
 import { useLingui } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import { errorMessage } from '../workspace/errors.ts'
@@ -113,7 +113,7 @@ export function FactCard({
                   .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
               }
             >
-              <RefreshCwIcon aria-hidden />
+              <SparklesIcon aria-hidden />
               {t`Translate`}
             </Button>
           ) : null}

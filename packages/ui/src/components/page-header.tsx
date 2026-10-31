@@ -59,7 +59,7 @@ function PageBar({
       )}
     >
       {back ? backLink : null}
-      <h1 className="flex min-w-0 flex-1 items-center gap-2.5 text-xl leading-tight md:text-[1.35rem]">
+      <h1 className="flex min-w-64 flex-1 items-center gap-2.5 text-xl leading-tight md:text-[1.35rem]">
         {folded.length > 0 ? (
           <>
             <DropdownMenu>

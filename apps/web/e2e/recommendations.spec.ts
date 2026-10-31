@@ -51,7 +51,7 @@ test.describe('spec 014 — Recommendations and key takeaways', () => {
     await expect(validated).toBeChecked()
 
     // Facts found and accepted in the study (spec 012): what insights read.
-    await page.getByRole('tab', { name: '5 · Analysis' }).click()
+    await page.getByRole('tab', { name: '6 · Analysis' }).click()
     await main.getByRole('button', { name: 'Find facts' }).first().click()
     await page
       .getByRole('alertdialog', { name: 'Find the facts?' })

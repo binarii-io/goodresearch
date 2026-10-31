@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from '@goodresearch/ui/components/alert-dialog'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
+import { SparklesIcon } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -101,6 +102,7 @@ export function RecommendationRunDialog({
                 .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
             }}
           >
+            <SparklesIcon aria-hidden />
             {e?.consentNeeded ? t`Agree and find recommendations` : t`Find recommendations`}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -23,7 +23,7 @@ import {
 } from '@goodresearch/ui/components/alert-dialog'
 import { Button } from '@goodresearch/ui/components/button'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
-import { FileSearchIcon, SquareIcon } from '@goodresearch/ui/components/icons'
+import { HourglassIcon, LoaderCircleIcon, SparklesIcon } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -31,6 +31,7 @@ import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorCode, errorMessage } from '../workspace/errors.ts'
+import { StopButton } from '../workspace/stop-button.tsx'
 import { ANALYSIS_FAILURES, ANALYSIS_STATES } from './labels.ts'
 
 /** Open to changes until a person decides (validated by the app included). */
@@ -176,25 +177,25 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
   if (data.run)
     return (
       <div className="ml-auto flex items-center gap-2" role="status">
+        {data.run.done + data.run.failed === 0 ? (
+          <HourglassIcon aria-hidden className="size-4" />
+        ) : (
+          <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
+        )}
         <span className="text-sm">
           {data.run.stopRequested
             ? t`Stopping…`
             : t`Analyzing: ${data.run.done + data.run.failed} of ${data.run.total}`}
         </span>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={data.run.stopRequested || stop.isPending}
+        <StopButton
+          stopping={data.run.stopRequested || stop.isPending}
           onClick={() =>
             void stop
               .mutateAsync({ studyId, runId: data.run?.id ?? '' })
               .then(refresh)
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
-        >
-          <SquareIcon aria-hidden />
-          {t`Stop`}
-        </Button>
+        />
       </div>
     )
 
@@ -203,7 +204,7 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
   return (
     <>
       <Button className="ml-auto" onClick={() => setOpen(true)}>
-        <FileSearchIcon aria-hidden />
+        <SparklesIcon aria-hidden />
         {t`Analyze interviews`}
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -257,6 +258,7 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
                   .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
               }}
             >
+              <SparklesIcon aria-hidden />
               {e?.consentNeeded ? t`Agree and analyze` : t`Analyze`}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -7,7 +7,13 @@ import {
   useValidateRecommendations,
 } from '@goodresearch/api-client'
 import { Button } from '@goodresearch/ui/components/button'
-import { CheckIcon, PlusIcon, SparklesIcon, SquareIcon } from '@goodresearch/ui/components/icons'
+import {
+  CheckIcon,
+  LoaderCircleIcon,
+  PlusIcon,
+  SparklesIcon,
+  SquareIcon,
+} from '@goodresearch/ui/components/icons'
 import { Segmented, SegmentedItem } from '@goodresearch/ui/components/segmented'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { useLingui } from '@lingui/react/macro'
@@ -133,6 +139,7 @@ export function RecommendationsTab({ projectId }: { projectId: string }) {
         >
           {live ? (
             <>
+              <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
               <span>{run.stopping ? t`Stopping…` : t`Finding recommendations…`}</span>
               <Button
                 size="xs"

@@ -56,6 +56,7 @@ const setup = (
     sessions?: (SourceSession & { text?: string })[]
     anonymised?: boolean
     ai?: ReturnType<typeof fakeCleaningAi>
+    reviewLive?: boolean
   } = {},
 ) => {
   const sessions = options.sessions ?? [session('a', TEXT)]
@@ -85,6 +86,7 @@ const setup = (
     ...t.deps,
     otherRunLive: async (studyId) =>
       isCleaningLive(await memory.store.openCleaningRun(studyId), NOW),
+    reviewLive: async () => options.reviewLive ?? false,
     cleaning: memory.store,
     cleaningAi: ai.ai,
     cleaningNames: names.names,
@@ -471,6 +473,23 @@ describe('one Enrichment run per study (research R6)', () => {
       ok: false,
       error: 'ENRICHMENT_RUNNING',
     })
+  })
+})
+
+describe('a review of the interviews is running (spec 016 FR-013)', () => {
+  it('holds a lexicon reading and a cleaning, and says why', async () => {
+    const s = setup({ reviewLive: true })
+    expect(await s.lexicon.startRun(ACTOR, 'study', { consent: true, all: true })).toEqual({
+      ok: false,
+      error: 'QUALITY_RUNNING',
+    })
+    expect(
+      await s.cleaning.startCleaning(ACTOR, 'study', {
+        mode: 'lexicon',
+        all: false,
+        consent: false,
+      }),
+    ).toEqual({ ok: false, error: 'QUALITY_RUNNING' })
   })
 })
 

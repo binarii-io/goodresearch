@@ -28,11 +28,12 @@ import {
   FileTextIcon,
   HourglassIcon,
   LoaderCircleIcon,
+  SparklesIcon,
   SpellCheckIcon,
-  SquareIcon,
   TriangleAlertIcon,
 } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
+import { Progress } from '@goodresearch/ui/components/progress'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
 import {
@@ -43,7 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from '@goodresearch/ui/components/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
+import { Tabs, TabsBar, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
 import { plural, t } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -53,6 +54,7 @@ import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
 import { type ReadingItem, ReadingList } from '../workspace/reading-list.tsx'
+import { StopButton } from '../workspace/stop-button.tsx'
 import { CleaningTable, cleaning } from './cleaning-table.tsx'
 import { InterviewCleaningView } from './interview-cleaning.tsx'
 import { ENRICHMENT_STATES, LEXICON_FAILURES, READING_STATES } from './labels.ts'
@@ -145,13 +147,12 @@ export function EnrichmentTab({
     <div className="grid gap-6">
       <Overview data={data} />
       <Tabs value={tab} onValueChange={setTab} className="gap-4">
-        <div className="flex flex-wrap items-center gap-3">
+        <TabsBar action={<FindTerms studyId={studyId} data={data} />}>
           <TabsList aria-label={t`Lexicon`}>
             <TabsTrigger value="lexicon">{t`Lexicon (${data.counts.toDecide} to decide)`}</TabsTrigger>
             <TabsTrigger value="interviews">{t`Interviews (${data.interviews.length})`}</TabsTrigger>
           </TabsList>
-          <FindTerms studyId={studyId} data={data} />
-        </div>
+        </TabsBar>
         {reading(data) ? <ReadingProgress studyId={studyId} data={data} /> : null}
         {data.run?.finished && data.run.failure ? (
           <p className="flex items-center gap-2 text-sm" role="status">
@@ -263,27 +264,29 @@ function FindTerms({ studyId, data }: { studyId: string; data: Enrichment }) {
                   : t`Finding the terms…`
                 : t`Counting the terms…`}
         </span>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={stop.isPending}
+        <Progress
+          aria-label={t`Progress`}
+          value={
+            run.phase === 'ai' && run.batchesTotal > 0 ? run.batchesDone : run.done + run.failed
+          }
+          max={run.phase === 'ai' && run.batchesTotal > 0 ? run.batchesTotal : run.total}
+        />
+        <StopButton
+          stopping={stop.variables?.runId === run.id && !stop.isError}
           onClick={() =>
             void stop
               .mutateAsync({ studyId, runId: run.id })
               .then(() => refreshLexicon(queryClient, studyId))
               .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
           }
-        >
-          <SquareIcon aria-hidden />
-          {t`Stop`}
-        </Button>
+        />
       </div>
     )
 
   return (
     <>
       <Button className="ml-auto" onClick={() => setOpen(true)}>
-        <SpellCheckIcon aria-hidden />
+        <SparklesIcon aria-hidden />
         {t`Find terms`}
       </Button>
       <FindTermsDialog studyId={studyId} open={open} onOpenChange={setOpen} />
@@ -470,6 +473,7 @@ function FindTermsDialog({
                 .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
             }}
           >
+            <SparklesIcon aria-hidden />
             {e?.consentNeeded ? t`Agree and find terms` : t`Find terms`}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -506,7 +510,7 @@ function FindTermsOneButton({
         }
         onClick={() => (onOpen ? onOpen() : setOpen(true))}
       >
-        <SpellCheckIcon aria-hidden />
+        <SparklesIcon aria-hidden />
         {read ? t`Find terms again` : t`Find terms`}
       </Button>
       {onOpen ? null : (
@@ -585,7 +589,7 @@ function Interviews({
               </TableCell>
               <TableCell>
                 {i.reading === 'waiting' || i.reading === 'reading' ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm">
+                  <span className="inline-flex items-center gap-1.5 text-sm" role="status">
                     {i.reading === 'waiting' ? (
                       <HourglassIcon aria-hidden className="size-4" />
                     ) : (
@@ -594,7 +598,7 @@ function Interviews({
                     {i18n._(READING_STATES[i.reading])}
                   </span>
                 ) : i.reading === 'done' && step ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm">
+                  <span className="inline-flex items-center gap-1.5 text-sm" role="status">
                     <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
                     {step}
                   </span>

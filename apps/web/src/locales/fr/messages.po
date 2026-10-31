@@ -143,6 +143,12 @@ msgstr "{0} acceptés"
 msgid "{0} accepted, {1} left to decide"
 msgstr "{0} acceptés, {1} restent à décider"
 
+#. placeholder {0}: b.agreed
+#. placeholder {1}: b.noOpinion
+#: src/features/quality/figures.tsx
+msgid "{0} agreed, {1} no opinion"
+msgstr "{0} d'accord, {1} sans avis"
+
 #. placeholder {0}: data.run.leftOut
 #: src/features/enrichment/cleaning-table.tsx
 msgid "{0} AI corrections were left out by the app's checks (not found in the turn, too long, or on a name)."
@@ -243,6 +249,7 @@ msgstr "{0} entretiens seront lus : jamais lus, ou dont la transcription a chang
 #. placeholder {1}: e.chunks
 #: src/features/analysis/find-facts.tsx
 #: src/features/enrichment/cleaning-table.tsx
+#: src/features/quality/review-dialog.tsx
 msgid "{0} interviews, about {1} parts for the AI: about {cost} with your AI provider."
 msgstr "{0} entretiens, environ {1} morceaux pour l’IA : environ {cost} avec votre fournisseur IA."
 
@@ -250,6 +257,11 @@ msgstr "{0} entretiens, environ {1} morceaux pour l’IA : environ {cost} avec v
 #: src/features/enrichment/cleaning-table.tsx
 msgid "{0} interviews, no cost."
 msgstr "{0} entretiens, sans coût."
+
+#. placeholder {0}: e.interviews
+#: src/features/quality/review-dialog.tsx
+msgid "{0} interviews: the cost is known once their transcripts are imported."
+msgstr "{0} entretiens : le coût sera connu une fois leurs transcriptions importées."
 
 #. placeholder {0}: v.ids.length
 #: src/features/preparation/drive-review.tsx
@@ -273,11 +285,22 @@ msgstr "{0} participants de plus ont des faits encore à valider."
 msgid "{0} more transcripts are in the folder: a study holds at most 500 interviews."
 msgstr "{0} autres transcriptions sont dans le dossier : une étude contient au plus 500 entretiens."
 
+#. placeholder {0}: figures.simpleReformulations
+#. placeholder {1}: figures.sentences
+#: src/features/quality/figures.tsx
+msgid "{0} of {1}"
+msgstr "{0} sur {1}"
+
 #. placeholder {0}: slide.support
 #. placeholder {1}: slide.panel
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0} of {1} participants"
 msgstr "{0} participants sur {1}"
+
+#. placeholder {0}: leading.questions.agreed + leading.questions.noOpinion
+#: src/features/quality/quality-tab.tsx
+msgid "{0} of {questions}"
+msgstr "{0} sur {questions}"
 
 #. placeholder {0}: c.support
 #. placeholder {1}: c.counter
@@ -305,6 +328,11 @@ msgstr "{0} recommandations du dernier passage ont été écartées : aucun insi
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "{0} recommendations rest only on insights still to decide: validate their insights first."
 msgstr "{0} recommandations ne reposent que sur des insights encore à décider : validez d'abord leurs insights."
+
+#. placeholder {0}: remarks.data.total
+#: src/features/quality/remarks-list.tsx
+msgid "{0} remarks"
+msgstr "{0} remarques"
 
 #. placeholder {0}: facts.length
 #. placeholder {1}: data.facts.length
@@ -334,6 +362,11 @@ msgstr "{0} faits en soutien, {1} contre"
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "{0} to decide · {1} accepted · {2} rejected"
 msgstr "{0} à décider · {1} acceptées · {2} refusées"
+
+#. placeholder {0}: figures.turnsSkipped
+#: src/features/quality/figures.tsx
+msgid "{0} turns were not reviewed; attribute their speakers in Analysis."
+msgstr "{0} tours de parole n'ont pas été relus ; attribuez leurs locuteurs dans Analyse."
 
 #. placeholder {0}: i.lost
 #: src/features/analysis/analysis-tab.tsx
@@ -365,6 +398,11 @@ msgstr "{count} fois dans {0} entretiens"
 msgid "{count} words"
 msgstr "{count} mots"
 
+#. placeholder {0}: b.disagreed
+#: src/features/quality/figures.tsx
+msgid "{counts}; {0} disagreed, not counted"
+msgstr "{counts} ; {0} pas d'accord, non comptés"
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{excluded} excluded"
 msgstr "{excluded} exclus"
@@ -381,6 +419,10 @@ msgstr "{linked} avec transcription · {0} sans"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{missing} missing in Drive"
 msgstr "{missing} absentes de Drive"
+
+#: src/features/quality/figures.tsx
+msgid "{n} of {of}"
+msgstr "{n} sur {of}"
 
 #: src/features/ai/provider-forms.tsx
 msgid "{name} API key"
@@ -472,8 +514,16 @@ msgid "4 · Enrichment"
 msgstr "4 · Enrichissement"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
-msgid "5 · Analysis"
-msgstr "5 · Analyse"
+msgid "5 · Quality"
+msgstr "5 · Qualité"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "6 · Analysis"
+msgstr "6 · Analyse"
+
+#: src/features/quality/requalify-dialog.tsx
+msgid "A better wording (optional)"
+msgstr "Une meilleure formulation (facultatif)"
 
 #: src/features/workspace/errors.ts
 msgid "A correction is at most 200 characters."
@@ -531,6 +581,14 @@ msgstr "Un projet porte une question de recherche : ce que vous voulez apprendre
 msgid "A recommendation needs at least one validated insight: validate its insights first."
 msgstr "Une recommandation a besoin d'au moins un insight validé : validez d'abord ses insights."
 
+#: src/features/quality/requalify-dialog.tsx
+msgid "A reformulation with opinion?"
+msgstr "Une reformulation avec opinion ?"
+
+#: src/features/workspace/errors.ts
+msgid "A remark made by a person can only be withdrawn."
+msgstr "Une remarque faite par une personne peut seulement être retirée."
+
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "A role or a team"
 msgstr "Un rôle ou une équipe"
@@ -538,6 +596,10 @@ msgstr "Un rôle ou une équipe"
 #: src/features/analysis/fact-dialog.tsx
 msgid "A short, neutral statement of what the interviewee says, without any name. Write it in one language: the other is translated."
 msgstr "Un énoncé court et neutre de ce que dit l'interviewé, sans aucun nom. Écrivez-le dans une langue : l'autre est traduite."
+
+#: src/features/quality/figures.tsx
+msgid "A simple reformulation rests only on what the interviewee said, to check understanding: good practice, never counted as leading. The app cuts sentences at their ends; a turn without punctuation is one sentence, and \"OK.\" or \"I see.\" is not counted."
+msgstr "Une reformulation simple repose uniquement sur ce qu'a dit la personne interviewée, pour vérifier la compréhension : une bonne pratique, jamais comptée comme orientée. L'app coupe les phrases à leur fin ; un tour sans ponctuation compte pour une phrase, et « OK. » ou « Je vois. » ne comptent pas."
 
 #: src/features/research/study-list.tsx
 msgid "A study is one way of collecting evidence for the project's research question."
@@ -717,6 +779,7 @@ msgstr "Action enregistrée"
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/preparation/schedule.tsx
+#: src/features/quality/quality-tab.tsx
 msgid "Actions"
 msgstr "Actions"
 
@@ -787,6 +850,10 @@ msgstr "Ajouter à un fait"
 msgid "Add to the schedule"
 msgstr "Ajouter au planning"
 
+#: src/features/quality/remark-card.tsx
+msgid "Added by a person"
+msgstr "Ajoutée par une personne"
+
 #: src/features/fieldwork/labels.ts
 msgid "added by hand"
 msgstr "ajouté à la main"
@@ -803,6 +870,11 @@ msgstr "Admin"
 #: src/features/synthesis/insight-panel.tsx
 msgid "Against"
 msgstr "Contre"
+
+#: src/features/quality/remark-card.tsx
+#: src/features/quality/remarks-list.tsx
+msgid "Agree"
+msgstr "D'accord"
 
 #: src/features/fieldwork/analysis.tsx
 msgid "Agree and analyze"
@@ -831,6 +903,10 @@ msgstr "Accepter et trouver les termes"
 #: src/features/analysis/find-facts.tsx
 msgid "Agree and find the facts"
 msgstr "Accepter et trouver les faits"
+
+#: src/features/quality/review-dialog.tsx
+msgid "Agree and review"
+msgstr "Accepter et relire"
 
 #: src/features/workspace/errors.ts
 msgid "Agree to send excerpts to your AI provider first."
@@ -883,6 +959,7 @@ msgstr "IA, d’après le lexique"
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/quality/remarks-list.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insights-picker.tsx
 #: src/features/synthesis/insights-tab.tsx
@@ -969,6 +1046,10 @@ msgstr "Relire aussi les entretiens déjà analysés"
 msgid "Also read again the interviews already read"
 msgstr "Relire aussi les entretiens déjà lus"
 
+#: src/features/quality/review-dialog.tsx
+msgid "Also read again the interviews already reviewed"
+msgstr "Relire aussi les entretiens déjà relus"
+
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "Also read the facts still to decide"
 msgstr "Lire aussi les faits encore à décider"
@@ -985,7 +1066,12 @@ msgstr "Utiliser aussi ce qui est encore à décider"
 msgid "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 msgstr "Un insight a besoin d'au moins un fait accepté en soutien : acceptez d'abord ses faits à valider."
 
+#: src/features/quality/interview-view.tsx
+msgid "An interviewee"
+msgstr "Une personne interviewée"
+
 #: src/features/analysis/interview-facts.tsx
+#: src/features/quality/interview-view.tsx
 msgid "An interviewer"
 msgstr "Un intervieweur"
 
@@ -1220,6 +1306,10 @@ msgid "Back to the cleaning"
 msgstr "Retour au nettoyage"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Back to the interviews"
+msgstr "Retour aux entretiens"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Back to the project"
 msgstr "Retour au projet"
 
@@ -1232,6 +1322,10 @@ msgstr "lot {0} sur {1}"
 #: src/features/preparation/preparation-tab.tsx
 msgid "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews. Each one can be published to the study's Drive folder: edits made there come back here for review."
 msgstr "Avant les entretiens : construire le guide d’entretien à partir de l’objectif de recherche, relire les bonnes pratiques, puis planifier les entretiens. Chacun peut être publié dans le dossier Drive de l’étude : les modifications faites là-bas reviennent ici pour être revues."
+
+#: src/features/quality/labels.ts
+msgid "Being reviewed"
+msgstr "En cours de revue"
 
 #: src/features/fieldwork/labels.ts
 msgid "Belongs to the interview"
@@ -1271,6 +1365,16 @@ msgstr "par {0}, {1}"
 msgid "by {actor}"
 msgstr "par {actor}"
 
+#. placeholder {0}: data.interviews.length
+#: src/features/quality/quality-tab.tsx
+msgid "By interview ({0})"
+msgstr "Par entretien ({0})"
+
+#. placeholder {0}: data.people.length
+#: src/features/quality/quality-tab.tsx
+msgid "By person ({0})"
+msgstr "Par personne ({0})"
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "by the app: its transcript was found"
 msgstr "par l'app : sa transcription a été trouvée"
@@ -1298,6 +1402,8 @@ msgstr "Je ne sais pas : {excerpt}"
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/guide-editor.tsx
 #: src/features/preparation/schedule.tsx
+#: src/features/quality/requalify-dialog.tsx
+#: src/features/quality/review-dialog.tsx
 #: src/features/synthesis/debrief-tab.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
@@ -1546,6 +1652,7 @@ msgstr "Cliquer pour modifier"
 #: src/features/preparation/best-practices.tsx
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/schedule.tsx
+#: src/features/quality/requalify-dialog.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/features/research/study-settings.tsx
@@ -1679,6 +1786,7 @@ msgstr "Corrections à décider ({0})"
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/cleaning-table.tsx
+#: src/features/quality/quality-tab.tsx
 msgid "Cost"
 msgstr "Coût"
 
@@ -1700,6 +1808,11 @@ msgstr "Coût des nettoyages"
 msgid "Cost of the readings"
 msgstr "Coût des lectures"
 
+#: src/features/quality/interview-view.tsx
+#: src/features/quality/quality-tab.tsx
+msgid "Cost of the reviews"
+msgstr "Coût des revues"
+
 #: src/features/assistant/cost.tsx
 msgid "Cost of this conversation: {total}. Last message: {last}."
 msgstr "Coût de cette conversation : {total}. Dernier message : {last}."
@@ -1710,6 +1823,7 @@ msgid "cost unknown"
 msgstr "coût inconnu"
 
 #: src/features/analysis/interview-facts.tsx
+#: src/features/quality/interview-view.tsx
 msgid "Cost:"
 msgstr "Coût :"
 
@@ -1752,6 +1866,7 @@ msgstr "Décompte des entretiens à nettoyer…"
 
 #: src/features/analysis/find-facts.tsx
 #: src/features/enrichment/enrichment-tab.tsx
+#: src/features/quality/review-dialog.tsx
 msgid "Counting the interviews to read…"
 msgstr "Calcul des entretiens à lire…"
 
@@ -1971,6 +2086,11 @@ msgstr "Détails de « {0} »"
 msgid "Development only: keys starting with \"test-ok\" work."
 msgstr "Développement uniquement : les clés commençant par \"test-ok\" fonctionnent."
 
+#: src/features/quality/remark-card.tsx
+#: src/features/quality/remarks-list.tsx
+msgid "Disagree"
+msgstr "Pas d'accord"
+
 #: src/routes/_authenticated/sources.tsx
 msgid "Disconnect"
 msgstr "Déconnecter"
@@ -2175,6 +2295,10 @@ msgstr "Tous les entretiens sont déjà lus."
 msgid "Every interview is already read. Tick the box below to read them again."
 msgstr "Tous les entretiens sont déjà lus. Cochez la case ci-dessous pour les relire."
 
+#: src/features/workspace/errors.ts
+msgid "Every interview is already reviewed."
+msgstr "Tous les entretiens sont déjà relus."
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Every person needs a name before you save or validate."
 msgstr "Chaque personne doit avoir un nom avant d'enregistrer ou de valider."
@@ -2312,6 +2436,7 @@ msgstr "Faits à valider ({0})"
 #: src/features/ai/provider-forms.tsx
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
+#: src/features/quality/labels.ts
 msgid "Failed"
 msgstr "Échec"
 
@@ -2355,12 +2480,12 @@ msgstr "Trouver les faits"
 
 #: src/features/analysis/find-facts.tsx
 msgid "Find facts again"
-msgstr "Retrouver les faits"
+msgstr "Trouver les faits à nouveau"
 
 #. placeholder {0}: interview.title
 #: src/features/analysis/find-facts.tsx
 msgid "Find facts again: {0}"
-msgstr "Retrouver les faits : {0}"
+msgstr "Trouver les faits à nouveau : {0}"
 
 #. placeholder {0}: interview.title
 #: src/features/analysis/find-facts.tsx
@@ -2391,12 +2516,12 @@ msgstr "Trouver les termes"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Find terms again"
-msgstr "Retrouver les termes"
+msgstr "Trouver les termes à nouveau"
 
 #. placeholder {0}: interview.title
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Find terms again: {0}"
-msgstr "Retrouver les termes : {0}"
+msgstr "Trouver les termes à nouveau : {0}"
 
 #. placeholder {0}: interview.title
 #: src/features/enrichment/enrichment-tab.tsx
@@ -2606,6 +2731,7 @@ msgstr "Obtenir une clé chez {name}"
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
+#: src/features/quality/quality-tab.tsx
 msgid "Go to Fieldwork"
 msgstr "Aller à la Passation"
 
@@ -2784,6 +2910,22 @@ msgstr "Élevée à partir de {0} participants en soutien (5, ou 30 % du panel s
 msgid "Highlight what an interviewee says to add it as a verbatim."
 msgstr "Surlignez ce que dit un interviewé pour l'ajouter comme verbatim."
 
+#: src/features/quality/figures.tsx
+msgid "How leading sentences are counted"
+msgstr "Comment les phrases orientées sont comptées"
+
+#: src/features/quality/figures.tsx
+msgid "How sentences are counted"
+msgstr "Comment les phrases sont comptées"
+
+#: src/features/quality/figures.tsx
+msgid "How the interviewer's talk share is counted"
+msgstr "Comment la part de parole de l'intervieweur est comptée"
+
+#: src/features/quality/figures.tsx
+msgid "How the interviews were conducted"
+msgstr "Comment les entretiens se sont déroulés"
+
 #: src/features/enrichment/cleaning-table.tsx
 msgid "How to clean"
 msgstr "Comment nettoyer"
@@ -2953,6 +3095,7 @@ msgstr "Insights à valider ({0})"
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/session-dialog.tsx
+#: src/features/quality/quality-tab.tsx
 msgid "Interview"
 msgstr "Entretien"
 
@@ -3012,6 +3155,18 @@ msgstr "interviewé"
 msgid "Interviewee"
 msgstr "Personne interviewée"
 
+#. placeholder {0}: share(words.interviewees)
+#: src/features/quality/figures.tsx
+msgid "Interviewees {0}"
+msgstr "Personnes interviewées {0}"
+
+#. placeholder {0}: share(words.interviewees)
+#. placeholder {1}: round(minutes.interviewers)
+#. placeholder {2}: round(minutes.interviewees)
+#: src/features/quality/figures.tsx
+msgid "Interviewees {0}. About {1} min and {2} min."
+msgstr "Personnes interviewées {0}. Environ {1} min et {2} min."
+
 #: src/features/analysis/interview-facts.tsx
 msgid "interviewer"
 msgstr "intervieweur"
@@ -3019,6 +3174,19 @@ msgstr "intervieweur"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Interviewer"
 msgstr "Intervieweur"
+
+#: src/features/quality/use-person-label.ts
+msgid "Interviewer {n}"
+msgstr "Intervieweur {n}"
+
+#: src/features/quality/use-person-label.ts
+msgid "Interviewer not identified"
+msgstr "Intervieweur non identifié"
+
+#: src/features/quality/figures.tsx
+#: src/features/quality/quality-tab.tsx
+msgid "Interviewer talk share"
+msgstr "Part de parole de l'intervieweur"
 
 #. placeholder {0}: who.interviewers.join(', ')
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -3035,6 +3203,7 @@ msgid "Interviewers"
 msgstr "Intervieweurs"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/quality/quality-tab.tsx
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
 msgid "Interviews"
@@ -3047,6 +3216,10 @@ msgstr "Entretiens"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Interviews ({0})"
 msgstr "Entretiens ({0})"
+
+#: src/features/quality/quality-tab.tsx
+msgid "Interviews are validated in Fieldwork; how they were conducted shows here."
+msgstr "Les entretiens se valident dans Passation ; leur déroulement s'affiche ici."
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Interviews are validated in Fieldwork; their terms are found here."
@@ -3109,6 +3282,10 @@ msgstr "Investiguer"
 msgid "Invited"
 msgstr "Invité"
 
+#: src/features/quality/remarks-list.tsx
+msgid "It adds something"
+msgstr "Elle ajoute quelque chose"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "it could not be started; try again in a moment"
 msgstr "il n'a pas pu démarrer ; réessayez dans un instant"
@@ -3160,6 +3337,14 @@ msgstr "Ses graphies deviennent celles du terme choisi, qui est alors accepté. 
 msgid "Jargon"
 msgstr "Jargon"
 
+#: src/features/quality/remark-card.tsx
+msgid "Just after:"
+msgstr "Juste après :"
+
+#: src/features/quality/remark-card.tsx
+msgid "Just before:"
+msgstr "Juste avant :"
+
 #: src/features/preparation/guide-editor.tsx
 msgid "Keep at least one section."
 msgstr "Gardez au moins une section."
@@ -3190,6 +3375,7 @@ msgstr "Points clés à rédiger dans l’onglet Recommandations."
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/guide-editor.tsx
+#: src/features/quality/remarks-list.tsx
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -3250,8 +3436,26 @@ msgstr "Dernière vérification réussie"
 
 #. placeholder {0}: money(data.lastRunCost)
 #: src/features/analysis/analysis-tab.tsx
+#: src/features/quality/quality-tab.tsx
 msgid "Last: {0}"
 msgstr "Dernière : {0}"
+
+#: src/features/quality/labels.ts
+msgid "Leading question"
+msgstr "Question orientée"
+
+#: src/features/quality/figures.tsx
+#: src/features/quality/quality-tab.tsx
+msgid "Leading questions"
+msgstr "Questions orientées"
+
+#: src/features/quality/figures.tsx
+msgid "Leading questions, reformulations with opinion and opinions, out of all the interviewers' sentences. Reference value: 5% at most."
+msgstr "Questions orientées, reformulations avec opinion et opinions, sur toutes les phrases des intervieweurs. Valeur de référence : 5 % au plus."
+
+#: src/features/quality/figures.tsx
+msgid "Leading sentences"
+msgstr "Phrases orientées"
 
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Leave the presentation"
@@ -3348,6 +3552,10 @@ msgstr "Principale"
 #: src/features/synthesis/deck-slide.tsx
 msgid "Major projects"
 msgstr "Chantiers structurants"
+
+#: src/features/quality/requalify-dialog.tsx
+msgid "Make it a remark"
+msgstr "En faire une remarque"
 
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "Matrix"
@@ -3711,6 +3919,14 @@ msgstr "Aucun entretien ne correspond à ces filtres."
 msgid "No interview planned yet."
 msgstr "Aucun entretien planifié pour l’instant."
 
+#: src/features/quality/quality-tab.tsx
+msgid "No interview reviewed yet: the figures come after a review."
+msgstr "Aucun entretien relu : les chiffres viennent après une relecture."
+
+#: src/features/quality/review-dialog.tsx
+msgid "No interview to read for now. Those already reviewed can be read again with the box below."
+msgstr "Aucun entretien à lire pour le moment. Ceux déjà relus peuvent être relus avec la case ci-dessous."
+
 #: src/features/synthesis/labels.ts
 msgid "No longer accepted"
 msgstr "N'est plus accepté"
@@ -3718,6 +3934,10 @@ msgstr "N'est plus accepté"
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "No name, no verbatim and no interview title is sent."
 msgstr "Aucun nom, aucun verbatim et aucun titre d'entretien n'est envoyé."
+
+#: src/features/quality/remarks-list.tsx
+msgid "No opinion"
+msgstr "Sans avis"
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "No planned interview"
@@ -3739,14 +3959,35 @@ msgstr "Aucune recommandation ne correspond à ces filtres."
 msgid "No recording found for this interview."
 msgstr "Aucun enregistrement trouvé pour cet entretien."
 
+#: src/features/quality/interview-view.tsx
+#: src/features/quality/remarks-list.tsx
+msgid "No remark here."
+msgstr "Aucune remarque ici."
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "No research goal written (project page)."
 msgstr "Enjeu non renseigné (page du projet)."
+
+#: src/features/quality/quality-tab.tsx
+msgid "No review yet"
+msgstr "Pas encore de revue"
+
+#: src/features/quality/interview-view.tsx
+msgid "No review yet: the remarks come after one."
+msgstr "Pas encore de revue : les remarques viennent après."
+
+#: src/features/quality/remarks-list.tsx
+msgid "No simple reformulation here."
+msgstr "Aucune reformulation simple ici."
 
 #: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "No speaker"
 msgstr "Sans intervenant"
+
+#: src/features/quality/interview-view.tsx
+msgid "No speaker found in this transcript."
+msgstr "Aucun locuteur trouvé dans cette transcription."
 
 #: src/features/research/study-list.tsx
 msgid "No study yet. A study collects evidence for this project, for example a series of interviews."
@@ -3767,6 +4008,7 @@ msgstr "Aucun terme ne correspond à ces filtres."
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/quality/labels.ts
 msgid "No transcript"
 msgstr "Pas de transcription"
 
@@ -3788,6 +4030,7 @@ msgstr "Aucune transcription dans le dossier pour l'instant. Les transcriptions 
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
+#: src/features/quality/quality-tab.tsx
 msgid "No validated interview yet."
 msgstr "Aucun entretien validé pour le moment."
 
@@ -3808,6 +4051,7 @@ msgid "Not applied"
 msgstr "Non appliquée"
 
 #: src/features/analysis/labels.ts
+#: src/features/quality/labels.ts
 msgid "Not clean yet"
 msgstr "Pas encore nettoyé"
 
@@ -3818,6 +4062,10 @@ msgstr "Non nettoyé"
 #: src/routes/_authenticated/sources.tsx
 msgid "Not connected. You will be asked to connect when you attach a folder to a study."
 msgstr "Non connecté. La connexion vous sera demandée quand vous rattacherez un dossier à une étude."
+
+#: src/features/quality/figures.tsx
+msgid "Not counted as leading"
+msgstr "Non comptées comme orientées"
 
 #: src/features/workspace/not-found.tsx
 msgid "Not found"
@@ -3831,9 +4079,17 @@ msgstr "Dans aucun insight"
 msgid "Not in the schedule yet. This row will be added:"
 msgstr "Pas encore dans le planning. Cette ligne sera ajoutée :"
 
+#: src/features/quality/labels.ts
+msgid "Not measurable"
+msgstr "Non mesurable"
+
 #: src/features/enrichment/labels.ts
 msgid "Not read"
 msgstr "Non lu"
+
+#: src/features/quality/labels.ts
+msgid "Not reviewed"
+msgstr "Non relu"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Not run"
@@ -3935,6 +4191,10 @@ msgstr "sur {withTranscript} avec une transcription"
 #: src/features/synthesis/insight-panel.tsx
 msgid "Once validated: {0}"
 msgstr "Une fois validés : {0}"
+
+#: src/features/workspace/errors.ts
+msgid "Only a remark made by a person can be withdrawn."
+msgstr "Seule une remarque faite par une personne peut être retirée."
 
 #: src/features/workspace/errors.ts
 msgid "Only admins can do this."
@@ -4055,6 +4315,19 @@ msgstr "Projet ouvert :"
 msgid "Opened the study"
 msgstr "Étude ouverte :"
 
+#: src/features/quality/remark-card.tsx
+#: src/features/quality/remarks-list.tsx
+msgid "Opinion"
+msgstr "Avis"
+
+#: src/features/quality/labels.ts
+msgid "Opinion or suggestion"
+msgstr "Opinion ou suggestion"
+
+#: src/features/quality/review-dialog.tsx
+msgid "Opinions already given stay as they are."
+msgstr "Les avis déjà donnés restent tels quels."
+
 #: src/features/preparation/drive-review.tsx
 msgid "Order changed in Drive"
 msgstr "Ordre modifié dans le Drive"
@@ -4108,6 +4381,10 @@ msgstr "Pas à jour : modifié dans l’app"
 msgid "Outside the project"
 msgstr "Hors du projet"
 
+#: src/features/quality/quality-tab.tsx
+msgid "Overall"
+msgstr "Global"
+
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Overview"
 msgstr "Vue d'ensemble"
@@ -4145,6 +4422,14 @@ msgstr "Pages du lexique"
 #: src/features/synthesis/insight-panel.tsx
 msgid "Panel"
 msgstr "Panel"
+
+#. placeholder {0}: i.reading.chunksDone
+#. placeholder {0}: reading.chunksDone
+#. placeholder {1}: i.reading.chunks
+#. placeholder {1}: reading.chunks
+#: src/features/quality/quality-tab.tsx
+msgid "Part {0} of {1}"
+msgstr "Partie {0} sur {1}"
 
 #: src/features/preparation/labels.ts
 msgid "partial"
@@ -4196,6 +4481,7 @@ msgid "Permission to call models"
 msgstr "Droit d'appeler les modèles"
 
 #: src/features/enrichment/labels.ts
+#: src/features/quality/quality-tab.tsx
 msgid "Person"
 msgstr "Personne"
 
@@ -4310,6 +4596,12 @@ msgstr "Priorité {0}"
 msgid "Product"
 msgstr "Produit"
 
+#: src/features/analysis/analysis-tab.tsx
+#: src/features/enrichment/enrichment-tab.tsx
+#: src/features/quality/quality-tab.tsx
+msgid "Progress"
+msgstr "Progression"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Project"
 msgstr "Projet"
@@ -4414,6 +4706,10 @@ msgstr "Publication…"
 msgid "Q{n}"
 msgstr "Q{n}"
 
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Quality for this type of study is coming in a later version."
+msgstr "La qualité pour ce type d'étude arrivera dans une prochaine version."
+
 #: src/features/preparation/drive-review.tsx
 msgid "Question"
 msgstr "Question"
@@ -4435,6 +4731,11 @@ msgstr "Question, objectifs, hypothèses"
 #: src/features/synthesis/recommendation-matrix.tsx
 msgid "Quick wins"
 msgstr "Gains rapides"
+
+#. placeholder {0}: remark.recommendation
+#: src/features/quality/remark-card.tsx
+msgid "Rather: « {0} »"
+msgstr "Plutôt : « {0} »"
 
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Rationale"
@@ -4496,6 +4797,14 @@ msgstr "Enregistrements"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Recordings matched by the app, and the ones no other interview uses."
 msgstr "Les enregistrements rattachés par l'app, et ceux qu'aucun autre entretien n'utilise."
+
+#: src/features/quality/labels.ts
+msgid "Reformulation with opinion"
+msgstr "Reformulation avec opinion"
+
+#: src/features/quality/figures.tsx
+msgid "Reformulations with opinion"
+msgstr "Reformulations avec opinion"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/ingestion/source-panel.tsx
@@ -4566,6 +4875,11 @@ msgstr "Rejetée"
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Reload"
 msgstr "Recharger"
+
+#: src/features/quality/interview-view.tsx
+#: src/features/quality/remarks-list.tsx
+msgid "Remarks"
+msgstr "Remarques"
 
 #: src/features/preparation/schedule.tsx
 #: src/routes/_authenticated/ai-provider.tsx
@@ -4699,26 +5013,81 @@ msgid "Retry {0} files"
 msgstr "Réessayer {0} fichiers"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/quality/review-dialog.tsx
 msgid "Review"
 msgstr "Revoir"
+
+#: src/features/quality/labels.ts
+msgctxt "interview quality"
+msgid "Review"
+msgstr "Relire"
+
+#. placeholder {0}: interview.title
+#: src/features/quality/review-dialog.tsx
+msgid "Review “{0}”?"
+msgstr "Relire « {0} » ?"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Review {name}"
 msgstr "Revoir {name}"
+
+#: src/features/quality/labels.ts
+msgid "Review again"
+msgstr "Relire à nouveau"
+
+#: src/features/quality/labels.ts
+msgid "Review anyway"
+msgstr "Relire quand même"
+
+#: src/features/quality/quality-tab.tsx
+msgid "Review in progress"
+msgstr "Revue en cours"
 
 #: src/features/preparation/drive-publishing.tsx
 #: src/features/preparation/drive-review.tsx
 msgid "Review the changes from Drive"
 msgstr "Revoir les modifications du Drive"
 
+#: src/features/quality/quality-tab.tsx
+msgid "Review the interviews"
+msgstr "Relire les entretiens"
+
+#: src/features/quality/review-dialog.tsx
+msgid "Review the interviews?"
+msgstr "Relire les entretiens ?"
+
 #: src/features/preparation/drive-publishing.tsx
 msgid "Review them first"
 msgstr "Les revoir d’abord"
 
+#: src/features/quality/labels.ts
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Reviewed"
 msgstr "Vérifié"
+
+#: src/features/quality/labels.ts
+msgctxt "interview quality"
+msgid "Reviewed"
+msgstr "Relu"
+
+#: src/features/quality/labels.ts
+msgid "Reviewing"
+msgstr "En relecture"
+
+#. placeholder {0}: run.done + run.failed
+#. placeholder {1}: run.total
+#: src/features/quality/quality-tab.tsx
+msgid "Reviewing: {0} of {1} interviews"
+msgstr "Relecture : {0} entretiens sur {1}"
+
+#. placeholder {0}: run.chunksDone
+#. placeholder {1}: run.chunks
+#. placeholder {2}: run.done + run.failed
+#. placeholder {3}: run.total
+#: src/features/quality/quality-tab.tsx
+msgid "Reviewing: part {0} of {1}, {2} of {3} interviews"
+msgstr "Relecture : partie {0} sur {1}, {2} entretiens sur {3}"
 
 #: src/features/enrichment/labels.ts
 #: src/features/preparation/schedule.tsx
@@ -4793,13 +5162,26 @@ msgstr "Enregistrer accepte le terme avec les graphies que vous gardez."
 msgid "Say what a transcription error should read."
 msgstr "Indiquez ce que doit dire une erreur de transcription."
 
+#: src/features/quality/quality-tab.tsx
+msgid "Say who speaks"
+msgstr "Dire qui parle"
+
 #: src/features/workspace/errors.ts
 msgid "Say who speaks in this interview first."
 msgstr "Indiquez d'abord qui parle dans cet entretien."
 
+#. placeholder {0}: i.title
+#: src/features/quality/quality-tab.tsx
+msgid "Say who speaks: {0}"
+msgstr "Dire qui parle : {0}"
+
 #: src/features/analysis/interview-facts.tsx
 msgid "Say who speaks: facts count once their speakers are known."
 msgstr "Indiquez qui parle : les faits comptent une fois leurs locuteurs connus."
+
+#: src/features/quality/interview-view.tsx
+msgid "Say who speaks: the shares count once the speakers are known."
+msgstr "Dites qui parle : les parts comptent une fois les locuteurs connus."
 
 #: src/features/preparation/schedule.tsx
 msgid "schedule"
@@ -4848,6 +5230,10 @@ msgstr "Voir dans les insights"
 msgid "See in the interview"
 msgstr "Voir dans l'entretien"
 
+#: src/features/quality/remark-card.tsx
+msgid "See in the transcript"
+msgstr "Voir dans la transcription"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "See the guide"
 msgstr "Voir le guide"
@@ -4877,6 +5263,7 @@ msgid "Set up your AI provider first: it groups the spellings and explains the t
 msgstr "Configurez d'abord votre fournisseur d'IA : il regroupe les graphies et explique les termes."
 
 #: src/features/analysis/find-facts.tsx
+#: src/features/quality/review-dialog.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/recommendation-run-dialog.tsx
 #: src/features/synthesis/takeaways.tsx
@@ -4903,6 +5290,10 @@ msgstr "Configurez votre fournisseur d'IA pour trouver les termes."
 #: src/features/fieldwork/labels.ts
 msgid "Set up your AI provider to find what the app's rules did not."
 msgstr "Configurez votre fournisseur IA pour trouver ce que les règles de l'app n'ont pas trouvé."
+
+#: src/features/quality/labels.ts
+msgid "Set up your AI provider to review the interviews."
+msgstr "Configurez votre fournisseur IA pour relire les entretiens."
 
 #. placeholder {0}: word ?? ''
 #: src/features/fieldwork/labels.ts
@@ -4933,6 +5324,16 @@ msgstr "La connexion n'a pas abouti. Réessayez, ou contactez votre administrate
 #: src/routes/sign-in.tsx
 msgid "Sign-in is not configured yet. The person deploying goodresearch must set up an identity provider, see the <0>deployment guide</0>."
 msgstr "La connexion n'est pas encore configurée. La personne qui installe goodresearch doit paramétrer un fournisseur d'identité, voir le <0>guide de déploiement</0>."
+
+#: src/features/quality/interview-view.tsx
+msgid "Simple reformulation"
+msgstr "Reformulation simple"
+
+#: src/features/quality/figures.tsx
+#: src/features/quality/interview-view.tsx
+#: src/features/quality/remarks-list.tsx
+msgid "Simple reformulations"
+msgstr "Reformulations simples"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Skill"
@@ -4997,6 +5398,19 @@ msgstr "Sources que goodresearch lit avec votre propre autorisation. Elles sont 
 msgid "Speaker"
 msgstr "Intervenant"
 
+#: src/features/quality/interview-view.tsx
+msgid "Speaker not identified"
+msgstr "Locuteur non identifié"
+
+#. placeholder {0}: share(words.unknown)
+#: src/features/quality/figures.tsx
+msgid "Speaker not identified: {0} of the words."
+msgstr "Locuteur non identifié : {0} des mots."
+
+#: src/features/quality/figures.tsx
+msgid "Speaker not identified: less than 1% of the words."
+msgstr "Locuteur non identifié : moins de 1 % des mots."
+
 #: src/features/analysis/interview-facts.tsx
 msgid "speaker to attribute"
 msgstr "locuteur à attribuer"
@@ -5004,6 +5418,10 @@ msgstr "locuteur à attribuer"
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Speaker:"
 msgstr "Intervenant :"
+
+#: src/features/quality/labels.ts
+msgid "Speakers not identified"
+msgstr "Locuteurs non identifiés"
 
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/enrichment/term-dialogs.tsx
@@ -5018,6 +5436,7 @@ msgstr "Dit par"
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/quality/quality-tab.tsx
 msgid "State"
 msgstr "État"
 
@@ -5044,13 +5463,10 @@ msgstr "Énoncé enregistré"
 msgid "Status"
 msgstr "Statut"
 
-#: src/features/analysis/analysis-tab.tsx
 #: src/features/assistant/panel.tsx
-#: src/features/enrichment/cleaning-table.tsx
-#: src/features/enrichment/enrichment-tab.tsx
-#: src/features/fieldwork/analysis.tsx
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/recommendations-tab.tsx
+#: src/features/workspace/stop-button.tsx
 msgid "Stop"
 msgstr "Arrêter"
 
@@ -5064,6 +5480,7 @@ msgstr "Arrêt après l'appel en cours…"
 
 #: src/features/fieldwork/analysis.tsx
 #: src/features/synthesis/recommendations-tab.tsx
+#: src/features/workspace/stop-button.tsx
 msgid "Stopping…"
 msgstr "Arrêt en cours…"
 
@@ -5294,6 +5711,10 @@ msgstr "Texte analysé"
 msgid "Text analysed changed"
 msgstr "Texte analysé modifié"
 
+#: src/features/quality/remark-card.tsx
+msgid "Text changed"
+msgstr "Texte modifié"
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "Thank you"
 msgstr "Merci"
@@ -5316,6 +5737,7 @@ msgstr "La réponse de l'IA n'a pas pu être utilisée : des termes peuvent manq
 
 #: src/features/analysis/labels.ts
 #: src/features/fieldwork/labels.ts
+#: src/features/quality/labels.ts
 #: src/features/synthesis/labels.ts
 msgid "The AI answer could not be used: try again."
 msgstr "La réponse de l'IA n'a pas pu être utilisée : réessayez."
@@ -5330,6 +5752,7 @@ msgstr "Le fournisseur d'IA a renvoyé une erreur ou a mis trop de temps : des t
 
 #: src/features/analysis/labels.ts
 #: src/features/fieldwork/labels.ts
+#: src/features/quality/labels.ts
 #: src/features/synthesis/labels.ts
 msgid "The AI provider returned an error or took too long: try again."
 msgstr "Le fournisseur IA a renvoyé une erreur ou a mis trop de temps : réessayez."
@@ -5337,6 +5760,10 @@ msgstr "Le fournisseur IA a renvoyé une erreur ou a mis trop de temps : réessa
 #: src/features/analysis/find-facts.tsx
 msgid "The AI reads each interview in full and picks verbatims: what the interviewees say, word for word. It then groups them into facts you decide."
 msgstr "L'IA lit chaque entretien en entier et choisit des verbatims : ce que disent les interviewés, mot pour mot. Elle les regroupe ensuite en faits que vous décidez."
+
+#: src/features/quality/review-dialog.tsx
+msgid "The AI reads each interview in full and points out the interviewers' sentences that orient the answer. Nothing changes in the transcripts."
+msgstr "L'IA lit chaque entretien en entier et signale les phrases des intervieweurs qui orientent la réponse. Rien ne change dans les transcriptions."
 
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "The AI reads the accepted facts of the studies you choose and proposes insights: findings that hold across participants. You decide each one."
@@ -5373,6 +5800,11 @@ msgstr "L'application ne sait pas lire ce format de fichier."
 #: src/features/enrichment/cleaning-table.tsx
 msgid "The app first applies the lexicon itself, at no cost. The AI then reads each transcript in full and proposes corrections: you decide each one."
 msgstr "L’app applique d’abord le lexique elle-même, sans coût. L’IA lit ensuite chaque transcription en entier et propose des corrections : vous décidez de chacune."
+
+#. placeholder {0}: data.run.leftOut
+#: src/features/quality/quality-tab.tsx
+msgid "The app's checks left out {0} remarks (not in the text, or a reformulation that adds nothing the interviewee had not said)."
+msgstr "Les contrôles de l'app ont écarté {0} remarques (absentes du texte, ou reformulation qui n'ajoute rien à ce qu'a dit la personne interviewée)."
 
 #. placeholder {0}: data.run.leftOut.verbatims
 #. placeholder {1}: data.run.leftOut.facts
@@ -5480,6 +5912,10 @@ msgstr "Les insights et recommandations sont envoyés à votre fournisseur d'IA,
 msgid "The interviews in numbers"
 msgstr "Les entretiens en chiffres"
 
+#: src/features/workspace/errors.ts
+msgid "The interviews of this study are already being reviewed."
+msgstr "Les entretiens de cette étude sont déjà en relecture."
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "The interviews read now go to the AI together: one can no longer be taken out, only the whole reading stopped."
 msgstr "Les entretiens lus partent maintenant ensemble à l’IA : on ne peut plus en retirer un, seulement arrêter toute la lecture."
@@ -5522,6 +5958,7 @@ msgstr "Les noms et titres proposés pour les entretiens utilisent un pseudonyme
 
 #: src/features/analysis/find-facts.tsx
 #: src/features/enrichment/cleaning-table.tsx
+#: src/features/quality/review-dialog.tsx
 msgid "The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending."
 msgstr "Les noms que l’app connaît (les personnes des entretiens, le planning et votre équipe) sont remplacés avant l’envoi."
 
@@ -5573,6 +6010,10 @@ msgstr "La lecture a été interrompue : relancez la recherche des termes."
 msgid "The research question"
 msgstr "L’enjeu de la recherche"
 
+#: src/features/quality/labels.ts
+msgid "The review was interrupted: review the interviews again."
+msgstr "La relecture a été interrompue : relisez à nouveau les entretiens."
+
 #: src/features/synthesis/labels.ts
 msgid "The run was interrupted: find insights again."
 msgstr "Le passage a été interrompu : relancez la recherche d'insights."
@@ -5585,6 +6026,10 @@ msgstr "Le planning est plein : 300 entretiens au plus par étude."
 msgid "The selection covers several verbatims: select words within one of them."
 msgstr "La sélection couvre plusieurs verbatims : sélectionnez des mots dans un seul."
 
+#: src/features/quality/figures.tsx
+msgid "The share of all the words of the interviews spoken by interviewers, computed by the app. Reference value: 30% at most."
+msgstr "La part de tous les mots des entretiens prononcés par les intervieweurs, calculée par l'app. Valeur de référence : 30 % au plus."
+
 #: src/features/synthesis/recommendation-run-dialog.tsx
 msgid "The statements of the insights are sent to your AI provider, with your own connection, with their theme, confidence and number of participants."
 msgstr "Les énoncés des insights sont envoyés à votre fournisseur d'IA, avec votre propre connexion, avec leur thème, leur confiance et leur nombre de participants."
@@ -5592,6 +6037,10 @@ msgstr "Les énoncés des insights sont envoyés à votre fournisseur d'IA, avec
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
 msgstr "L'étude, son inventaire et ses entretiens sont supprimés de goodresearch. Rien ne change dans Drive."
+
+#: src/features/quality/labels.ts
+msgid "The transcript gives nearly every word to the interviewer, so it probably does not tell the voices apart (one microphone, or labels inside the text). Figures and remarks would be wrong."
+msgstr "La transcription attribue presque tous les mots à l'intervieweur : elle ne sépare sans doute pas les voix (un seul micro, ou des noms dans le texte). Les chiffres et les remarques seraient faux."
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "The transcript is missing in Drive."
@@ -5649,6 +6098,10 @@ msgstr "Ils sont affichés « à valider » dans les insights et comptent une fo
 #: src/features/synthesis/recommendation-run-dialog.tsx
 msgid "They are shown “to validate” in the recommendations, and count once validated."
 msgstr "Ils sont affichés « à valider » dans les recommandations et comptent une fois validés."
+
+#: src/features/quality/remarks-list.tsx
+msgid "They rest only on what the interviewee said: good practice, never counted as leading. If one adds something, say so."
+msgstr "Elles reposent seulement sur ce qu'a dit la personne interviewée : une bonne pratique, jamais comptée comme orientée. Si l'une ajoute quelque chose, dites-le."
 
 #: src/features/assistant/panel.tsx
 msgid "Thinking…"
@@ -5735,10 +6188,12 @@ msgid "This interview has no transcript to read."
 msgstr "Cet entretien n’a pas de transcription à lire."
 
 #: src/features/enrichment/labels.ts
+#: src/features/quality/interview-view.tsx
 msgid "This interview has no transcript."
 msgstr "Cet entretien n'a pas de transcription."
 
 #: src/features/analysis/labels.ts
+#: src/features/quality/labels.ts
 msgid "This interview has no validated clean version yet."
 msgstr "Cet entretien n'a pas encore de version propre validée."
 
@@ -5839,6 +6294,10 @@ msgid "This recording is used by another interview."
 msgstr "Cet enregistrement est utilisé par un autre entretien."
 
 #: src/features/workspace/errors.ts
+msgid "This reformulation is already requalified."
+msgstr "Cette reformulation est déjà requalifiée."
+
+#: src/features/workspace/errors.ts
 msgid "This study does not exist or you do not have access to it."
 msgstr "Cette étude n'existe pas ou vous n'y avez pas accès."
 
@@ -5888,6 +6347,7 @@ msgid "to assign"
 msgstr "à attribuer"
 
 #: src/features/analysis/interview-facts.tsx
+#: src/features/quality/interview-view.tsx
 msgid "To attribute"
 msgstr "À attribuer"
 
@@ -5948,6 +6408,14 @@ msgstr "Pour trouver qui a participé et quand, le début de chaque transcriptio
 msgid "To reconsider"
 msgstr "À reconsidérer"
 
+#: src/features/quality/labels.ts
+msgid "To review again"
+msgstr "À relire"
+
+#: src/features/quality/review-dialog.tsx
+msgid "To review them, the text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
+msgstr "Pour les relire, le texte de chaque transcription est envoyé à votre fournisseur IA, avec votre propre connexion, par parties d'environ 60 tours de parole."
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "to validate"
 msgstr "à valider"
@@ -5963,6 +6431,10 @@ msgstr "À valider"
 msgid "too long"
 msgstr "trop longue"
 
+#: src/features/quality/labels.ts
+msgid "Too many words belong to no known person, so the shares would be false. Say who speaks in the interview."
+msgstr "Trop de mots n'appartiennent à personne de connu : les parts seraient fausses. Dites qui parle dans l'entretien."
+
 #. placeholder {0}: money(data.cost ?? 0)
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/recommendations-tab.tsx
@@ -5977,6 +6449,7 @@ msgstr "Durée totale : {total} min"
 #: src/features/analysis/interview-facts.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/schedule.tsx
+#: src/features/quality/interview-view.tsx
 msgid "Transcript"
 msgstr "Transcription"
 
@@ -6049,6 +6522,8 @@ msgstr "Indisponible dans le Drive"
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/analysis.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/quality/quality-tab.tsx
+#: src/features/quality/review-dialog.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/recommendation-run-dialog.tsx
 #: src/features/synthesis/takeaways.tsx
@@ -6191,6 +6666,7 @@ msgstr "Version {0} · modifiée à la main par {who} {when}"
 msgid "Version {0} · written with the assistant, applied by {who} {when}"
 msgstr "Version {0} · rédigée avec l’assistant, appliquée par {who} {when}"
 
+#: src/features/quality/quality-tab.tsx
 #: src/features/synthesis/debrief-tab.tsx
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "View"
@@ -6214,6 +6690,11 @@ msgstr "En attente d'analyse"
 msgid "Waiting for the analysis"
 msgstr "En attente de l'analyse"
 
+#: src/features/quality/labels.ts
+#: src/features/quality/quality-tab.tsx
+msgid "Waiting for the review"
+msgstr "En attente de la revue"
+
 #: src/features/preparation/labels.ts
 msgid "Warm-up questions"
 msgstr "Questions introductives"
@@ -6229,6 +6710,11 @@ msgstr "Bienvenue dans goodresearch"
 #: src/features/synthesis/deck-slide.tsx
 msgid "What holds back"
 msgstr "Ce qui freine"
+
+#. placeholder {0}: remark.addedElement
+#: src/features/quality/remark-card.tsx
+msgid "What it adds: {0}"
+msgstr "Ce qu'elle ajoute : {0}"
 
 #: src/features/enrichment/term-dialogs.tsx
 msgid "What it should read"
@@ -6249,6 +6735,11 @@ msgstr "Ce que l'IA propose reste une proposition tant que vous ne l'acceptez pa
 #: src/features/research/study-settings.tsx
 msgid "What the Analysis phase reads to find verbatims and facts."
 msgstr "Ce que la phase d'analyse lit pour trouver les verbatims et les faits."
+
+#: src/features/quality/interview-view.tsx
+#: src/features/quality/remarks-list.tsx
+msgid "What to read"
+msgstr "Quoi lire"
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "What to remember"
@@ -6283,6 +6774,7 @@ msgid "Who does what"
 msgstr "Qui fait quoi"
 
 #: src/features/analysis/interview-facts.tsx
+#: src/features/quality/interview-view.tsx
 msgid "Who speaks"
 msgstr "Qui parle"
 
@@ -6293,6 +6785,10 @@ msgstr "Qui interviewer, quand et par qui. Partagé avec les personnes qui peuve
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Why exclude it? (optional)"
 msgstr "Pourquoi l'exclure ? (facultatif)"
+
+#: src/features/quality/requalify-dialog.tsx
+msgid "Why: what does it add?"
+msgstr "Pourquoi : qu'ajoute-t-elle ?"
 
 #. placeholder {0}: p.interviewers
 #: src/features/fieldwork/session-dialog.tsx
@@ -6318,6 +6814,10 @@ msgstr "Avec les corrections"
 #: src/features/enrichment/cleaning-table.tsx
 msgid "With the lexicon and the AI"
 msgstr "Avec le lexique et l’IA"
+
+#: src/features/quality/remark-card.tsx
+msgid "Withdraw"
+msgstr "Retirer"
 
 #: src/features/fieldwork/labels.ts
 msgid "within 15 minutes"

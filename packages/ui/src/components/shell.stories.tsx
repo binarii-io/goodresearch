@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { expect, within } from 'storybook/test'
 import { AppShell, SidebarFooter, SidebarHeader, SidebarNav, SidebarNavItem } from './app-shell.tsx'
 import { BrandIcon, Wordmark } from './brand.tsx'
 import { Button } from './button.tsx'
@@ -119,6 +120,40 @@ export const Home: StoryObj = {
       </div>
     </AppShell>
   ),
+}
+
+/** Many tabs go below the breadcrumb: they never squeeze its links to nothing. */
+export const PageBarWithManyTabs: StoryObj = {
+  parameters: { layout: 'padded' },
+  render: () => (
+    <div className="w-[820px]">
+      <Tabs defaultValue="1">
+        <PageBar
+          crumbs={[
+            <a key="project" href="#project">
+              Checkout friction
+            </a>,
+          ]}
+          title="Ten checkout interviews"
+          right={
+            <TabsList aria-label="Study phases">
+              {['Preparation', 'Fieldwork', 'Enrichment', 'Cleaning', 'Quality', 'Analysis'].map(
+                (phase, n) => (
+                  <TabsTrigger key={phase} value={String(n + 1)}>
+                    {n + 1} · {phase}
+                  </TabsTrigger>
+                ),
+              )}
+            </TabsList>
+          }
+        />
+      </Tabs>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const link = within(canvasElement).getByRole('link', { name: 'Checkout friction' })
+    await expect(link.getBoundingClientRect().width).toBeGreaterThan(40)
+  },
 }
 
 export const StudyPage: StoryObj = {

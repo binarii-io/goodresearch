@@ -1,4 +1,4 @@
-import { err, ok } from '@goodresearch/shared'
+import { err, ok, type Person, speakerRole } from '@goodresearch/shared'
 import {
   canStopFacts,
   type FactsRun,
@@ -8,7 +8,6 @@ import {
   withFactsStops,
 } from '../../domain/analysis-run.ts'
 import type { Fact } from '../../domain/facts.ts'
-import { type Person, speakerRole } from '../../domain/speakers.ts'
 import { type InterviewNow, interviewsNow, studyOf } from '../interviews.ts'
 import type { EvidenceDeps, StoredVerbatim } from '../ports.ts'
 

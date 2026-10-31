@@ -1,13 +1,44 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { expect, within } from 'storybook/test'
 import { Badge } from './badge.tsx'
+import { Button } from './button.tsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card.tsx'
+import { Progress } from './progress.tsx'
 import { Skeleton } from './skeleton.tsx'
 import { GoogleDriveIcon } from './source-icons.tsx'
 import { StatTile, StatTiles } from './stat-tile.tsx'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table.tsx'
+import { Tabs, TabsBar, TabsList, TabsTrigger } from './tabs.tsx'
 
 const meta = { title: 'Display' } satisfies Meta
 export default meta
+
+/** The line above a table: the tabs at the left edge, the action at the right, on one line. */
+export const TableTabsBar: StoryObj = {
+  render: () => (
+    <Tabs defaultValue="one" className="w-[48rem] gap-4">
+      <TabsBar action={<Button>Run</Button>}>
+        <TabsList aria-label="Views">
+          <TabsTrigger value="one">One</TabsTrigger>
+          <TabsTrigger value="two">Two (3)</TabsTrigger>
+        </TabsList>
+      </TabsBar>
+    </Tabs>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const bar = canvas.getByRole('tablist').parentElement?.getBoundingClientRect()
+    const tabs = canvas.getByRole('tablist').getBoundingClientRect()
+    const action = canvas.getByRole('button', { name: 'Run' }).getBoundingClientRect()
+    await expect(tabs.left).toBeCloseTo(bar?.left ?? -1, 0)
+    await expect(action.right).toBeCloseTo(bar?.right ?? -1, 0)
+    await expect(action.top).toBeLessThan(tabs.bottom)
+  },
+}
+
+export const RunProgress: StoryObj = {
+  render: () => <Progress aria-label="Progress" value={3} max={8} />,
+}
 
 export const ProjectCard: StoryObj = {
   render: () => (

@@ -14,6 +14,8 @@ export const QUEUES = {
   facts: 'evidence.facts',
   /** A fact's statement translated after a person's edit (spec 012 research R9). */
   translate: 'evidence.translate',
+  /** One review of the interviews per study at a time (spec 016, `exclusive` keyed by study id). */
+  review: 'quality.review',
   /** One "Find insights" per project at a time (spec 013, `exclusive` keyed by project id). */
   insights: 'synthesis.insights',
   /** An insight's texts translated after a person's edit (spec 013 research R9). */
@@ -61,6 +63,7 @@ const QUEUE_OPTIONS = {
   [QUEUES.cleaning]: run(120 * 60),
   [QUEUES.facts]: run(120 * 60),
   [QUEUES.translate]: retried,
+  [QUEUES.review]: run(120 * 60),
   [QUEUES.insights]: run(60 * 60),
   [QUEUES.insightTranslate]: retried,
   [QUEUES.recommendations]: run(30 * 60),

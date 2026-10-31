@@ -7,7 +7,13 @@ import {
   useValidateInsights,
 } from '@goodresearch/api-client'
 import { Button } from '@goodresearch/ui/components/button'
-import { CheckIcon, PlusIcon, SparklesIcon, SquareIcon } from '@goodresearch/ui/components/icons'
+import {
+  CheckIcon,
+  LoaderCircleIcon,
+  PlusIcon,
+  SparklesIcon,
+  SquareIcon,
+} from '@goodresearch/ui/components/icons'
 import {
   Sheet,
   SheetContent,
@@ -130,6 +136,7 @@ export function InsightsTab({ projectId }: { projectId: string }) {
         >
           {live ? (
             <>
+              <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
               <span>
                 {run.stopping
                   ? t`Stopping after the current call…`

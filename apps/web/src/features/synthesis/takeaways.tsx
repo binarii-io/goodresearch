@@ -179,6 +179,7 @@ export function Takeaways({
                 start(e ? e.consentNeeded : consentNeeded)
               }}
             >
+              <SparklesIcon aria-hidden />
               {(e ? e.consentNeeded : consentNeeded) ? t`Agree and draft` : t`Draft`}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -212,6 +213,7 @@ export function Takeaways({
                 .catch(fail)
             }
           >
+            <SparklesIcon aria-hidden />
             {t`Translate again`}
           </Button>
         </p>

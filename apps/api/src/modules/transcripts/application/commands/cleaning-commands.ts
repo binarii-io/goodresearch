@@ -62,6 +62,7 @@ export type StartCleaningError =
   | 'AI_PROVIDER_REQUIRED'
   | 'CLEANING_CONSENT_REQUIRED'
   | 'ENRICHMENT_RUNNING'
+  | 'QUALITY_RUNNING'
 
 export type CorrectionError =
   | StudyError
@@ -261,6 +262,7 @@ export const makeCleaningCommands = (deps: CleaningDeps, lexicon: LexiconCommand
       }
     }
     if (await busy(studyId)) return err('ENRICHMENT_RUNNING')
+    if (await deps.reviewLive?.(studyId)) return err('QUALITY_RUNNING')
     const at = now()
     const run: CorrectionRun = {
       id: newId(),

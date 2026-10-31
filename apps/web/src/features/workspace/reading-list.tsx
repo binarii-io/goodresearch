@@ -39,9 +39,9 @@ export function ReadingList({
   summary?: string
   items: readonly ReadingItem[]
   /** The take-out button's accessible name for an interview. */
-  takeOutLabel: (title: string) => string
-  onTakeOut: (sessionId: string) => void
-  busy: boolean
+  takeOutLabel?: (title: string) => string
+  onTakeOut?: (sessionId: string) => void
+  busy?: boolean
   footer?: ReactNode
 }) {
   const { t } = useLingui()
@@ -79,12 +79,12 @@ export function ReadingList({
                 {i.title}
               </span>
               <span className="shrink-0 text-muted-foreground">{i.label}</span>
-              {i.stoppable ? (
+              {i.stoppable && onTakeOut ? (
                 <Button
                   variant="ghost"
                   size="xs"
-                  disabled={busy}
-                  aria-label={takeOutLabel(i.title)}
+                  disabled={busy ?? false}
+                  aria-label={takeOutLabel?.(i.title)}
                   onClick={() => onTakeOut(i.sessionId)}
                 >
                   <XIcon aria-hidden />

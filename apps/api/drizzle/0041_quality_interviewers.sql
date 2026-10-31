@@ -1,0 +1,1 @@
+ALTER TABLE "quality_evaluations" ADD COLUMN "interviewers" jsonb;

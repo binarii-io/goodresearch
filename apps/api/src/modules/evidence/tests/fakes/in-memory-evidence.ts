@@ -1,4 +1,4 @@
-import type { Clock } from '@goodresearch/shared'
+import type { Clock, Person } from '@goodresearch/shared'
 import type {
   AnalysedText,
   AnalysisSources,
@@ -16,7 +16,6 @@ import { AiUnavailable } from '../../application/ports.ts'
 import { canStopFacts, type FactsRun } from '../../domain/analysis-run.ts'
 import type { TextAnalysed } from '../../domain/analysis-state.ts'
 import type { Fact } from '../../domain/facts.ts'
-import type { Person } from '../../domain/speakers.ts'
 
 /** The evidence tables, in memory. */
 export const inMemoryEvidenceStore = () => {
@@ -183,6 +182,7 @@ export const fakeSources = (input: {
     anonymised: input.anonymised ?? false,
     textAnalysed: input.textAnalysed ?? ('with-corrections' as TextAnalysed),
     enrichmentLive: false,
+    qualityLive: false,
     imports: [] as string[],
     assigned: 0,
   }
@@ -227,6 +227,7 @@ export const fakeSources = (input: {
     },
     context: async () => ({ goal: 'How teams find their data', themes: input.themes ?? [] }),
     enrichmentLive: async () => state.enrichmentLive,
+    qualityLive: async () => state.qualityLive,
   }
   return { sources, state }
 }
