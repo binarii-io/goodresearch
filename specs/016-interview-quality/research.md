@@ -87,6 +87,13 @@ The prototype's main error, handled at three levels:
 - **Limit**: `speakerRole` and `cleaningNames` are unchanged for Evidence, whose results must not move here. The first still gives an interviewer's unrecognised label to a single interviewee, so such a turn can yield verbatims. It needs its own fix.
 - **Attribution**: a person says who speaks in the interview's view, through Evidence's attribution, which only knows "an interviewer". The Analysis tab does not list a label it already gave the interviewee, which is why the view lists all the labels.
 
+## R14a. Three real causes of a false figure (2026-10-31)
+
+Seen on real transcripts, reproduced on synthetic fixtures:
+- **Turns glued together**: labels with no colon inside a line went to the previous speaker. Fixed in the transcripts parser (`fix/transcript-inline-speaker-labels`).
+- **The end note read as a speaker**: "Transcription ended after 00:42:50" made one more unknown label, so a room name was no longer the only label left to give to the only interviewer. Ignored by `conductRoles`; new imports no longer read it as a speaker. No forced re-import: it would mark every interview "To analyse again".
+- **One voice in the source**: both people on one microphone gives one label. The app cannot split them; the row says so, and "Review anyway" would flag the interviewee's sentences.
+
 ## R15. An interview not imported yet
 
 - **Decision**: the source session tells whether a transcript file exists. With a file not imported, the state is `not-reviewed` and the review imports it. Opening the interview to read imports it too (`importToRead`, called by the route before the query, so the query stays read-only). No AI, no cost.

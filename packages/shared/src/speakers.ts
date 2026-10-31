@@ -1,4 +1,4 @@
-import { fold, words } from './text.ts'
+import { fold, isTranscriptEnd, words } from './text.ts'
 
 export type Role = 'interviewee' | 'interviewer' | 'unknown'
 
@@ -121,6 +121,11 @@ export const conductRoles = (
   const guessed: { label: string; role: ReturnType<typeof speakerRole> }[] = []
   for (const label of new Set(labels)) {
     const role = speakerRole(label, people, attributions)
+    // In transcripts imported before the note ending them stopped being read as a speaker.
+    if (label && isTranscriptEnd(label)) {
+      roles.set(label, { role: 'unknown', participant: null })
+      continue
+    }
     const known = label === null || attributions.has(label) || people.some((p) => matches(label, p))
     if (role.role !== 'interviewer' && !known) guessed.push({ label: label ?? '', role })
     else roles.set(label, role)

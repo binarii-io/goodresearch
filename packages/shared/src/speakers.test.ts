@@ -104,6 +104,19 @@ describe('interviewerCode (spec 016 research R5)', () => {
 })
 
 describe('conductRoles (spec 016: who conducted the interview)', () => {
+  it('gives a room name to the only interviewer, whatever the note ending the transcript', () => {
+    const roles = conductRoles(
+      ['Sam DOE -OFFICE-', 'Blue room (North, 5)', 'Transcription terminée après'],
+      [
+        { name: 'Sam DOE', role: 'interviewee', code: 'P01' },
+        { name: 'Lee KIM', role: 'interviewer', code: 'I01' },
+      ],
+      new Map(),
+    )
+    expect(roles.get('Blue room (North, 5)')?.role).toBe('interviewer')
+    expect(roles.get('Transcription terminée après')?.role).toBe('unknown')
+  })
+
   const sam = { name: 'Sam Example', role: 'interviewee' as const, code: 'P01' }
   const alex = { name: 'Alex Martin', role: 'interviewer' as const, code: 'I01' }
   const lee = { name: 'Lee Example', role: 'interviewer' as const, code: 'I02' }

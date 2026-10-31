@@ -30,7 +30,7 @@ export const QUALITY_FAILURES: Record<
 /** Why an interview shows no figure: said with its state, never a false figure. */
 export const EVALUATION_REASONS: Partial<Record<QualityInterviewRow['state'], MessageDescriptor>> =
   {
-    'not-measurable': msg`Nearly every word is an interviewer's: probably a speaker labelling problem.`,
+    'not-measurable': msg`The transcript gives nearly every word to the interviewer, so it probably does not tell the voices apart (one microphone, or labels inside the text). Figures and remarks would be wrong.`,
     'speakers-not-identified': msg`Too many words belong to no known person, so the shares would be false. Say who speaks in the interview.`,
     'not-clean': msg`This interview has no validated clean version yet.`,
   }

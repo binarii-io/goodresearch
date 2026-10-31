@@ -3742,10 +3742,6 @@ msgstr "Narrow this verbatim"
 msgid "Navigation"
 msgstr "Navigation"
 
-#: src/features/quality/labels.ts
-msgid "Nearly every word is an interviewer's: probably a speaker labelling problem."
-msgstr "Nearly every word is an interviewer's: probably a speaker labelling problem."
-
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Needs attention"
 msgstr "Needs attention"
@@ -5987,6 +5983,10 @@ msgstr "The statements of the insights are sent to your AI provider, with your o
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
 msgstr "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
+
+#: src/features/quality/labels.ts
+msgid "The transcript gives nearly every word to the interviewer, so it probably does not tell the voices apart (one microphone, or labels inside the text). Figures and remarks would be wrong."
+msgstr "The transcript gives nearly every word to the interviewer, so it probably does not tell the voices apart (one microphone, or labels inside the text). Figures and remarks would be wrong."
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "The transcript is missing in Drive."

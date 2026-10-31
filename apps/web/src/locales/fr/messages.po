@@ -3742,10 +3742,6 @@ msgstr "Réduire ce verbatim"
 msgid "Navigation"
 msgstr "Navigation"
 
-#: src/features/quality/labels.ts
-msgid "Nearly every word is an interviewer's: probably a speaker labelling problem."
-msgstr "Presque tous les mots sont ceux d'un intervieweur : sans doute un problème d'attribution des locuteurs."
-
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Needs attention"
 msgstr "À vérifier"
@@ -5987,6 +5983,10 @@ msgstr "Les énoncés des insights sont envoyés à votre fournisseur d'IA, avec
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
 msgstr "L'étude, son inventaire et ses entretiens sont supprimés de goodresearch. Rien ne change dans Drive."
+
+#: src/features/quality/labels.ts
+msgid "The transcript gives nearly every word to the interviewer, so it probably does not tell the voices apart (one microphone, or labels inside the text). Figures and remarks would be wrong."
+msgstr "La transcription attribue presque tous les mots à l'intervieweur : elle ne sépare sans doute pas les voix (un seul micro, ou des noms dans le texte). Les chiffres et les remarques seraient faux."
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "The transcript is missing in Drive."
