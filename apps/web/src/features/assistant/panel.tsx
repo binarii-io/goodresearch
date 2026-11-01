@@ -97,7 +97,13 @@ function LookingAt() {
   return <p className="truncate text-muted-foreground text-xs">{label}</p>
 }
 
-function Message({ message }: { message: AssistantMessage }) {
+function Message({
+  message,
+  onReply,
+}: {
+  message: AssistantMessage
+  onReply?: ((text: string) => void) | undefined
+}) {
   const { t } = useLingui()
   if (message.role === 'person')
     return (
@@ -113,7 +119,7 @@ function Message({ message }: { message: AssistantMessage }) {
       ) : null}
       {message.failure ? <Failure failure={message.failure} /> : null}
       {message.proposals.map((p) => (
-        <ProposalCard key={p.id} proposal={p} />
+        <ProposalCard key={p.id} proposal={p} onReply={onReply} />
       ))}
     </div>
   )
@@ -454,7 +460,10 @@ export function AssistantPanel() {
   }
 
   /** A project or study was just applied: the assistant goes on, on its page (spec 018, 021). */
-  const continueOn = async (id: string, page: { kind: 'project' | 'study'; id: string }) => {
+  const continueOn = async (
+    id: string,
+    page: NonNullable<ReturnType<typeof useAssistant>['appliedCard']>['page'],
+  ) => {
     setBusy(true)
     setSendError(null)
     try {
@@ -479,12 +488,13 @@ export function AssistantPanel() {
   const continueRef = useRef(continueOn)
   continueRef.current = continueOn
   useEffect(() => {
-    if (!appliedCard || busy) return
+    // Back from the consent the page is new: the conversation must be there to go on from it.
+    if (!appliedCard || busy || !conversation.data) return
     setAppliedCard(null)
     // The person moved to another conversation in between: the page opening is enough.
     if (conversationId && appliedCard.conversationId === conversationId)
       void continueRef.current(conversationId, appliedCard.page)
-  }, [appliedCard, busy, conversationId, setAppliedCard])
+  }, [appliedCard, busy, conversation.data, conversationId, setAppliedCard])
 
   // A page asked the assistant something for the person: send it once, on a new conversation.
   const submitRef = useRef(submit)
@@ -554,7 +564,15 @@ export function AssistantPanel() {
               <p className="text-muted-foreground">{t`Ask anything about your research. The assistant sees the page you are on and can propose changes, which you apply or dismiss.`}</p>
             ) : null}
             {conversation.data?.messages.slice(0, live ? live.shownBefore : undefined).map((m) => (
-              <Message key={m.id} message={m} />
+              <Message
+                key={m.id}
+                message={m}
+                onReply={
+                  !live && !busy && m === conversation.data?.messages.at(-1)
+                    ? (text) => void submit({ text })
+                    : undefined
+                }
+              />
             ))}
             {live ? (
               <>

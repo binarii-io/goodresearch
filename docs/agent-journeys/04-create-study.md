@@ -1,6 +1,6 @@
 # Journey 4: create a study
 
-**Status**: built by [spec 021](../../specs/021-agent-create-study/spec.md); tested by the maintainer with a real model. The Drive folder comes next, in its own journey.
+**Status**: built by [spec 021](../../specs/021-agent-create-study/spec.md); tested by the maintainer with a real model.
 
 ## Goal
 
@@ -55,10 +55,10 @@ flowchart TD
     V -->|"valid"| C["Card: name, goal,<br/>project or no project with its team"]
     C -->|"Dismiss, or a change requested"| B
     C -->|"Apply"| N["Same rules as the app.<br/>The study page opens"]
-    N --> F["Assistant continues:<br/>offers to prepare the interview guide"]
+    N --> F["Assistant continues:<br/>offers the folder or the interview guide"]
 ```
 
-The guide is only offered. Continuing makes one more AI call, recorded in the usage ledger and shown in the conversation's cost.
+Both are only offered; the folder follows [its own journey](05-study-folder.md). Continuing makes one more AI call, recorded in the usage ledger and shown in the conversation's cost.
 
 On the team's Studies page, a button creates a study with a name and an optional goal, in no project. The form inside a project stays as it is.
 

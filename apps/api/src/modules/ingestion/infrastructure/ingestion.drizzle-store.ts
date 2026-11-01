@@ -276,6 +276,26 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
     return row ? toSource(row) : null
   },
 
+  attachNewSource: async (s) => {
+    const values = {
+      studyId: s.studyId,
+      connector: CONNECTOR,
+      folderId: s.folderId,
+      folderName: s.folderName,
+      ownerName: s.ownerName,
+      webViewLink: s.webViewLink,
+      attachedBy: s.attachedBy,
+      attachedAt: s.attachedAt,
+      inventoryStatus: 'never',
+    }
+    const inserted = await db
+      .insert(ingestionStudySources)
+      .values(values)
+      .onConflictDoNothing({ target: ingestionStudySources.studyId })
+      .returning({ studyId: ingestionStudySources.studyId })
+    return inserted.length > 0
+  },
+
   attachSource: async (s) => {
     await db.transaction(async (tx) => {
       await tx.delete(ingestionInventoryFiles).where(eq(ingestionInventoryFiles.studyId, s.studyId))

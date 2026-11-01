@@ -85,6 +85,51 @@ describe('Drive connection and folder (US2)', () => {
     expect(world.store.files.get('study-1')?.map((f) => f.name)).toEqual(['call.mp4'])
   })
 
+  it('spec 022: checks a folder without attaching or starting anything', async () => {
+    const check = (link: string) =>
+      world.commands.checkFolder({ actor: alice, studyId: 'study-1', link })
+    expect(await check(LINK)).toEqual({ ok: false, error: 'DRIVE_NOT_CONNECTED' })
+    await connect(alice, 'alice@example.org')
+    expect(await check('https://example.com')).toEqual({
+      ok: false,
+      error: 'NOT_A_DRIVE_FOLDER_LINK',
+    })
+    expect(await check(`${LINK}-missing`)).toEqual({ ok: false, error: 'FOLDER_NOT_FOUND' })
+    expect(await check(LINK)).toMatchObject({ ok: true, value: { folderName: 'Interviews Q4' } })
+    expect(world.store.sources.size).toBe(0)
+  })
+
+  it('spec 022: onlyIfNone never replaces a folder, the form still can', async () => {
+    await connect(alice, 'alice@example.org')
+    world.drive.addFolder('folder-other', 'Other')
+    world.drive.share('folder-other', 'alice@example.org')
+    const other = 'https://drive.google.com/drive/folders/folder-other'
+    const attach = (link: string, onlyIfNone: boolean) =>
+      world.commands.attachFolder({ actor: alice, studyId: 'study-1', link, onlyIfNone })
+    expect((await attach(LINK, true)).ok).toBe(true)
+    expect(await attach(other, true)).toEqual({ ok: false, error: 'FOLDER_ALREADY_ATTACHED' })
+    // Even when the check passed before someone else attached one: the store decides.
+    const source = world.store.sources.get('study-1')
+    if (!source) throw new Error('fixture')
+    expect(await world.store.attachNewSource(source)).toBe(false)
+    expect(
+      await world.commands.checkFolder({ actor: alice, studyId: 'study-1', link: other }),
+    ).toEqual({ ok: false, error: 'FOLDER_ALREADY_ATTACHED' })
+    expect(world.store.sources.get('study-1')?.folderName).toBe('Interviews Q4')
+  })
+
+  it('spec 022: gives the assistant counts by kind, and nothing without access', async () => {
+    await connect(alice, 'alice@example.org')
+    expect(await world.queries.folderState(alice, 'study-1')).toBeNull()
+    await world.commands.attachFolder({ actor: alice, studyId: 'study-1', link: LINK })
+    const state = await world.queries.folderState(alice, 'study-1')
+    expect(state).toMatchObject({ name: 'Interviews Q4' })
+    expect(Object.keys(state ?? {}).sort()).toEqual(['byKind', 'name', 'status'])
+    expect(JSON.stringify(state)).not.toContain('call.mp4')
+    await connect(bob, 'bob@example.org')
+    expect(await world.queries.folderState(bob, 'study-1')).toBeNull()
+  })
+
   it('hides studies outside the project team', async () => {
     expect(
       await world.commands.attachFolder({

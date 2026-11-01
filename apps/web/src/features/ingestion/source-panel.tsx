@@ -47,8 +47,10 @@ import { useFormatDate } from '../workspace/format.ts'
 
 type Inventory = NonNullable<StudySourceView['source']>['inventory']
 
-const connectUrl = (studyId: string) =>
-  `/api/sources/google-drive/connect?returnTo=${encodeURIComponent(`/studies/${studyId}`)}`
+export const connectUrl = (studyId: string, phase?: 'preparation') =>
+  `/api/sources/google-drive/connect?returnTo=${encodeURIComponent(
+    `/studies/${studyId}${phase ? `?phase=${phase}` : ''}`,
+  )}`
 
 /**
  * The Drive folder of an interview study and its inventory (spec 002 US2, US3), in the Fieldwork
@@ -123,7 +125,7 @@ function ConnectDrive({ studyId, attached }: { studyId: string; attached: boolea
 }
 
 /** FR-007: what the permission allows, before sending people to Google. */
-function DriveExplanation() {
+export function DriveExplanation() {
   const { t } = useLingui()
   return (
     <ul className="text-muted-foreground list-disc pl-5 text-sm">

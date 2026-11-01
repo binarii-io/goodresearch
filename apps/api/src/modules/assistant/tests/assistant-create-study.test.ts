@@ -142,7 +142,7 @@ describe('spec 021 US1 — frame a study in a dialogue', () => {
       }),
     )
     const request = world.model.requests.at(-1)
-    expect(request?.system).toContain('offer to prepare its interview guide')
+    expect(request?.system).toContain('preparing its interview guide')
     const names = request?.tools?.map((t) => t.name) ?? []
     expect(names).not.toContain('create_study')
     expect(names).not.toContain('report_study_progress')

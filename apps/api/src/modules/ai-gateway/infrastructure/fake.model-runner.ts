@@ -313,6 +313,8 @@ const lexiconAnswer = (prompt: string) => {
 }
 
 /** A fixed interview guide, as the assistant writes it (spec 006 research R8). */
+const FAKE_FOLDER_LINK = 'https://drive.google.com/drive/folders/dev-study-folder'
+
 const FAKE_GUIDE = {
   framing: {
     objectives: 'Understand how people plan their week.',
@@ -412,7 +414,34 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     }
   if (ranTool === 'create_study' && toolOutput?.startsWith('Applied'))
     return {
-      parts: [{ type: 'text', delta: 'The study is ready. Shall we prepare its guide?' }],
+      parts: [
+        { type: 'text', delta: 'The study is ready. Shall we prepare its guide?' },
+        call('offer_choices', {
+          question: 'What next?',
+          choices: ['Add the folder', 'Prepare the guide'],
+          multiple: false,
+        }),
+      ],
+      delayMs: 0,
+    }
+  // Spec 022: the folder of a study.
+  if (ranTool === 'attach_folder' && toolOutput?.startsWith('Applied')) {
+    const found = /inventory \w+: ([^)]*)\)/.exec(request.system ?? '')?.[1] ?? 'nothing yet'
+    return {
+      parts: [
+        { type: 'text', delta: `The folder is attached: ${found}.` },
+        call('offer_choices', {
+          question: 'What is left to prepare?',
+          choices: ['Write the guide', 'Plan the interviews'],
+          multiple: true,
+        }),
+      ],
+      delayMs: 0,
+    }
+  }
+  if (ranTool === 'attach_folder' && toolOutput?.includes('connected their file source'))
+    return {
+      parts: [call('attach_folder', { studyId: guideStudy, link: FAKE_FOLDER_LINK })],
       delayMs: 0,
     }
   if (ranTool === 'load_skill' && guideStudy)
@@ -443,6 +472,17 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     }
   // After any other tool run, the answer is over.
   if (ranTool) return { parts: [], delayMs: 0 }
+  if (/attach the folder/i.test(text) && guideStudy && offered('attach_folder'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Let me check it.' },
+        call('attach_folder', {
+          studyId: guideStudy,
+          link: /not a folder/i.test(text) ? 'https://example.com/file' : FAKE_FOLDER_LINK,
+        }),
+      ],
+      delayMs: 0,
+    }
   if (/help me create a study/i.test(text) && offered('load_skill'))
     return { parts: [call('load_skill', { name: 'study-framing' })], delayMs: 0 }
   if (/study framing answered/i.test(text) && offered('report_study_progress'))

@@ -23,6 +23,9 @@ export const PROPOSAL_KINDS = [
   'detach_study',
   'update_study_goal',
   'delete_project',
+  'attach_folder',
+  'connect_source',
+  'offer_choices',
 ] as const
 export type ProposalKind = (typeof PROPOSAL_KINDS)[number]
 
@@ -43,6 +46,7 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
   kind === 'check_guide_questions' ||
   kind === 'create_project' ||
   kind === 'create_study' ||
+  kind === 'attach_folder' ||
   isStudyChange(kind) ||
   kind === 'delete_project'
 
@@ -53,7 +57,8 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
 export const isRecordedAtOnce = (kind: ProposalKind): boolean =>
   kind === 'report_guide_progress' ||
   kind === 'report_project_progress' ||
-  kind === 'report_study_progress'
+  kind === 'report_study_progress' ||
+  kind === 'offer_choices'
 
 export const isProposalKind = (name: string): name is ProposalKind =>
   (PROPOSAL_KINDS as readonly string[]).includes(name)

@@ -395,6 +395,10 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     updateProjectGoal: async (c) => outcome(await r.updateProjectGoal(c)),
     renameProject: async (c) => outcome(await r.renameProject(c)),
     createStudy: async (c) => outcome(await r.studies.createStudy({ ...c, type: 'interviews' })),
+    attachFolder: async (c) => {
+      const done = await bound(ingestion).handlers.commands.attachFolder({ ...c, onlyIfNone: true })
+      return done.ok ? { ok: true as const } : done
+    },
     createTeamStudy: async (c) =>
       outcome(await r.studies.createTeamStudy({ ...c, type: 'interviews' })),
     renameStudy: async (c) => outcome(await r.studies.renameStudy(c)),
@@ -445,9 +449,13 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         const preview = await reporting.handlers.overviewQueries.deletion(accountId, projectId)
         return preview.ok ? preview.value : null
       },
-      studyFolder: async (accountId, studyId) =>
-        (await bound(ingestion).sourceSummaries(accountId, [studyId])).get(studyId)?.folderName ??
-        null,
+      folderState: (actor, studyId) =>
+        bound(ingestion).handlers.queries.folderState(actor, studyId),
+      checkFolder: async (c) => outcome(await bound(ingestion).handlers.commands.checkFolder(c)),
+      sourceConnected: async (accountId) =>
+        (await bound(ingestion).handlers.queries.mySources({ id: accountId })).some(
+          (s) => s.status === 'connected',
+        ),
       studyInTeam: async (accountId, studyId, teamId) =>
         (await r.studyQueries.getStudy(accountId, studyId))?.team.id === teamId,
       canActOnStudy: (accountId, studyId) => bound(ingestion).gate.canAct(accountId, studyId),

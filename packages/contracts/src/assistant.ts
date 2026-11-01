@@ -32,6 +32,9 @@ export const ProposalKind = z.enum([
   'detach_study',
   'update_study_goal',
   'delete_project',
+  'attach_folder',
+  'connect_source',
+  'offer_choices',
 ])
 
 /** What the app's writing rules flag in a question (spec 006). */
@@ -88,6 +91,16 @@ export const ProposalPreview = z
     /** For an opened study: the tab to show. */
     phase: z.enum(['preparation', 'fieldwork', 'enrichment', 'analysis']).optional(),
     studyName: z.string().optional(),
+    /** Spec 022: the study a folder is for, and the folder proposed. */
+    studyId: Id.optional(),
+    folderName: z.string().optional(),
+    folderOwner: z.string().optional(),
+    /** The tab that opens once the folder is attached: Fieldwork waits for the preparation. */
+    opensOn: z.enum(['preparation', 'fieldwork']).optional(),
+    /** Spec 022: a list of choices. */
+    question: z.string().optional(),
+    choices: z.array(z.string()).optional(),
+    multiple: z.boolean().optional(),
     /** Spec 020: the project a deletion is about. */
     projectId: Id.optional(),
     /** Spec 020: what deleting the project removes, when it was proposed. */

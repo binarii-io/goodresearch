@@ -1,4 +1,5 @@
 import {
+  getStudySource,
   type Proposal,
   useApplyProposal,
   useConfirmDeleteProposal,
@@ -14,10 +15,12 @@ import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useId, useState } from 'react'
+import { connectUrl, DriveExplanation } from '../ingestion/source-panel.tsx'
 import { GuideView, questionCount, totalMinutes } from '../preparation/guide-view.tsx'
 import { QUESTION_ISSUES } from '../preparation/labels.ts'
 import { DeletionSummary, forgetProject, NameToType } from '../research/delete-project-dialog.tsx'
 import { errorMessage, messageForCode } from '../workspace/errors.ts'
+import { Choices } from './choices.tsx'
 import { useAssistant } from './state.tsx'
 
 const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
@@ -38,6 +41,9 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   detach_study: msg`Detach a study from this project`,
   update_study_goal: msg`Change the study's goal`,
   delete_project: msg`Delete this project`,
+  attach_folder: msg`Add the study's folder`,
+  connect_source: msg`Connect your Google Drive`,
+  offer_choices: msg`Choices`,
 }
 
 const SKILLS: Record<string, MessageDescriptor> = {
@@ -50,7 +56,15 @@ const SKILLS: Record<string, MessageDescriptor> = {
  * An action the assistant proposes (spec 005 US3): every value it will write, and nothing changes
  * until the person applies it.
  */
-export function ProposalCard({ proposal }: { proposal: Proposal }) {
+export function ProposalCard({
+  proposal,
+  onReply,
+}: {
+  proposal: Proposal
+  /** Spec 022: given on the last answer only, to send a choice as the person's message. */
+  onReply?: ((text: string) => void) | undefined
+}) {
+  if (proposal.kind === 'offer_choices') return <Choices proposal={proposal} onReply={onReply} />
   if (proposal.kind === 'open_project' || proposal.kind === 'open_study')
     return <OpenedPage proposal={proposal} />
   // Shown as the progress bar at the top of the conversation.
@@ -63,7 +77,63 @@ export function ProposalCard({ proposal }: { proposal: Proposal }) {
   if (proposal.kind === 'load_skill') return <SkillLine proposal={proposal} />
   if (proposal.kind === 'check_guide_questions') return <ChecksLine proposal={proposal} />
   if (proposal.kind === 'delete_project') return <DeleteCard proposal={proposal} />
+  if (proposal.kind === 'connect_source') return <ConnectCard proposal={proposal} />
   return <ChangeCard proposal={proposal} />
+}
+
+/** Spec 022: without a connection, only the person can give it, at Google. */
+function ConnectCard({ proposal }: { proposal: Proposal }) {
+  const { t, i18n } = useLingui()
+  const queryClient = useQueryClient()
+  const dismiss = useDismissProposal()
+  const study = proposal.preview.studyName
+  return (
+    <section
+      aria-label={i18n._(TITLES.connect_source)}
+      className="grid gap-3 rounded-lg border bg-card p-3 text-sm shadow-card"
+    >
+      <h3 className="font-semibold">{i18n._(TITLES.connect_source)}</h3>
+      {study ? <p className="font-medium">{study}</p> : null}
+      <DriveExplanation />
+      {proposal.state === 'proposed' && proposal.preview.studyId ? (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            render={<a href={connectUrl(proposal.preview.studyId, 'preparation')} />}
+          >
+            {t`Continue to Google`}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={dismiss.isPending}
+            onClick={() =>
+              void dismiss
+                .mutateAsync({ proposalId: proposal.id })
+                .then(() => queryClient.invalidateQueries())
+                .catch(() => undefined)
+            }
+          >
+            {t`Dismiss`}
+          </Button>
+        </div>
+      ) : (
+        <p role="status" className="font-medium">
+          {proposal.state === 'applied' ? t`Connected` : t`Dismissed`}
+        </p>
+      )}
+    </section>
+  )
+}
+
+/** One minute at most: a longer inventory stays visible on the page. */
+const inventoryOver = async (studyId: string) => {
+  const end = Date.now() + 60_000
+  while (Date.now() < end) {
+    const view = await getStudySource(studyId).catch(() => null)
+    if (view && view.source?.inventory.status !== 'running') return
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+  }
 }
 
 /** The assistant loaded a skill (spec 006): a quiet line, nothing to decide. */
@@ -182,6 +252,8 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
     [t`Study`, guide ? undefined : p.studyName],
     [t`Project`, p.projectName ?? (proposal.kind === 'create_study' ? t`No project` : undefined)],
     [t`Team`, p.teamName],
+    [t`Folder`, p.folderName],
+    [t`Owner`, p.folderOwner],
     [p.previousName ? t`New name` : t`Name`, p.name],
     [t`Current name`, p.previousName],
     [proposal.kind === 'create_study' ? t`Research goal` : t`New research goal`, p.goal],
@@ -241,6 +313,9 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
             </div>
           ))}
       </dl>
+      {proposal.kind === 'attach_folder' ? (
+        <p className="text-muted-foreground text-xs">{t`Nothing changes in Drive. Its files are then listed in Fieldwork.`}</p>
+      ) : null}
       {proposal.kind === 'attach_study' ? (
         <p className="text-muted-foreground text-xs">{t`Its facts feed this project too, without any AI cost. Decisions on them apply in every project it is in.`}</p>
       ) : null}
@@ -274,12 +349,30 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
                       params: { projectId: created.id },
                     })
                   }
-                  if (proposal.kind === 'create_study' && created.kind === 'study') {
-                    setAppliedCard({ page: { kind: 'study', id: created.id }, conversationId })
+                  // The inventory runs in the background: the assistant speaks once it is over.
+                  if (proposal.kind === 'attach_folder' && created.kind === 'study') {
+                    const phase = p.opensOn ?? 'fieldwork'
                     await navigate({
                       to: '/studies/$studyId',
                       params: { studyId: created.id },
-                      search: p.projectName ? {} : { from: 'team' },
+                      search: { phase },
+                    })
+                    await inventoryOver(created.id)
+                    setAppliedCard({
+                      page: { kind: 'study', id: created.id, phase },
+                      conversationId,
+                    })
+                  }
+                  if (proposal.kind === 'create_study' && created.kind === 'study') {
+                    // Nothing is prepared yet: Fieldwork would come too early (spec 022).
+                    setAppliedCard({
+                      page: { kind: 'study', id: created.id, phase: 'preparation' },
+                      conversationId,
+                    })
+                    await navigate({
+                      to: '/studies/$studyId',
+                      params: { studyId: created.id },
+                      search: { phase: 'preparation', ...(p.projectName ? {} : { from: 'team' }) },
                     })
                   }
                 })

@@ -26,4 +26,7 @@ export const ProposalInputKind = {
   detach_study: 'detach_study',
   update_study_goal: 'update_study_goal',
   delete_project: 'delete_project',
+  attach_folder: 'attach_folder',
+  connect_source: 'connect_source',
+  offer_choices: 'offer_choices',
 } as const;

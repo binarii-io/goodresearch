@@ -46,6 +46,10 @@ test.describe('spec 021 — create a study', () => {
     await card.getByRole('button', { name: 'Apply' }).click()
     await expect(page).toHaveURL(/\/studies\//)
     await expect(panel.getByText('Shall we prepare its guide?')).toBeVisible({ timeout: 15_000 })
+    await expect(page).toHaveURL(/phase=preparation/)
+    const next = panel.getByRole('region', { name: 'What next?' })
+    await next.getByRole('button', { name: 'Prepare the guide' }).click()
+    await expect(next.getByRole('button', { name: 'Prepare the guide' })).toHaveCount(0)
     await expect(panel.getByRole('button', { name: /Cost of this conversation: \$/ })).toBeVisible()
   })
 

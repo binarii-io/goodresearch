@@ -42,10 +42,16 @@ type AssistantState = {
   setAnswering: (answering: boolean) => void
   /** A project or study just applied from a card: the panel continues the answer on it (spec 018, 021). */
   appliedCard: {
-    page: { kind: 'project' | 'study'; id: string }
+    page: AppliedPage
     conversationId: string | null
   } | null
   setAppliedCard: (applied: AssistantState['appliedCard']) => void
+}
+
+type AppliedPage = {
+  kind: 'project' | 'study'
+  id: string
+  phase?: 'preparation' | 'fieldwork'
 }
 
 const threadKey = (thread: string) => `goodresearch.assistant.thread.${thread}`

@@ -12,6 +12,7 @@ A journey is defined and delivered on its own: one journey, one pull request, on
 | 2 | [Reuse a study in another project](02-attach-study.md) | Built by [spec 019](../../specs/019-attach-study/spec.md) |
 | 3 | [Delete a research project](03-delete-project.md) | Built by [spec 020](../../specs/020-delete-project/spec.md) |
 | 4 | [Create a study](04-create-study.md) | Built by [spec 021](../../specs/021-agent-create-study/spec.md) |
+| 5 | [Attach a study's Drive folder](05-study-folder.md) | Built by [spec 022](../../specs/022-agent-study-folder/spec.md) |
 
 ## How a journey is written
 
@@ -30,3 +31,4 @@ Each journey has the same sections:
 - The assistant proposes and the person decides (constitution IV). Only opening a page or reading happens without confirmation.
 - The assistant does not ask for what it already knows from the page context or the conversation.
 - It asks one or two short questions at a time, never a block of questions.
+- When a few clear options exist, the assistant offers a list the person can select from (`offer_choices`).

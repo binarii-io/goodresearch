@@ -48,6 +48,13 @@ export type ProposalPreview = {
   readonly projectName?: string
   readonly teamName?: string
   readonly name?: string
+  readonly studyId?: string
+  readonly folderName?: string
+  readonly folderOwner?: string
+  readonly opensOn?: 'preparation' | 'fieldwork'
+  readonly question?: string
+  readonly choices?: string[]
+  readonly multiple?: boolean
   readonly goal?: string
   readonly previousName?: string
   readonly previousGoal?: string
@@ -184,8 +191,25 @@ export interface ResearchReads {
     accountId: string,
     projectId: string,
   ): Promise<NonNullable<ProposalPreview['deletion']> | null>
-  /** The study's folder name, for people with access to it. */
-  studyFolder(accountId: string, studyId: string): Promise<string | null>
+  /** Spec 022: the study's folder for people with access to it; counts only, never a file name. */
+  folderState(
+    actor: Actor,
+    studyId: string,
+  ): Promise<{
+    name: string
+    status: string
+    byKind: { transcript: number; media: number; other: number }
+  } | null>
+  /** Spec 022: what attaching this link would find, with the person's own access. */
+  checkFolder(c: {
+    actor: Actor
+    studyId: string
+    link: string
+  }): Promise<
+    { ok: true; folderName: string; folderOwner: string | null } | { ok: false; error: string }
+  >
+  /** The person's file source is connected and usable. */
+  sourceConnected(accountId: string): Promise<boolean>
   /** The person's own access to the study's folder (spec 002 FR-010a). */
   canActOnStudy(accountId: string, studyId: string): Promise<boolean>
   /** An insight or recommendation run is in progress on the project. */
@@ -223,6 +247,12 @@ export interface ResearchActions {
     name: string
     goal?: string
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
+  /** Spec 022: never replaces a folder. */
+  attachFolder(c: {
+    actor: Actor
+    studyId: string
+    link: string
+  }): Promise<{ ok: true } | { ok: false; error: string }>
   /** Spec 021: a study in no project. */
   createTeamStudy(c: {
     actor: Actor

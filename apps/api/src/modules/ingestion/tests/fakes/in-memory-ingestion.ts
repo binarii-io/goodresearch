@@ -109,6 +109,11 @@ export class InMemoryIngestionStore implements IngestionStore {
   async getSource(id: string) {
     return this.sources.get(id) ?? null
   }
+  async attachNewSource(s: StudySource) {
+    if (this.sources.has(s.studyId)) return false
+    await this.attachSource(s)
+    return true
+  }
   async attachSource(s: StudySource) {
     this.sources.set(s.studyId, s)
     this.runs.set(s.studyId, null)

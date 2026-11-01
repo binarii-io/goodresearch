@@ -917,6 +917,10 @@ msgstr "Ajouter le fait"
 msgid "Add the interviews to a study"
 msgstr "Ajouter les entretiens à une étude"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Add the study's folder"
+msgstr "Ajouter le dossier de l’étude"
+
 #: src/features/analysis/interview-facts.tsx
 msgid "Add the verbatim"
 msgstr "Ajouter le verbatim"
@@ -1666,6 +1670,10 @@ msgstr "Vérification de la clé…"
 msgid "Checks"
 msgstr "Vérifications"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Choices"
+msgstr "Choix"
+
 #: src/features/synthesis/new-recommendation-dialog.tsx
 msgid "Choose"
 msgstr "Choisir"
@@ -1862,6 +1870,7 @@ msgstr "Conflit : modifié dans l’app et dans le Drive"
 msgid "Connect Google Drive to read the transcript."
 msgstr "Connectez Google Drive pour lire la transcription."
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/ingestion/source-panel.tsx
 msgid "Connect your Google Drive"
 msgstr "Connectez votre Google Drive"
@@ -1869,6 +1878,10 @@ msgstr "Connectez votre Google Drive"
 #: src/features/workspace/errors.ts
 msgid "Connect your Google Drive first."
 msgstr "Connectez d'abord votre Google Drive."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Connected"
+msgstr "Connecté"
 
 #: src/routes/_authenticated/sources.tsx
 msgid "Connected as {account} since {since}. Can edit the Drive files you can edit, to publish study preparations."
@@ -1887,6 +1900,7 @@ msgstr "Sources connectées"
 msgid "Context"
 msgstr "Contexte"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/ingestion/source-panel.tsx
 msgid "Continue to Google"
 msgstr "Continuer vers Google"
@@ -2822,6 +2836,10 @@ msgstr "Constats"
 #: src/features/synthesis/deck-slide.tsx
 msgid "Findings and mixed topics"
 msgstr "Constats et sujets mitigés"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Folder"
+msgstr "Dossier"
 
 #: src/features/research/study-card.tsx
 msgid "Folder attached"
@@ -4431,6 +4449,10 @@ msgstr "Utilisé par aucune recommandation"
 msgid "Notes"
 msgstr "Notes"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Nothing changes in Drive. Its files are then listed in Fieldwork."
+msgstr "Rien ne change dans Drive. Ses fichiers sont ensuite listés dans le Terrain."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Nothing is created or changed in your Drive unless you publish a study's preparation, which asks separately for editing. Nothing is ever deleted. You can disconnect at any time from Connected sources."
 msgstr "Rien n’est créé ni modifié dans votre Drive, sauf si vous publiez la préparation d’une étude, qui demande séparément l’accès en modification. Rien n’est jamais supprimé. Vous pouvez vous déconnecter à tout moment depuis Sources connectées."
@@ -4702,6 +4724,7 @@ msgstr "Global"
 msgid "Overview"
 msgstr "Vue d'ensemble"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Owner"
@@ -5618,6 +5641,10 @@ msgstr "Sélectionnez les mots du verbatim dans le tour de parole (3 à 120 mots
 #: src/features/assistant/panel.tsx
 msgid "Send"
 msgstr "Envoyer"
+
+#: src/features/assistant/choices.tsx
+msgid "Send my choices"
+msgstr "Envoyer mes choix"
 
 #: src/features/fieldwork/analysis.tsx
 msgid "Send the beginning of the transcript to your AI provider?"
@@ -6738,6 +6765,10 @@ msgstr "Cet enregistrement est utilisé par un autre entretien."
 #: src/features/workspace/errors.ts
 msgid "This reformulation is already requalified."
 msgstr "Cette reformulation est déjà requalifiée."
+
+#: src/features/workspace/errors.ts
+msgid "This study already has a folder. Replace it from Fieldwork, which says what that discards."
+msgstr "Cette étude a déjà un dossier. Remplacez-le depuis le Terrain, qui indique ce que cela supprime."
 
 #: src/features/workspace/errors.ts
 msgid "This study belongs to another team."

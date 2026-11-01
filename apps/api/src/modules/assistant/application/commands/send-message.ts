@@ -21,7 +21,7 @@ import {
   studyFramingCompleteness,
 } from '../../domain/study-framing.ts'
 import { titleFrom } from '../../domain/title.ts'
-import { buildContext, type GuideStudy, reusableStudies } from '../context.ts'
+import { buildContext, type Continuation, type GuideStudy, reusableStudies } from '../context.ts'
 import type {
   Actor,
   AiFailure,
@@ -38,6 +38,7 @@ import {
   checksOf,
   GUIDE_TOOLS,
   prepareDeletion,
+  prepareFolder,
   prepareProject,
   prepareProposal,
   prepareStudy,
@@ -65,7 +66,22 @@ const checksText = (checks: ProposalPreview['checks'] = []): string =>
     )
     .join('\n') || 'Nothing to check.'
 
+type NewCard = 'create_project' | 'create_study' | 'attach_folder'
+
+const CHOICES_SHOWN = 'List shown to the person: their next message answers it.'
+
+const CONNECTION_SHOWN =
+  'Not connected: a card asks the person to connect their file source, and the conversation goes on at their return. Add nothing.'
+
 const CARD_SHOWN = 'Card shown to the person. Wait for their decision and add nothing.'
+
+/** What the answer goes on from, when it follows no message; the last answer's card says. */
+const continuationOf = (held: readonly StoredProposal[]): Continuation => {
+  const has = (kind: ProposalKind) => held.some((p) => p.kind === kind && p.state === 'applied')
+  if (has('attach_folder')) return 'folder'
+  if (has('create_study')) return 'study'
+  return has('create_project') ? 'project' : 'connected'
+}
 
 const NOT_CONTINUING = [
   'create_project',
@@ -80,6 +96,11 @@ const REPLACED = 'REPLACED'
 
 /** What the model is told about a tool call in the next turns (research R2). */
 const outcomeOf = (p: StoredProposal): string => {
+  if (p.kind === 'connect_source' && p.state === 'applied')
+    return 'The person connected their file source: call attach_folder again.'
+  if (p.kind === 'connect_source' && p.state === 'proposed')
+    return 'Not connected: a card asks the person to connect their file source.'
+  if (p.state === 'applied' && p.kind === 'offer_choices') return CHOICES_SHOWN
   if (p.state === 'applied' && p.kind === 'load_skill')
     return 'Loaded: its instructions are in your context.'
   if (p.state === 'applied' && p.kind === 'check_guide_questions')
@@ -106,6 +127,10 @@ const outcomeOf = (p: StoredProposal): string => {
   }
 }
 
+/** Spec 022: a connection card comes from the call of a tool the model does have. */
+const toolOf = (p: StoredProposal): string =>
+  p.kind === 'connect_source' ? 'attach_folder' : p.kind
+
 /** The arguments of the original tool call, as the model sent them. */
 const callInput = (p: StoredProposal): Record<string, unknown> => {
   // A framed project: what the model sent, without the goal the app composed from it (spec 018).
@@ -118,6 +143,8 @@ const callInput = (p: StoredProposal): Record<string, unknown> => {
     p.kind === 'rename_study' ||
     p.kind === 'open_study' ||
     p.kind === 'propose_interview_guide' ||
+    p.kind === 'attach_folder' ||
+    p.kind === 'connect_source' ||
     isStudyChange(p.kind)
       ? 'studyId'
       : 'projectId'
@@ -153,11 +180,11 @@ const historyOf = (
         {
           role: 'assistant',
           content: m.text,
-          toolCalls: mine.map((p) => ({ id: p.callId, name: p.kind, input: callInput(p) })),
+          toolCalls: mine.map((p) => ({ id: p.callId, name: toolOf(p), input: callInput(p) })),
         },
         {
           role: 'tool',
-          results: mine.map((p) => ({ id: p.callId, name: p.kind, output: outcomeOf(p) })),
+          results: mine.map((p) => ({ id: p.callId, name: toolOf(p), output: outcomeOf(p) })),
         },
       ]
     })
@@ -181,18 +208,30 @@ export const makeSendMessage = (deps: AssistantDeps) => {
   const openContinue = async (c: {
     actor: Actor
     conversationId: string
+    page?: PageRef
   }): Promise<Result<true, 'CONVERSATION_NOT_FOUND' | 'NOTHING_TO_CONTINUE'>> => {
     const opened = await open(c)
     if (!opened.ok) return opened
     const last = (await deps.store.listMessages(c.conversationId)).at(-1)
     // Stopped or failed after its card was shown, the answer can still have been applied.
     if (last?.role !== 'assistant' || last.status === 'streaming') return err('NOTHING_TO_CONTINUE')
-    const applied = (await deps.store.listProposals(c.conversationId)).some(
-      (p) =>
-        p.messageId === last.id &&
-        (p.kind === 'create_project' || p.kind === 'create_study') &&
-        p.state === 'applied',
+    const held = (await deps.store.listProposals(c.conversationId)).filter(
+      (p) => p.messageId === last.id,
     )
+    const applied =
+      held.some(
+        (p) =>
+          (p.kind === 'create_project' ||
+            p.kind === 'create_study' ||
+            p.kind === 'attach_folder') &&
+          p.state === 'applied',
+      ) ||
+      // Spec 022: the address only says the consent went well; the connection proves it.
+      (held.some(
+        // The card's own study: a consent given from another one must not bring its link there.
+        (p) => p.kind === 'connect_source' && p.state === 'proposed' && p.targetId === c.page?.id,
+      ) &&
+        (await deps.research.sourceConnected(c.actor.id)))
     return applied ? ok(true) : err('NOTHING_TO_CONTINUE')
   }
 
@@ -288,38 +327,37 @@ export const makeSendMessage = (deps: AssistantDeps) => {
     /** A new project or study (spec 018, 021): a card replacing the open one, or the reason of a refusal. */
     // One at a time: calls of one step run together, and each must see the card before it.
     let proposing: Promise<unknown> = Promise.resolve()
-    const proposeNew = (
-      kind: 'create_project' | 'create_study',
-      input: unknown,
-      callId: string,
-    ): Promise<string> => {
+    const proposeNew = (kind: NewCard, input: unknown, callId: string): Promise<string> => {
       const next = proposing.then(() => proposeOne(kind, input, callId))
       proposing = next.catch(() => undefined)
       return next
     }
-    const proposeOne = async (
-      kind: 'create_project' | 'create_study',
-      input: unknown,
-      callId: string,
-    ): Promise<string> => {
+    const proposeOne = async (kind: NewCard, input: unknown, callId: string): Promise<string> => {
       const proposals = await deps.store.listProposals(c.conversationId)
       const prepared =
-        kind === 'create_study'
-          ? await prepareStudy(deps.research, c.actor, input, currentStudyFraming(proposals))
-          : await prepareProject(
-              deps.research,
-              c.actor,
-              input,
-              currentFraming(proposals),
-              c.language,
-            )
+        kind === 'attach_folder'
+          ? await prepareFolder(deps.research, c.actor, input)
+          : kind === 'create_study'
+            ? await prepareStudy(deps.research, c.actor, input, currentStudyFraming(proposals))
+            : await prepareProject(
+                deps.research,
+                c.actor,
+                input,
+                currentFraming(proposals),
+                c.language,
+              )
       if ('refused' in prepared) {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         await record(callId, kind, raw, null, prepared.refused)
         return prepared.refused
       }
       for (const open of proposals)
-        if (open.kind === kind && open.state === 'proposed')
+        if (
+          (open.kind === kind || (kind === 'attach_folder' && open.kind === 'connect_source')) &&
+          open.state === 'proposed' &&
+          // A folder's card only gives way to another card for the same study.
+          (kind !== 'attach_folder' || open.targetId === prepared.targetId)
+        )
           await deps.store.transitionProposal(open.id, 'proposed', {
             ...open,
             state: 'dismissed',
@@ -339,7 +377,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       }
       await deps.store.saveProposal(proposal)
       pending.push({ type: 'proposal', proposal: proposalView(proposal) })
-      return CARD_SHOWN
+      return prepared.kind === 'connect_source' ? CONNECTION_SHOWN : CARD_SHOWN
     }
 
     /** A change of a study's links or goal (spec 019): a card, or the reason of a refusal. */
@@ -380,7 +418,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       (guideStudy: GuideStudy | null) =>
       async (name: string, input: unknown, callId: string): Promise<string> => {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
-        if (name === 'create_project' || name === 'create_study')
+        if (name === 'create_project' || name === 'create_study' || name === 'attach_folder')
           return proposeNew(name, input, callId)
         if (isStudyChange(name as ProposalKind) || name === 'delete_project')
           return proposeStudyChange(name, input, callId)
@@ -393,6 +431,17 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           const progress = framingCompleteness(parsed.data as Partial<Record<FramingPoint, string>>)
           await record(callId, 'report_project_progress', parsed.data, { progress })
           return `Recorded: ${progress.percent} % covered.`
+        }
+        if (name === 'offer_choices') {
+          const parsed = TOOL_INPUTS.offer_choices.safeParse(input)
+          if (!parsed.success) {
+            const reason =
+              'Not shown: send a question and 2 to 6 different choices of at most 120 characters.'
+            await record(callId, 'offer_choices', raw, null, reason)
+            return reason
+          }
+          await record(callId, 'offer_choices', parsed.data, parsed.data)
+          return CHOICES_SHOWN
         }
         if (name === 'report_study_progress') {
           const parsed = TOOL_INPUTS.report_study_progress.safeParse(input)
@@ -444,6 +493,18 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       }
 
     try {
+      const before = await deps.store.listProposals(c.conversationId)
+      const held = before.filter((p) => p.messageId === previous.at(-1)?.id)
+      const continuation = person ? null : continuationOf(held)
+      // Spec 022: the consent decides the connection card, checked in openContinue.
+      if (continuation === 'connected')
+        for (const p of held)
+          if (p.kind === 'connect_source' && p.state === 'proposed')
+            await deps.store.transitionProposal(p.id, 'proposed', {
+              ...p,
+              state: 'applied',
+              decidedAt: deps.clock.now(),
+            })
       const proposals = await deps.store.listProposals(c.conversationId)
       const loadedSkills = proposals
         .filter((p) => p.kind === 'load_skill' && p.state === 'applied')
@@ -454,22 +515,15 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         c.page,
         c.language,
         loadedSkills,
-        // Spec 021: a study just applied leads to its guide; a project, to a first study.
-        person
-          ? null
-          : proposals.some(
-                (p) =>
-                  p.messageId === previous.at(-1)?.id &&
-                  p.kind === 'create_study' &&
-                  p.state === 'applied',
-              )
-            ? 'study'
-            : 'project',
+        continuation,
       )
       const run = runFor(guideStudy)
       // A continuing answer follows a card just applied: it offers the next step, no new card.
       const offered = [...TOOLS, ...(guideStudy && person ? GUIDE_TOOLS : [])].filter(
-        (t) => person || !NOT_CONTINUING.includes(t.name),
+        (t) =>
+          person ||
+          (!NOT_CONTINUING.includes(t.name) &&
+            (continuation === 'connected' || t.name !== 'attach_folder')),
       )
       const tools: ToolSpec[] = offered.map((t) =>
         isRunDuringAnswer(t.name as ProposalKind)

@@ -1,11 +1,11 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { err, ok, type Result, safeReturnPath } from '@goodresearch/shared'
-import { DriveConnectionLost, FOLDER_MIME } from '../../domain/drive-gateway.ts'
+import { DriveConnectionLost, type DriveItem, FOLDER_MIME } from '../../domain/drive-gateway.ts'
 import { parseDriveFolderLink } from '../../domain/drive-link.ts'
 import { isActiveRun } from '../../domain/inventory-run.ts'
 import { resolveStudyAccess } from '../access.ts'
 import { readRefreshToken } from '../connection.ts'
-import type { Actor, IngestionDeps } from '../ports.ts'
+import type { Actor, IngestionDeps, StudySource } from '../ports.ts'
 
 const STATE_TTL_MS = 10 * 60 * 1000
 
@@ -18,6 +18,7 @@ export type SourceError =
   | 'DRIVE_NOT_CONFIGURED'
   | 'DRIVE_UNAVAILABLE'
   | 'INVENTORY_RUNNING'
+  | 'FOLDER_ALREADY_ATTACHED'
   | 'VALIDATION'
 
 /** Drive connection and study folder commands (spec 002 US2, US3). */
@@ -34,6 +35,39 @@ export const makeSourceCommands = (deps: IngestionDeps) => {
       return err('INVENTORY_RUNNING')
     }
     return ok(undefined)
+  }
+
+  /** The folder behind a link, opened with the person's own permission. */
+  const readFolder = async (
+    actor: Actor,
+    studyId: string,
+    link: string,
+    onlyIfNone: boolean,
+  ): Promise<Result<DriveItem, SourceError>> => {
+    const access = await resolveStudyAccess(deps, actor.id, studyId)
+    if (access.kind === 'not-found') return err('STUDY_NOT_FOUND')
+    if (access.kind === 'drive-not-connected' && onlyIfNone) return err('FOLDER_ALREADY_ATTACHED')
+    if (access.kind === 'no-folder-access') return err('FOLDER_ACCESS_REQUIRED')
+    if (access.kind === 'drive-unavailable') return err('DRIVE_UNAVAILABLE')
+    if (!deps.drive) return err('DRIVE_NOT_CONFIGURED')
+    if (onlyIfNone && access.source) return err('FOLDER_ALREADY_ATTACHED')
+    const folderId = parseDriveFolderLink(link)
+    if (!folderId.ok) return folderId
+    const refreshToken = await readRefreshToken(deps, await deps.store.getConnection(actor.id))
+    if (!refreshToken) return err('DRIVE_NOT_CONNECTED')
+    if (access.source && isActiveRun(access.source.inventory, deps.clock.now()))
+      return err('INVENTORY_RUNNING')
+    let folder: DriveItem | null
+    try {
+      folder = await deps.drive.gateway.getItem(refreshToken, folderId.value)
+    } catch (error) {
+      if (!(error instanceof DriveConnectionLost)) throw error
+      await deps.store.markConnectionLost(actor.id)
+      return err('DRIVE_NOT_CONNECTED')
+    }
+    if (!folder || folder.trashed) return err('FOLDER_NOT_FOUND')
+    if (folder.mimeType !== FOLDER_MIME) return err('NOT_A_DRIVE_FOLDER_LINK')
+    return ok(folder)
   }
 
   return {
@@ -117,34 +151,30 @@ export const makeSourceCommands = (deps: IngestionDeps) => {
       return ok(undefined)
     },
 
+    /** Spec 022: what attaching this link would find; nothing is attached and nothing started. */
+    checkFolder: async (c: {
+      actor: Actor
+      studyId: string
+      link: string
+    }): Promise<Result<{ folderName: string; folderOwner: string | null }, SourceError>> => {
+      const read = await readFolder(c.actor, c.studyId, c.link, true)
+      return read.ok
+        ? ok({ folderName: read.value.name, folderOwner: read.value.ownerName ?? null })
+        : read
+    },
+
     attachFolder: async (c: {
       actor: Actor
       studyId: string
       link: string
+      /** Spec 022: replacing discards interviews, which only the form states. */
+      onlyIfNone?: boolean
     }): Promise<Result<void, SourceError>> => {
-      const access = await resolveStudyAccess(deps, c.actor.id, c.studyId)
-      if (access.kind === 'not-found') return err('STUDY_NOT_FOUND')
-      if (access.kind === 'no-folder-access') return err('FOLDER_ACCESS_REQUIRED')
-      if (access.kind === 'drive-unavailable') return err('DRIVE_UNAVAILABLE')
-      if (!deps.drive) return err('DRIVE_NOT_CONFIGURED')
-      const folderId = parseDriveFolderLink(c.link)
-      if (!folderId.ok) return folderId
-      const refreshToken = await readRefreshToken(deps, await deps.store.getConnection(c.actor.id))
-      if (!refreshToken) return err('DRIVE_NOT_CONNECTED')
-      if (access.source && isActiveRun(access.source.inventory, deps.clock.now()))
-        return err('INVENTORY_RUNNING')
-      let folder: Awaited<ReturnType<typeof deps.drive.gateway.getItem>>
-      try {
-        folder = await deps.drive.gateway.getItem(refreshToken, folderId.value)
-      } catch (error) {
-        if (!(error instanceof DriveConnectionLost)) throw error
-        await deps.store.markConnectionLost(c.actor.id)
-        return err('DRIVE_NOT_CONNECTED')
-      }
-      if (!folder || folder.trashed) return err('FOLDER_NOT_FOUND')
-      if (folder.mimeType !== FOLDER_MIME) return err('NOT_A_DRIVE_FOLDER_LINK')
+      const read = await readFolder(c.actor, c.studyId, c.link, c.onlyIfNone ?? false)
+      if (!read.ok) return read
+      const folder = read.value
       const now = deps.clock.now()
-      await deps.store.attachSource({
+      const source: StudySource = {
         studyId: c.studyId,
         folderId: folder.id,
         folderName: folder.name,
@@ -161,9 +191,14 @@ export const makeSourceCommands = (deps: IngestionDeps) => {
           failure: null,
           lastSuccessAt: null,
         },
-      })
+      }
+      if (c.onlyIfNone) {
+        if (!(await deps.store.attachNewSource(source))) return err('FOLDER_ALREADY_ATTACHED')
+      } else await deps.store.attachSource(source)
       await deps.store.saveFolderAccess(c.studyId, c.actor.id, 'granted', now)
-      return startInventory(c.studyId, c.actor.id)
+      const started = await startInventory(c.studyId, c.actor.id)
+      // Spec 022: the folder is attached; an inventory that did not start can be run from Fieldwork.
+      return c.onlyIfNone ? ok(undefined) : started
     },
 
     /**

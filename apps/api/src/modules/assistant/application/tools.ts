@@ -58,6 +58,18 @@ const INPUTS = {
   attach_study: z.object({ studyId: Id, projectId: Id }),
   detach_study: z.object({ studyId: Id, projectId: Id }),
   update_study_goal: z.object({ studyId: Id, goal: Goal }),
+  attach_folder: z.object({ studyId: Id, link: z.string().trim().min(1).max(2000) }),
+  offer_choices: z.object({
+    question: z.string().trim().min(1).max(300),
+    choices: z
+      .array(z.string().trim().min(1).max(120))
+      .min(2)
+      .max(6)
+      .refine((c) => new Set(c).size === c.length),
+    multiple: z.boolean().default(false),
+  }),
+  // Spec 022: never called by the model; what attach_folder becomes without a connection.
+  connect_source: z.object({ link: z.string() }),
   load_skill: z.object({ name: z.enum(SKILL_NAMES as [string, ...string[]]) }),
   check_guide_questions: z.object({
     questions: z.array(z.string().trim().min(1).max(600)).min(1).max(60),
@@ -134,6 +146,18 @@ export const TOOLS: readonly ToolSpec[] = [
     description:
       "Propose a new research goal for a study, read by its AI steps. Facts already found do not change, and the project's own goal stays. The result says whether a card was shown or why it was refused.",
     inputSchema: INPUTS.update_study_goal,
+  },
+  {
+    name: 'attach_folder',
+    description:
+      "Propose the folder holding a study's interviews, from the link the person gave; ask for the link if you do not have it. If their file source is not connected, the app shows a card to connect it and the conversation goes on after. Never replaces a folder. The result says whether a card was shown or why it was refused.",
+    inputSchema: INPUTS.attach_folder,
+  },
+  {
+    name: 'offer_choices',
+    description:
+      'Show a list the person can select from, when a few clear options exist: 2 to 6 different short choices, one or several (multiple). Their selection comes as their next message, and they can also write freely. Call it last, after your text: it ends the answer. Changes nothing else.',
+    inputSchema: INPUTS.offer_choices,
   },
   {
     name: 'load_skill',
@@ -274,6 +298,60 @@ export const prepareStudy = async (
         values: { name, goal, teamId },
         preview: { name, goal, teamName: team?.name ?? '' },
       }
+}
+
+/** Spec 022: why a folder cannot be proposed, in words the model can pass on. */
+const FOLDER_REFUSALS: Record<string, string> = {
+  STUDY_NOT_FOUND: 'Refused: use a study id listed in the context.',
+  NOT_A_DRIVE_FOLDER_LINK: 'Refused: this link is not a link to a folder.',
+  FOLDER_NOT_FOUND: 'Refused: this folder does not exist, or the person cannot open it.',
+  FOLDER_ALREADY_ATTACHED:
+    'Refused: this study already has a folder. Replacing it happens on the Fieldwork tab, which says what it discards.',
+  FOLDER_ACCESS_REQUIRED: 'Refused: the person has no access to the folder of this study.',
+  DRIVE_NOT_CONFIGURED: 'Refused: no file source is configured on this instance.',
+  DRIVE_UNAVAILABLE: 'Refused: the file source did not answer. Try again in a moment.',
+  INVENTORY_RUNNING: 'Refused: wait for the inventory in progress to finish.',
+}
+
+/**
+ * Checks a folder proposal (spec 022): a reason, the folder's card, or, without a connection, the
+ * card leading to it. The same checks run again on Apply, through the command.
+ */
+export const prepareFolder = async (
+  research: ResearchReads,
+  actor: Actor,
+  rawInput: unknown,
+): Promise<{ refused: string } | PreparedProposal> => {
+  const input = INPUTS.attach_folder.safeParse(rawInput)
+  if (!input.success) return { refused: 'Refused: send a studyId and the link of the folder.' }
+  const { studyId, link } = input.data
+  const study = await research.getStudy(actor.id, studyId)
+  if (!study) return { refused: FOLDER_REFUSALS.STUDY_NOT_FOUND ?? '' }
+  const checked = await research.checkFolder({ actor, studyId, link })
+  const base = { targetId: studyId, targetVersion: null, values: { link } }
+  if (checked.ok) {
+    // Fieldwork comes after the preparation: a guide, and at least one planned interview.
+    const preparation = await research.preparation(actor.id, studyId)
+    const planned = Object.entries(preparation?.schedule ?? {})
+      .filter(([status]) => status !== 'cancelled')
+      .reduce((sum, [, n]) => sum + (n ?? 0), 0)
+    const opensOn: 'preparation' | 'fieldwork' =
+      preparation && (!preparation.guide || planned === 0) ? 'preparation' : 'fieldwork'
+    return {
+      ...base,
+      kind: 'attach_folder',
+      preview: {
+        opensOn,
+        studyId,
+        studyName: study.name,
+        folderName: checked.folderName,
+        ...(checked.folderOwner ? { folderOwner: checked.folderOwner } : {}),
+      },
+    }
+  }
+  if (checked.error === 'DRIVE_NOT_CONNECTED')
+    return { ...base, kind: 'connect_source', preview: { studyId, studyName: study.name } }
+  return { refused: FOLDER_REFUSALS[checked.error] ?? 'Refused: this folder cannot be attached.' }
 }
 
 /** Spec 020: the card of a deletion, or the reason given back to the model. */

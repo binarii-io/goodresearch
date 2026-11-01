@@ -169,6 +169,8 @@ export interface IngestionStore {
   getSource(studyId: string): Promise<StudySource | null>
   /** Attaches (or replaces) a folder: previous files, sessions, access checks and runs are discarded. */
   attachSource(source: StudySource): Promise<void>
+  /** Spec 022: false when the study has a folder already; decided by the database. */
+  attachNewSource(source: StudySource): Promise<boolean>
   deleteSource(studyId: string): Promise<void>
   /** Starts a new run unless an active (non-stale) one exists; returns it, or null. */
   startInventory(studyId: string, runBy: string, now: Date): Promise<InventoryRun | null>

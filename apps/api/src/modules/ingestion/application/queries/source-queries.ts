@@ -85,6 +85,26 @@ export const makeSourceQueries = (deps: IngestionDeps) => ({
     }
   },
 
+  /** Spec 022: what the assistant may know of a study's folder; no file or sub-folder name. */
+  folderState: async (
+    actor: Actor,
+    studyId: string,
+  ): Promise<{
+    name: string
+    status: string
+    byKind: { transcript: number; media: number; other: number }
+  } | null> => {
+    const access = await resolveStudyAccess(deps, actor.id, studyId)
+    if (access.kind !== 'full' || !access.source) return null
+    const inv = access.source.inventory
+    const interrupted = inv.status === 'running' && !isActiveRun(inv, deps.clock.now())
+    return {
+      name: access.source.folderName,
+      status: interrupted ? 'failed' : inv.status,
+      byKind: (await deps.store.totals(studyId)).byKind,
+    }
+  },
+
   listFiles: async (
     actor: Actor,
     studyId: string,

@@ -12,15 +12,22 @@ const INSTRUCTIONS = `You are the goodresearch assistant. You help people run us
 - Only use ids that appear in the context.
 - Propose to delete a project only when the person asks for it, and ask which one if several could match.
 - Each message of the person starts with the page it was sent from. The context below describes the page the person is on now; when it differs from earlier messages, the person has moved.
+- When the person can choose among a few clear options, such as the next steps, offer them with offer_choices rather than a list in your text.
 - Skills hold instructions for specific tasks. When a task matches a skill listed below that is not loaded yet, call load_skill first and follow its instructions. When the person wants to create a research project, that is the skill project-framing. When they want to create a study, that is the skill study-framing.`
 
-/** Said when the answer follows an applied card rather than a message (spec 018 US3, 021). */
+/** Said when the answer follows an applied card rather than a message (spec 018, 021, 022). */
 const CONTINUATIONS = {
   project:
     'The person just applied your project proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the project is ready and ask whether they want to prepare a first interview study. If an existing study of the team looks related, mention it and offer to reuse it with attach_study as well. Do not repeat the framing.',
   study:
-    'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready and offer to prepare its interview guide. Do not start it and call no tool before they agree. Do not repeat the framing.',
+    'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready, then call offer_choices with the next steps: adding the folder that holds its interviews if they exist already, and preparing its interview guide. Start neither, and call no other tool. Do not repeat the framing.',
+  folder:
+    'The person just applied your folder proposal and the study is open on the tab named in the context: nobody wrote a new message. From the source folder in the context, give the number of transcripts, recordings and other files; if its inventory is still running, say so and that the Fieldwork tab follows it. Then call offer_choices with what is left to prepare according to the context: writing the interview guide if there is none, planning the interviews if none is planned; if both are done, going to Fieldwork. Start nothing, and call no other tool.',
+  connected:
+    'The person just connected their file source and is back on this study: nobody wrote a new message. If the conversation holds the link of the folder, call attach_folder with it and the Study id. Otherwise ask for the link.',
 } as const
+
+export type Continuation = keyof typeof CONTINUATIONS
 
 /** The interview study of the page, for the guide tools (spec 006). */
 export type GuideStudy = { id: string; name: string; guideVersion: number | null }
@@ -77,7 +84,7 @@ export const buildContext = async (
   page: PageRef,
   language: 'en' | 'fr',
   loadedSkills: readonly string[] = [],
-  continuation: keyof typeof CONTINUATIONS | null = null,
+  continuation: Continuation | null = null,
 ): Promise<{ system: string; guideStudy: GuideStudy | null }> => {
   let guideStudy: GuideStudy | null = null
   const lines: string[] = []
@@ -116,14 +123,18 @@ export const buildContext = async (
   } else if (page.kind === 'study' && page.id) {
     const study = await research.getStudy(actor.id, page.id)
     if (study) {
-      const folder = await research.studyFolder(actor.id, study.id)
+      const folder = await research.folderState(actor, study.id)
       const first = study.projects[0]
       const project = first ? await research.getProject(actor.id, first.id) : null
       lines.push(
         'The person is on a study page.',
         `Study: ${study.name} (${study.type}), Study id: ${study.id}`,
         `Tabs (study phases): preparation, fieldwork, enrichment, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
-        `Source folder: ${folder ?? '(none, or no access)'}`,
+        `Source folder: ${
+          folder
+            ? `${folder.name} (inventory ${folder.status}: ${folder.byKind.transcript} transcripts, ${folder.byKind.media} recordings, ${folder.byKind.other} other files)`
+            : '(none, or no access)'
+        }`,
         `Research goal of the study, read by its AI steps: ${study.goal || '(empty)'}`,
         // Spec 019: a study can feed several projects, or none.
         ...(project

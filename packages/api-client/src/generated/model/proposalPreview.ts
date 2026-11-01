@@ -8,6 +8,7 @@ import type { GuideProgress } from './guideProgress.ts';
 import type { ProjectDeletion } from './projectDeletion.ts';
 import type { ProposalPreviewChecksItem } from './proposalPreviewChecksItem.ts';
 import type { ProposalPreviewGuide } from './proposalPreviewGuide.ts';
+import type { ProposalPreviewOpensOn } from './proposalPreviewOpensOn.ts';
 import type { ProposalPreviewPhase } from './proposalPreviewPhase.ts';
 
 export interface ProposalPreview {
@@ -19,6 +20,14 @@ export interface ProposalPreview {
   previousGoal?: string;
   phase?: ProposalPreviewPhase;
   studyName?: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  studyId?: string;
+  folderName?: string;
+  folderOwner?: string;
+  opensOn?: ProposalPreviewOpensOn;
+  question?: string;
+  choices?: string[];
+  multiple?: boolean;
   /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
   projectId?: string;
   deletion?: ProjectDeletion;

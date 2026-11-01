@@ -8,6 +8,7 @@ import type { GuideProgressInput } from './guideProgressInput.ts';
 import type { ProjectDeletionInput } from './projectDeletionInput.ts';
 import type { ProposalPreviewInputChecksItem } from './proposalPreviewInputChecksItem.ts';
 import type { ProposalPreviewInputGuide } from './proposalPreviewInputGuide.ts';
+import type { ProposalPreviewInputOpensOn } from './proposalPreviewInputOpensOn.ts';
 import type { ProposalPreviewInputPhase } from './proposalPreviewInputPhase.ts';
 
 export interface ProposalPreviewInput {
@@ -19,6 +20,14 @@ export interface ProposalPreviewInput {
   previousGoal?: string;
   phase?: ProposalPreviewInputPhase;
   studyName?: string;
+  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
+  studyId?: string;
+  folderName?: string;
+  folderOwner?: string;
+  opensOn?: ProposalPreviewInputOpensOn;
+  question?: string;
+  choices?: string[];
+  multiple?: boolean;
   /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
   projectId?: string;
   deletion?: ProjectDeletionInput;

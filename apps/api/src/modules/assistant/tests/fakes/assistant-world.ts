@@ -102,6 +102,19 @@ export const fakeResearch = () => {
     studies: { id: string; name: string; projects: { name: string }[] }[]
   } = { studies: [] }
   const running = { value: false }
+  const folder: {
+    state: Awaited<ReturnType<ResearchReads['folderState']>>
+    check: Awaited<ReturnType<ResearchReads['checkFolder']>>
+    connected: boolean
+  } = {
+    state: {
+      name: 'Interviews Q4',
+      status: 'done',
+      byKind: { transcript: 3, media: 2, other: 1 },
+    },
+    check: { ok: true, folderName: 'Interviews Q4', folderOwner: 'Sam' },
+    connected: true,
+  }
   let deleteThrows = false
   let createThrows = false
   const deletion: { value: Awaited<ReturnType<ResearchReads['projectDeletion']>> } = {
@@ -127,8 +140,9 @@ export const fakeResearch = () => {
     attachableStudies: async () => attachable.studies,
     projectDeletion: async () => deletion.value,
     studyInTeam: async (_accountId, _studyId, teamId) => teamId === 't1',
-    studyFolder: async (accountId, id) =>
-      accountId === 'ada' && id === 's1' ? 'Interviews Q4' : null,
+    folderState: async (actor, id) => (actor.id === 'ada' && id === 's1' ? folder.state : null),
+    checkFolder: async () => folder.check,
+    sourceConnected: async () => folder.connected,
     canActOnStudy: async () => true,
     projectRunning: async () => running.value,
     preparation: async (accountId, id) =>
@@ -151,6 +165,7 @@ export const fakeResearch = () => {
       if (createThrows) throw new Error('down')
       return result('createStudy', c, { id: 's-new' })
     },
+    attachFolder: async (c) => result('attachFolder', c, {}),
     createTeamStudy: async (c) => result('createTeamStudy', c, { id: 's-new' }),
     renameStudy: async (c) => result('renameStudy', c, {}),
     attachStudy: async (c) => result('attachStudy', c, {}),
@@ -169,6 +184,7 @@ export const fakeResearch = () => {
     renameProject: (name: string) => {
       project.name = name
     },
+    folder,
     throwOnDelete: () => {
       deleteThrows = true
     },

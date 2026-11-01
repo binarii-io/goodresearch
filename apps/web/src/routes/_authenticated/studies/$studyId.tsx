@@ -34,6 +34,7 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { AnalysisTab } from '../../../features/analysis/analysis-tab.tsx'
+import { useAssistant } from '../../../features/assistant/state.tsx'
 import { EnrichmentTab } from '../../../features/enrichment/enrichment-tab.tsx'
 import { FieldworkTab } from '../../../features/fieldwork/fieldwork-tab.tsx'
 import { FolderButton } from '../../../features/ingestion/folder-button.tsx'
@@ -112,13 +113,19 @@ function StudyPage() {
 
   // Shown once per return from Google's consent: the toast id prevents duplicates and the
   // parameter is removed from the address right away.
+  const { conversationId, setAppliedCard } = useAssistant()
   const announced = useRef<string | null>(null)
   useEffect(() => {
     if (!drive || announced.current === drive) return
     announced.current = drive
-    if (drive === 'connected')
+    if (drive === 'connected') {
       toast.success(i18n._(msg`Google Drive connected`), { id: 'drive-consent' })
-    else
+      // Spec 022: a conversation waiting for it goes on; the server checks it does.
+      setAppliedCard({
+        page: { kind: 'study', id: studyId, phase: phase === 'preparation' ? phase : 'fieldwork' },
+        conversationId,
+      })
+    } else
       toast.error(i18n._(msg`Google Drive was not connected. You can try again.`), {
         id: 'drive-consent',
       })
@@ -127,7 +134,7 @@ function StudyPage() {
       search: (previous) => ({ ...previous, drive: undefined }),
       replace: true,
     })
-  }, [drive, navigate, i18n])
+  }, [drive, navigate, i18n, studyId, phase, conversationId, setAppliedCard])
 
   if (study.isPending) return <Skeleton className="h-40 w-full" />
   if (errorCode(study.error) === 'STUDY_NOT_FOUND' || !study.data) return <NotFound />

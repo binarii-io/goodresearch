@@ -73,6 +73,11 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
             })
         return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: r.id } } : r
       }
+      case 'attach_folder': {
+        const studyId = p.targetId ?? ''
+        const r = await deps.actions.attachFolder({ actor, studyId, link: str(v.link) })
+        return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: studyId } } : r
+      }
       case 'attach_study':
       case 'detach_study': {
         const change = { actor, projectId: str(v.projectId), studyId: p.targetId ?? '' }
@@ -114,6 +119,8 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       case 'report_guide_progress':
       case 'report_project_progress':
       case 'report_study_progress':
+      case 'connect_source':
+      case 'offer_choices':
       case 'load_skill':
       case 'check_guide_questions':
         return { ok: false as const, error: 'PROPOSAL_DECIDED' }
@@ -139,6 +146,8 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       const p = await load(c.actor, c.proposalId)
       if (!p) return err('PROPOSAL_NOT_FOUND')
       if (p.kind === 'delete_project') return err('NAME_REQUIRED')
+      // Spec 022: only the consent, at the source, decides this card.
+      if (p.kind === 'connect_source') return err('PROPOSAL_NOT_FOUND')
       const allowed = decideProposal(p.state, 'applying')
       if (!allowed.ok) return allowed
       // Claim it first: a second Apply (double click, another tab) finds it taken.

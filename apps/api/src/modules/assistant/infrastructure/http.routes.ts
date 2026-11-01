@@ -193,7 +193,7 @@ export const registerAssistantRoutes = (
     async (request, res) => {
       const actor = request.account
       const { conversationId } = request.params
-      const opened = await send.openContinue({ actor, conversationId })
+      const opened = await send.openContinue({ actor, conversationId, page: request.body.page })
       if (!opened.ok) return sendError(res, opened.error)
       return streamAnswer(request, res, send.send({ actor, conversationId, ...request.body }))
     },
