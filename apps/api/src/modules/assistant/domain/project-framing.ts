@@ -14,10 +14,12 @@ export const FRAMING_CHECKLIST = [
 
 export type FramingPoint = (typeof FRAMING_CHECKLIST)[number][0]
 
-export type Framing = {
+export type FramingOf<Point extends string> = {
   percent: number
-  items: { key: FramingPoint; weight: number; status: GuidePointState }[]
+  items: { key: Point; weight: number; status: GuidePointState }[]
 }
+
+export type Framing = FramingOf<FramingPoint>
 
 export const framingCompleteness = (states: Partial<Record<FramingPoint, string>>): Framing =>
   weighted(FRAMING_CHECKLIST, states)
@@ -32,26 +34,40 @@ type ProposalFacts = {
 const timeOf = (p: ProposalFacts) => p.decidedAt?.getTime() ?? 0
 
 /**
- * The framing under way in a conversation: its latest report, unless a project was applied since,
+ * The framing under way in a conversation: its latest report, unless its object was applied since,
  * which ends it. Compared by time: proposals have no order, and a card applied late ends the
  * reports made while it was open.
  */
-export const currentFraming = (proposals: readonly ProposalFacts[]): Framing | null => {
+export const framingUnderWay = (
+  proposals: readonly ProposalFacts[],
+  report: string,
+  created: string,
+): FramingOf<string> | null => {
   const latest = proposals
-    .filter((p) => p.kind === 'report_project_progress' && p.state === 'applied')
+    .filter((p) => p.kind === report && p.state === 'applied')
     .reduce<ProposalFacts | null>((a, p) => (!a || timeOf(p) >= timeOf(a) ? p : a), null)
   if (!latest) return null
   const ended = proposals.some(
-    (p) => p.kind === 'create_project' && p.state === 'applied' && timeOf(p) >= timeOf(latest),
+    (p) => p.kind === created && p.state === 'applied' && timeOf(p) >= timeOf(latest),
   )
-  return ended ? null : ((latest.preview.progress as Framing | undefined) ?? null)
+  return ended ? null : ((latest.preview.progress as FramingOf<string> | undefined) ?? null)
 }
 
+export const currentFraming = (proposals: readonly ProposalFacts[]): Framing | null =>
+  framingUnderWay(proposals, 'report_project_progress', 'create_project') as Framing | null
+
 /** The points not done yet; all of them without a framing. */
+export const pointsLeft = <Point extends string>(
+  framing: FramingOf<Point> | null,
+  all: readonly Point[],
+): Point[] =>
+  framing ? framing.items.filter((i) => i.status !== 'done').map((i) => i.key) : [...all]
+
 export const openPoints = (framing: Framing | null): FramingPoint[] =>
-  framing
-    ? framing.items.filter((i) => i.status !== 'done').map((i) => i.key)
-    : FRAMING_CHECKLIST.map(([key]) => key)
+  pointsLeft(
+    framing,
+    FRAMING_CHECKLIST.map(([key]) => key),
+  )
 
 const HEADINGS = {
   en: {

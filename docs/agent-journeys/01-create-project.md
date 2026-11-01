@@ -58,10 +58,10 @@ flowchart TD
     C -->|"Dismiss, or a change requested"| B
     C -->|"Apply"| R["Same command as the form"]
     R --> N["Project page opens"]
-    N --> F["Assistant continues:<br/>proposes the first study"]
+    N --> F["Assistant continues:<br/>asks whether to prepare a first study"]
 ```
 
-The first study is proposed with its own card and is not created until the person applies it.
+The first study then follows [its own journey](04-create-study.md).
 
 Continuing after Apply makes one more AI call, recorded in the usage ledger and shown in the conversation's cost.
 

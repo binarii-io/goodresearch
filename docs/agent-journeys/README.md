@@ -11,6 +11,7 @@ A journey is defined and delivered on its own: one journey, one pull request, on
 | 1 | [Create a research project](01-create-project.md) | Built by [spec 018](../../specs/018-agent-create-project/spec.md) |
 | 2 | [Reuse a study in another project](02-attach-study.md) | Built by [spec 019](../../specs/019-attach-study/spec.md) |
 | 3 | [Delete a research project](03-delete-project.md) | Built by [spec 020](../../specs/020-delete-project/spec.md) |
+| 4 | [Create a study](04-create-study.md) | Built by [spec 021](../../specs/021-agent-create-study/spec.md) |
 
 ## How a journey is written
 

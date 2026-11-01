@@ -82,7 +82,11 @@ test.describe('spec 005 — assistant panel', () => {
         .getByText('Understand why new users drop off during their first week.'),
     ).toBeVisible()
 
-    await field.fill('propose study')
+    await field.fill('study framing answered')
+    await page.keyboard.press('Enter')
+    await expect(panel.getByText('May I propose the study?')).toBeVisible()
+    await expect(panel.getByRole('button', { name: 'Stop' })).toHaveCount(0)
+    await field.fill('propose the study')
     await page.keyboard.press('Enter')
     const study = panel.getByRole('region', { name: 'Create an interview study' })
     await study.getByRole('button', { name: 'Dismiss' }).click()
@@ -90,11 +94,15 @@ test.describe('spec 005 — assistant panel', () => {
     await expect(page.getByRole('main').getByText('Interviews with new users')).toHaveCount(0)
 
     // The assistant opens pages as if the person navigated; the panel stays open.
-    await field.fill('propose study')
+    await field.fill('propose the study')
     await page.keyboard.press('Enter')
     const accepted = panel.getByRole('region', { name: 'Create an interview study' }).last()
     await accepted.getByRole('button', { name: 'Apply' }).click()
     await expect(accepted.getByRole('status')).toContainText('Applied')
+    // The study opens and the assistant goes on (spec 021).
+    await expect(page).toHaveURL(/\/studies\//)
+    await expect(panel.getByText('Shall we prepare its guide?')).toBeVisible({ timeout: 15_000 })
+    await expect(panel.getByRole('button', { name: 'Stop' })).toHaveCount(0)
     await field.fill('open study')
     await page.keyboard.press('Enter')
     await expect(page.getByRole('tab', { name: '6 · Analysis' })).toBeVisible()
@@ -129,6 +137,33 @@ test.describe('spec 005 — assistant panel', () => {
     await page.keyboard.press('Escape')
     await expect(panel).toBeVisible()
     await expect(panel.getByRole('list', { name: 'Conversations' })).not.toContainText('renamed')
+  })
+
+  test('keeps the panel in place with a long project name', async ({ browser }) => {
+    const page = await signedInPage(browser, ADMIN)
+    await ensureHome(page)
+    await createProject(page, `${'Long project name '.repeat(6)}${runId}`)
+    const panel = page.getByRole('complementary', { name: 'Assistant' })
+    const toggle = page.getByRole('button', { name: 'Assistant', exact: true })
+    if ((await toggle.getAttribute('aria-pressed')) !== 'true') await toggle.click()
+    const field = page.getByRole('textbox', { name: 'Message to the assistant' })
+    await field.focus()
+    await expect(panel.getByRole('button', { name: 'Send' })).toBeVisible()
+    // The panel slides open: measure once it has settled.
+    await expect
+      .poll(() =>
+        panel.evaluate((el) => {
+          const send = [...el.querySelectorAll('button')].find((b) =>
+            b.textContent?.includes('Send'),
+          )
+          const right = el.getBoundingClientRect().right
+          return {
+            scrolled: el.scrollLeft,
+            inside: (send?.getBoundingClientRect().right ?? Infinity) <= right,
+          }
+        }),
+      )
+      .toEqual({ scrolled: 0, inside: true })
   })
 
   test('covers the screen on a phone', async ({ browser }) => {

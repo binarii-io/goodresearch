@@ -16,6 +16,7 @@ export const PROPOSAL_KINDS = [
   'propose_interview_guide',
   'report_guide_progress',
   'report_project_progress',
+  'report_study_progress',
   'load_skill',
   'check_guide_questions',
   'attach_study',
@@ -41,6 +42,7 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
   kind === 'load_skill' ||
   kind === 'check_guide_questions' ||
   kind === 'create_project' ||
+  kind === 'create_study' ||
   isStudyChange(kind) ||
   kind === 'delete_project'
 
@@ -49,7 +51,9 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
  * asks for it last): running it would cost one more model step for a "Recorded" (PR #6 review).
  */
 export const isRecordedAtOnce = (kind: ProposalKind): boolean =>
-  kind === 'report_guide_progress' || kind === 'report_project_progress'
+  kind === 'report_guide_progress' ||
+  kind === 'report_project_progress' ||
+  kind === 'report_study_progress'
 
 export const isProposalKind = (name: string): name is ProposalKind =>
   (PROPOSAL_KINDS as readonly string[]).includes(name)

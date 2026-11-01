@@ -118,6 +118,10 @@ export const UpdateStudyGoal = z
 export const CreateStudy = z
   .object({ name: StudyName, type: StudyType })
   .meta({ id: 'CreateStudy' })
+/** Spec 021: a study of the team, in no project. */
+export const CreateTeamStudy = z
+  .object({ name: StudyName, goal: z.string().trim().max(10_000).default('') })
+  .meta({ id: 'CreateTeamStudy' })
 export const RenameStudy = z
   .object({ name: StudyName, version: Version })
   .meta({ id: 'RenameStudy' })

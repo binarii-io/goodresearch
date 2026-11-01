@@ -4,6 +4,7 @@ import { GUIDE_CHECKLIST, GUIDE_POINT_STATES } from '../domain/guide-progress.ts
 import { composeGoal, type Framing, openPoints } from '../domain/project-framing.ts'
 import type { ProposalKind } from '../domain/proposal.ts'
 import { checkQuestion } from '../domain/question-checks.ts'
+import { openStudyPoints, type StudyFraming } from '../domain/study-framing.ts'
 import type { GuideStudy } from './context.ts'
 import type { Actor, ProposalPreview, ResearchReads, ToolSpec } from './ports.ts'
 import { SKILL_NAMES } from './skills.ts'
@@ -22,7 +23,13 @@ const INPUTS = {
   }),
   update_project_goal: z.object({ projectId: Id, goal: Goal.min(1) }),
   rename_project: z.object({ projectId: Id, name: Name }),
-  create_study: z.object({ projectId: Id, name: Name }),
+  // Spec 021: a project, or a team for a study in no project.
+  create_study: z.object({
+    name: Name,
+    goal: Goal,
+    projectId: Id.optional(),
+    teamId: Id.optional(),
+  }),
   rename_study: z.object({ studyId: Id, name: Name }),
   open_project: z.object({ projectId: Id }),
   open_study: z.object({
@@ -40,6 +47,11 @@ const INPUTS = {
     decision: z.enum(GUIDE_POINT_STATES),
     hypotheses: z.enum(GUIDE_POINT_STATES),
     team: z.enum(GUIDE_POINT_STATES),
+  }),
+  report_study_progress: z.object({
+    reuse: z.enum(GUIDE_POINT_STATES),
+    goal: z.enum(GUIDE_POINT_STATES),
+    place: z.enum(GUIDE_POINT_STATES),
   }),
   // Spec 020: never the name, which only the person types, on the card.
   delete_project: z.object({ projectId: Id }),
@@ -79,7 +91,7 @@ export const TOOLS: readonly ToolSpec[] = [
   {
     name: 'create_study',
     description:
-      'Propose a new interview study in a project. The person confirms before it is created.',
+      'Propose a new interview study, once every point of the framing is done and they agreed (load the skill study-framing first). Send its goal, and a project id from the context, or a team id for a study in no project. The result says whether a card was shown or why it was refused. The person confirms before anything is created.',
     inputSchema: INPUTS.create_study,
   },
   {
@@ -108,7 +120,7 @@ export const TOOLS: readonly ToolSpec[] = [
   {
     name: 'attach_study',
     description:
-      'Propose to reuse an existing study of the team in a project: its interviews and facts then feed the project, without any AI call, and it stays in its other projects. Use the attachable study ids of the context, given on a project page. The result says whether a card was shown or why it was refused.',
+      'Propose to reuse an existing study of the team in a project: its interviews and facts then feed the project, without any AI call, and it stays in its other projects. Use the attachable study ids of the context. The result says whether a card was shown or why it was refused.',
     inputSchema: INPUTS.attach_study,
   },
   {
@@ -134,6 +146,12 @@ export const TOOLS: readonly ToolSpec[] = [
     description:
       'Record how far the framing of a new project is: for each of the five points, missing, partial or done. Call it last, after your text, at the end of each answer while framing a project: it ends the answer. Changes nothing else.',
     inputSchema: INPUTS.report_project_progress,
+  },
+  {
+    name: 'report_study_progress',
+    description:
+      'Record how far the framing of a new study is: for each of the three points, missing, partial or done. Call it last, after your text, at the end of each answer while framing a study: it ends the answer. Changes nothing else.',
+    inputSchema: INPUTS.report_study_progress,
   },
 ]
 
@@ -210,6 +228,52 @@ export const prepareProject = async (
     values: { ...input.data, goal },
     preview: { name, teamName: team.name, goal },
   }
+}
+
+/**
+ * Checks a study proposal (spec 021): a reason to give back to the model, or the card. The project
+ * or team is checked again on Apply, through the command.
+ */
+export const prepareStudy = async (
+  research: ResearchReads,
+  actor: Actor,
+  rawInput: unknown,
+  framing: StudyFraming | null,
+): Promise<{ refused: string } | PreparedProposal> => {
+  const input = INPUTS.create_study.safeParse(rawInput)
+  if (!input.success)
+    return {
+      refused:
+        'Refused: send a name of 1 to 120 characters, a goal of at most 10,000 characters, and a projectId or teamId as text, leaving the other one out.',
+    }
+  const { name, goal, projectId, teamId } = input.data
+  if (Boolean(projectId) === Boolean(teamId))
+    return { refused: 'Refused: send a projectId, or a teamId for a study in no project.' }
+  const project = projectId ? await research.getProject(actor.id, projectId) : null
+  if (projectId && !project) return { refused: 'Refused: use a project id listed in the context.' }
+  const team = teamId ? (await research.teamsOf(actor.id)).find((t) => t.id === teamId) : null
+  if (teamId && !team) return { refused: 'Refused: use a team id listed in the context.' }
+  if (!goal) return { refused: 'Refused: the goal must not be empty.' }
+  const open = openStudyPoints(framing)
+  if (open.length > 0)
+    return {
+      refused: `Refused: ${open.join(', ')} not done. Ask the person, report the progress, and propose only once every point is done.`,
+    }
+  return project
+    ? {
+        kind: 'create_study',
+        targetId: project.id,
+        targetVersion: null,
+        values: { name, goal },
+        preview: { name, goal, projectName: project.name },
+      }
+    : {
+        kind: 'create_study',
+        targetId: null,
+        targetVersion: null,
+        values: { name, goal, teamId },
+        preview: { name, goal, teamName: team?.name ?? '' },
+      }
 }
 
 /** Spec 020: the card of a deletion, or the reason given back to the model. */
@@ -333,19 +397,6 @@ export const prepareProposal = async (
             values: { name: parsed.data.name },
             preview: { name: parsed.data.name, previousName: project.name },
           }
-    }
-    case 'create_study': {
-      const input = INPUTS.create_study.safeParse(call.input)
-      if (!input.success) return null
-      const project = await research.getProject(actor.id, input.data.projectId)
-      if (!project) return null
-      return {
-        kind: 'create_study',
-        targetId: project.id,
-        targetVersion: null,
-        values: { name: input.data.name },
-        preview: { projectName: project.name, name: input.data.name },
-      }
     }
     case 'rename_study': {
       const input = INPUTS.rename_study.safeParse(call.input)

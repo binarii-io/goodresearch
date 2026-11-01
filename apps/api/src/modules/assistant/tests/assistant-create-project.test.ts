@@ -269,19 +269,13 @@ describe('spec 018 US3 — continue on the new project', () => {
       ok: true,
     })
     const before = world.messages.length
-    world.model.answer([
-      { type: 'text', delta: 'Ready.' },
-      call('create_study', { projectId: 'p1', name: 'First interviews' }, 'study'),
-    ])
+    world.model.answer([{ type: 'text', delta: 'Ready.' }])
     const events = await continueOn()
     expect(world.messages.length).toBe(before + 1)
     expect(world.messages.at(-1)).toMatchObject({ role: 'assistant', text: 'Ready.' })
     expect(events[0]).toMatchObject({ type: 'start' })
     expect(events[0]).not.toHaveProperty('personMessageId')
-    expect(cards(events)[0]).toMatchObject({
-      proposal: { kind: 'create_study', state: 'proposed' },
-    })
-    expect(world.research.actionsLog.filter((a) => a.action === 'createStudy')).toEqual([])
+    expect(cards(events)).toEqual([])
     const request = world.model.requests.at(-1)
     expect(request?.system).toContain('just applied your project proposal')
     expect(request?.system).toContain('Project id: p1')
@@ -327,7 +321,8 @@ describe('spec 018 US3 — continue on the new project', () => {
     await continueOn()
     expect(toolNames()).not.toContain('report_project_progress')
     expect(toolNames()).not.toContain('create_project')
-    expect(toolNames()).toContain('create_study')
+    expect(toolNames()).not.toContain('create_study')
+    expect(toolNames()).toContain('attach_study')
   })
 
   it('does not continue once the conversation went on', async () => {

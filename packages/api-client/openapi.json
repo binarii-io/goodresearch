@@ -1419,7 +1419,10 @@
                     "biasReview",
                     "question",
                     "decision",
-                    "team"
+                    "team",
+                    "reuse",
+                    "goal",
+                    "place"
                   ]
                 },
                 "weight": {
@@ -1658,6 +1661,7 @@
               "propose_interview_guide",
               "report_guide_progress",
               "report_project_progress",
+              "report_study_progress",
               "load_skill",
               "check_guide_questions",
               "attach_study",
@@ -10147,6 +10151,24 @@
           "type"
         ]
       },
+      "CreateTeamStudyInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "goal": {
+            "default": "",
+            "type": "string",
+            "maxLength": 10000
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "RenameStudyInput": {
         "type": "object",
         "properties": {
@@ -13967,7 +13989,10 @@
                     "biasReview",
                     "question",
                     "decision",
-                    "team"
+                    "team",
+                    "reuse",
+                    "goal",
+                    "place"
                   ]
                 },
                 "weight": {
@@ -14214,6 +14239,7 @@
               "propose_interview_guide",
               "report_guide_progress",
               "report_project_progress",
+              "report_study_progress",
               "load_skill",
               "check_guide_questions",
               "attach_study",
@@ -22968,6 +22994,26 @@
         ],
         "additionalProperties": false
       },
+      "CreateTeamStudy": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "goal": {
+            "default": "",
+            "type": "string",
+            "maxLength": 10000
+          }
+        },
+        "required": [
+          "name",
+          "goal"
+        ],
+        "additionalProperties": false
+      },
       "RenameStudy": {
         "type": "object",
         "properties": {
@@ -26326,6 +26372,44 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TeamStudies"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createTeamStudy",
+        "tags": [
+          "studies"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamStudyInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "teamId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Created"
                 }
               }
             }

@@ -58,11 +58,19 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
           : r
       }
       case 'create_study': {
-        const r = await deps.actions.createStudy({
-          actor,
-          projectId: p.targetId ?? '',
-          name: str(v.name),
-        })
+        const r = p.targetId
+          ? await deps.actions.createStudy({
+              actor,
+              projectId: p.targetId,
+              name: str(v.name),
+              ...('goal' in v ? { goal: str(v.goal) } : {}),
+            })
+          : await deps.actions.createTeamStudy({
+              actor,
+              teamId: str(v.teamId),
+              name: str(v.name),
+              goal: str(v.goal),
+            })
         return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: r.id } } : r
       }
       case 'attach_study':
@@ -105,6 +113,7 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       case 'open_study':
       case 'report_guide_progress':
       case 'report_project_progress':
+      case 'report_study_progress':
       case 'load_skill':
       case 'check_guide_questions':
         return { ok: false as const, error: 'PROPOSAL_DECIDED' }
@@ -138,7 +147,19 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
         state: 'applying',
       })
       if (!claimed) return err('PROPOSAL_DECIDED')
-      const outcome = await run(c.actor, p)
+      let outcome: Awaited<ReturnType<typeof run>>
+      try {
+        outcome = await run(c.actor, p)
+      } catch (error) {
+        // The card must not stay claimed for ever: its next reader sees that it failed.
+        await deps.store.saveProposal({
+          ...p,
+          state: 'failed',
+          error: 'INTERNAL',
+          decidedAt: deps.clock.now(),
+        })
+        throw error
+      }
       const decided: StoredProposal = outcome.ok
         ? {
             ...p,

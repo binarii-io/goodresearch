@@ -1,6 +1,8 @@
 import type { Actor, PageRef, ResearchReads } from './ports.ts'
 import { SKILL_NAMES, SKILLS, type SkillName } from './skills.ts'
 
+const REUSABLE_LIMIT = 30
+
 const LANGUAGES = { en: 'English', fr: 'French' } as const
 
 const INSTRUCTIONS = `You are the goodresearch assistant. You help people run user research: frame research questions, write research goals, plan studies (interviews first), and prepare their work.
@@ -10,11 +12,15 @@ const INSTRUCTIONS = `You are the goodresearch assistant. You help people run us
 - Only use ids that appear in the context.
 - Propose to delete a project only when the person asks for it, and ask which one if several could match.
 - Each message of the person starts with the page it was sent from. The context below describes the page the person is on now; when it differs from earlier messages, the person has moved.
-- Skills hold instructions for specific tasks. When a task matches a skill listed below that is not loaded yet, call load_skill first and follow its instructions. When the person wants to create a research project, that is the skill project-framing.`
+- Skills hold instructions for specific tasks. When a task matches a skill listed below that is not loaded yet, call load_skill first and follow its instructions. When the person wants to create a research project, that is the skill project-framing. When they want to create a study, that is the skill study-framing.`
 
-/** Said when the answer follows an applied project rather than a message (spec 018 US3). */
-const CONTINUATION =
-  'The person just applied your project proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the project is ready, then propose a first interview study for it with create_study. If an existing study of the team looks related, mention it and offer to reuse it with attach_study as well. Do not repeat the framing.'
+/** Said when the answer follows an applied card rather than a message (spec 018 US3, 021). */
+const CONTINUATIONS = {
+  project:
+    'The person just applied your project proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the project is ready and ask whether they want to prepare a first interview study. If an existing study of the team looks related, mention it and offer to reuse it with attach_study as well. Do not repeat the framing.',
+  study:
+    'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready and offer to prepare its interview guide. Do not start it and call no tool before they agree. Do not repeat the framing.',
+} as const
 
 /** The interview study of the page, for the guide tools (spec 006). */
 export type GuideStudy = { id: string; name: string; guideVersion: number | null }
@@ -29,6 +35,37 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 /**
+ * The studies of the person's teams that attach_study can reuse (spec 021), each team with its
+ * share of the limit. A project's page lists its own team's already.
+ */
+export const reusableStudies = async (
+  research: ResearchReads,
+  actor: Actor,
+  page: PageRef,
+): Promise<string> => {
+  const own =
+    page.kind === 'project' && page.id ? await research.getProject(actor.id, page.id) : null
+  const teams = (await research.teamsOf(actor.id)).filter((t) => t.id !== own?.team.id)
+  const share = Math.ceil(REUSABLE_LIMIT / Math.max(teams.length, 1))
+  const lists = await Promise.all(
+    teams.map(async (team) => {
+      const studies = await research.attachableStudies(actor.id, team.id, null)
+      return {
+        cut: studies.length > share,
+        items: studies
+          .slice(0, share)
+          .map(
+            (s) =>
+              `${s.name} (team ${team.name}; in: ${s.projects.map((p) => p.name).join(', ') || 'no project'}; attachable study id ${s.id})`,
+          ),
+      }
+    }),
+  )
+  const items = lists.flatMap((l) => l.items)
+  return `Studies of the person's teams${own ? ' other than this project' : ''}, that attach_study can reuse${lists.some((l) => l.cut) ? ' (the most recent only: ask the person whether a related one exists)' : ''}: ${items.join('; ') || 'none'}`
+}
+
+/**
  * The instructions and page context sent with each message (spec 005 US2, research R3). Built
  * here, with the person's own permissions: nothing from a page they cannot open, no file names.
  * On an interview study the person can act on, the guide, the schedule counts (never names) and
@@ -40,7 +77,7 @@ export const buildContext = async (
   page: PageRef,
   language: 'en' | 'fr',
   loadedSkills: readonly string[] = [],
-  continuation = false,
+  continuation: keyof typeof CONTINUATIONS | null = null,
 ): Promise<{ system: string; guideStudy: GuideStudy | null }> => {
   let guideStudy: GuideStudy | null = null
   const lines: string[] = []
@@ -125,12 +162,19 @@ export const buildContext = async (
     } else lines.push('The person is on a page they cannot open, or that does not exist.')
   } else lines.push(`The person is on the "${page.kind}" page.`)
 
+  // Spec 021: only once a study is being framed, not on every message.
+  if (loadedSkills.includes('study-framing'))
+    lines.push(await reusableStudies(research, actor, page))
+
   const skills: string[] = []
-  const loaded = SKILL_NAMES.filter((name) => loadedSkills.includes(name))
+  // A continuing answer only offers the next step: no method to follow.
+  const loaded = continuation ? [] : SKILL_NAMES.filter((name) => loadedSkills.includes(name))
   // The guide design only makes sense on an interview study; framing a project, on every page.
   const available = SKILL_NAMES.filter(
     (name) =>
-      !loadedSkills.includes(name) && (name !== 'interview-guide-design' || guideStudy !== null),
+      !continuation &&
+      !loadedSkills.includes(name) &&
+      (name !== 'interview-guide-design' || guideStudy !== null),
   )
   if (available.length)
     skills.push(
@@ -146,7 +190,7 @@ export const buildContext = async (
     )
 
   return {
-    system: `${INSTRUCTIONS}${continuation ? `\n- ${CONTINUATION}` : ''}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language.\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
+    system: `${INSTRUCTIONS}${continuation ? `\n- ${CONTINUATIONS[continuation]}` : ''}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language.\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
     guideStudy,
   }
 }

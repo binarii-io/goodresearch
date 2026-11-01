@@ -19,6 +19,7 @@ export const ProposalInputKind = {
   propose_interview_guide: 'propose_interview_guide',
   report_guide_progress: 'report_guide_progress',
   report_project_progress: 'report_project_progress',
+  report_study_progress: 'report_study_progress',
   load_skill: 'load_skill',
   check_guide_questions: 'check_guide_questions',
   attach_study: 'attach_study',

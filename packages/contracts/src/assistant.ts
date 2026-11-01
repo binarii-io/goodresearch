@@ -25,6 +25,7 @@ export const ProposalKind = z.enum([
   'propose_interview_guide',
   'report_guide_progress',
   'report_project_progress',
+  'report_study_progress',
   'load_skill',
   'check_guide_questions',
   'attach_study',
@@ -63,6 +64,10 @@ export const GuideProgress = z
           'question',
           'decision',
           'team',
+          // The points of a study framing (spec 021).
+          'reuse',
+          'goal',
+          'place',
         ]),
         weight: z.number().int(),
         status: z.enum(['missing', 'partial', 'done']),

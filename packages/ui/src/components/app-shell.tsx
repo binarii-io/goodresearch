@@ -161,9 +161,11 @@ function AppShell({
             data-open={panel.open || undefined}
             inert={!panel.open}
             ref={panelRef}
-            className="invisible fixed inset-0 z-40 translate-x-full bg-card transition-[transform,visibility] duration-200 ease-out data-open:visible data-open:translate-x-0 data-open:transition-transform motion-reduce:transition-none md:sticky md:inset-auto md:top-0 md:z-auto md:h-svh md:w-0 md:shrink-0 md:translate-x-0 md:overflow-hidden md:transition-[width,visibility] md:data-open:transition-[width] md:data-open:border-l md:data-open:w-[400px]"
+            className="invisible fixed inset-0 z-40 translate-x-full bg-card transition-[transform,visibility] duration-200 ease-out data-open:visible data-open:translate-x-0 data-open:transition-transform motion-reduce:transition-none md:sticky md:inset-auto md:top-0 md:z-auto md:h-svh md:w-0 md:shrink-0 md:translate-x-0 md:overflow-clip md:transition-[width,visibility] md:data-open:transition-[width] md:data-open:w-[400px]"
           >
-            <div className="flex h-full w-full flex-col md:w-[400px]">{panel.content}</div>
+            <div className="flex h-full w-full flex-col md:w-[400px] md:border-l">
+              {panel.content}
+            </div>
           </aside>
         ) : null}
       </div>

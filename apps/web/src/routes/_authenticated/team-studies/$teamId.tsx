@@ -25,6 +25,7 @@ import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useDeferredValue, useId, useState } from 'react'
+import { CreateTeamStudyDialog } from '../../../features/research/create-team-study-dialog.tsx'
 import { StudyCard } from '../../../features/research/study-card.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useMe } from '../../../features/workspace/me.ts'
@@ -49,7 +50,10 @@ function TeamStudiesPage() {
 
   return (
     <div className="grid gap-4">
-      <PageTitle title={t`Studies of the team`} />
+      <PageTitle
+        title={t`Studies of the team`}
+        actions={studies.isSuccess ? <CreateTeamStudyDialog teamId={teamId} /> : null}
+      />
       {me.teams.length > 1 ? (
         <nav aria-label={t`Teams`} className="flex flex-wrap gap-2">
           {me.teams.map((team) => (
@@ -136,10 +140,13 @@ function AttachToProject({ study, teamId }: { study: TeamStudy; teamId: string }
           <DialogDescription>{t`Its interviews and facts feed the project too, without any AI cost. Decisions on its facts apply in every project it is in.`}</DialogDescription>
         </DialogHeader>
         {choices.length ? (
-          <ul className="grid gap-2" aria-label={t`Projects of the team`}>
+          <ul
+            className="grid max-h-80 grid-cols-[minmax(0,1fr)] gap-2 overflow-y-auto"
+            aria-label={t`Projects of the team`}
+          >
             {choices.map((project) => (
               <li key={project.id} className="flex items-center justify-between gap-3">
-                <span className="truncate">{project.name}</span>
+                <span className="min-w-0 truncate">{project.name}</span>
                 <Button
                   size="sm"
                   disabled={attach.isPending}

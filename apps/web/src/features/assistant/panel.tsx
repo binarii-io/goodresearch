@@ -47,7 +47,7 @@ import { GUIDE_POINTS, POINT_STATES } from '../preparation/labels.ts'
 import { errorCode, errorMessage } from '../workspace/errors.ts'
 import { useFormatRelative } from '../workspace/format.ts'
 import { ConversationCostIndicator } from './cost.tsx'
-import { FRAMING_POINTS } from './labels.ts'
+import { FRAMING_POINTS, STUDY_FRAMING_POINTS } from './labels.ts'
 import { Markdown } from './markdown.tsx'
 import { usePageRef } from './page-ref.ts'
 import { ProposalCard } from './proposal-card.tsx'
@@ -145,7 +145,7 @@ function ConversationList({ onOpen }: { onOpen: (id: string | null) => void }) {
   const refresh = () => queryClient.invalidateQueries({ queryKey: getListConversationsQueryKey() })
 
   return (
-    <div className="grid content-start gap-2 overflow-y-auto p-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-2 overflow-y-auto p-4">
       <Button variant="outline" className="justify-self-start" onClick={() => onOpen(null)}>
         <SquarePenIcon aria-hidden />
         {t`New conversation`}
@@ -226,12 +226,14 @@ function ConversationList({ onOpen }: { onOpen: (id: string | null) => void }) {
 }
 
 const isProgress = (p: Proposal) =>
-  (p.kind === 'report_guide_progress' || p.kind === 'report_project_progress') &&
+  (p.kind === 'report_guide_progress' ||
+    p.kind === 'report_project_progress' ||
+    p.kind === 'report_study_progress') &&
   Boolean(p.preview.progress)
 
 /**
  * The latest progress of the conversation, guide design (spec 006 US1) or project framing (spec
- * 018), as a segmented bar. A framing is over once its project is applied.
+ * 018) or study framing (spec 021), as a segmented bar. A framing is over once its object is applied.
  */
 function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
   const { t, i18n } = useLingui()
@@ -240,24 +242,34 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
   const progress = latest?.preview.progress
   if (!latest || !progress) return null
   const framing = latest.kind === 'report_project_progress'
-  if (
-    framing &&
-    proposals.slice(index).some((p) => p.kind === 'create_project' && p.state === 'applied')
-  )
-    return null
+  const studyFraming = latest.kind === 'report_study_progress'
+  const created = framing ? 'create_project' : studyFraming ? 'create_study' : null
+  if (proposals.slice(index).some((p) => p.kind === created && p.state === 'applied')) return null
   const study = latest.preview.studyName ?? ''
   const count = progress.items.length
   return (
-    <div className="grid gap-1 border-b px-4 py-2.5">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-1 border-b px-4 py-2.5">
       <p className="truncate font-medium text-xs">
-        {framing ? t`Project framing` : t`Interview guide · ${study}`}
+        {framing
+          ? t`Project framing`
+          : studyFraming
+            ? t`Study framing`
+            : t`Interview guide · ${study}`}
       </p>
       <SegmentedProgress
-        label={framing ? t`Project framing progress` : t`Interview guide design progress`}
+        label={
+          framing
+            ? t`Project framing progress`
+            : studyFraming
+              ? t`Study framing progress`
+              : t`Interview guide design progress`
+        }
         percent={progress.percent}
         listLabel={t`${count} points`}
         segments={progress.items.map((item) => {
-          const point = (framing ? FRAMING_POINTS : GUIDE_POINTS)[item.key]
+          const point = (
+            framing ? FRAMING_POINTS : studyFraming ? STUDY_FRAMING_POINTS : GUIDE_POINTS
+          )[item.key]
           return {
             key: item.key,
             label: point ? i18n._(point) : item.key,
@@ -283,8 +295,8 @@ export function AssistantPanel() {
     clearPending,
     rememberThread,
     setAnswering,
-    appliedProject,
-    setAppliedProject,
+    appliedCard,
+    setAppliedCard,
   } = useAssistant()
   const queryClient = useQueryClient()
   const page = usePageRef()
@@ -441,8 +453,8 @@ export function AssistantPanel() {
     }
   }
 
-  /** A project was just applied: the assistant goes on, on its page (spec 018 US3). */
-  const continueOn = async (id: string, projectId: string) => {
+  /** A project or study was just applied: the assistant goes on, on its page (spec 018, 021). */
+  const continueOn = async (id: string, page: { kind: 'project' | 'study'; id: string }) => {
     setBusy(true)
     setSendError(null)
     try {
@@ -452,7 +464,7 @@ export function AssistantPanel() {
         (onEvent, signal) =>
           continueAssistantConversation(
             id,
-            { page: { kind: 'project', id: projectId }, language: normalise(i18n.locale) },
+            { page, language: normalise(i18n.locale) },
             onEvent,
             signal,
           ),
@@ -467,12 +479,12 @@ export function AssistantPanel() {
   const continueRef = useRef(continueOn)
   continueRef.current = continueOn
   useEffect(() => {
-    if (!appliedProject || busy) return
-    setAppliedProject(null)
+    if (!appliedCard || busy) return
+    setAppliedCard(null)
     // The person moved to another conversation in between: the page opening is enough.
-    if (conversationId && appliedProject.conversationId === conversationId)
-      void continueRef.current(conversationId, appliedProject.projectId)
-  }, [appliedProject, busy, conversationId, setAppliedProject])
+    if (conversationId && appliedCard.conversationId === conversationId)
+      void continueRef.current(conversationId, appliedCard.page)
+  }, [appliedCard, busy, conversationId, setAppliedCard])
 
   // A page asked the assistant something for the person: send it once, on a new conversation.
   const submitRef = useRef(submit)
@@ -536,7 +548,7 @@ export function AssistantPanel() {
             role="log"
             aria-label={t`Conversation`}
             aria-busy={streaming}
-            className="grid flex-1 content-start gap-4 overflow-y-auto p-4 text-sm"
+            className="grid flex-1 grid-cols-[minmax(0,1fr)] content-start gap-4 overflow-y-auto p-4 text-sm"
           >
             {!conversationId && !live ? (
               <p className="text-muted-foreground">{t`Ask anything about your research. The assistant sees the page you are on and can propose changes, which you apply or dismiss.`}</p>
@@ -572,7 +584,7 @@ export function AssistantPanel() {
             </p>
           ) : null}
           <form
-            className="grid gap-2 border-t p-3"
+            className="grid grid-cols-[minmax(0,1fr)] gap-2 border-t p-3"
             onSubmit={(event) => {
               event.preventDefault()
               void submit()
@@ -598,7 +610,7 @@ export function AssistantPanel() {
             />
             <div className="flex items-center justify-between gap-2">
               <LookingAt />
-              <div className="flex items-center gap-1.5">
+              <div className="flex shrink-0 items-center gap-1.5">
                 {conversation.data ? (
                   <ConversationCostIndicator cost={conversation.data.cost} />
                 ) : null}

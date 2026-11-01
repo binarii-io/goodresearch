@@ -3,6 +3,7 @@ import {
   Created,
   CreateProject,
   CreateStudy,
+  CreateTeamStudy,
   InterviewGuide,
   ListProjectsQuery,
   MoveProject,
@@ -321,6 +322,31 @@ export const registerResearchRoutes = (
         request.params.teamId,
         request.query,
       )) ?? sendError(res, 'TEAM_NOT_FOUND'),
+  )
+
+  api.post(
+    '/api/teams/:teamId/studies',
+    {
+      ...secured,
+      schema: {
+        operationId: 'createTeamStudy',
+        tags: studyTags,
+        params: z.object({ teamId: z.string() }),
+        body: CreateTeamStudy,
+        response: { 201: Created },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.studies.createTeamStudy({
+          actor: request.account,
+          teamId: request.params.teamId,
+          type: 'interviews',
+          ...request.body,
+        }),
+        (v) => res.status(201).send(v),
+      ),
   )
 
   api.put(

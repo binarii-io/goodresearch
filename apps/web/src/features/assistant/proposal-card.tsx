@@ -31,6 +31,7 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   propose_interview_guide: msg`Interview guide`,
   report_guide_progress: msg`Guide design progress`,
   report_project_progress: msg`Project framing progress`,
+  report_study_progress: msg`Study framing progress`,
   load_skill: msg`Skill`,
   check_guide_questions: msg`Question check`,
   attach_study: msg`Reuse a study in this project`,
@@ -42,6 +43,7 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
 const SKILLS: Record<string, MessageDescriptor> = {
   'interview-guide-design': msg`Interview guide design`,
   'project-framing': msg`Project framing`,
+  'study-framing': msg`Study framing`,
 }
 
 /**
@@ -52,7 +54,11 @@ export function ProposalCard({ proposal }: { proposal: Proposal }) {
   if (proposal.kind === 'open_project' || proposal.kind === 'open_study')
     return <OpenedPage proposal={proposal} />
   // Shown as the progress bar at the top of the conversation.
-  if (proposal.kind === 'report_guide_progress' || proposal.kind === 'report_project_progress')
+  if (
+    proposal.kind === 'report_guide_progress' ||
+    proposal.kind === 'report_project_progress' ||
+    proposal.kind === 'report_study_progress'
+  )
     return null
   if (proposal.kind === 'load_skill') return <SkillLine proposal={proposal} />
   if (proposal.kind === 'check_guide_questions') return <ChecksLine proposal={proposal} />
@@ -161,7 +167,7 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const { conversationId, setAppliedProject } = useAssistant()
+  const { conversationId, setAppliedCard } = useAssistant()
   const apply = useApplyProposal()
   const dismiss = useDismissProposal()
   const p = proposal.preview
@@ -174,11 +180,11 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
   const others = (p.otherProjects ?? []).join(', ')
   const rows: [string, string | undefined][] = [
     [t`Study`, guide ? undefined : p.studyName],
-    [t`Project`, p.projectName],
+    [t`Project`, p.projectName ?? (proposal.kind === 'create_study' ? t`No project` : undefined)],
     [t`Team`, p.teamName],
     [p.previousName ? t`New name` : t`Name`, p.name],
     [t`Current name`, p.previousName],
-    [t`New research goal`, p.goal],
+    [proposal.kind === 'create_study' ? t`Research goal` : t`New research goal`, p.goal],
   ]
 
   const sectionCount = guide?.sections.length ?? 0
@@ -255,14 +261,27 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
                 .mutateAsync({ proposalId: proposal.id })
                 .then(async (applied) => {
                   await refresh()
-                  // As with the form, the new project opens; the assistant goes on (spec 018 US3).
-                  if (proposal.kind !== 'create_project' || applied.result?.kind !== 'project')
-                    return
-                  setAppliedProject({ projectId: applied.result.id, conversationId })
-                  await navigate({
-                    to: '/projects/$projectId',
-                    params: { projectId: applied.result.id },
-                  })
+                  // As with the forms, what was created opens; the assistant goes on (spec 018, 021).
+                  const created = applied.result
+                  if (!created) return
+                  if (proposal.kind === 'create_project' && created.kind === 'project') {
+                    setAppliedCard({
+                      page: { kind: 'project', id: created.id },
+                      conversationId,
+                    })
+                    await navigate({
+                      to: '/projects/$projectId',
+                      params: { projectId: created.id },
+                    })
+                  }
+                  if (proposal.kind === 'create_study' && created.kind === 'study') {
+                    setAppliedCard({ page: { kind: 'study', id: created.id }, conversationId })
+                    await navigate({
+                      to: '/studies/$studyId',
+                      params: { studyId: created.id },
+                      search: p.projectName ? {} : { from: 'team' },
+                    })
+                  }
                 })
                 .catch(() => undefined)
             }

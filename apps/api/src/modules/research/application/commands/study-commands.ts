@@ -1,6 +1,7 @@
 import { ConcurrencyError, err, newId, ok, type Result } from '@goodresearch/shared'
 import type { StudyRepository } from '../../domain/study.repository.ts'
 import { Study, type TextAnalysed } from '../../domain/study.ts'
+import { canUseTeam } from '../access.ts'
 import type { ProjectRunGate, ResearchCommandDeps, StudyActionGate } from '../ports.ts'
 
 type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
@@ -72,6 +73,8 @@ export const makeStudyCommands = (
       projectId: string
       name: string
       type: string
+      /** Spec 021: the card's; otherwise a copy of the project's. */
+      goal?: string | undefined
     }): Promise<Result<{ id: string }, StudyCommandError>> => {
       const project = await projectVisible(c.actor.id, c.projectId)
       if (!project) return err('PROJECT_NOT_FOUND')
@@ -80,7 +83,32 @@ export const makeStudyCommands = (
         teamId: project.teamId,
         projectId: c.projectId,
         // Spec 019: a copy, then independent of the project's.
-        goal: project.goal,
+        goal: c.goal ?? project.goal,
+        name: c.name,
+        type: c.type,
+        createdBy: c.actor.id,
+        now: deps.clock.now(),
+      })
+      if (!created.ok) return created
+      await deps.studies.save(created.value)
+      return ok({ id: created.value.id })
+    },
+
+    /** Spec 021: a study of the team, in no project. */
+    createTeamStudy: async (c: {
+      actor: Actor
+      teamId: string
+      name: string
+      type: string
+      goal?: string | undefined
+    }): Promise<Result<{ id: string }, 'TEAM_NOT_FOUND' | 'VALIDATION'>> => {
+      const access = await deps.teams.getAccessContext(c.actor.id)
+      if (!access || !(await canUseTeam(deps.teams, access, c.teamId))) return err('TEAM_NOT_FOUND')
+      const created = Study.create({
+        id: newId(),
+        teamId: c.teamId,
+        projectId: null,
+        goal: c.goal ?? '',
         name: c.name,
         type: c.type,
         createdBy: c.actor.id,

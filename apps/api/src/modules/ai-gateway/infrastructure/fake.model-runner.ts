@@ -395,12 +395,24 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
       ],
       delayMs: 0,
     }
-  if (ranTool === 'create_project' && toolOutput?.startsWith('Applied') && projectId)
+  if (ranTool === 'create_project' && toolOutput?.startsWith('Applied'))
+    return {
+      parts: [{ type: 'text', delta: 'The project is ready. Shall we prepare a first study?' }],
+      delayMs: 0,
+    }
+  // Spec 021: the journey of a new study.
+  const studyStates = (state: string) => ({ reuse: state, goal: state, place: state })
+  if (ranTool === 'load_skill' && toolOutput?.includes('frame a study'))
     return {
       parts: [
-        { type: 'text', delta: 'The project is ready. I suggest a first study.' },
-        call('create_study', { projectId, name: 'First interviews' }),
+        { type: 'text', delta: 'Let us frame it. What must this study learn?' },
+        call('report_study_progress', studyStates('missing')),
       ],
+      delayMs: 0,
+    }
+  if (ranTool === 'create_study' && toolOutput?.startsWith('Applied'))
+    return {
+      parts: [{ type: 'text', delta: 'The study is ready. Shall we prepare its guide?' }],
       delayMs: 0,
     }
   if (ranTool === 'load_skill' && guideStudy)
@@ -431,6 +443,16 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     }
   // After any other tool run, the answer is over.
   if (ranTool) return { parts: [], delayMs: 0 }
+  if (/help me create a study/i.test(text) && offered('load_skill'))
+    return { parts: [call('load_skill', { name: 'study-framing' })], delayMs: 0 }
+  if (/study framing answered/i.test(text) && offered('report_study_progress'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Here is what I understood. May I propose the study?' },
+        call('report_study_progress', studyStates('done')),
+      ],
+      delayMs: 0,
+    }
   if (/help me create a project/i.test(text) && offered('load_skill'))
     return { parts: [call('load_skill', { name: 'project-framing' })], delayMs: 0 }
   if (/framing answered/i.test(text) && offered('report_project_progress'))
@@ -528,11 +550,16 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
       parts: [{ type: 'text', delta: 'Opening it.' }, call('open_study', { studyId })],
       delayMs: 0,
     }
-  if (/propose study/i.test(text) && projectId && offered('create_study'))
+  const studyTeamId = /Team id: (\S+?)\)/.exec(request.system ?? '')?.[1]
+  if (/propose the study/i.test(text) && offered('create_study'))
     return {
       parts: [
-        { type: 'text', delta: 'I suggest this study.' },
-        call('create_study', { projectId, name: 'Interviews with new users' }),
+        { type: 'text', delta: 'Here is the study.' },
+        call('create_study', {
+          name: 'Interviews with new users',
+          goal: 'Learn why new users drop off.',
+          ...(projectId ? { projectId } : { teamId: studyTeamId }),
+        }),
       ],
       delayMs: 0,
     }

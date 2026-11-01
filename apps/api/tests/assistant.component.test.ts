@@ -121,7 +121,8 @@ describe('assistant (spec 005)', () => {
   })
 
   it('creates a study from a proposal', async () => {
-    const events = await ask(ada, 'propose study', { kind: 'project', id: projectId })
+    await ask(ada, 'study framing answered', { kind: 'project', id: projectId })
+    const events = await ask(ada, 'propose the study', { kind: 'project', id: projectId })
     const card = events.find((e) => e.type === 'proposal')
     if (card?.type !== 'proposal') throw new Error('no proposal')
     const applied = (
@@ -133,7 +134,10 @@ describe('assistant (spec 005)', () => {
   })
 
   it('applies a proposal at most once, even when Apply is sent twice at the same time', async () => {
-    const events = await ask(ada, 'propose study', { kind: 'project', id: projectId })
+    // The study applied above ended the framing of the previous conversation.
+    conversationId = (await call(ada, 'POST', '/api/assistant/conversations')).json().id
+    await ask(ada, 'study framing answered', { kind: 'project', id: projectId })
+    const events = await ask(ada, 'propose the study', { kind: 'project', id: projectId })
     const card = events.find((e) => e.type === 'proposal')
     if (card?.type !== 'proposal') throw new Error('no proposal')
     const before = (await call(ada, 'GET', `/api/projects/${projectId}/studies`)).json().length

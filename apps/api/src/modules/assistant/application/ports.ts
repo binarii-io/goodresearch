@@ -9,6 +9,7 @@ import type { GuidePoint, GuidePointState } from '../domain/guide-progress.ts'
 import type { FramingPoint } from '../domain/project-framing.ts'
 import type { ProposalKind, ProposalState } from '../domain/proposal.ts'
 import type { QuestionIssue } from '../domain/question-checks.ts'
+import type { StudyFramingPoint } from '../domain/study-framing.ts'
 
 export type { AiFailure, ChatMessage, StreamPart, ToolSpec }
 
@@ -66,7 +67,11 @@ export type ProposalPreview = {
   readonly replacesGuide?: boolean
   readonly progress?: {
     percent: number
-    items: { key: GuidePoint | FramingPoint; weight: number; status: GuidePointState }[]
+    items: {
+      key: GuidePoint | FramingPoint | StudyFramingPoint
+      weight: number
+      status: GuidePointState
+    }[]
   }
   readonly checks?: { question: string; issues: QuestionIssue[] }[]
   readonly skill?: string
@@ -167,11 +172,11 @@ export interface ResearchReads {
     goal: string
   } | null>
   teamsOf(accountId: string): Promise<{ id: string; name: string }[]>
-  /** Spec 019: the team's studies not in this project; names and projects only. */
+  /** Spec 019: the team's studies, except those in this project; names and projects only. */
   attachableStudies(
     accountId: string,
     teamId: string,
-    projectId: string,
+    projectId: string | null,
   ): Promise<{ id: string; name: string; projects: readonly { name: string }[] }[]>
   studyInTeam(accountId: string, studyId: string, teamId: string): Promise<boolean>
   /** Spec 020: null without the right to delete this project. */
@@ -211,10 +216,19 @@ export interface ResearchActions {
     name: string
     version: number
   }): Promise<{ ok: true } | { ok: false; error: string }>
+  /** Without a goal (a card from before spec 021), it copies the project's. */
   createStudy(c: {
     actor: Actor
     projectId: string
     name: string
+    goal?: string
+  }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
+  /** Spec 021: a study in no project. */
+  createTeamStudy(c: {
+    actor: Actor
+    teamId: string
+    name: string
+    goal: string
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
   deleteProject(c: {
     actor: Actor

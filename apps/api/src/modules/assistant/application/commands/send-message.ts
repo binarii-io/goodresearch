@@ -15,8 +15,13 @@ import {
   isStudyChange,
   type ProposalKind,
 } from '../../domain/proposal.ts'
+import {
+  currentStudyFraming,
+  type StudyFramingPoint,
+  studyFramingCompleteness,
+} from '../../domain/study-framing.ts'
 import { titleFrom } from '../../domain/title.ts'
-import { buildContext, type GuideStudy } from '../context.ts'
+import { buildContext, type GuideStudy, reusableStudies } from '../context.ts'
 import type {
   Actor,
   AiFailure,
@@ -35,6 +40,7 @@ import {
   prepareDeletion,
   prepareProject,
   prepareProposal,
+  prepareStudy,
   prepareStudyChange,
   TOOL_INPUTS,
   TOOLS,
@@ -61,7 +67,15 @@ const checksText = (checks: ProposalPreview['checks'] = []): string =>
 
 const CARD_SHOWN = 'Card shown to the person. Wait for their decision and add nothing.'
 
-/** Marks a project card dismissed because a newer one replaced it, not by the person. */
+const NOT_CONTINUING = [
+  'create_project',
+  'report_project_progress',
+  'create_study',
+  'report_study_progress',
+  'load_skill',
+]
+
+/** Marks a project or study card dismissed because a newer one replaced it, not by the person. */
 const REPLACED = 'REPLACED'
 
 /** What the model is told about a tool call in the next turns (research R2). */
@@ -70,10 +84,7 @@ const outcomeOf = (p: StoredProposal): string => {
     return 'Loaded: its instructions are in your context.'
   if (p.state === 'applied' && p.kind === 'check_guide_questions')
     return checksText(p.preview.checks)
-  if (
-    p.state === 'applied' &&
-    (p.kind === 'report_guide_progress' || p.kind === 'report_project_progress')
-  )
+  if (p.state === 'applied' && isRecordedAtOnce(p.kind))
     return `Recorded: ${p.preview.progress?.percent ?? 0} % covered.`
   switch (p.state) {
     case 'applied':
@@ -177,7 +188,10 @@ export const makeSendMessage = (deps: AssistantDeps) => {
     // Stopped or failed after its card was shown, the answer can still have been applied.
     if (last?.role !== 'assistant' || last.status === 'streaming') return err('NOTHING_TO_CONTINUE')
     const applied = (await deps.store.listProposals(c.conversationId)).some(
-      (p) => p.messageId === last.id && p.kind === 'create_project' && p.state === 'applied',
+      (p) =>
+        p.messageId === last.id &&
+        (p.kind === 'create_project' || p.kind === 'create_study') &&
+        p.state === 'applied',
     )
     return applied ? ok(true) : err('NOTHING_TO_CONTINUE')
   }
@@ -271,30 +285,41 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       if (preview) pending.push({ type: 'proposal', proposal: proposalView(proposal) })
     }
 
-    /** A project proposal (spec 018): a card replacing the open one, or the reason of a refusal. */
+    /** A new project or study (spec 018, 021): a card replacing the open one, or the reason of a refusal. */
     // One at a time: calls of one step run together, and each must see the card before it.
     let proposing: Promise<unknown> = Promise.resolve()
-    const proposeProject = (input: unknown, callId: string): Promise<string> => {
-      const next = proposing.then(() => proposeOne(input, callId))
+    const proposeNew = (
+      kind: 'create_project' | 'create_study',
+      input: unknown,
+      callId: string,
+    ): Promise<string> => {
+      const next = proposing.then(() => proposeOne(kind, input, callId))
       proposing = next.catch(() => undefined)
       return next
     }
-    const proposeOne = async (input: unknown, callId: string): Promise<string> => {
+    const proposeOne = async (
+      kind: 'create_project' | 'create_study',
+      input: unknown,
+      callId: string,
+    ): Promise<string> => {
       const proposals = await deps.store.listProposals(c.conversationId)
-      const prepared = await prepareProject(
-        deps.research,
-        c.actor,
-        input,
-        currentFraming(proposals),
-        c.language,
-      )
+      const prepared =
+        kind === 'create_study'
+          ? await prepareStudy(deps.research, c.actor, input, currentStudyFraming(proposals))
+          : await prepareProject(
+              deps.research,
+              c.actor,
+              input,
+              currentFraming(proposals),
+              c.language,
+            )
       if ('refused' in prepared) {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
-        await record(callId, 'create_project', raw, null, prepared.refused)
+        await record(callId, kind, raw, null, prepared.refused)
         return prepared.refused
       }
       for (const open of proposals)
-        if (open.kind === 'create_project' && open.state === 'proposed')
+        if (open.kind === kind && open.state === 'proposed')
           await deps.store.transitionProposal(open.id, 'proposed', {
             ...open,
             state: 'dismissed',
@@ -355,7 +380,8 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       (guideStudy: GuideStudy | null) =>
       async (name: string, input: unknown, callId: string): Promise<string> => {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
-        if (name === 'create_project') return proposeProject(input, callId)
+        if (name === 'create_project' || name === 'create_study')
+          return proposeNew(name, input, callId)
         if (isStudyChange(name as ProposalKind) || name === 'delete_project')
           return proposeStudyChange(name, input, callId)
         if (name === 'report_project_progress') {
@@ -368,6 +394,18 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           await record(callId, 'report_project_progress', parsed.data, { progress })
           return `Recorded: ${progress.percent} % covered.`
         }
+        if (name === 'report_study_progress') {
+          const parsed = TOOL_INPUTS.report_study_progress.safeParse(input)
+          if (!parsed.success) {
+            await record(callId, 'report_study_progress', raw, null)
+            return 'Invalid: use missing, partial or done for every point.'
+          }
+          const progress = studyFramingCompleteness(
+            parsed.data as Partial<Record<StudyFramingPoint, string>>,
+          )
+          await record(callId, 'report_study_progress', parsed.data, { progress })
+          return `Recorded: ${progress.percent} % covered.`
+        }
         if (name === 'load_skill') {
           const parsed = TOOL_INPUTS.load_skill.safeParse(input)
           // The guide design and its tools only exist on an interview study (spec 006).
@@ -377,7 +415,10 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           }
           const skill = parsed.data.name as keyof typeof SKILLS
           await record(callId, 'load_skill', parsed.data, { skill })
-          return SKILLS[skill].instructions
+          // Spec 021: the studies to compare arrive with the method, and stay in the context.
+          return skill === 'study-framing'
+            ? `${SKILLS[skill].instructions}\n\n${await reusableStudies(deps.research, c.actor, c.page)}`
+            : SKILLS[skill].instructions
         }
         if (name === 'check_guide_questions') {
           const parsed = TOOL_INPUTS.check_guide_questions.safeParse(input)
@@ -413,12 +454,22 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         c.page,
         c.language,
         loadedSkills,
-        person === null,
+        // Spec 021: a study just applied leads to its guide; a project, to a first study.
+        person
+          ? null
+          : proposals.some(
+                (p) =>
+                  p.messageId === previous.at(-1)?.id &&
+                  p.kind === 'create_study' &&
+                  p.state === 'applied',
+              )
+            ? 'study'
+            : 'project',
       )
       const run = runFor(guideStudy)
-      // A continuing answer follows a project just applied: the framing is over.
-      const offered = [...TOOLS, ...(guideStudy ? GUIDE_TOOLS : [])].filter(
-        (t) => person || (t.name !== 'create_project' && t.name !== 'report_project_progress'),
+      // A continuing answer follows a card just applied: it offers the next step, no new card.
+      const offered = [...TOOLS, ...(guideStudy && person ? GUIDE_TOOLS : [])].filter(
+        (t) => person || !NOT_CONTINUING.includes(t.name),
       )
       const tools: ToolSpec[] = offered.map((t) =>
         isRunDuringAnswer(t.name as ProposalKind)

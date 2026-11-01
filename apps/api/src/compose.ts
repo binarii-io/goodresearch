@@ -395,6 +395,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     updateProjectGoal: async (c) => outcome(await r.updateProjectGoal(c)),
     renameProject: async (c) => outcome(await r.renameProject(c)),
     createStudy: async (c) => outcome(await r.studies.createStudy({ ...c, type: 'interviews' })),
+    createTeamStudy: async (c) =>
+      outcome(await r.studies.createTeamStudy({ ...c, type: 'interviews' })),
     renameStudy: async (c) => outcome(await r.studies.renameStudy(c)),
     deleteProject: async (c) => {
       const done = await r.deleteProject(c)
@@ -433,7 +435,11 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       teamsOf: async (accountId) => (await workspace.handlers.getMe(accountId))?.teams ?? [],
       attachableStudies: async (accountId, teamId, projectId) =>
         (
-          await r.studyQueries.listTeamStudies(accountId, teamId, { notInProject: projectId })
+          await r.studyQueries.listTeamStudies(
+            accountId,
+            teamId,
+            projectId ? { notInProject: projectId } : {},
+          )
         )?.studies.filter((s) => s.canAttach) ?? [],
       projectDeletion: async (accountId, projectId) => {
         const preview = await reporting.handlers.overviewQueries.deletion(accountId, projectId)

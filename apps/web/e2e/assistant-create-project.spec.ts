@@ -52,14 +52,11 @@ test.describe('spec 018 — create a project with the assistant', () => {
     await expect(page).toHaveURL(/\/projects\//)
     await expect(page.getByRole('main').getByText('Why do new users drop off')).toBeVisible()
     // The assistant goes on by itself; the framing is over.
-    const study = panel.getByRole('region', { name: 'Create an interview study' })
-    await expect(study).toContainText('First interviews', { timeout: 15_000 })
+    await expect(panel.getByText('Shall we prepare a first study?')).toBeVisible({
+      timeout: 15_000,
+    })
     await expect(panel.getByText('Project framing', { exact: true })).toHaveCount(0)
     await expect(panel.getByRole('button', { name: /Cost of this conversation: \$/ })).toBeVisible()
-    // Nothing is created before Apply.
-    await expect(page.getByRole('main').getByText('First interviews')).toHaveCount(0)
-    await study.getByRole('button', { name: 'Apply' }).click()
-    await expect(study.getByRole('status')).toContainText('Applied')
   })
 
   test('composes the goal in French', async ({ browser }) => {

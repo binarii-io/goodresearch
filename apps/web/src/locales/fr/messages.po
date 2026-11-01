@@ -1164,6 +1164,10 @@ msgstr "Utiliser aussi ce qui est encore à décider"
 msgid "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 msgstr "Un insight a besoin d'au moins un fait accepté en soutien : acceptez d'abord ses faits à valider."
 
+#: src/features/research/create-team-study-dialog.tsx
+msgid "An interview study of this team, in no project for now. You can link it to a project later."
+msgstr "Une étude par entretiens de cette équipe, sans projet pour l’instant. Vous pourrez la rattacher à un projet plus tard."
+
 #: src/features/quality/interview-view.tsx
 msgid "An interviewee"
 msgstr "Une personne interviewée"
@@ -1792,6 +1796,7 @@ msgstr "Cliquer pour modifier"
 #: src/features/quality/requalify-dialog.tsx
 #: src/features/research/attach-study-dialog.tsx
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/delete-project-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/features/research/study-settings.tsx
@@ -2046,6 +2051,7 @@ msgstr "Créer une étude par entretiens"
 msgid "Create project"
 msgstr "Créer le projet"
 
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 msgid "Create study"
 msgstr "Créer l'étude"
@@ -2420,6 +2426,7 @@ msgid "Enrichment for this type of study is coming in a later version."
 msgstr "L'enrichissement pour ce type d'étude arrivera dans une prochaine version."
 
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 msgid "Enter a name."
 msgstr "Saisissez un nom."
@@ -2554,6 +2561,10 @@ msgstr "Exclu"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Excluded because: {0}"
 msgstr "Exclu pour la raison : {0}"
+
+#: src/features/assistant/labels.ts
+msgid "Existing studies"
+msgstr "Études existantes"
 
 #: src/features/workspace/app-sidebar.tsx
 msgid "Expand the sidebar"
@@ -3966,6 +3977,7 @@ msgstr "Déplacée : {where}"
 #: src/features/enrichment/labels.ts
 #: src/features/ingestion/source-panel.tsx
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/routes/_authenticated/members/index.tsx
 msgid "Name"
@@ -4059,6 +4071,7 @@ msgstr "Nouvel objectif de recherche"
 msgid "New research project"
 msgstr "Nouveau projet de recherche"
 
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 msgid "New study"
 msgstr "Nouvelle étude"
@@ -4224,6 +4237,7 @@ msgstr "Aucun entretien planifié"
 msgid "no planned interview matches"
 msgstr "aucun entretien prévu ne correspond"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/research/attach-study-dialog.tsx
 #: src/routes/_authenticated/team-studies/$teamId.tsx
 msgid "No project"
@@ -4927,6 +4941,10 @@ msgstr "Format de l'ID du projet"
 msgid "Project name"
 msgstr "Nom du projet"
 
+#: src/features/assistant/labels.ts
+msgid "Project or team"
+msgstr "Projet ou équipe"
+
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Project views"
 msgstr "Vues du projet"
@@ -5319,7 +5337,9 @@ msgstr "Remplace le guide actuel de l’étude."
 msgid "Research debrief"
 msgstr "Restitution de la recherche"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Research goal"
 msgstr "Objectif de recherche"
@@ -5879,6 +5899,16 @@ msgstr "Dossier de l'étude"
 #: src/features/ingestion/folder-button.tsx
 msgid "Study folder: {folderName}. Change it"
 msgstr "Dossier de l'étude : {folderName}. Le modifier"
+
+#: src/features/assistant/panel.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Study framing"
+msgstr "Cadrage de l’étude"
+
+#: src/features/assistant/panel.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Study framing progress"
+msgstr "Avancement du cadrage de l’étude"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Study name"
@@ -7169,9 +7199,17 @@ msgstr "Ce qui freine"
 msgid "What it adds: {0}"
 msgstr "Ce qu'elle ajoute : {0}"
 
+#: src/features/assistant/labels.ts
+msgid "What it must learn"
+msgstr "Ce qu’elle doit apprendre"
+
 #: src/features/enrichment/term-dialogs.tsx
 msgid "What it should read"
 msgstr "Ce qui devrait être écrit"
+
+#: src/features/research/create-team-study-dialog.tsx
+msgid "What must this study learn?"
+msgstr "Que doit apprendre cette étude ?"
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "What qualifies it"

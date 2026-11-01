@@ -184,6 +184,8 @@ export * from './createStudyInputType.ts';
 export * from './createStudyType.ts';
 export * from './createTeam.ts';
 export * from './createTeamInput.ts';
+export * from './createTeamStudy.ts';
+export * from './createTeamStudyInput.ts';
 export * from './debriefView.ts';
 export * from './debriefViewCounts.ts';
 export * from './debriefViewCountsInsights.ts';

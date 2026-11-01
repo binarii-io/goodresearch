@@ -228,7 +228,7 @@ describe('US3 — proposals the person confirms', () => {
       },
       {
         type: 'tool-call',
-        call: { id: 'bad-2', name: 'create_study', input: { projectId: 'p1', name: '' } },
+        call: { id: 'bad-2', name: 'rename_project', input: { projectId: 'p1', name: '' } },
       },
     ])
     const events = await send('Do things')
@@ -253,26 +253,6 @@ describe('US3 — proposals the person confirms', () => {
       error: 'PROPOSAL_NOT_FOUND',
     })
     expect(world.research.actionsLog).toEqual([])
-  })
-
-  it('creates a study in the project shown, with a link to it', async () => {
-    world.model.answer([
-      {
-        type: 'tool-call',
-        call: {
-          id: 'call-s',
-          name: 'create_study',
-          input: { projectId: 'p1', name: 'Diary study' },
-        },
-      },
-    ])
-    await send('Add a study')
-    expect(
-      await world.proposals.apply({ actor: ada, proposalId: world.idOf('call-s') }),
-    ).toMatchObject({
-      ok: true,
-      value: { state: 'applied', result: { kind: 'study', id: 's-new' } },
-    })
   })
 })
 

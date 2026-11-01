@@ -103,6 +103,7 @@ export const fakeResearch = () => {
   } = { studies: [] }
   const running = { value: false }
   let deleteThrows = false
+  let createThrows = false
   const deletion: { value: Awaited<ReturnType<ResearchReads['projectDeletion']>> } = {
     value: {
       insights: 3,
@@ -146,7 +147,11 @@ export const fakeResearch = () => {
     createProject: async (c) => result('createProject', c, { id: 'p-new' }),
     updateProjectGoal: async (c) => result('updateProjectGoal', c, {}),
     renameProject: async (c) => result('renameProject', c, {}),
-    createStudy: async (c) => result('createStudy', c, { id: 's-new' }),
+    createStudy: async (c) => {
+      if (createThrows) throw new Error('down')
+      return result('createStudy', c, { id: 's-new' })
+    },
+    createTeamStudy: async (c) => result('createTeamStudy', c, { id: 's-new' }),
     renameStudy: async (c) => result('renameStudy', c, {}),
     attachStudy: async (c) => result('attachStudy', c, {}),
     deleteProject: async (c) => {
@@ -166,6 +171,9 @@ export const fakeResearch = () => {
     },
     throwOnDelete: () => {
       deleteThrows = true
+    },
+    failNextCreate: () => {
+      createThrows = true
     },
     deletion,
     study,

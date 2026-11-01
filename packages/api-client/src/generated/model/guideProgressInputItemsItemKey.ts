@@ -20,4 +20,7 @@ export const GuideProgressInputItemsItemKey = {
   question: 'question',
   decision: 'decision',
   team: 'team',
+  reuse: 'reuse',
+  goal: 'goal',
+  place: 'place',
 } as const;

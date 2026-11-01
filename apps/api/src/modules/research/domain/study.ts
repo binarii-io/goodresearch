@@ -51,7 +51,8 @@ export class Study {
   static create(input: {
     id: string
     teamId: string
-    projectId: string
+    /** Spec 021: a study may start in no project. */
+    projectId: string | null
     goal: string
     name: string
     type: string
@@ -67,7 +68,7 @@ export class Study {
       new Study({
         id: input.id as StudyId,
         teamId: input.teamId,
-        projectIds: [input.projectId],
+        projectIds: input.projectId ? [input.projectId] : [],
         goal: goal.value,
         name: name.value,
         type: input.type as StudyType,

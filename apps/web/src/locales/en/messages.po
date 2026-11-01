@@ -1164,6 +1164,10 @@ msgstr "Also use what is still to decide"
 msgid "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 msgstr "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 
+#: src/features/research/create-team-study-dialog.tsx
+msgid "An interview study of this team, in no project for now. You can link it to a project later."
+msgstr "An interview study of this team, in no project for now. You can link it to a project later."
+
 #: src/features/quality/interview-view.tsx
 msgid "An interviewee"
 msgstr "An interviewee"
@@ -1792,6 +1796,7 @@ msgstr "Click to change"
 #: src/features/quality/requalify-dialog.tsx
 #: src/features/research/attach-study-dialog.tsx
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/delete-project-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/features/research/study-settings.tsx
@@ -2046,6 +2051,7 @@ msgstr "Create an interview study"
 msgid "Create project"
 msgstr "Create project"
 
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 msgid "Create study"
 msgstr "Create study"
@@ -2420,6 +2426,7 @@ msgid "Enrichment for this type of study is coming in a later version."
 msgstr "Enrichment for this type of study is coming in a later version."
 
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 msgid "Enter a name."
 msgstr "Enter a name."
@@ -2554,6 +2561,10 @@ msgstr "Excluded"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Excluded because: {0}"
 msgstr "Excluded because: {0}"
+
+#: src/features/assistant/labels.ts
+msgid "Existing studies"
+msgstr "Existing studies"
 
 #: src/features/workspace/app-sidebar.tsx
 msgid "Expand the sidebar"
@@ -3966,6 +3977,7 @@ msgstr "Moved: {where}"
 #: src/features/enrichment/labels.ts
 #: src/features/ingestion/source-panel.tsx
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/routes/_authenticated/members/index.tsx
 msgid "Name"
@@ -4059,6 +4071,7 @@ msgstr "New research goal"
 msgid "New research project"
 msgstr "New research project"
 
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 msgid "New study"
 msgstr "New study"
@@ -4224,6 +4237,7 @@ msgstr "No planned interview"
 msgid "no planned interview matches"
 msgstr "no planned interview matches"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/research/attach-study-dialog.tsx
 #: src/routes/_authenticated/team-studies/$teamId.tsx
 msgid "No project"
@@ -4927,6 +4941,10 @@ msgstr "Project ID format"
 msgid "Project name"
 msgstr "Project name"
 
+#: src/features/assistant/labels.ts
+msgid "Project or team"
+msgstr "Project or team"
+
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Project views"
 msgstr "Project views"
@@ -5319,7 +5337,9 @@ msgstr "Replaces the current guide of the study."
 msgid "Research debrief"
 msgstr "Research debrief"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Research goal"
 msgstr "Research goal"
@@ -5879,6 +5899,16 @@ msgstr "Study folder"
 #: src/features/ingestion/folder-button.tsx
 msgid "Study folder: {folderName}. Change it"
 msgstr "Study folder: {folderName}. Change it"
+
+#: src/features/assistant/panel.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Study framing"
+msgstr "Study framing"
+
+#: src/features/assistant/panel.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Study framing progress"
+msgstr "Study framing progress"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Study name"
@@ -7169,9 +7199,17 @@ msgstr "What holds back"
 msgid "What it adds: {0}"
 msgstr "What it adds: {0}"
 
+#: src/features/assistant/labels.ts
+msgid "What it must learn"
+msgstr "What it must learn"
+
 #: src/features/enrichment/term-dialogs.tsx
 msgid "What it should read"
 msgstr "What it should read"
+
+#: src/features/research/create-team-study-dialog.tsx
+msgid "What must this study learn?"
+msgstr "What must this study learn?"
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "What qualifies it"

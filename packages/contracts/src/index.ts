@@ -288,6 +288,7 @@ export {
   ConfirmWithName,
   CreateProject,
   CreateStudy,
+  CreateTeamStudy,
   ListProjectsQuery,
   MoveProject,
   ProjectDetail,
