@@ -1824,6 +1824,10 @@ msgstr "Fermer l'assistant"
 msgid "Close the menu"
 msgstr "Fermer le menu"
 
+#: src/features/assistant/panel.tsx
+msgid "Close this message"
+msgstr "Fermer ce message"
+
 #: src/features/preparation/labels.ts
 msgid "closed (yes or no)"
 msgstr "fermée (oui ou non)"
@@ -2314,6 +2318,10 @@ msgstr "Ignorer"
 #: src/features/assistant/proposal-card.tsx
 msgid "Dismissed"
 msgstr "Ignorée"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Document"
+msgstr "Document"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Document text"
@@ -3346,6 +3354,7 @@ msgstr "Insights validés"
 msgid "Interview"
 msgstr "Entretien"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/preparation/drive-publishing.tsx
 msgid "Interview best practices"
 msgstr "Bonnes pratiques d’entretien"
@@ -3368,6 +3377,10 @@ msgstr "Conception du guide d’entretien"
 #: src/features/assistant/panel.tsx
 msgid "Interview guide design progress"
 msgstr "Avancement de la conception du guide d’entretien"
+
+#: src/features/assistant/panel.tsx
+msgid "Interview guide finished · {study}"
+msgstr "Guide d’entretien terminé · {study}"
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "Interview guide themes"
@@ -4451,7 +4464,7 @@ msgstr "Notes"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Nothing changes in Drive. Its files are then listed in Fieldwork."
-msgstr "Rien ne change dans Drive. Ses fichiers sont ensuite listés dans le Terrain."
+msgstr "Rien ne change dans Drive. Ses fichiers sont ensuite listés dans la Passation."
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Nothing is created or changed in your Drive unless you publish a study's preparation, which asks separately for editing. Nothing is ever deleted. You can disconnect at any time from Connected sources."
@@ -5011,6 +5024,7 @@ msgstr "Publier"
 msgid "Publish a new copy"
 msgstr "Publier une nouvelle copie"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-publishing.tsx
 msgid "Publish to Drive"
@@ -6552,6 +6566,10 @@ msgstr "Thématique"
 msgid "Theme 1"
 msgstr "Thématique 1"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "These files are created in the study folder. Nothing is written before you apply."
+msgstr "Ces fichiers sont créés dans le dossier de l’étude. Rien n’est écrit avant que vous appliquiez."
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "These words are in the turn more than once: add a word before or after them."
 msgstr "Ces mots sont plusieurs fois dans le tour : ajoutez un mot avant ou après."
@@ -6768,7 +6786,7 @@ msgstr "Cette reformulation est déjà requalifiée."
 
 #: src/features/workspace/errors.ts
 msgid "This study already has a folder. Replace it from Fieldwork, which says what that discards."
-msgstr "Cette étude a déjà un dossier. Remplacez-le depuis le Terrain, qui indique ce que cela supprime."
+msgstr "Cette étude a déjà un dossier. Remplacez-le depuis la Passation, qui indique ce que cela supprime."
 
 #: src/features/workspace/errors.ts
 msgid "This study belongs to another team."
@@ -6859,6 +6877,10 @@ msgstr "Pour nettoyer avec l’IA, le texte complet de chaque transcription est 
 #: src/features/preparation/labels.ts
 msgid "To contact"
 msgstr "À contacter"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "To create the documents in the study folder, goodresearch asks Google for the right to edit your Drive. It only writes the files a feature is about, and never deletes anything."
+msgstr "Pour créer les documents dans le dossier de l’étude, goodresearch demande à Google le droit de modifier votre Drive. Il n’écrit que les fichiers concernés et ne supprime jamais rien."
 
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx

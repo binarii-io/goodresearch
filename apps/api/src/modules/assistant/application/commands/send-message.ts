@@ -41,6 +41,7 @@ import {
   prepareFolder,
   prepareProject,
   prepareProposal,
+  preparePublication,
   prepareStudy,
   prepareStudyChange,
   TOOL_INPUTS,
@@ -66,7 +67,7 @@ const checksText = (checks: ProposalPreview['checks'] = []): string =>
     )
     .join('\n') || 'Nothing to check.'
 
-type NewCard = 'create_project' | 'create_study' | 'attach_folder'
+type NewCard = 'create_project' | 'create_study' | 'attach_folder' | 'publish_preparation'
 
 const CHOICES_SHOWN = 'List shown to the person: their next message answers it.'
 
@@ -79,6 +80,8 @@ const CARD_SHOWN = 'Card shown to the person. Wait for their decision and add no
 const continuationOf = (held: readonly StoredProposal[]): Continuation => {
   const has = (kind: ProposalKind) => held.some((p) => p.kind === kind && p.state === 'applied')
   if (has('attach_folder')) return 'folder'
+  if (has('publish_preparation')) return 'published'
+  if (has('propose_interview_guide')) return 'guide'
   if (has('create_study')) return 'study'
   return has('create_project') ? 'project' : 'connected'
 }
@@ -97,7 +100,7 @@ const REPLACED = 'REPLACED'
 /** What the model is told about a tool call in the next turns (research R2). */
 const outcomeOf = (p: StoredProposal): string => {
   if (p.kind === 'connect_source' && p.state === 'applied')
-    return 'The person connected their file source: call attach_folder again.'
+    return 'The person connected their file source: call the same tool again.'
   if (p.kind === 'connect_source' && p.state === 'proposed')
     return 'Not connected: a card asks the person to connect their file source.'
   if (p.state === 'applied' && p.kind === 'offer_choices') return CHOICES_SHOWN
@@ -129,7 +132,11 @@ const outcomeOf = (p: StoredProposal): string => {
 
 /** Spec 022: a connection card comes from the call of a tool the model does have. */
 const toolOf = (p: StoredProposal): string =>
-  p.kind === 'connect_source' ? 'attach_folder' : p.kind
+  p.kind !== 'connect_source'
+    ? p.kind
+    : 'kinds' in p.values
+      ? 'publish_preparation'
+      : 'attach_folder'
 
 /** The arguments of the original tool call, as the model sent them. */
 const callInput = (p: StoredProposal): Record<string, unknown> => {
@@ -144,6 +151,7 @@ const callInput = (p: StoredProposal): Record<string, unknown> => {
     p.kind === 'open_study' ||
     p.kind === 'propose_interview_guide' ||
     p.kind === 'attach_folder' ||
+    p.kind === 'publish_preparation' ||
     p.kind === 'connect_source' ||
     isStudyChange(p.kind)
       ? 'studyId'
@@ -218,20 +226,23 @@ export const makeSendMessage = (deps: AssistantDeps) => {
     const held = (await deps.store.listProposals(c.conversationId)).filter(
       (p) => p.messageId === last.id,
     )
+    // The card's own study: a consent given from another one must not bring its link there.
+    const card = held.find(
+      (p) => p.kind === 'connect_source' && p.state === 'proposed' && p.targetId === c.page?.id,
+    )
     const applied =
       held.some(
         (p) =>
           (p.kind === 'create_project' ||
             p.kind === 'create_study' ||
-            p.kind === 'attach_folder') &&
+            p.kind === 'attach_folder' ||
+            p.kind === 'publish_preparation' ||
+            p.kind === 'propose_interview_guide') &&
           p.state === 'applied',
       ) ||
       // Spec 022: the address only says the consent went well; the connection proves it.
-      (held.some(
-        // The card's own study: a consent given from another one must not bring its link there.
-        (p) => p.kind === 'connect_source' && p.state === 'proposed' && p.targetId === c.page?.id,
-      ) &&
-        (await deps.research.sourceConnected(c.actor.id)))
+      (card !== undefined &&
+        (await deps.research.sourceConnected(c.actor.id, card.preview.access ?? 'read')))
     return applied ? ok(true) : err('NOTHING_TO_CONTINUE')
   }
 
@@ -335,17 +346,19 @@ export const makeSendMessage = (deps: AssistantDeps) => {
     const proposeOne = async (kind: NewCard, input: unknown, callId: string): Promise<string> => {
       const proposals = await deps.store.listProposals(c.conversationId)
       const prepared =
-        kind === 'attach_folder'
-          ? await prepareFolder(deps.research, c.actor, input)
-          : kind === 'create_study'
-            ? await prepareStudy(deps.research, c.actor, input, currentStudyFraming(proposals))
-            : await prepareProject(
-                deps.research,
-                c.actor,
-                input,
-                currentFraming(proposals),
-                c.language,
-              )
+        kind === 'publish_preparation'
+          ? await preparePublication(deps.research, c.actor, input, c.language)
+          : kind === 'attach_folder'
+            ? await prepareFolder(deps.research, c.actor, input)
+            : kind === 'create_study'
+              ? await prepareStudy(deps.research, c.actor, input, currentStudyFraming(proposals))
+              : await prepareProject(
+                  deps.research,
+                  c.actor,
+                  input,
+                  currentFraming(proposals),
+                  c.language,
+                )
       if ('refused' in prepared) {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         await record(callId, kind, raw, null, prepared.refused)
@@ -353,10 +366,13 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       }
       for (const open of proposals)
         if (
-          (open.kind === kind || (kind === 'attach_folder' && open.kind === 'connect_source')) &&
+          (open.kind === kind ||
+            ((kind === 'attach_folder' || kind === 'publish_preparation') &&
+              open.kind === 'connect_source')) &&
           open.state === 'proposed' &&
-          // A folder's card only gives way to another card for the same study.
-          (kind !== 'attach_folder' || open.targetId === prepared.targetId)
+          // A card about a study only gives way to another card for the same study.
+          ((kind !== 'attach_folder' && kind !== 'publish_preparation') ||
+            open.targetId === prepared.targetId)
         )
           await deps.store.transitionProposal(open.id, 'proposed', {
             ...open,
@@ -418,7 +434,12 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       (guideStudy: GuideStudy | null) =>
       async (name: string, input: unknown, callId: string): Promise<string> => {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
-        if (name === 'create_project' || name === 'create_study' || name === 'attach_folder')
+        if (
+          name === 'create_project' ||
+          name === 'create_study' ||
+          name === 'attach_folder' ||
+          name === 'publish_preparation'
+        )
           return proposeNew(name, input, callId)
         if (isStudyChange(name as ProposalKind) || name === 'delete_project')
           return proposeStudyChange(name, input, callId)
@@ -523,7 +544,8 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         (t) =>
           person ||
           (!NOT_CONTINUING.includes(t.name) &&
-            (continuation === 'connected' || t.name !== 'attach_folder')),
+            (continuation === 'connected' ||
+              (t.name !== 'attach_folder' && t.name !== 'publish_preparation'))),
       )
       const tools: ToolSpec[] = offered.map((t) =>
         isRunDuringAnswer(t.name as ProposalKind)

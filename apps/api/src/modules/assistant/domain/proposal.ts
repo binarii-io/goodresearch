@@ -26,6 +26,7 @@ export const PROPOSAL_KINDS = [
   'attach_folder',
   'connect_source',
   'offer_choices',
+  'publish_preparation',
 ] as const
 export type ProposalKind = (typeof PROPOSAL_KINDS)[number]
 
@@ -47,6 +48,7 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
   kind === 'create_project' ||
   kind === 'create_study' ||
   kind === 'attach_folder' ||
+  kind === 'publish_preparation' ||
   isStudyChange(kind) ||
   kind === 'delete_project'
 

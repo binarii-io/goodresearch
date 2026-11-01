@@ -1,7 +1,23 @@
+import { type NextStep, nextStep, plannedCount } from '../domain/next-step.ts'
 import type { Actor, PageRef, ResearchReads } from './ports.ts'
 import { SKILL_NAMES, SKILLS, type SkillName } from './skills.ts'
 
 const REUSABLE_LIMIT = 30
+
+/** How the model reads a study's next step (spec 023). */
+const NEXT_STEPS: Record<NextStep, string> = {
+  'write-guide': 'write its interview guide',
+  'add-folder': 'add the folder holding its interviews',
+  publish: 'publish its interview guide and the best practices to its folder',
+  'plan-interviews': 'plan the interviews',
+  fieldwork: 'run the interviews in the Fieldwork tab',
+}
+
+/** The app's own words for its tabs (bilingual glossary): the model would translate them itself. */
+const TAB_NAMES = {
+  en: 'Name the study tabs as the app does: Preparation, Fieldwork, Lexicon, Enrichment, Quality, Analysis.',
+  fr: 'Name the study tabs as the app does, without adding the English word: Préparation, Passation (for fieldwork, never "Terrain"), Lexique, Enrichissement, Qualité, Analyse.',
+} as const
 
 const LANGUAGES = { en: 'English', fr: 'French' } as const
 
@@ -13,6 +29,7 @@ const INSTRUCTIONS = `You are the goodresearch assistant. You help people run us
 - Propose to delete a project only when the person asks for it, and ask which one if several could match.
 - Each message of the person starts with the page it was sent from. The context below describes the page the person is on now; when it differs from earlier messages, the person has moved.
 - When the person can choose among a few clear options, such as the next steps, offer them with offer_choices rather than a list in your text.
+- When the person asks what comes next, answer in your own words from the next step in the context, never from memory, and offer the steps with offer_choices.
 - Skills hold instructions for specific tasks. When a task matches a skill listed below that is not loaded yet, call load_skill first and follow its instructions. When the person wants to create a research project, that is the skill project-framing. When they want to create a study, that is the skill study-framing.`
 
 /** Said when the answer follows an applied card rather than a message (spec 018, 021, 022). */
@@ -23,8 +40,12 @@ const CONTINUATIONS = {
     'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready, then call offer_choices with the next steps: adding the folder that holds its interviews if they exist already, and preparing its interview guide. Start neither, and call no other tool. Do not repeat the framing.',
   folder:
     'The person just applied your folder proposal and the study is open on the tab named in the context: nobody wrote a new message. From the source folder in the context, give the number of transcripts, recordings and other files; if its inventory is still running, say so and that the Fieldwork tab follows it. Then call offer_choices with what is left to prepare according to the context: writing the interview guide if there is none, planning the interviews if none is planned; if both are done, going to Fieldwork. Start nothing, and call no other tool.',
+  guide:
+    'The person just applied your interview guide and it is saved: nobody wrote a new message. In one or two sentences, say so. Then call offer_choices with what comes next according to the next step in the context, first of all publishing the guide and the best practices to the study folder when that is possible, or adding the folder when there is none. Start nothing, and call no other tool.',
+  published:
+    'The person just applied your publication proposal and the documents are in the study folder, linked on your card: nobody wrote a new message. In one or two sentences, say so. Then call offer_choices with what comes next according to the next step in the context. Start nothing, and call no other tool.',
   connected:
-    'The person just connected their file source and is back on this study: nobody wrote a new message. If the conversation holds the link of the folder, call attach_folder with it and the Study id. Otherwise ask for the link.',
+    'The person just connected their file source and is back on this study: nobody wrote a new message. Call again the tool that led to the connection card: attach_folder with the link of the conversation and the Study id (ask for the link if there is none), or publish_preparation with the same documents.',
 } as const
 
 export type Continuation = keyof typeof CONTINUATIONS
@@ -169,6 +190,15 @@ export const buildContext = async (
             : 'Interview guide of this study: none yet.',
           `Interview schedule of this study: ${counts || 'no planned interview'} (names are not shared with you).`,
         )
+        const hasGuide = preparation.guide !== null
+        const step = nextStep({
+          hasGuide,
+          hasFolder: folder !== null,
+          // Only read when it can change the answer.
+          published: hasGuide && folder ? await research.publishedKinds(actor, study.id) : [],
+          planned: plannedCount(preparation.schedule),
+        })
+        lines.push(`Next step of this study: ${NEXT_STEPS[step]}.`)
       }
     } else lines.push('The person is on a page they cannot open, or that does not exist.')
   } else lines.push(`The person is on the "${page.kind}" page.`)
@@ -201,7 +231,7 @@ export const buildContext = async (
     )
 
   return {
-    system: `${INSTRUCTIONS}${continuation ? `\n- ${CONTINUATIONS[continuation]}` : ''}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language.\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
+    system: `${INSTRUCTIONS}${continuation ? `\n- ${CONTINUATIONS[continuation]}` : ''}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language. ${TAB_NAMES[language]}\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
     guideStudy,
   }
 }

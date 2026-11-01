@@ -1,5 +1,11 @@
 import { err, ok, type Result } from '@goodresearch/shared'
-import type { Actor, PublishingDeps, StoredChange, StoredPublication } from '../ports.ts'
+import type {
+  Actor,
+  PublicationKind,
+  PublishingDeps,
+  StoredChange,
+  StoredPublication,
+} from '../ports.ts'
 
 const view = (
   p: StoredPublication,
@@ -60,6 +66,36 @@ export const makePublicationQueries = (deps: PublishingDeps) => ({
     // A publication being created (its file not there yet) is not shown.
     const list = (await deps.store.listByStudy(studyId)).filter((p) => p.fileId !== '')
     return ok(await views(deps, list))
+  },
+
+  /** Spec 023: the documents of the study with a file; a reservation is not a publication. */
+  publishedKinds: async (actor: Actor, studyId: string): Promise<string[]> => {
+    const allowed = await deps.reads.schedule(actor.id, studyId)
+    if (!allowed.ok) return []
+    return (await deps.store.listByStudy(studyId)).filter((p) => p.fileId !== '').map((p) => p.kind)
+  },
+
+  /**
+   * Spec 023: what publishing would create; nothing is written. The right to edit comes last, so
+   * nobody is asked for it on a request refused anyway.
+   */
+  checkPublication: async (c: {
+    actor: Actor
+    studyId: string
+    kinds: readonly PublicationKind[]
+  }): Promise<Result<{ kinds: PublicationKind[] }, string>> => {
+    if (c.kinds.includes('guide')) {
+      const guide = await deps.reads.guide(c.actor.id, c.studyId)
+      if (!guide.ok) return guide
+      if (!guide.value) return err('GUIDE_MISSING')
+    }
+    const existing = await deps.store.listByStudy(c.studyId)
+    const kinds = [...new Set(c.kinds)].filter(
+      (k) => !existing.some((p) => p.kind === k && p.fileId !== ''),
+    )
+    if (!kinds.length) return err('NOTHING_TO_PUBLISH')
+    const files = await deps.files(c.actor.id, c.studyId, 'write')
+    return files.ok ? ok({ kinds }) : files
   },
 
   view: async (p: StoredPublication) => (await views(deps, [p]))[0] as PublicationView,

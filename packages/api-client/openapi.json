@@ -1503,6 +1503,23 @@
               "fieldwork"
             ]
           },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "guide",
+                "best-practices"
+              ]
+            }
+          },
+          "access": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ]
+          },
           "question": {
             "type": "string"
           },
@@ -1700,7 +1717,8 @@
               "delete_project",
               "attach_folder",
               "connect_source",
-              "offer_choices"
+              "offer_choices",
+              "publish_preparation"
             ]
           },
           "state": {
@@ -14109,6 +14127,23 @@
               "fieldwork"
             ]
           },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "guide",
+                "best-practices"
+              ]
+            }
+          },
+          "access": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ]
+          },
           "question": {
             "type": "string"
           },
@@ -14312,7 +14347,8 @@
               "delete_project",
               "attach_folder",
               "connect_source",
-              "offer_choices"
+              "offer_choices",
+              "publish_preparation"
             ]
           },
           "state": {

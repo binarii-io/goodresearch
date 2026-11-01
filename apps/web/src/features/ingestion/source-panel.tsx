@@ -47,8 +47,12 @@ import { useFormatDate } from '../workspace/format.ts'
 
 type Inventory = NonNullable<StudySourceView['source']>['inventory']
 
-export const connectUrl = (studyId: string, phase?: 'preparation') =>
-  `/api/sources/google-drive/connect?returnTo=${encodeURIComponent(
+export const connectUrl = (
+  studyId: string,
+  phase?: 'preparation',
+  access: 'read' | 'write' = 'read',
+) =>
+  `/api/sources/google-drive/connect?${access === 'write' ? 'access=write&' : ''}returnTo=${encodeURIComponent(
     `/studies/${studyId}${phase ? `?phase=${phase}` : ''}`,
   )}`
 

@@ -197,7 +197,8 @@ describe('Fieldwork sessions on PostgreSQL (spec 008)', () => {
     expect(sent.length).toBeGreaterThan(0)
     for (const request of sent) {
       expect(request).not.toContain('Sam Example')
-      expect(request).not.toContain('Ana')
+      // As a word: the prompt names the tab Analysis.
+      expect(request).not.toMatch(/\bAna\b/)
       expect(request).not.toContain('Interview Sam Example.txt')
     }
   })

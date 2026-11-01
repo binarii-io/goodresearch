@@ -5,6 +5,7 @@ import {
   useConfirmDeleteProposal,
   useDismissProposal,
   useGetProjectDeletion,
+  useListPublications,
 } from '@goodresearch/api-client'
 import { Button } from '@goodresearch/ui/components/button'
 import { SparklesIcon } from '@goodresearch/ui/components/icons'
@@ -44,6 +45,12 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   attach_folder: msg`Add the study's folder`,
   connect_source: msg`Connect your Google Drive`,
   offer_choices: msg`Choices`,
+  publish_preparation: msg`Publish to Drive`,
+}
+
+const DOCUMENTS: Record<string, MessageDescriptor> = {
+  guide: msg`Interview guide`,
+  'best-practices': msg`Interview best practices`,
 }
 
 const SKILLS: Record<string, MessageDescriptor> = {
@@ -94,12 +101,20 @@ function ConnectCard({ proposal }: { proposal: Proposal }) {
     >
       <h3 className="font-semibold">{i18n._(TITLES.connect_source)}</h3>
       {study ? <p className="font-medium">{study}</p> : null}
-      <DriveExplanation />
+      {proposal.preview.access === 'write' ? (
+        <p className="text-muted-foreground text-sm">{t`To create the documents in the study folder, goodresearch asks Google for the right to edit your Drive. It only writes the files a feature is about, and never deletes anything.`}</p>
+      ) : (
+        <DriveExplanation />
+      )}
       {proposal.state === 'proposed' && proposal.preview.studyId ? (
         <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
-            render={<a href={connectUrl(proposal.preview.studyId, 'preparation')} />}
+            render={
+              <a
+                href={connectUrl(proposal.preview.studyId, 'preparation', proposal.preview.access)}
+              />
+            }
           >
             {t`Continue to Google`}
           </Button>
@@ -123,6 +138,39 @@ function ConnectCard({ proposal }: { proposal: Proposal }) {
         </p>
       )}
     </section>
+  )
+}
+
+/** Spec 023: what the card creates, then its links once applied. */
+function PublishedDocuments({ proposal }: { proposal: Proposal }) {
+  const { t, i18n } = useLingui()
+  const applied = proposal.state === 'applied'
+  const list = useListPublications(proposal.preview.studyId ?? '', {
+    query: { enabled: applied && Boolean(proposal.preview.studyId) },
+  })
+  return (
+    <div className="grid gap-1">
+      <ul className="ml-5 list-disc">
+        {(proposal.preview.documents ?? []).map((kind) => {
+          const link = list.data?.find((p) => p.kind === kind)?.webLink
+          const label = i18n._(DOCUMENTS[kind] ?? msg`Document`)
+          return (
+            <li key={kind}>
+              {link ? (
+                <a href={link} target="_blank" rel="noreferrer" className="underline">
+                  {label}
+                </a>
+              ) : (
+                label
+              )}
+            </li>
+          )
+        })}
+      </ul>
+      {applied ? null : (
+        <p className="text-muted-foreground text-xs">{t`These files are created in the study folder. Nothing is written before you apply.`}</p>
+      )}
+    </div>
   )
 }
 
@@ -313,6 +361,7 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
             </div>
           ))}
       </dl>
+      {proposal.kind === 'publish_preparation' ? <PublishedDocuments proposal={proposal} /> : null}
       {proposal.kind === 'attach_folder' ? (
         <p className="text-muted-foreground text-xs">{t`Nothing changes in Drive. Its files are then listed in Fieldwork.`}</p>
       ) : null}
@@ -363,6 +412,16 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
                       conversationId,
                     })
                   }
+                  // Spec 023: the guide or the documents are there; the assistant says what is next.
+                  if (
+                    (proposal.kind === 'propose_interview_guide' ||
+                      proposal.kind === 'publish_preparation') &&
+                    created.kind === 'study'
+                  )
+                    setAppliedCard({
+                      page: { kind: 'study', id: created.id, phase: 'preparation' },
+                      conversationId,
+                    })
                   if (proposal.kind === 'create_study' && created.kind === 'study') {
                     // Nothing is prepared yet: Fieldwork would come too early (spec 022).
                     setAppliedCard({
@@ -420,7 +479,12 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
               className="underline"
               to="/studies/$studyId"
               params={{ studyId: proposal.result.id }}
-              search={proposal.kind === 'propose_interview_guide' ? { phase: 'preparation' } : {}}
+              search={
+                proposal.kind === 'propose_interview_guide' ||
+                proposal.kind === 'publish_preparation'
+                  ? { phase: 'preparation' }
+                  : {}
+              }
             >
               {proposal.kind === 'propose_interview_guide' ? t`See the guide` : t`Open the study`}
             </Link>

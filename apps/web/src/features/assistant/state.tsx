@@ -4,14 +4,14 @@ const OPEN_KEY = 'goodresearch.assistant'
 const CONVERSATION_KEY = 'goodresearch.assistant.conversation'
 
 // Browser storage can be unavailable (private mode): the panel then starts closed.
-const read = (key: string): string | null => {
+export const read = (key: string): string | null => {
   try {
     return globalThis.localStorage?.getItem(key) ?? null
   } catch {
     return null
   }
 }
-const write = (key: string, value: string | null) => {
+export const write = (key: string, value: string | null) => {
   try {
     if (value === null) globalThis.localStorage?.removeItem(key)
     else globalThis.localStorage?.setItem(key, value)

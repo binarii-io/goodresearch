@@ -1824,6 +1824,10 @@ msgstr "Close the assistant"
 msgid "Close the menu"
 msgstr "Close the menu"
 
+#: src/features/assistant/panel.tsx
+msgid "Close this message"
+msgstr "Close this message"
+
 #: src/features/preparation/labels.ts
 msgid "closed (yes or no)"
 msgstr "closed (yes or no)"
@@ -2314,6 +2318,10 @@ msgstr "Dismiss"
 #: src/features/assistant/proposal-card.tsx
 msgid "Dismissed"
 msgstr "Dismissed"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Document"
+msgstr "Document"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Document text"
@@ -3346,6 +3354,7 @@ msgstr "Insights validated"
 msgid "Interview"
 msgstr "Interview"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/preparation/drive-publishing.tsx
 msgid "Interview best practices"
 msgstr "Interview best practices"
@@ -3368,6 +3377,10 @@ msgstr "Interview guide design"
 #: src/features/assistant/panel.tsx
 msgid "Interview guide design progress"
 msgstr "Interview guide design progress"
+
+#: src/features/assistant/panel.tsx
+msgid "Interview guide finished · {study}"
+msgstr "Interview guide finished · {study}"
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "Interview guide themes"
@@ -5011,6 +5024,7 @@ msgstr "Publish"
 msgid "Publish a new copy"
 msgstr "Publish a new copy"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-publishing.tsx
 msgid "Publish to Drive"
@@ -6552,6 +6566,10 @@ msgstr "Theme"
 msgid "Theme 1"
 msgstr "Theme 1"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "These files are created in the study folder. Nothing is written before you apply."
+msgstr "These files are created in the study folder. Nothing is written before you apply."
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "These words are in the turn more than once: add a word before or after them."
 msgstr "These words are in the turn more than once: add a word before or after them."
@@ -6859,6 +6877,10 @@ msgstr "To clean with the AI, the full text of each transcript is sent to your A
 #: src/features/preparation/labels.ts
 msgid "To contact"
 msgstr "To contact"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "To create the documents in the study folder, goodresearch asks Google for the right to edit your Drive. It only writes the files a feature is about, and never deletes anything."
+msgstr "To create the documents in the study folder, goodresearch asks Google for the right to edit your Drive. It only writes the files a feature is about, and never deletes anything."
 
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx

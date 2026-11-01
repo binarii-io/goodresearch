@@ -29,4 +29,5 @@ export const ProposalInputKind = {
   attach_folder: 'attach_folder',
   connect_source: 'connect_source',
   offer_choices: 'offer_choices',
+  publish_preparation: 'publish_preparation',
 } as const;

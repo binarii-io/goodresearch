@@ -102,10 +102,15 @@ export const fakeResearch = () => {
     studies: { id: string; name: string; projects: { name: string }[] }[]
   } = { studies: [] }
   const running = { value: false }
+  const publication: {
+    check: Awaited<ReturnType<ResearchReads['checkPublication']>>
+    published: string[]
+  } = { check: { ok: true, kinds: ['guide', 'best-practices'] }, published: [] }
   const folder: {
     state: Awaited<ReturnType<ResearchReads['folderState']>>
     check: Awaited<ReturnType<ResearchReads['checkFolder']>>
     connected: boolean
+    canEdit: boolean
   } = {
     state: {
       name: 'Interviews Q4',
@@ -114,6 +119,7 @@ export const fakeResearch = () => {
     },
     check: { ok: true, folderName: 'Interviews Q4', folderOwner: 'Sam' },
     connected: true,
+    canEdit: true,
   }
   let deleteThrows = false
   let createThrows = false
@@ -142,7 +148,10 @@ export const fakeResearch = () => {
     studyInTeam: async (_accountId, _studyId, teamId) => teamId === 't1',
     folderState: async (actor, id) => (actor.id === 'ada' && id === 's1' ? folder.state : null),
     checkFolder: async () => folder.check,
-    sourceConnected: async () => folder.connected,
+    sourceConnected: async (_accountId, access) =>
+      folder.connected && (access === 'read' || folder.canEdit),
+    checkPublication: async () => publication.check,
+    publishedKinds: async () => publication.published,
     canActOnStudy: async () => true,
     projectRunning: async () => running.value,
     preparation: async (accountId, id) =>
@@ -166,6 +175,7 @@ export const fakeResearch = () => {
       return result('createStudy', c, { id: 's-new' })
     },
     attachFolder: async (c) => result('attachFolder', c, {}),
+    publishPreparation: async (c) => result('publishPreparation', c, {}),
     createTeamStudy: async (c) => result('createTeamStudy', c, { id: 's-new' }),
     renameStudy: async (c) => result('renameStudy', c, {}),
     attachStudy: async (c) => result('attachStudy', c, {}),
@@ -185,6 +195,7 @@ export const fakeResearch = () => {
       project.name = name
     },
     folder,
+    publication,
     throwOnDelete: () => {
       deleteThrows = true
     },

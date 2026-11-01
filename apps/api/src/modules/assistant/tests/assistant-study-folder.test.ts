@@ -186,6 +186,14 @@ describe('spec 022 US3 — the right time', () => {
     expect(lastRequest()?.system).toContain('Source folder: (none, or no access)')
   })
 
+  it('gives the tabs the names of the app, in French', async () => {
+    world.model.answer([{ type: 'text', delta: 'ok' }])
+    await collect(
+      world.send.send({ actor: ada, conversationId, text: 'Salut', page: onStudy, language: 'fr' }),
+    )
+    expect(lastRequest()?.system).toContain('Passation (for fieldwork, never "Terrain")')
+  })
+
   it('offers the folder and the guide after a study is created', async () => {
     world.model.answer([
       {

@@ -395,6 +395,18 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     updateProjectGoal: async (c) => outcome(await r.updateProjectGoal(c)),
     renameProject: async (c) => outcome(await r.renameProject(c)),
     createStudy: async (c) => outcome(await r.studies.createStudy({ ...c, type: 'interviews' })),
+    publishPreparation: async (c) => {
+      // What is left now: someone may have published one of them since the card was shown.
+      const left = await publishing.handlers.queries.checkPublication(c)
+      if (!left.ok) return { ok: false as const, error: String(left.error) }
+      // The time zone is only read for the schedule, which the assistant does not publish.
+      const done = await publishing.handlers.commands.publish({
+        ...c,
+        kinds: left.value.kinds,
+        timeZone: 'UTC',
+      })
+      return done.ok ? { ok: true as const } : { ok: false as const, error: String(done.error) }
+    },
     attachFolder: async (c) => {
       const done = await bound(ingestion).handlers.commands.attachFolder({ ...c, onlyIfNone: true })
       return done.ok ? { ok: true as const } : done
@@ -452,9 +464,17 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       folderState: (actor, studyId) =>
         bound(ingestion).handlers.queries.folderState(actor, studyId),
       checkFolder: async (c) => outcome(await bound(ingestion).handlers.commands.checkFolder(c)),
-      sourceConnected: async (accountId) =>
+      checkPublication: async (c) => {
+        const done = await publishing.handlers.queries.checkPublication(c)
+        return done.ok
+          ? { ok: true as const, kinds: done.value.kinds as ('guide' | 'best-practices')[] }
+          : { ok: false as const, error: String(done.error) }
+      },
+      publishedKinds: (actor, studyId) =>
+        publishing.handlers.queries.publishedKinds(actor, studyId),
+      sourceConnected: async (accountId, access) =>
         (await bound(ingestion).handlers.queries.mySources({ id: accountId })).some(
-          (s) => s.status === 'connected',
+          (s) => s.status === 'connected' && (access === 'read' || s.canWrite),
         ),
       studyInTeam: async (accountId, studyId, teamId) =>
         (await r.studyQueries.getStudy(accountId, studyId))?.team.id === teamId,

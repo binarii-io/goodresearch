@@ -1,6 +1,7 @@
 import { GuideDraft } from '@goodresearch/contracts'
 import { z } from 'zod'
 import { GUIDE_CHECKLIST, GUIDE_POINT_STATES } from '../domain/guide-progress.ts'
+import { plannedCount } from '../domain/next-step.ts'
 import { composeGoal, type Framing, openPoints } from '../domain/project-framing.ts'
 import type { ProposalKind } from '../domain/proposal.ts'
 import { checkQuestion } from '../domain/question-checks.ts'
@@ -59,6 +60,14 @@ const INPUTS = {
   detach_study: z.object({ studyId: Id, projectId: Id }),
   update_study_goal: z.object({ studyId: Id, goal: Goal }),
   attach_folder: z.object({ studyId: Id, link: z.string().trim().min(1).max(2000) }),
+  // Spec 023: the schedule stays in the Preparation tab.
+  publish_preparation: z.object({
+    studyId: Id,
+    kinds: z
+      .array(z.enum(['guide', 'best-practices']))
+      .min(1)
+      .max(2),
+  }),
   offer_choices: z.object({
     question: z.string().trim().min(1).max(300),
     choices: z
@@ -69,7 +78,7 @@ const INPUTS = {
     multiple: z.boolean().default(false),
   }),
   // Spec 022: never called by the model; what attach_folder becomes without a connection.
-  connect_source: z.object({ link: z.string() }),
+  connect_source: z.object({}),
   load_skill: z.object({ name: z.enum(SKILL_NAMES as [string, ...string[]]) }),
   check_guide_questions: z.object({
     questions: z.array(z.string().trim().min(1).max(600)).min(1).max(60),
@@ -152,6 +161,12 @@ export const TOOLS: readonly ToolSpec[] = [
     description:
       "Propose the folder holding a study's interviews, from the link the person gave; ask for the link if you do not have it. If their file source is not connected, the app shows a card to connect it and the conversation goes on after. Never replaces a folder. The result says whether a card was shown or why it was refused.",
     inputSchema: INPUTS.attach_folder,
+  },
+  {
+    name: 'publish_preparation',
+    description:
+      "Propose to create a study's interview guide and interview best practices as documents in its folder (kinds: guide, best-practices). If the person has not allowed editing, the app shows a card for that and the conversation goes on after. The result says whether a card was shown or why it was refused.",
+    inputSchema: INPUTS.publish_preparation,
   },
   {
     name: 'offer_choices',
@@ -332,9 +347,7 @@ export const prepareFolder = async (
   if (checked.ok) {
     // Fieldwork comes after the preparation: a guide, and at least one planned interview.
     const preparation = await research.preparation(actor.id, studyId)
-    const planned = Object.entries(preparation?.schedule ?? {})
-      .filter(([status]) => status !== 'cancelled')
-      .reduce((sum, [, n]) => sum + (n ?? 0), 0)
+    const planned = plannedCount(preparation?.schedule ?? {})
     const opensOn: 'preparation' | 'fieldwork' =
       preparation && (!preparation.guide || planned === 0) ? 'preparation' : 'fieldwork'
     return {
@@ -350,8 +363,64 @@ export const prepareFolder = async (
     }
   }
   if (checked.error === 'DRIVE_NOT_CONNECTED')
-    return { ...base, kind: 'connect_source', preview: { studyId, studyName: study.name } }
+    return {
+      ...base,
+      kind: 'connect_source',
+      preview: { studyId, studyName: study.name, access: 'read' },
+    }
   return { refused: FOLDER_REFUSALS[checked.error] ?? 'Refused: this folder cannot be attached.' }
+}
+
+const PUBLICATION_REFUSALS: Record<string, string> = {
+  ...FOLDER_REFUSALS,
+  NO_SOURCE_FOLDER: 'Refused: this study has no folder. Offer to add the folder first.',
+  GUIDE_MISSING: 'Refused: this study has no interview guide yet. Write it first.',
+  NOTHING_TO_PUBLISH:
+    'Refused: already published. Updates happen on the Preparation tab, which compares with the files.',
+}
+
+/**
+ * Checks a publication (spec 023): a reason, the card, or the card asking for the right to edit.
+ * The same checks run again on Apply, through the command.
+ */
+export const preparePublication = async (
+  research: ResearchReads,
+  actor: Actor,
+  rawInput: unknown,
+  language: 'en' | 'fr',
+): Promise<{ refused: string } | PreparedProposal> => {
+  const input = INPUTS.publish_preparation.safeParse(rawInput)
+  if (!input.success)
+    return { refused: 'Refused: send a studyId, and kinds among guide and best-practices.' }
+  const { studyId, kinds } = input.data
+  const study = await research.getStudy(actor.id, studyId)
+  if (!study) return { refused: PUBLICATION_REFUSALS.STUDY_NOT_FOUND ?? '' }
+  const checked = await research.checkPublication({ actor, studyId, kinds })
+  const base = { targetId: studyId, targetVersion: null }
+  if (checked.ok) {
+    const folder = await research.folderState(actor, studyId)
+    return {
+      ...base,
+      kind: 'publish_preparation',
+      values: { kinds: checked.kinds, language },
+      preview: {
+        studyId,
+        studyName: study.name,
+        documents: checked.kinds,
+        ...(folder ? { folderName: folder.name } : {}),
+      },
+    }
+  }
+  if (checked.error === 'DRIVE_WRITE_REQUIRED' || checked.error === 'DRIVE_NOT_CONNECTED')
+    return {
+      ...base,
+      kind: 'connect_source',
+      values: { kinds },
+      preview: { studyId, studyName: study.name, access: 'write' },
+    }
+  return {
+    refused: PUBLICATION_REFUSALS[checked.error] ?? 'Refused: these documents cannot be published.',
+  }
 }
 
 /** Spec 020: the card of a deletion, or the reason given back to the model. */

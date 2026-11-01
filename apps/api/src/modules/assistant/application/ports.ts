@@ -52,6 +52,8 @@ export type ProposalPreview = {
   readonly folderName?: string
   readonly folderOwner?: string
   readonly opensOn?: 'preparation' | 'fieldwork'
+  readonly documents?: ('guide' | 'best-practices')[]
+  readonly access?: 'read' | 'write'
   readonly question?: string
   readonly choices?: string[]
   readonly multiple?: boolean
@@ -208,8 +210,16 @@ export interface ResearchReads {
   }): Promise<
     { ok: true; folderName: string; folderOwner: string | null } | { ok: false; error: string }
   >
-  /** The person's file source is connected and usable. */
-  sourceConnected(accountId: string): Promise<boolean>
+  /** Spec 023: what publishing would create, with the person's own access. */
+  checkPublication(c: {
+    actor: Actor
+    studyId: string
+    kinds: readonly ('guide' | 'best-practices')[]
+  }): Promise<{ ok: true; kinds: ('guide' | 'best-practices')[] } | { ok: false; error: string }>
+  /** Spec 023: the documents of the study already published. */
+  publishedKinds(actor: Actor, studyId: string): Promise<string[]>
+  /** The person's file source is connected and allows this access. */
+  sourceConnected(accountId: string, access: 'read' | 'write'): Promise<boolean>
   /** The person's own access to the study's folder (spec 002 FR-010a). */
   canActOnStudy(accountId: string, studyId: string): Promise<boolean>
   /** An insight or recommendation run is in progress on the project. */
@@ -247,6 +257,13 @@ export interface ResearchActions {
     name: string
     goal?: string
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
+  /** Spec 023: creates the documents in the study's folder. */
+  publishPreparation(c: {
+    actor: Actor
+    studyId: string
+    kinds: readonly ('guide' | 'best-practices')[]
+    language: 'en' | 'fr'
+  }): Promise<{ ok: true } | { ok: false; error: string }>
   /** Spec 022: never replaces a folder. */
   attachFolder(c: {
     actor: Actor

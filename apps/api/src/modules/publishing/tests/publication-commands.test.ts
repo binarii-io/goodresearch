@@ -64,6 +64,31 @@ describe('US1 — publish', () => {
     ).toEqual({ ok: false, error: 'ALREADY_PUBLISHED' })
   })
 
+  it('spec 023: says what is left to publish, and writes nothing', async () => {
+    const guideBefore = world.state.guide
+    const check = (kinds: ('guide' | 'best-practices')[], actor = ada) =>
+      world.queries.checkPublication({ actor, studyId: 'study-1', kinds })
+    expect(await check(['guide'], lee)).toEqual({ ok: false, error: 'DRIVE_WRITE_REQUIRED' })
+    world.state.guide = null
+    expect(await check(['guide'], lee)).toEqual({ ok: false, error: 'GUIDE_MISSING' })
+    world.state.guide = guideBefore
+    expect(await check(['guide', 'best-practices'])).toEqual({
+      ok: true,
+      value: { kinds: ['guide', 'best-practices'] },
+    })
+    expect(world.store.rows.size).toBe(0)
+    await publish(['guide'])
+    expect(await check(['guide', 'best-practices'])).toEqual({
+      ok: true,
+      value: { kinds: ['best-practices'] },
+    })
+    expect(await check(['guide'])).toEqual({ ok: false, error: 'NOTHING_TO_PUBLISH' })
+    // A reservation left behind by an interrupted publication is not a publication.
+    const published = publicationOf('guide')
+    world.store.rows.set(published.id, { ...published, fileId: '' })
+    expect(await check(['guide'])).toMatchObject({ ok: true, value: { kinds: ['guide'] } })
+  })
+
   it('asks for the write consent first, and skips a guide that does not exist yet', async () => {
     expect(
       await world.commands.publish({

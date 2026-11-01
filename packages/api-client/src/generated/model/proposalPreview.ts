@@ -6,7 +6,9 @@
  */
 import type { GuideProgress } from './guideProgress.ts';
 import type { ProjectDeletion } from './projectDeletion.ts';
+import type { ProposalPreviewAccess } from './proposalPreviewAccess.ts';
 import type { ProposalPreviewChecksItem } from './proposalPreviewChecksItem.ts';
+import type { ProposalPreviewDocumentsItem } from './proposalPreviewDocumentsItem.ts';
 import type { ProposalPreviewGuide } from './proposalPreviewGuide.ts';
 import type { ProposalPreviewOpensOn } from './proposalPreviewOpensOn.ts';
 import type { ProposalPreviewPhase } from './proposalPreviewPhase.ts';
@@ -25,6 +27,8 @@ export interface ProposalPreview {
   folderName?: string;
   folderOwner?: string;
   opensOn?: ProposalPreviewOpensOn;
+  documents?: ProposalPreviewDocumentsItem[];
+  access?: ProposalPreviewAccess;
   question?: string;
   choices?: string[];
   multiple?: boolean;

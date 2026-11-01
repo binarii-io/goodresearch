@@ -313,6 +313,11 @@ const lexiconAnswer = (prompt: string) => {
 }
 
 /** A fixed interview guide, as the assistant writes it (spec 006 research R8). */
+const PUBLISH_BOTH = (studyId: string | undefined) => ({
+  studyId,
+  kinds: ['guide', 'best-practices'],
+})
+
 const FAKE_FOLDER_LINK = 'https://drive.google.com/drive/folders/dev-study-folder'
 
 const FAKE_GUIDE = {
@@ -388,6 +393,24 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     hypotheses: state,
     team: state,
   })
+  // Spec 023: the answer holding the guide checked its questions first, so look at all its tools.
+  const guideApplied =
+    lastMessage?.role === 'tool' &&
+    lastMessage.results.some(
+      (r) => r.name === 'propose_interview_guide' && r.output.startsWith('Applied'),
+    )
+  if (guideApplied)
+    return {
+      parts: [
+        { type: 'text', delta: 'The guide is saved.' },
+        call('offer_choices', {
+          question: 'What comes next?',
+          choices: ['Publish them', 'Plan the interviews'],
+          multiple: false,
+        }),
+      ],
+      delayMs: 0,
+    }
   // Spec 018: the journey of a new project.
   if (ranTool === 'load_skill' && toolOutput?.includes('frame a research project'))
     return {
@@ -424,6 +447,11 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
       ],
       delayMs: 0,
     }
+  // Spec 023: publishing the preparation.
+  if (ranTool === 'publish_preparation' && toolOutput?.startsWith('Applied'))
+    return { parts: [{ type: 'text', delta: 'The documents are in the folder.' }], delayMs: 0 }
+  if (ranTool === 'publish_preparation' && toolOutput?.includes('connected their file source'))
+    return { parts: [call('publish_preparation', PUBLISH_BOTH(guideStudy))], delayMs: 0 }
   // Spec 022: the folder of a study.
   if (ranTool === 'attach_folder' && toolOutput?.startsWith('Applied')) {
     const found = /inventory \w+: ([^)]*)\)/.exec(request.system ?? '')?.[1] ?? 'nothing yet'
@@ -472,6 +500,18 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     }
   // After any other tool run, the answer is over.
   if (ranTool) return { parts: [], delayMs: 0 }
+  if (/publish them/i.test(text) && guideStudy && offered('publish_preparation'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Here are the documents.' },
+        call('publish_preparation', PUBLISH_BOTH(guideStudy)),
+      ],
+      delayMs: 0,
+    }
+  if (/what is the next step/i.test(text)) {
+    const step = /Next step of this study: ([^.]*)\./.exec(request.system ?? '')?.[1]
+    if (step) return { parts: [{ type: 'text', delta: `Next: ${step}.` }], delayMs: 0 }
+  }
   if (/attach the folder/i.test(text) && guideStudy && offered('attach_folder'))
     return {
       parts: [

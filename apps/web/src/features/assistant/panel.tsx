@@ -27,6 +27,7 @@ import {
 } from '@goodresearch/ui/components/alert-dialog'
 import { Button } from '@goodresearch/ui/components/button'
 import {
+  CheckIcon,
   HistoryIcon,
   SendIcon,
   SquareIcon,
@@ -51,7 +52,7 @@ import { FRAMING_POINTS, STUDY_FRAMING_POINTS } from './labels.ts'
 import { Markdown } from './markdown.tsx'
 import { usePageRef } from './page-ref.ts'
 import { ProposalCard } from './proposal-card.tsx'
-import { useAssistant } from './state.tsx'
+import { read, useAssistant, write } from './state.tsx'
 import { continueAssistantConversation, sendAssistantMessage } from './stream.ts'
 
 /** Failures only the person can fix: link to the AI provider page (spec 004). */
@@ -243,6 +244,7 @@ const isProgress = (p: Proposal) =>
  */
 function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
   const { t, i18n } = useLingui()
+  const [closed, setClosed] = useState<string | null>(null)
   const index = proposals.findLastIndex(isProgress)
   const latest = proposals[index]
   const progress = latest?.preview.progress
@@ -253,6 +255,36 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
   if (proposals.slice(index).some((p) => p.kind === created && p.state === 'applied')) return null
   const study = latest.preview.studyName ?? ''
   const count = progress.items.length
+  // Spec 023: a guide applied is a design finished: one quiet line, until closed. A later change
+  // of the guide reports again, and shows the bar again.
+  if (
+    latest.kind === 'report_guide_progress' &&
+    proposals
+      .slice(index)
+      .some((p) => p.kind === 'propose_interview_guide' && p.state === 'applied')
+  ) {
+    const key = `goodresearch.assistant.guideDone.${latest.id}`
+    if (closed === latest.id || read(key)) return null
+    return (
+      <div className="flex items-center gap-2 border-b px-4 py-1.5 text-xs">
+        <CheckIcon aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
+        <p role="status" className="min-w-0 flex-1 truncate font-medium">
+          {t`Interview guide finished · ${study}`}
+        </p>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t`Close this message`}
+          onClick={() => {
+            write(key, '1')
+            setClosed(latest.id)
+          }}
+        >
+          <XIcon aria-hidden />
+        </Button>
+      </div>
+    )
+  }
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-1 border-b px-4 py-2.5">
       <p className="truncate font-medium text-xs">

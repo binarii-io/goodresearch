@@ -6,7 +6,9 @@
  */
 import type { GuideProgressInput } from './guideProgressInput.ts';
 import type { ProjectDeletionInput } from './projectDeletionInput.ts';
+import type { ProposalPreviewInputAccess } from './proposalPreviewInputAccess.ts';
 import type { ProposalPreviewInputChecksItem } from './proposalPreviewInputChecksItem.ts';
+import type { ProposalPreviewInputDocumentsItem } from './proposalPreviewInputDocumentsItem.ts';
 import type { ProposalPreviewInputGuide } from './proposalPreviewInputGuide.ts';
 import type { ProposalPreviewInputOpensOn } from './proposalPreviewInputOpensOn.ts';
 import type { ProposalPreviewInputPhase } from './proposalPreviewInputPhase.ts';
@@ -25,6 +27,8 @@ export interface ProposalPreviewInput {
   folderName?: string;
   folderOwner?: string;
   opensOn?: ProposalPreviewInputOpensOn;
+  documents?: ProposalPreviewInputDocumentsItem[];
+  access?: ProposalPreviewInputAccess;
   question?: string;
   choices?: string[];
   multiple?: boolean;

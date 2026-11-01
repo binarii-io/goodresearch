@@ -35,6 +35,7 @@ export const ProposalKind = z.enum([
   'attach_folder',
   'connect_source',
   'offer_choices',
+  'publish_preparation',
 ])
 
 /** What the app's writing rules flag in a question (spec 006). */
@@ -97,6 +98,9 @@ export const ProposalPreview = z
     folderOwner: z.string().optional(),
     /** The tab that opens once the folder is attached: Fieldwork waits for the preparation. */
     opensOn: z.enum(['preparation', 'fieldwork']).optional(),
+    /** Spec 023: the documents a publication creates, and what a connection card asks for. */
+    documents: z.array(z.enum(['guide', 'best-practices'])).optional(),
+    access: z.enum(['read', 'write']).optional(),
     /** Spec 022: a list of choices. */
     question: z.string().optional(),
     choices: z.array(z.string()).optional(),

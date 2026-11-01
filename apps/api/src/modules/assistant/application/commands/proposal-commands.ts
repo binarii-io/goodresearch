@@ -73,6 +73,16 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
             })
         return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: r.id } } : r
       }
+      case 'publish_preparation': {
+        const studyId = p.targetId ?? ''
+        const r = await deps.actions.publishPreparation({
+          actor,
+          studyId,
+          kinds: v.kinds as ('guide' | 'best-practices')[],
+          language: v.language === 'fr' ? 'fr' : 'en',
+        })
+        return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: studyId } } : r
+      }
       case 'attach_folder': {
         const studyId = p.targetId ?? ''
         const r = await deps.actions.attachFolder({ actor, studyId, link: str(v.link) })
