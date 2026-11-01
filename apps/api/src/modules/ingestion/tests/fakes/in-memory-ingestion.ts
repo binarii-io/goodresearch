@@ -255,6 +255,15 @@ export class InMemoryIngestionStore implements IngestionStore {
   async listSessions(studyId: string) {
     return [...this.sessions.values()].filter((s) => s.studyId === studyId)
   }
+  async sessionSummaries(studyId: string) {
+    return [...this.sessions.values()].filter((s) => s.studyId === studyId)
+  }
+  async sessionIds(studyId: string) {
+    return [...this.sessions.values()].filter((s) => s.studyId === studyId).map((s) => s.id)
+  }
+  async sessionRosters(studyId: string) {
+    return [...this.sessions.values()].filter((s) => s.studyId === studyId)
+  }
   async getSession(id: string) {
     return this.sessions.get(id) ?? null
   }
@@ -298,6 +307,11 @@ export class InMemoryIngestionStore implements IngestionStore {
   }
   async saveConsent(accountId: string, studyId: string, provider: string) {
     this.consents.add(`${accountId}/${studyId}/${provider}`)
+  }
+  async analysedSessionIds(studyId: string) {
+    return [...this.analysisRuns.values()]
+      .filter((r) => r.studyId === studyId)
+      .flatMap((r) => r.sessionIds)
   }
   async startRun(run: AnalysisRun) {
     for (const r of this.analysisRuns.values())

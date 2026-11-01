@@ -75,11 +75,43 @@ describe('Evidence reads for Synthesis (spec 013 research R1)', () => {
     expect(facts[1]?.participants).toEqual(['P01'])
   })
 
+  it('counts in the Overview only the facts of the interviews Analysis shows', async () => {
+    const memory = inMemoryEvidenceStore()
+    for (const f of [
+      fact('f1', 'accepted', []),
+      fact('f2', 'edited', []),
+      fact('f3', 'proposed', []),
+      fact('f4', 'rejected', []),
+      { ...fact('f5', 'proposed', []), sessionId: 'excluded-since' },
+      fact('f6', 'proposed', [], 'other-study'),
+    ])
+      memory.facts.set(f.id, f)
+    // Counting must not read any fact.
+    memory.store.factsOfStudy = async () => {
+      throw new Error('facts read')
+    }
+    const counts = await makeSynthesisReads(memory.store).studyCounts('st', ['s1'])
+    expect([...counts].sort((a, b) => a.status.localeCompare(b.status))).toEqual([
+      { status: 'accepted', count: 1 },
+      { status: 'edited', count: 1 },
+      { status: 'proposed', count: 1 },
+      { status: 'rejected', count: 1 },
+    ])
+  })
+
   it('gives any fact by id, whatever its status; a deleted one is absent', async () => {
     const facts = await setup().factsByIds(['f4', 'f3', 'gone'])
     expect(facts.map((f) => [f.id, f.status])).toEqual([
       ['f4', 'rejected'],
       ['f3', 'proposed'],
     ])
+  })
+
+  it('keeps in the costs the translations of a session read and deleted since', async () => {
+    const memory = inMemoryEvidenceStore()
+    memory.store.runsOf = async () => [{ id: 'r', sessions: [{ sessionId: 'gone' }] }] as never
+    const refs = await makeSynthesisReads(memory.store).studyCostRefs('st', ['s1'])
+    expect(refs).toHaveLength(3)
+    expect(refs.filter((r) => r.includes('gone'))).toHaveLength(2)
   })
 })

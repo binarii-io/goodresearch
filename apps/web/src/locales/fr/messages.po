@@ -48,10 +48,27 @@ msgstr "(aucun)"
 msgid "{0, plural, one {{1} of # interview imported} other {{2} of # interviews imported}}"
 msgstr "{0, plural, one {{1} sur # entretien importé} other {{2} sur # entretiens importés}}"
 
+#. placeholder {0}: c.excluded
+#: src/features/research/study-list.tsx
+msgid "{0, plural, one {# excluded} other {# excluded}}"
+msgstr "{0, plural, one {# écarté} other {# écartés}}"
+
+#. placeholder {0}: c.factsToDecide
+#: src/features/research/study-list.tsx
+msgid "{0, plural, one {# fact to decide} other {# facts to decide}}"
+msgstr "{0, plural, one {# fait à décider} other {# faits à décider}}"
+
+#. placeholder {0}: c.facts
 #. placeholder {0}: slide.facts
+#: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0, plural, one {# fact} other {# facts}}"
 msgstr "{0, plural, one {# fait} other {# faits}}"
+
+#. placeholder {0}: c.validated
+#: src/features/research/study-list.tsx
+msgid "{0, plural, one {# interview validated} other {# interviews validated}}"
+msgstr "{0, plural, one {# entretien validé} other {# entretiens validés}}"
 
 #. placeholder {0}: run.done
 #. placeholder {0}: slide.interviews
@@ -61,6 +78,8 @@ msgid "{0, plural, one {# interview} other {# interviews}}"
 msgstr "{0, plural, one {# entretien} other {# entretiens}}"
 
 #. placeholder {0}: slide.participants
+#. placeholder {0}: step.participants
+#: src/features/research/project-journey.tsx
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0, plural, one {# participant} other {# participants}}"
 msgstr "{0, plural, one {# participant} other {# participants}}"
@@ -69,6 +88,17 @@ msgstr "{0, plural, one {# participant} other {# participants}}"
 #: src/routes/_authenticated/teams.tsx
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# projet} other {# projets}}"
+
+#. placeholder {0}: step.validated
+#: src/features/research/project-journey.tsx
+msgid "{0, plural, one {# validated} other {# validated}}"
+msgstr "{0, plural, one {# validé} other {# validés}}"
+
+#. placeholder {0}: step.validated
+#: src/features/research/project-journey.tsx
+msgctxt "recommendations"
+msgid "{0, plural, one {# validated} other {# validated}}"
+msgstr "{0, plural, one {# validée} other {# validées}}"
 
 #. placeholder {0}: data.namedFiles
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -411,6 +441,22 @@ msgstr "{excluded} exclus"
 msgid "{flaggedCount} questions to review"
 msgstr "{flaggedCount} questions à revoir"
 
+#: src/features/research/study-list.tsx
+msgid "{hidden, plural, one {The counts leave out # study whose folder you cannot open; the AI cost of the project includes it.} other {The counts leave out # studies whose folder you cannot open; the AI cost of the project includes them.}}"
+msgstr "{hidden, plural, one {Les chiffres ne comptent pas # étude dont vous ne pouvez pas ouvrir le dossier ; le coût IA du projet l'inclut.} other {Les chiffres ne comptent pas # études dont vous ne pouvez pas ouvrir le dossier ; le coût IA du projet les inclut.}}"
+
+#: src/features/research/project-journey.tsx
+msgid "{left, plural, one {Decide the # fact left} other {Decide the # facts left}}"
+msgstr "{left, plural, one {Décider le # fait restant} other {Décider les # faits restants}}"
+
+#: src/features/research/project-journey.tsx
+msgid "{left, plural, one {Decide the # insight left} other {Decide the # insights left}}"
+msgstr "{left, plural, one {Décider le # insight restant} other {Décider les # insights restants}}"
+
+#: src/features/research/project-journey.tsx
+msgid "{left, plural, one {Decide the # recommendation left} other {Decide the # recommendations left}}"
+msgstr "{left, plural, one {Décider la # recommandation restante} other {Décider les # recommandations restantes}}"
+
 #. placeholder {0}: data.plannedWithoutSession.length
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{linked} with a transcript · {0} without"
@@ -459,6 +505,11 @@ msgstr "{toReview} modification(s) du Drive à revoir. "
 #: src/features/preparation/drive-publishing.tsx
 msgid "{toReview} changes made in Drive have not been reviewed. Updating replaces them with the app's version."
 msgstr "{toReview} modification(s) faites dans le Drive n’ont pas été revues. La mise à jour les remplace par la version de l’app."
+
+#: src/features/research/project-journey.tsx
+#: src/features/research/study-list.tsx
+msgid "{toValidate} to validate"
+msgstr "{toValidate} à valider"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "{transcript} transcripts · {media} media · {other} other files"
@@ -836,6 +887,10 @@ msgstr "Ajouter l'équipe"
 msgid "Add the fact"
 msgstr "Ajouter le fait"
 
+#: src/features/research/project-journey.tsx
+msgid "Add the interviews to a study"
+msgstr "Ajouter les entretiens à une étude"
+
 #: src/features/analysis/interview-facts.tsx
 msgid "Add the verbatim"
 msgstr "Ajouter le verbatim"
@@ -923,6 +978,14 @@ msgstr "Acceptez d’abord d’envoyer les transcriptions à votre fournisseur I
 #: src/features/enrichment/labels.ts
 msgid "AI"
 msgstr "IA"
+
+#: src/features/research/study-list.tsx
+msgid "AI cost of the project: {amount}"
+msgstr "Coût IA du projet : {amount}"
+
+#: src/features/research/study-list.tsx
+msgid "AI cost: {amount}"
+msgstr "Coût IA : {amount}"
 
 #: src/features/synthesis/takeaways.tsx
 msgid "AI draft"
@@ -1013,6 +1076,10 @@ msgstr "Toutes les études"
 msgid "All themes"
 msgstr "Tous les thèmes"
 
+#: src/features/research/project-journey.tsx
+msgid "All validated"
+msgstr "Tout est validé"
+
 #: src/features/fieldwork/proposals.tsx
 msgid "Allow editing in Drive"
 msgstr "Autoriser la modification dans Drive"
@@ -1090,6 +1157,7 @@ msgstr "Analysé le"
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/assistant/proposal-card.tsx
 #: src/features/fieldwork/proposals.tsx
+#: src/features/research/study-list.tsx
 msgid "Analysis"
 msgstr "Analyse"
 
@@ -1223,6 +1291,10 @@ msgstr "Demandez à {ownerName} de partager le dossier avec votre compte Google 
 #: src/features/assistant/panel.tsx
 msgid "Ask anything about your research. The assistant sees the page you are on and can propose changes, which you apply or dismiss."
 msgstr "Posez vos questions sur votre recherche. L'assistant voit la page ouverte et peut proposer des modifications, que vous appliquez ou ignorez."
+
+#: src/features/research/project-journey.tsx
+msgid "Ask for access to a study's folder"
+msgstr "Demander l'accès au dossier d'une étude"
 
 #: src/features/assistant/panel.tsx
 msgid "Ask the assistant…"
@@ -1617,6 +1689,7 @@ msgid "Cleaned on"
 msgstr "Nettoyé le"
 
 #: src/features/enrichment/enrichment-tab.tsx
+#: src/features/research/study-list.tsx
 msgid "Cleaning"
 msgstr "Nettoyage"
 
@@ -1840,6 +1913,10 @@ msgstr "Coût : inconnu"
 msgid "Could not be verified"
 msgstr "Non vérifiable"
 
+#: src/features/synthesis/takeaways-band.tsx
+msgid "Could not check whether they are up to date"
+msgstr "Impossible de vérifier s'ils sont à jour"
+
 #: src/features/synthesis/insight-panel.tsx
 msgid "Counter-evidence"
 msgstr "Contre-exemples"
@@ -1885,6 +1962,10 @@ msgstr "Comptage de ce que le brouillon lit…"
 #: src/features/preparation/labels.ts
 msgid "covered"
 msgstr "couvert"
+
+#: src/features/research/project-journey.tsx
+msgid "Create a first study"
+msgstr "Créer une première étude"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Create a project"
@@ -1951,6 +2032,7 @@ msgstr "Désactiver"
 msgid "Deactivated"
 msgstr "Désactivé"
 
+#: src/features/research/project-journey.tsx
 #: src/features/synthesis/debrief-tab.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Debrief"
@@ -2374,6 +2456,8 @@ msgid "Expand the sidebar"
 msgstr "Déplier le volet"
 
 #: src/features/analysis/interview-facts.tsx
+#: src/features/research/project-journey.tsx
+#: src/features/research/study-list.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "Facts"
@@ -2432,6 +2516,10 @@ msgstr "Faits à décider ({0})"
 #: src/features/synthesis/insight-card.tsx
 msgid "Facts to validate ({0})"
 msgstr "Faits à valider ({0})"
+
+#: src/features/research/project-journey.tsx
+msgid "Facts validated"
+msgstr "Faits validés"
 
 #: src/features/ai/provider-forms.tsx
 #: src/features/analysis/labels.ts
@@ -2492,6 +2580,7 @@ msgstr "Trouver les faits à nouveau : {0}"
 msgid "Find facts: {0}"
 msgstr "Trouver les faits : {0}"
 
+#: src/features/research/project-journey.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/insights-tab.tsx
 msgid "Find insights"
@@ -2501,6 +2590,7 @@ msgstr "Trouver des insights"
 msgid "Find insights?"
 msgstr "Trouver des insights ?"
 
+#: src/features/research/project-journey.tsx
 #: src/features/synthesis/recommendation-run-dialog.tsx
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "Find recommendations"
@@ -2536,6 +2626,10 @@ msgstr "Trouver les faits"
 #: src/features/analysis/find-facts.tsx
 msgid "Find the facts of “{0}”?"
 msgstr "Trouver les faits de « {0} » ?"
+
+#: src/features/research/project-journey.tsx
+msgid "Find the facts of the interviews"
+msgstr "Trouver les faits des entretiens"
 
 #: src/features/analysis/find-facts.tsx
 msgid "Find the facts?"
@@ -3057,6 +3151,8 @@ msgstr "Insight {0}"
 msgid "Insight selected"
 msgstr "Insight sélectionné"
 
+#: src/features/research/project-journey.tsx
+#: src/features/research/study-list.tsx
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
@@ -3088,6 +3184,10 @@ msgstr "Insights à lier"
 #: src/features/synthesis/recommendation-card.tsx
 msgid "Insights to validate ({0})"
 msgstr "Insights à valider ({0})"
+
+#: src/features/research/project-journey.tsx
+msgid "Insights validated"
+msgstr "Insights validés"
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/analysis/facts-list.tsx
@@ -3204,6 +3304,7 @@ msgstr "Intervieweurs"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/quality-tab.tsx
+#: src/features/research/project-journey.tsx
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
 msgid "Interviews"
@@ -3357,7 +3458,9 @@ msgstr "Garder la version de l’app"
 msgid "kept"
 msgstr "gardée"
 
+#: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
+#: src/features/synthesis/takeaways-band.tsx
 #: src/features/synthesis/takeaways.tsx
 msgid "Key takeaways"
 msgstr "Points clés"
@@ -3366,9 +3469,17 @@ msgstr "Points clés"
 msgid "Key takeaways saved"
 msgstr "Points clés enregistrés"
 
+#: src/features/research/project-journey.tsx
+msgid "Key takeaways to write"
+msgstr "Points clés à rédiger"
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "Key takeaways to write in the Recommendations tab."
 msgstr "Points clés à rédiger dans l’onglet Recommandations."
+
+#: src/features/research/project-journey.tsx
+msgid "Key takeaways written"
+msgstr "Points clés rédigés"
 
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
@@ -3467,6 +3578,7 @@ msgstr "Autorisez d’abord goodresearch à modifier vos fichiers Drive."
 
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/enrichment/labels.ts
+#: src/features/research/study-list.tsx
 msgid "Lexicon"
 msgstr "Lexique"
 
@@ -3561,6 +3673,7 @@ msgstr "En faire une remarque"
 msgid "Matrix"
 msgstr "Matrice"
 
+#: src/features/synthesis/takeaways-band.tsx
 #: src/features/synthesis/takeaways.tsx
 msgid "May be out of date"
 msgstr "Peut-être obsolète"
@@ -3820,6 +3933,10 @@ msgstr "Suivant"
 msgid "Next slide"
 msgstr "Slide suivante"
 
+#: src/features/research/project-journey.tsx
+msgid "Next step"
+msgstr "Prochaine étape"
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "Next steps"
 msgstr "Prochaines étapes"
@@ -3926,6 +4043,10 @@ msgstr "Aucun entretien relu : les chiffres viennent après une relecture."
 #: src/features/quality/review-dialog.tsx
 msgid "No interview to read for now. Those already reviewed can be read again with the box below."
 msgstr "Aucun entretien à lire pour le moment. Ceux déjà relus peuvent être relus avec la case ci-dessous."
+
+#: src/features/research/study-list.tsx
+msgid "No interview yet"
+msgstr "Aucun entretien pour l'instant"
 
 #: src/features/synthesis/labels.ts
 msgid "No longer accepted"
@@ -4602,6 +4723,10 @@ msgstr "Produit"
 msgid "Progress"
 msgstr "Progression"
 
+#: src/features/research/project-journey.tsx
+msgid "Progress of the research"
+msgstr "Avancement de la recherche"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Project"
 msgstr "Projet"
@@ -4706,6 +4831,10 @@ msgstr "Publication…"
 msgid "Q{n}"
 msgstr "Q{n}"
 
+#: src/features/research/study-list.tsx
+msgid "Quality"
+msgstr "Qualité"
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Quality for this type of study is coming in a later version."
 msgstr "La qualité pour ce type d'étude arrivera dans une prochaine version."
@@ -4775,6 +4904,8 @@ msgstr "Lecture des entretiens : {0} sur {1}"
 msgid "Recommendation selected"
 msgstr "Recommandation sélectionnée"
 
+#: src/features/research/project-journey.tsx
+#: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/recommendations-tab.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
@@ -4784,6 +4915,10 @@ msgstr "Recommandations"
 #: src/features/workspace/errors.ts
 msgid "Recommendations are already being found for this project."
 msgstr "Des recommandations sont déjà en cours de recherche pour ce projet."
+
+#: src/features/research/project-journey.tsx
+msgid "Recommendations validated"
+msgstr "Recommandations validées"
 
 #: src/features/ai/provider-forms.tsx
 #: src/routes/_authenticated/ai-provider.tsx
@@ -5006,6 +5141,11 @@ msgstr "Projets de recherche"
 #: src/features/synthesis/takeaways.tsx
 msgid "Rests on {0} items to validate"
 msgstr "Repose sur {0} éléments à valider"
+
+#: src/features/research/project-journey.tsx
+#: src/features/research/study-list.tsx
+msgid "Retry"
+msgstr "Réessayer"
 
 #. placeholder {0}: selected.size
 #: src/features/fieldwork/proposals.tsx
@@ -5234,6 +5374,10 @@ msgstr "Voir dans l'entretien"
 msgid "See in the transcript"
 msgstr "Voir dans la transcription"
 
+#: src/features/synthesis/takeaways-band.tsx
+msgid "See the debrief"
+msgstr "Voir la restitution"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "See the guide"
 msgstr "Voir le guide"
@@ -5365,6 +5509,11 @@ msgstr "Slides"
 #: src/features/synthesis/deck-slide.tsx
 msgid "Small extras"
 msgstr "Petits plus"
+
+#: src/features/synthesis/insights-tab.tsx
+#: src/features/synthesis/recommendations-tab.tsx
+msgid "some calls have no price"
+msgstr "certains appels sans prix"
 
 #: src/features/workspace/errors.ts
 msgid "Some fields are not valid."
@@ -5742,6 +5891,10 @@ msgstr "La réponse de l'IA n'a pas pu être utilisée : des termes peuvent manq
 msgid "The AI answer could not be used: try again."
 msgstr "La réponse de l'IA n'a pas pu être utilisée : réessayez."
 
+#: src/features/research/study-list.tsx
+msgid "The AI cost could not be loaded."
+msgstr "Le coût IA n'a pas pu être chargé."
+
 #: src/features/enrichment/labels.ts
 msgid "The AI provider returned an error or took too long: some corrections may be missing, try again."
 msgstr "Le fournisseur d’IA a renvoyé une erreur ou a mis trop de temps : des corrections peuvent manquer, réessayez."
@@ -6029,6 +6182,10 @@ msgstr "La sélection couvre plusieurs verbatims : sélectionnez des mots dans u
 #: src/features/quality/figures.tsx
 msgid "The share of all the words of the interviews spoken by interviewers, computed by the app. Reference value: 30% at most."
 msgstr "La part de tous les mots des entretiens prononcés par les intervieweurs, calculée par l'app. Valeur de référence : 30 % au plus."
+
+#: src/features/research/project-journey.tsx
+msgid "The state of the research could not be loaded."
+msgstr "L'avancement de la recherche n'a pas pu être chargé."
 
 #: src/features/synthesis/recommendation-run-dialog.tsx
 msgid "The statements of the insights are sent to your AI provider, with your own connection, with their theme, confidence and number of participants."
@@ -6524,6 +6681,7 @@ msgstr "Indisponible dans le Drive"
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/quality-tab.tsx
 #: src/features/quality/review-dialog.tsx
+#: src/features/research/cost-breakdown.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/recommendation-run-dialog.tsx
 #: src/features/synthesis/takeaways.tsx
@@ -6616,6 +6774,10 @@ msgstr "Validez la version propre avant de la publier."
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Validate the insight"
 msgstr "Valider l'insight"
+
+#: src/features/research/project-journey.tsx
+msgid "Validate the interviews"
+msgstr "Valider les entretiens"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/labels.ts
@@ -6790,6 +6952,18 @@ msgstr "Pourquoi l'exclure ? (facultatif)"
 msgid "Why: what does it add?"
 msgstr "Pourquoi : qu'ajoute-t-elle ?"
 
+#: src/features/research/project-journey.tsx
+msgid "Will come from the facts"
+msgstr "Viendront des faits"
+
+#: src/features/research/project-journey.tsx
+msgid "Will come from the insights"
+msgstr "Viendront des insights"
+
+#: src/features/research/project-journey.tsx
+msgid "Will come from the interviews"
+msgstr "Viendront des entretiens"
+
 #. placeholder {0}: p.interviewers
 #: src/features/fieldwork/session-dialog.tsx
 msgid "with {0}"
@@ -6856,6 +7030,10 @@ msgstr "Écrire le texte final"
 #: src/features/synthesis/new-insight-dialog.tsx
 msgid "Write the finding and choose the facts that support it. It is validated at once and translated into the other language."
 msgstr "Écrivez le constat et choisissez les faits qui le soutiennent. Il est validé tout de suite et traduit dans l'autre langue."
+
+#: src/features/research/project-journey.tsx
+msgid "Write the key takeaways"
+msgstr "Rédiger les points clés"
 
 #: src/features/workspace/errors.ts
 msgid "Write what it should read."

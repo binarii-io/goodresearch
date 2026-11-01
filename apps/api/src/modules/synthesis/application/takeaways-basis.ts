@@ -40,7 +40,10 @@ export const takeawaysBasis = async (
   projectId: string,
   withProposed: boolean,
 ) => {
-  const insights = await deps.store.insightsOf(projectId)
+  const [insights, recommendations] = await Promise.all([
+    deps.store.insightsOf(projectId),
+    deps.store.recommendationsOf(projectId),
+  ])
   const lines = await insightsNow(deps, project, projectId, insights)
-  return basisOf(insights, lines, await deps.store.recommendationsOf(projectId), withProposed)
+  return basisOf(insights, lines, recommendations, withProposed)
 }

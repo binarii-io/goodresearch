@@ -104,7 +104,9 @@ export const RecommendationsOverview = z
     insightsToDecide: z.number().int(),
     run: RecommendationRunView.nullable(),
     lastRunCost: z.number().nullable(),
+    /** The known part when a call has no price: see `costIncomplete`. */
     cost: z.number().nullable(),
+    costIncomplete: z.boolean(),
     consentNeeded: z.boolean(),
     takeaways: TakeawaysView,
   })
@@ -257,3 +259,8 @@ export const InsightToLink = z
   })
   .meta({ id: 'InsightToLink' })
 export const InsightsToLink = z.array(InsightToLink).meta({ id: 'InsightsToLink' })
+
+/** Spec 017: whether what the key takeaways rest on changed since they were saved. */
+export const TakeawaysFreshness = z
+  .object({ outOfDate: z.boolean() })
+  .meta({ id: 'TakeawaysFreshness' })

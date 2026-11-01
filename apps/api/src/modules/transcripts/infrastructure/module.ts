@@ -18,7 +18,8 @@ import type {
 import { makeCleaningQueries } from '../application/queries/cleaning-queries.ts'
 import { makeEnrichmentQueries } from '../application/queries/enrichment-queries.ts'
 import type { CommonWords } from '../domain/candidates.ts'
-import { isCleaningLive } from '../domain/correction-run.ts'
+import { cleaningRefs, isCleaningLive } from '../domain/correction-run.ts'
+import { runRef } from '../domain/lexicon-run.ts'
 import { createCleaningStore } from './cleaning.drizzle-store.ts'
 import { createCommonWords } from './common-words.ts'
 import type { TranscriptsHandlers } from './http.routes.ts'
@@ -108,5 +109,16 @@ export const createTranscriptsModule = (deps: {
     isCleaningLive(await cleaningStore.openCleaningRun(studyId), deps.clock.now()),
   )
   /** Spec 012: the text Analysis reads, the missing imports, the Enrichment runs. */
-  return { handlers, jobs, ...analysed }
+  /** Spec 017: the ledger refs of a study's lexicon readings and AI cleanings. */
+  const studyCostRefs = async (studyId: string) => {
+    const [readings, cleanings] = await Promise.all([
+      transcripts.store.runsOf(studyId),
+      cleaningStore.cleaningRunsOf(studyId),
+    ])
+    return {
+      lexicon: readings.map((r) => runRef(r.id)),
+      cleaning: cleanings.filter((r) => r.mode === 'ai').flatMap(cleaningRefs),
+    }
+  }
+  return { handlers, jobs, studyCostRefs, ...analysed }
 }

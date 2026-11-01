@@ -1,3 +1,4 @@
+import { factsRef, translationRef } from '../../domain/analysis-run.ts'
 import type { Fact, FactStatus, Polarity, Statement, Theme } from '../../domain/facts.ts'
 import type { EvidenceStore } from '../ports.ts'
 
@@ -42,6 +43,19 @@ export const makeSynthesisReads = (store: EvidenceStore) => {
     }))
   }
   return {
+    /** Spec 017: the facts of the interviews Analysis shows (validated), per status (SC-003). */
+    studyCounts: (studyId: string, validatedSessionIds: readonly string[]) =>
+      store.factCounts(studyId, validatedSessionIds),
+    /** Spec 017: the ledger refs of finding the facts and translating them. */
+    studyCostRefs: async (studyId: string, sessionIds: readonly string[]) => {
+      const runs = await store.runsOf(studyId)
+      // A session deleted since was still paid for.
+      const read = runs.flatMap((r) => r.sessions.map((s) => s.sessionId))
+      return [
+        ...runs.flatMap((r) => r.sessions.map((s) => factsRef(r.id, s.sessionId))),
+        ...[...new Set([...sessionIds, ...read])].map(translationRef),
+      ]
+    },
     /** The facts of these studies not rejected: accepted, edited, and still to decide (spec 013). */
     projectFacts: async (studyIds: readonly string[]) => {
       const facts = (await Promise.all(studyIds.map((id) => store.factsOfStudy(id)))).flat()

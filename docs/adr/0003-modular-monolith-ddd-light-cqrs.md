@@ -40,3 +40,7 @@ Patterns are taken from *Architecture Patterns with Python* (repository, unit of
 - Good: domain and use cases tested with fakes in milliseconds; reads stay simple SQL.
 - Good: a context can be extracted later if ever needed.
 - Bad: some duplication between write model and read DTOs — accepted, it keeps each side simple.
+
+## Update (spec 017): the Reporting module
+
+The project's Overview reads six modules, so it opens `modules/reporting`, the place `docs/standards.md` gives cross-module views. It acts as the backend for that screen: read models only, no table, no aggregate, no write, each other module reached through ports wired in `compose.ts`. A screen may use several endpoints when parts differ in cost, so numbers do not wait for the ledger; a rule owned by a module stays there, as "may be out of date" stays in Synthesis. The debrief deck stays in Synthesis because its publication writes.

@@ -1,4 +1,4 @@
-import { err, ok, type Person, speakerRole } from '@goodresearch/shared'
+import { err, ok, type Person, speakerRole, sumCosts } from '@goodresearch/shared'
 import {
   canStopFacts,
   type FactsRun,
@@ -13,17 +13,8 @@ import type { EvidenceDeps, StoredVerbatim } from '../ports.ts'
 
 const PAGE_SIZE = 50
 
-/** A sum of costs; null when one of them has no price. */
-const sum = (refs: readonly string[], costs: ReadonlyMap<string, number | null>) => {
-  let total = 0
-  for (const r of refs) {
-    const c = costs.get(r)
-    if (c === undefined) continue
-    if (c === null) return null
-    total += c
-  }
-  return total
-}
+const sum = (refs: readonly string[], costs: ReadonlyMap<string, number | null>) =>
+  sumCosts(refs.map((r) => costs.get(r)))
 
 const refsOf = (runs: readonly FactsRun[], sessionId: string) => [
   ...runs

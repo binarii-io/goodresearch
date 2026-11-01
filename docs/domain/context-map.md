@@ -30,7 +30,7 @@ Every AI-produced object follows the same lifecycle and the same protections. Th
 | 5 | **Interview Quality** | Core | Domain model | Evaluation, Remark, ReviewRun |
 | 6 | **Evidence** | Core | Domain model | Participant, Fact |
 | 7 | **Synthesis** | Core | Domain model + policies | Insight, Recommendation, KeyTakeaways, PublishedDeck |
-| 8 | **Reporting** | Supporting | Read models only (no aggregates) | — (deck, graph, evidence chain, exports) |
+| 8 | **Reporting** | Supporting | Read models only (no aggregates) | — (project overview, deck, graph, evidence chain, exports) |
 | 9 | **AI Gateway** | Generic | Adapters + ledger | AI provider connection, UsageEntry (append-only), PricingCatalog |
 | 10 | **Assistant** | Supporting | Plain handlers + proposal rules | Conversation (messages, action proposals) |
 | 11 | **Publishing** | Supporting | Domain model (three-way sync) | PublishedDocument (base, state, Drive changes) |
@@ -52,6 +52,9 @@ flowchart LR
   S --> RP[Reporting]
   E --> RP
   Q --> RP
+  R --> RP
+  I --> RP
+  T --> RP
   AI[AI Gateway] -. used by .-> T & Q & E & S & R
 ```
 
@@ -143,9 +146,12 @@ Spec 016: how the interviews were conducted, as facts to read: no score, no verd
   - Themes come from the guides' theme sections, merged by title across studies (+ "Other").
 - **InsightRun** (spec 013) — one "Find insights" over a project: studies and scope chosen (`all` or facts not yet in an insight), calls done of total, stopped or finished, cost; one at a time per project.
 - **Recommendation** (spec 014) — `action`, `rationale`, `successMeasure` (English and French), `kind` (`build | test | investigate`), `impact`/`effort` (high/medium/low), `owner` (free text, never sent to the AI), status, links to insights (state `counted | suggested | unlinked`, with the insight's snapshot). A `build` whose counted insights all have a low confidence is shown as `test`. **PriorityPolicy** = impact×2 − effort (high 3, medium 2, low 1). Insights still to decide may be read on request, shown "to validate", counted once validated; "Insights changed" until "Reviewed". Listed in creation order.
+- **Project overview** (spec 017) — a read model, stored nowhere, of the project's Overview tab: the **journey** of five steps (`interviews`, `facts`, `insights`, `recommendations`, `debrief`, each `empty | to-decide | done`), the **next step** (the first not done; it advises and prevents nothing; Interviews is done from its first validated interview), the key takeaways, and the counts and costs of the studies. A study without folder access is left out of the counts, not of the project's total cost.
 - **KeyTakeaways** (spec 014) — the project's 2–4 sentence summary (one per project, EN/FR). The AI may draft it from the validated insights and recommendations (no name, no percentage); a draft is never saved without a person. "May be out of date" when the validated insights or recommendations changed since it was saved.
 
 ### 8. Reporting (read models)
+
+**Project overview** (spec 017, module `reporting`): see its definition above. Screen-shaped reads across the modules, through their ports.
 
 **Debrief deck** (spec 015, built by Synthesis as a read model): the project's slides built from its data each time it is opened, never stored, in the prototype's layout; only what is validated, or also what is still to decide, marked "to validate". Its next steps are written from the data; no limits slide for now. Its Google Slides copy, **PublishedDeck** (file, folder, language, the deck's fingerprint to tell "out of date", the presentation's content revision to tell "changed in Google Slides"), is kept by Synthesis. Then: project graph, evidence chain (recommendation → insights → facts → sessions), anonymised fact export (CSV: no names, no session titles), costs. Built from queries; no aggregates, no writes.
 

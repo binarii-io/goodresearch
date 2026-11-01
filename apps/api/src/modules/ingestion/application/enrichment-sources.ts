@@ -50,7 +50,7 @@ export const makeEnrichmentSources = (deps: IngestionDeps) => {
     ): Promise<{ sessions: EnrichmentSession[]; toValidate: number } | null> => {
       if (!(await visible(accountId, studyId))) return null
       const [sessions, files] = await Promise.all([
-        deps.store.listSessions(studyId),
+        deps.store.sessionSummaries(studyId),
         deps.store.listFiles(studyId, {}),
       ])
       const byId = new Map(files.map((f) => [f.id, f]))

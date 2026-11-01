@@ -19,6 +19,12 @@ import type { Insight, InsightAnswer } from '../../domain/insights.ts'
 import type { Recommendation, RecommendationAnswer } from '../../domain/recommendations.ts'
 import type { Takeaways } from '../../domain/takeaways.ts'
 
+const countsOf = (items: readonly { readonly status: string }[]) =>
+  [...new Set(items.map((i) => i.status))].map((status) => ({
+    status,
+    count: items.filter((i) => i.status === status).length,
+  }))
+
 /** The synthesis tables, in memory. */
 export const inMemorySynthesisStore = () => {
   const runs = new Map<string, InsightRun>()
@@ -65,6 +71,8 @@ export const inMemorySynthesisStore = () => {
     },
     insightsOf: async (projectId) =>
       [...insights.values()].filter((i) => i.projectId === projectId),
+    insightCounts: async (projectId) =>
+      countsOf([...insights.values()].filter((i) => i.projectId === projectId)),
     getInsight: async (id) => insights.get(id) ?? null,
     saveInsight: async (insight, expected) => {
       const current = insights.get(insight.id)
@@ -105,6 +113,8 @@ export const inMemorySynthesisStore = () => {
     },
     recommendationsOf: async (projectId) =>
       [...recommendations.values()].filter((r) => r.projectId === projectId),
+    recommendationCounts: async (projectId) =>
+      countsOf([...recommendations.values()].filter((r) => r.projectId === projectId)),
     getRecommendation: async (id) => recommendations.get(id) ?? null,
     saveRecommendation: async (r, expected) => {
       const current = recommendations.get(r.id)
@@ -122,6 +132,7 @@ export const inMemorySynthesisStore = () => {
       return { skipped }
     },
     getTakeaways: async (projectId) => takeaways.get(projectId) ?? null,
+    takeawaysText: async (projectId) => takeaways.get(projectId) ?? null,
     saveTakeaways: async (t, expected) => {
       const current = takeaways.get(t.projectId) ?? blank(t.projectId)
       if (current.version !== expected) return 'stale'

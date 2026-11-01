@@ -15,7 +15,7 @@ import type {
 import { AiUnavailable } from '../../application/ports.ts'
 import { canStopFacts, type FactsRun } from '../../domain/analysis-run.ts'
 import type { TextAnalysed } from '../../domain/analysis-state.ts'
-import type { Fact } from '../../domain/facts.ts'
+import type { Fact, FactStatus } from '../../domain/facts.ts'
 
 /** The evidence tables, in memory. */
 export const inMemoryEvidenceStore = () => {
@@ -77,6 +77,13 @@ export const inMemoryEvidenceStore = () => {
       [...verbatims.values()].filter((v) => v.studyId === studyId),
     factsOf: async (sessionId) => [...facts.values()].filter((f) => f.sessionId === sessionId),
     factsOfStudy: async (studyId) => [...facts.values()].filter((f) => f.studyId === studyId),
+    factCounts: async (studyId, sessionIds) => {
+      const counts = new Map<FactStatus, number>()
+      for (const f of facts.values())
+        if (f.studyId === studyId && sessionIds.includes(f.sessionId))
+          counts.set(f.status, (counts.get(f.status) ?? 0) + 1)
+      return [...counts].map(([status, count]) => ({ status, count }))
+    },
     getFact: async (id) => facts.get(id) ?? null,
     factsByIds: async (ids) => ids.flatMap((id) => facts.get(id) ?? []),
     verbatimsByIds: async (ids) => ids.flatMap((id) => verbatims.get(id) ?? []),

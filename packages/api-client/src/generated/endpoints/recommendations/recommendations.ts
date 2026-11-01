@@ -43,6 +43,7 @@ import type {
   StartRecommendationRunInput,
   TakeawaysEstimate,
   TakeawaysEstimateRequestInput,
+  TakeawaysFreshness,
   UnlinkInsightParams,
   ValidateRecommendationsInput,
   VersionAck
@@ -1293,7 +1294,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getStopRecommendationRunMutationOptions(options), queryClient);
     }
-    export const getSaveTakeawaysUrl = (projectId: string,) => {
+    export const getGetTakeawaysFreshnessUrl = (projectId: string,) => {
+
+
+
+
+  return `/api/projects/${projectId}/takeaways/freshness`
+}
+
+export const getTakeawaysFreshness = async (projectId: string, options?: Parameters<typeof apiFetch>[1]): Promise<TakeawaysFreshness> => {
+
+  return apiFetch<TakeawaysFreshness>(getGetTakeawaysFreshnessUrl(projectId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTakeawaysFreshnessQueryKey = (projectId: string,) => {
+    return [
+    `/api/projects/${projectId}/takeaways/freshness`
+    ] as const;
+    }
+
+
+export const getGetTakeawaysFreshnessQueryOptions = <TData = Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError = unknown>(projectId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTakeawaysFreshnessQueryKey(projectId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTakeawaysFreshness>>> = ({ signal }) => getTakeawaysFreshness(projectId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: projectId !== null && projectId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTakeawaysFreshnessQueryResult = NonNullable<Awaited<ReturnType<typeof getTakeawaysFreshness>>>
+export type GetTakeawaysFreshnessQueryError = unknown
+
+
+export function useGetTakeawaysFreshness<TData = Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError = unknown>(
+ projectId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTakeawaysFreshness>>,
+          TError,
+          Awaited<ReturnType<typeof getTakeawaysFreshness>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTakeawaysFreshness<TData = Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError = unknown>(
+ projectId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTakeawaysFreshness>>,
+          TError,
+          Awaited<ReturnType<typeof getTakeawaysFreshness>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTakeawaysFreshness<TData = Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError = unknown>(
+ projectId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTakeawaysFreshness<TData = Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError = unknown>(
+ projectId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTakeawaysFreshness>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTakeawaysFreshnessQueryOptions(projectId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getSaveTakeawaysUrl = (projectId: string,) => {
 
 
 

@@ -23,6 +23,7 @@ import {
   StartRecommendationRun,
   TakeawaysEstimate,
   TakeawaysEstimateRequest,
+  TakeawaysFreshness,
   ValidateRecommendations,
   VersionAck,
 } from '@goodresearch/contracts'
@@ -355,6 +356,28 @@ export const registerRecommendationRoutes = (
         res,
         await runs.stop(request.account.id, request.params.projectId, request.params.runId),
         () => res.status(204).send(),
+      ),
+  )
+
+  api.get(
+    `${base}/takeaways/freshness`,
+    {
+      ...secured,
+      schema: {
+        operationId: 'getTakeawaysFreshness',
+        tags,
+        params: InsightsParams,
+        response: { 200: TakeawaysFreshness },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await deps.handlers.takeawaysQueries.freshness(
+          request.account.id,
+          request.params.projectId,
+        ),
+        (v) => res.send(v),
       ),
   )
 

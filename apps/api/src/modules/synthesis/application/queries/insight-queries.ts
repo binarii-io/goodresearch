@@ -1,9 +1,9 @@
-import { err, fold, ok } from '@goodresearch/shared'
+import { anyCostUnknown, err, fold, ok, sumKnownCosts } from '@goodresearch/shared'
 import { confidence, panelOf, polarity, supportFacts } from '../../domain/confidence.ts'
 import { themeOf } from '../../domain/fact-lines.ts'
 import {
   type InsightRun,
-  insightsRef,
+  insightRunRefs,
   insightTranslationRef,
   isRunLive,
 } from '../../domain/insight-run.ts'
@@ -19,20 +19,6 @@ type Filters = {
   status?: 'proposed' | 'validated' | 'edited' | 'rejected' | undefined
   confidence?: 'high' | 'medium' | 'low' | undefined
   polarity?: 'positive' | 'negative' | 'neutral' | 'mixed' | undefined
-}
-
-const refsOf = (run: InsightRun) =>
-  Array.from({ length: run.calls }, (_, n) => insightsRef(run.id, n + 1))
-
-const sum = (values: Iterable<number | null | undefined>) => {
-  let total = 0
-  let any = false
-  for (const v of values)
-    if (typeof v === 'number') {
-      total += v
-      any = true
-    }
-  return any ? total : 0
 }
 
 /** Read models of the Insights tab: queries only, computed values derived, never written. */
@@ -83,12 +69,13 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
   })
 
   const costsOf = async (projectId: string, runs: readonly InsightRun[]) => {
-    const refs = [...runs.flatMap(refsOf), insightTranslationRef(projectId)]
+    const refs = [...runs.flatMap(insightRunRefs), insightTranslationRef(projectId)]
     const costs = await deps.ai.costs(refs)
     const last = runs[0]
     return {
-      cost: sum(refs.map((r) => costs.get(r))),
-      lastRunCost: last ? sum(refsOf(last).map((r) => costs.get(r))) : null,
+      cost: sumKnownCosts(refs.map((r) => costs.get(r))),
+      costIncomplete: anyCostUnknown(refs.map((r) => costs.get(r))),
+      lastRunCost: last ? sumKnownCosts(insightRunRefs(last).map((r) => costs.get(r))) : null,
     }
   }
 

@@ -24,10 +24,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useId, useState } from 'react'
 import { z } from 'zod'
+import { ProjectJourney } from '../../../features/research/project-journey.tsx'
 import { StudyList } from '../../../features/research/study-list.tsx'
 import { DebriefTab } from '../../../features/synthesis/debrief-tab.tsx'
 import { InsightsTab } from '../../../features/synthesis/insights-tab.tsx'
 import { RecommendationsTab } from '../../../features/synthesis/recommendations-tab.tsx'
+import { TakeawaysBand } from '../../../features/synthesis/takeaways-band.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useFormatDate } from '../../../features/workspace/format.ts'
 import { useMe } from '../../../features/workspace/me.ts'
@@ -193,6 +195,8 @@ function ProjectOverview() {
           </p>
         </section>
 
+        <TakeawaysBand projectId={projectId} />
+        <ProjectJourney projectId={projectId} />
         <StudyList projectId={projectId} />
       </TabsContent>
       <TabsContent value="insights">

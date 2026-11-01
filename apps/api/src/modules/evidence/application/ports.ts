@@ -1,7 +1,7 @@
 import type { Clock, Person } from '@goodresearch/shared'
 import type { FactsRun } from '../domain/analysis-run.ts'
 import type { TextAnalysed } from '../domain/analysis-state.ts'
-import type { Fact, Polarity } from '../domain/facts.ts'
+import type { Fact, FactStatus, Polarity } from '../domain/facts.ts'
 
 /** A turn of the analysed text (same ids as the raw version). */
 export type Turn = {
@@ -200,6 +200,11 @@ export type EvidenceStore = {
   verbatimsOfStudy(studyId: string): Promise<StoredVerbatim[]>
   factsOf(sessionId: string): Promise<Fact[]>
   factsOfStudy(studyId: string): Promise<Fact[]>
+  /** Spec 017: how many facts these interviews hold, per status; no fact is read. */
+  factCounts(
+    studyId: string,
+    sessionIds: readonly string[],
+  ): Promise<{ status: FactStatus; count: number }[]>
   /** Facts by id, any status; absent ids are skipped. */
   factsByIds(ids: readonly string[]): Promise<Fact[]>
   verbatimsByIds(ids: readonly string[]): Promise<StoredVerbatim[]>

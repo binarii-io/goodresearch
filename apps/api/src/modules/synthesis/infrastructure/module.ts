@@ -11,7 +11,9 @@ import { makeTakeawaysCommands } from '../application/commands/takeaways-command
 import type { InsightsAi, SynthesisDeps, SynthesisSources } from '../application/ports.ts'
 import { makeDebriefQueries } from '../application/queries/debrief-queries.ts'
 import { makeInsightQueries } from '../application/queries/insight-queries.ts'
+import { makeOverviewReads } from '../application/queries/overview-reads.ts'
 import { makeRecommendationQueries } from '../application/queries/recommendation-queries.ts'
+import { makeTakeawaysQueries } from '../application/queries/takeaways-queries.ts'
 import type { SynthesisHandlers } from './http.routes.ts'
 import { createSynthesisStore } from './synthesis.drizzle-store.ts'
 
@@ -83,6 +85,7 @@ export const createSynthesisModule = (deps: {
     recommendationQueries: makeRecommendationQueries(synthesis),
     debrief,
     debriefQueries: makeDebriefQueries(synthesis),
+    takeawaysQueries: makeTakeawaysQueries(synthesis),
   }
   const parsed = <T>(schema: z.ZodType<T>, data: unknown, what: string): T | null => {
     // Job payloads cross a process boundary: validate them (AGENTS.md).
@@ -128,5 +131,5 @@ export const createSynthesisModule = (deps: {
       },
     },
   ]
-  return { handlers, jobs }
+  return { handlers, jobs, overviewReads: makeOverviewReads(synthesis.store) }
 }

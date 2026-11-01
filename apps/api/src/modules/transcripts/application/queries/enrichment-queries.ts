@@ -1,4 +1,4 @@
-import { err, fold, ok } from '@goodresearch/shared'
+import { err, fold, ok, sumCosts } from '@goodresearch/shared'
 import type { TermCategory, TermKind } from '../../domain/answer-check.ts'
 import type { TermLanguage } from '../../domain/candidates.ts'
 import { type ExcerptParts, excerptParts } from '../../domain/excerpts.ts'
@@ -30,11 +30,6 @@ const PAGE = 50
 const QUOTES_SHOWN = 3
 /** Quotes per interview when every occurrence is asked for. */
 const ALL_QUOTES = 500
-
-const sum = (costs: readonly (number | null | undefined)[]): number | null =>
-  costs.some((c) => c === null || c === undefined)
-    ? null
-    : costs.reduce<number>((a, c) => a + (c ?? 0), 0)
 
 const matches = (t: LexiconTerm, f: LexiconFilter) => {
   const status = f.status ?? 'to-decide'
@@ -216,7 +211,7 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
           }
         : null,
       lastRunCost: runs[0] ? (costs.get(runRef(runs[0].id)) ?? null) : null,
-      cost: runs.length ? sum(runs.map((r) => costs.get(runRef(r.id)))) : 0,
+      cost: runs.length ? sumCosts(runs.map((r) => costs.get(runRef(r.id)))) : 0,
       consentNeeded: provider
         ? !(await deps.store.hasConsent(accountId, studyId, provider))
         : false,

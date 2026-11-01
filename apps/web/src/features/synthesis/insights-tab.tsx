@@ -96,6 +96,7 @@ export function InsightsTab({ projectId }: { projectId: string }) {
           {data.lastRunCost === null
             ? t`Total cost ${money(data.cost ?? 0)}`
             : t`Last run ${money(data.lastRunCost)} · total ${money(data.cost ?? 0)}`}
+          {data.costIncomplete ? ` · ${t`some calls have no price`}` : null}
         </span>
         <div className="ml-auto flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => setFactsOpen(true)}>

@@ -35,6 +35,7 @@ import type { makeTakeawaysCommands } from '../application/commands/takeaways-co
 import type { makeDebriefQueries } from '../application/queries/debrief-queries.ts'
 import type { makeInsightQueries } from '../application/queries/insight-queries.ts'
 import type { makeRecommendationQueries } from '../application/queries/recommendation-queries.ts'
+import type { makeTakeawaysQueries } from '../application/queries/takeaways-queries.ts'
 
 export type SynthesisHandlers = {
   runs: ReturnType<typeof makeInsightRunCommands>
@@ -46,6 +47,7 @@ export type SynthesisHandlers = {
   recommendationQueries: ReturnType<typeof makeRecommendationQueries>
   debrief: ReturnType<typeof makeDebriefCommands>
   debriefQueries: ReturnType<typeof makeDebriefQueries>
+  takeawaysQueries: ReturnType<typeof makeTakeawaysQueries>
 }
 
 const version = <T extends { version: number }>(v: T) => ({ version: v.version })

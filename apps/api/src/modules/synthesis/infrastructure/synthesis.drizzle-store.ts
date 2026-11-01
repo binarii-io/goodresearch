@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 import type { Db } from '#platform/db.ts'
 import type { SynthesisStore } from '../application/ports.ts'
@@ -351,6 +351,12 @@ export const createSynthesisStore = (db: Db): SynthesisStore => {
     },
 
     insightsOf: (projectId) => insightsWhere(eq(synthesisInsights.projectId, projectId)),
+    insightCounts: (projectId) =>
+      db
+        .select({ status: synthesisInsights.status, count: count() })
+        .from(synthesisInsights)
+        .where(eq(synthesisInsights.projectId, projectId))
+        .groupBy(synthesisInsights.status),
     getInsight: async (id) => (await insightsWhere(eq(synthesisInsights.id, id)))[0] ?? null,
     saveInsight: async (insight, expected) => {
       if (expected === null) {
@@ -430,6 +436,12 @@ export const createSynthesisStore = (db: Db): SynthesisStore => {
     },
     recommendationsOf: (projectId) =>
       recommendationsWhere(eq(synthesisRecommendations.projectId, projectId)),
+    recommendationCounts: (projectId) =>
+      db
+        .select({ status: synthesisRecommendations.status, count: count() })
+        .from(synthesisRecommendations)
+        .where(eq(synthesisRecommendations.projectId, projectId))
+        .groupBy(synthesisRecommendations.status),
     getRecommendation: async (id) =>
       (await recommendationsWhere(eq(synthesisRecommendations.id, id)))[0] ?? null,
     saveRecommendation: async (r, expected) => {
@@ -447,6 +459,22 @@ export const createSynthesisStore = (db: Db): SynthesisStore => {
           if ((await updateRecommendation(tx, u.recommendation, u.expected)) === 'stale') skipped++
         return { skipped }
       }),
+    takeawaysText: async (projectId) => {
+      const [row] = await db
+        .select({
+          textEn: synthesisTakeaways.textEn,
+          textFr: synthesisTakeaways.textFr,
+          translation: synthesisTakeaways.translation,
+        })
+        .from(synthesisTakeaways)
+        .where(eq(synthesisTakeaways.projectId, projectId))
+      return row
+        ? {
+            text: { en: row.textEn, fr: row.textFr },
+            translation: row.translation as Takeaways['translation'],
+          }
+        : null
+    },
     getTakeaways: async (projectId) => {
       const [row] = await db
         .select()

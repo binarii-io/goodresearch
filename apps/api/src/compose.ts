@@ -23,6 +23,7 @@ import {
   registerQualityRoutes,
 } from './modules/interview-quality/index.ts'
 import { createPublishingModule, registerPublishingRoutes } from './modules/publishing/index.ts'
+import { createReportingModule, registerOverviewRoutes } from './modules/reporting/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
 import {
   createInsightsAi,
@@ -62,6 +63,10 @@ export type Infrastructure = {
 }
 
 const noJobs: JobQueue = { send: async () => false }
+
+/** A study with a folder is open only to people whose access was confirmed (spec 002 FR-010a). */
+const studyIsOpen = (s: { hasFolder: boolean; folderName: string | null }) =>
+  !s.hasFolder || s.folderName !== null
 
 /** Wires the modules together; shared by the HTTP server and the worker. Connects nothing by itself. */
 export const composeModules = (config: AppConfig, infra: Infrastructure) => {
@@ -300,12 +305,11 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
             }
           : null
       },
-      // A study with a folder is open only to people whose access was confirmed (spec 002 FR-010a).
       studies: async (accountId, projectId) =>
         ((await r.studyQueries.listStudies(accountId, projectId)) ?? []).map((s) => ({
           id: s.id,
           name: s.name,
-          access: !s.hasFolder || s.folderName !== null,
+          access: studyIsOpen(s),
           type: s.type,
           hasFolder: s.hasFolder,
         })),
@@ -468,6 +472,50 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       },
     },
   })
+
+  // Spec 017: read models across the modules, built after all of them.
+  const reporting = createReportingModule({
+    sources: {
+      studies: async (accountId, projectId) =>
+        (await r.studyQueries.listStudies(accountId, projectId))?.map((s) => ({
+          id: s.id,
+          access: studyIsOpen(s),
+        })) ?? null,
+      studyCounts: async (studyId) => {
+        const interviews = await bound(ingestion).studyOverview(studyId)
+        return {
+          interviews: {
+            validated: interviews.validated,
+            proposed: interviews.proposed,
+            excluded: interviews.excluded,
+            participants: interviews.participants,
+          },
+          facts: await evidenceReads.studyCounts(studyId, interviews.validatedSessionIds),
+        }
+      },
+      studyCostRefs: async (studyId) => {
+        const interviews = await bound(ingestion).studyCostRefs(studyId)
+        const [facts, costRefs, quality_] = await Promise.all([
+          evidenceReads.studyCostRefs(studyId, interviews.sessionIds),
+          transcripts.studyCostRefs(studyId),
+          bound(quality).studyCostRefs(studyId),
+        ])
+        return {
+          analysis: interviews.analysisRefs,
+          lexicon: costRefs.lexicon,
+          cleaning: costRefs.cleaning,
+          quality: quality_,
+          facts,
+        }
+      },
+      insightCounts: synthesis.overviewReads.insightCounts,
+      recommendationCounts: synthesis.overviewReads.recommendationCounts,
+      takeaways: synthesis.overviewReads.takeaways,
+      projectCostRefs: synthesis.overviewReads.costRefs,
+      costs: (refs) => ai.studyCosts(refs),
+    },
+  })
+
   return {
     clock,
     workspace,
@@ -480,6 +528,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     evidence,
     quality,
     synthesis,
+    reporting,
   }
 }
 
@@ -502,6 +551,7 @@ export const composeApp = async (
     evidence,
     quality,
     synthesis,
+    reporting,
   } = modules
   const auth = createAuth({
     config,
@@ -529,6 +579,7 @@ export const composeApp = async (
       registerSynthesisRoutes(instance, { guard, handlers: synthesis.handlers })
       registerRecommendationRoutes(instance, { guard, handlers: synthesis.handlers })
       registerDebriefRoutes(instance, { guard, handlers: synthesis.handlers })
+      registerOverviewRoutes(instance, { guard, handlers: reporting.handlers })
     },
   })
   return { app, auth, modules }

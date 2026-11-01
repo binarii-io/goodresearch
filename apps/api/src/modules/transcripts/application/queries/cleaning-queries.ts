@@ -1,4 +1,4 @@
-import { err, ok } from '@goodresearch/shared'
+import { err, ok, sumCosts } from '@goodresearch/shared'
 import { type CleaningState, cleaningState } from '../../domain/cleaning-state.ts'
 import {
   type CleaningFailure,
@@ -28,11 +28,6 @@ export type CorrectionFilter = {
   /** Only the turns with a correction shown (default). */
   readonly onlyCorrected?: boolean | undefined
 }
-
-const sum = (costs: readonly (number | null | undefined)[]): number | null =>
-  costs.some((c) => c === null || c === undefined)
-    ? null
-    : costs.reduce<number>((a, c) => a + (c ?? 0), 0)
 
 const statusMatches = (s: CorrectionStatus, f: CorrectionFilter['status']) =>
   !f ||
@@ -97,9 +92,9 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
     // What each run cost, and each interview of it (FR-016, as an analysis per interview).
     const aiRuns = runs.filter((r) => r.mode === 'ai')
     const costs = await deps.ai.costs(aiRuns.flatMap(cleaningRefs))
-    const runCost = (r: CorrectionRun) => sum(cleaningRefs(r).map((ref) => costs.get(ref)))
+    const runCost = (r: CorrectionRun) => sumCosts(cleaningRefs(r).map((ref) => costs.get(ref)))
     const interviewCost = (sessionId: string) =>
-      sum(
+      sumCosts(
         aiRuns
           .filter((r) => r.sessions.some((x) => x.sessionId === sessionId))
           .flatMap((r) => interviewRefs(r, sessionId).map((ref) => costs.get(ref))),
@@ -165,7 +160,7 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
       },
       run: await progressOf(lastRun),
       lastRunCost: lastRun ? (lastRun.mode === 'lexicon' ? 0 : runCost(lastRun)) : null,
-      cost: sum(aiRuns.map(runCost)),
+      cost: sumCosts(aiRuns.map(runCost)),
       consentNeeded: provider
         ? !(await deps.store.hasConsent(accountId, studyId, provider, 'cleaning'))
         : false,
@@ -238,7 +233,7 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
       }),
       fingerprint: fingerprint(effective),
       /** What this interview's cleanings cost (USD, every account). */
-      cost: sum(refs.map((ref) => costs.get(ref))),
+      cost: sumCosts(refs.map((ref) => costs.get(ref))),
       speakers: [...new Set(t.segments.flatMap((s) => (s.speaker ? [s.speaker] : [])))],
       turns: t.segments
         .filter((s) => filter.onlyCorrected === false || bySegment.has(s.id))

@@ -29,7 +29,12 @@ import { type InventoryRun, STALE_RUN_MS } from '../domain/inventory-run.ts'
 import type { InventoryFile } from '../domain/inventory-walk.ts'
 import { assignPseudonyms } from '../domain/pseudonyms.ts'
 import { reconcileSessions } from '../domain/reconcile-sessions.ts'
-import { givesUpRecordings, type Session, withoutRecordings } from '../domain/session.ts'
+import {
+  givesUpRecordings,
+  type Session,
+  type SessionState,
+  withoutRecordings,
+} from '../domain/session.ts'
 import {
   ingestionAnalysisConsents,
   ingestionAnalysisRuns,
@@ -511,6 +516,53 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
     (await db.select().from(ingestionSessions).where(eq(ingestionSessions.studyId, studyId))).map(
       toSession,
     ),
+
+  sessionSummaries: async (studyId) =>
+    (
+      await db
+        .select({
+          id: ingestionSessions.id,
+          state: ingestionSessions.state,
+          title: ingestionSessions.title,
+          interviewDate: ingestionSessions.interviewDate,
+          language: ingestionSessions.language,
+          transcriptFileId: ingestionSessions.transcriptFileId,
+        })
+        .from(ingestionSessions)
+        .where(eq(ingestionSessions.studyId, studyId))
+    ).map((row) => ({
+      ...row,
+      state: row.state as SessionState,
+      language: row.language as Session['language'],
+    })),
+
+  sessionIds: async (studyId) =>
+    (
+      await db
+        .select({ id: ingestionSessions.id })
+        .from(ingestionSessions)
+        .where(eq(ingestionSessions.studyId, studyId))
+    ).map((row) => row.id),
+
+  analysedSessionIds: async (studyId) =>
+    (
+      await db
+        .select({ sessionIds: ingestionAnalysisRuns.sessionIds })
+        .from(ingestionAnalysisRuns)
+        .where(eq(ingestionAnalysisRuns.studyId, studyId))
+    ).flatMap((row) => row.sessionIds),
+
+  sessionRosters: async (studyId) =>
+    (
+      await db
+        .select({
+          id: ingestionSessions.id,
+          state: ingestionSessions.state,
+          roster: ingestionSessions.roster,
+        })
+        .from(ingestionSessions)
+        .where(eq(ingestionSessions.studyId, studyId))
+    ).map((row) => ({ ...row, state: row.state as SessionState })),
 
   getSession: async (id) => {
     const [row] = await db.select().from(ingestionSessions).where(eq(ingestionSessions.id, id))

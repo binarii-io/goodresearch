@@ -6633,6 +6633,9 @@
               "null"
             ]
           },
+          "costIncomplete": {
+            "type": "boolean"
+          },
           "consentNeeded": {
             "type": "boolean"
           }
@@ -6647,6 +6650,7 @@
           "run",
           "lastRunCost",
           "cost",
+          "costIncomplete",
           "consentNeeded"
         ]
       },
@@ -8420,6 +8424,373 @@
           "segmentId",
           "offset",
           "verdict"
+        ]
+      },
+      "ProjectOverviewInput": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "const": "interviews"
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "empty",
+                        "to-decide",
+                        "done"
+                      ]
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "validated": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "toDecide": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "participants": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "state",
+                    "total",
+                    "validated",
+                    "toDecide",
+                    "participants"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "enum": [
+                        "facts",
+                        "insights",
+                        "recommendations"
+                      ]
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "empty",
+                        "to-decide",
+                        "done"
+                      ]
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "validated": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "toDecide": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "state",
+                    "total",
+                    "validated",
+                    "toDecide"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "const": "debrief"
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "empty",
+                        "to-decide",
+                        "done"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "state"
+                  ]
+                }
+              ]
+            }
+          },
+          "nextStep": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "interviews",
+                  "facts",
+                  "insights",
+                  "recommendations",
+                  "debrief"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "takeaways": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "type": "string"
+                      },
+                      "fr": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "en",
+                      "fr"
+                    ]
+                  },
+                  "translation": {
+                    "type": "string",
+                    "enum": [
+                      "done",
+                      "translating",
+                      "not-translated"
+                    ]
+                  }
+                },
+                "required": [
+                  "text",
+                  "translation"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hiddenStudies": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "studies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "access": {
+                  "type": "boolean"
+                },
+                "counts": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "validated": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "toValidate": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "excluded": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "facts": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "factsToDecide": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "validated",
+                        "toValidate",
+                        "excluded",
+                        "facts",
+                        "factsToDecide"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "access",
+                "counts"
+              ]
+            }
+          }
+        },
+        "required": [
+          "steps",
+          "nextStep",
+          "takeaways",
+          "hiddenStudies",
+          "studies"
+        ]
+      },
+      "ProjectOverviewCostsInput": {
+        "type": "object",
+        "properties": {
+          "cost": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "studies": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "insights": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "recommendations": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "takeaways": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "total",
+              "studies",
+              "insights",
+              "recommendations",
+              "takeaways"
+            ]
+          },
+          "studies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "cost": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "analysis": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "lexicon": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "cleaning": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "quality": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "facts": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "total",
+                    "analysis",
+                    "lexicon",
+                    "cleaning",
+                    "quality",
+                    "facts"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "cost"
+              ]
+            }
+          }
+        },
+        "required": [
+          "cost",
+          "studies"
         ]
       },
       "PublicationInput": {
@@ -10926,6 +11297,9 @@
               "null"
             ]
           },
+          "costIncomplete": {
+            "type": "boolean"
+          },
           "consentNeeded": {
             "type": "boolean"
           },
@@ -10941,6 +11315,7 @@
           "run",
           "lastRunCost",
           "cost",
+          "costIncomplete",
           "consentNeeded",
           "takeaways"
         ]
@@ -11687,6 +12062,17 @@
         "items": {
           "$ref": "#/components/schemas/InsightToLinkInput"
         }
+      },
+      "TakeawaysFreshnessInput": {
+        "type": "object",
+        "properties": {
+          "outOfDate": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "outOfDate"
+        ]
       },
       "PublicConfigInput": {
         "type": "object",
@@ -18547,6 +18933,9 @@
               "null"
             ]
           },
+          "costIncomplete": {
+            "type": "boolean"
+          },
           "consentNeeded": {
             "type": "boolean"
           }
@@ -18561,6 +18950,7 @@
           "run",
           "lastRunCost",
           "cost",
+          "costIncomplete",
           "consentNeeded"
         ],
         "additionalProperties": false
@@ -20393,6 +20783,385 @@
           "segmentId",
           "offset",
           "verdict"
+        ],
+        "additionalProperties": false
+      },
+      "ProjectOverview": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "const": "interviews"
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "empty",
+                        "to-decide",
+                        "done"
+                      ]
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "validated": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "toDecide": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "participants": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "state",
+                    "total",
+                    "validated",
+                    "toDecide",
+                    "participants"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "enum": [
+                        "facts",
+                        "insights",
+                        "recommendations"
+                      ]
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "empty",
+                        "to-decide",
+                        "done"
+                      ]
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "validated": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "toDecide": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "state",
+                    "total",
+                    "validated",
+                    "toDecide"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "const": "debrief"
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "empty",
+                        "to-decide",
+                        "done"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "state"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "nextStep": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "interviews",
+                  "facts",
+                  "insights",
+                  "recommendations",
+                  "debrief"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "takeaways": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "properties": {
+                      "en": {
+                        "type": "string"
+                      },
+                      "fr": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "en",
+                      "fr"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "translation": {
+                    "type": "string",
+                    "enum": [
+                      "done",
+                      "translating",
+                      "not-translated"
+                    ]
+                  }
+                },
+                "required": [
+                  "text",
+                  "translation"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hiddenStudies": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "studies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "access": {
+                  "type": "boolean"
+                },
+                "counts": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "validated": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "toValidate": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "excluded": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "facts": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "factsToDecide": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "validated",
+                        "toValidate",
+                        "excluded",
+                        "facts",
+                        "factsToDecide"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "access",
+                "counts"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "steps",
+          "nextStep",
+          "takeaways",
+          "hiddenStudies",
+          "studies"
+        ],
+        "additionalProperties": false
+      },
+      "ProjectOverviewCosts": {
+        "type": "object",
+        "properties": {
+          "cost": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "studies": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "insights": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "recommendations": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "takeaways": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "total",
+              "studies",
+              "insights",
+              "recommendations",
+              "takeaways"
+            ],
+            "additionalProperties": false
+          },
+          "studies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "cost": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "analysis": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "lexicon": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "cleaning": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "quality": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "facts": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "total",
+                    "analysis",
+                    "lexicon",
+                    "cleaning",
+                    "quality",
+                    "facts"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "cost"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "cost",
+          "studies"
         ],
         "additionalProperties": false
       },
@@ -22975,6 +23744,9 @@
               "null"
             ]
           },
+          "costIncomplete": {
+            "type": "boolean"
+          },
           "consentNeeded": {
             "type": "boolean"
           },
@@ -22990,6 +23762,7 @@
           "run",
           "lastRunCost",
           "cost",
+          "costIncomplete",
           "consentNeeded",
           "takeaways"
         ],
@@ -23773,6 +24546,18 @@
         "items": {
           "$ref": "#/components/schemas/InsightToLink"
         }
+      },
+      "TakeawaysFreshness": {
+        "type": "object",
+        "properties": {
+          "outOfDate": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "outOfDate"
+        ],
+        "additionalProperties": false
       },
       "PublicConfig": {
         "type": "object",
@@ -29983,6 +30768,38 @@
         }
       }
     },
+    "/api/projects/{projectId}/takeaways/freshness": {
+      "get": {
+        "operationId": "getTakeawaysFreshness",
+        "tags": [
+          "recommendations"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TakeawaysFreshness"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/projects/{projectId}/takeaways": {
       "patch": {
         "operationId": "saveTakeaways",
@@ -30263,6 +31080,70 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PublishedDeck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/overview": {
+      "get": {
+        "operationId": "getProjectOverview",
+        "tags": [
+          "projects"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/overview/costs": {
+      "get": {
+        "operationId": "getProjectOverviewCosts",
+        "tags": [
+          "projects"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOverviewCosts"
                 }
               }
             }

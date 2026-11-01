@@ -46,6 +46,12 @@ export const insightsRef = (runId: string, call: number) => `insights:${runId}:$
 /** Ledger ref of the translations of a project's insights (research R9). */
 export const insightTranslationRef = (projectId: string) => `insights-translation:${projectId}`
 
+/** The ledger refs of a run's calls. */
+export const insightRunRefs = (run: { readonly id: string; readonly calls: number }) =>
+  Array.from({ length: run.calls }, (_, n) => insightsRef(run.id, n + 1))
+export const recommendationRunRefs = (run: { readonly id: string; readonly calls: number }) =>
+  Array.from({ length: run.calls }, (_, n) => recommendationsRef(run.id, n + 1))
+
 type Beating = { readonly finishedAt: Date | null; readonly heartbeatAt: Date }
 
 export const isRunLive = <R extends Beating>(run: R | null, now: Date): run is R =>

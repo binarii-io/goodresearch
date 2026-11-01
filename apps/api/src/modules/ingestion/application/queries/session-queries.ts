@@ -1,4 +1,4 @@
-import { err, ok, type Result } from '@goodresearch/shared'
+import { err, ok, type Result, sumCosts } from '@goodresearch/shared'
 import { type Analysis, filesChanged, type Proposal, shownAnalysis } from '../../domain/analysis.ts'
 import { fileNamesState } from '../../domain/file-names.ts'
 import { fileWords, nameWords } from '../../domain/file-words.ts'
@@ -257,7 +257,7 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
           return f ? [fileView(f)] : []
         }),
         analysis: analysisView(s),
-        cost: costs.get(analysisRef(s.id)) ?? 0,
+        cost: costs.get(analysisRef(s.id)) ?? null,
         fileNames: fileNamesState(s, files),
         version: s.version,
       }
@@ -306,9 +306,7 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
       const run = isLive(last, deps.clock.now()) ? last : null
       const startedByName = run ? await deps.store.accountName(run.startedBy) : null
       const runSessions = run ? sessions.filter((s) => run.sessionIds.includes(s.id)) : []
-      let analysisCost: number | null = 0
-      for (const c of costs.values())
-        analysisCost = analysisCost === null || c === null ? null : analysisCost + c
+      const analysisCost = sumCosts(costs.values())
       // Newest found first, in a stable order: a file's date moves when it is renamed or edited in
       // Drive, and the row a person just worked on must not jump.
       const sorted = [...sessions].sort(

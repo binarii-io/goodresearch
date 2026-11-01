@@ -115,7 +115,9 @@ export const InsightsOverview = z
     panel: z.number().int(),
     run: InsightRunView.nullable(),
     lastRunCost: z.number().nullable(),
+    /** The known part when a call has no price: see `costIncomplete`. */
     cost: z.number().nullable(),
+    costIncomplete: z.boolean(),
     consentNeeded: z.boolean(),
   })
   .meta({ id: 'InsightsOverview' })

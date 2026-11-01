@@ -1,8 +1,8 @@
-import { err, fold, ok } from '@goodresearch/shared'
+import { anyCostUnknown, err, fold, ok, sumKnownCosts } from '@goodresearch/shared'
 import {
   isRunLive,
   type RecommendationRun,
-  recommendationsRef,
+  recommendationRunRefs,
   recommendationTranslationRef,
   takeawaysRef,
   takeawaysTranslationRef,
@@ -28,12 +28,6 @@ type Filters = {
 }
 
 const band = (p: number) => (p >= 4 ? 'high' : p >= 2 ? 'medium' : 'low')
-
-const sum = (values: Iterable<number | null | undefined>) => {
-  let total = 0
-  for (const v of values) if (typeof v === 'number') total += v
-  return total
-}
 
 /** Read models of the Recommendations tab: queries only, computed values derived (FR-006). */
 export const makeRecommendationQueries = (deps: SynthesisDeps) => {
@@ -92,9 +86,7 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
     const insights = await insightsNow(deps, project.value, projectId, rawInsights)
     const cards = recommendations.map((r) => cardOf(r, insights))
     const refs = [
-      ...runs.flatMap((r) =>
-        Array.from({ length: r.calls }, (_, n) => recommendationsRef(r.id, n + 1)),
-      ),
+      ...runs.flatMap(recommendationRunRefs),
       takeawaysRef(projectId),
       takeawaysTranslationRef(projectId),
       recommendationTranslationRef(projectId),
@@ -123,13 +115,10 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
       insightsToDecide: all.filter((i) => i.status === 'proposed').length,
       run: await runView(runs[0] ?? null),
       lastRunCost: last
-        ? sum(
-            Array.from({ length: last.calls }, (_, n) =>
-              costs.get(recommendationsRef(last.id, n + 1)),
-            ),
-          )
+        ? sumKnownCosts(recommendationRunRefs(last).map((r) => costs.get(r)))
         : null,
-      cost: sum(refs.map((r) => costs.get(r))),
+      cost: sumKnownCosts(refs.map((r) => costs.get(r))),
+      costIncomplete: anyCostUnknown(refs.map((r) => costs.get(r))),
       consentNeeded: provider
         ? !(await deps.store.hasConsent(accountId, projectId, provider))
         : true,

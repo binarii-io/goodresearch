@@ -100,6 +100,8 @@ export const makeValidateFact = (uow: UnitOfWork) =>
 - Direct Drizzle/SQL select → DTO typed by the `packages/contracts` schema. No repository, no aggregate, no mapper.
 - Queries may join tables **of their own module only**. Cross-module views (deck, graph) live in the Reporting module and read through other modules' query APIs, or through dedicated SQL views owned by the module that owns the tables.
 - Review policy (`auto | manual`) is applied in queries.
+- AI costs add up through `sumCosts` (`@goodresearch/shared`): unknown stays unknown, never a false amount; a screen showing the known part says it is incomplete (`sumKnownCosts`, `anyCostUnknown`).
+- A read loads only what its screen shows: a count is a SQL `COUNT`, not rows filtered in code.
 
 ### Unit of work, events and jobs (ADR-0004)
 

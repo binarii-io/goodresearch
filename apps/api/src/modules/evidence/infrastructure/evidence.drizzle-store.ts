@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, notInArray, sql } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, isNull, notInArray, sql } from 'drizzle-orm'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 import type { Db } from '#platform/db.ts'
 import type { EvidenceStore, Reading, StoredVerbatim } from '../application/ports.ts'
@@ -228,6 +228,21 @@ export const createEvidenceStore = (db: Db): EvidenceStore => {
       ),
     factsOf: (sessionId) => factsWhere(eq(evidenceFacts.sessionId, sessionId)),
     factsOfStudy: (studyId) => factsWhere(eq(evidenceFacts.studyId, studyId)),
+    factCounts: async (studyId, sessionIds) =>
+      sessionIds.length === 0
+        ? []
+        : (
+            await db
+              .select({ status: evidenceFacts.status, count: count() })
+              .from(evidenceFacts)
+              .where(
+                and(
+                  eq(evidenceFacts.studyId, studyId),
+                  inArray(evidenceFacts.sessionId, [...sessionIds]),
+                ),
+              )
+              .groupBy(evidenceFacts.status)
+          ).map((row) => ({ status: row.status as FactStatus, count: row.count })),
     getFact: async (id) => (await factsWhere(eq(evidenceFacts.id, id)))[0] ?? null,
     factsByIds: async (ids) =>
       ids.length === 0 ? [] : factsWhere(inArray(evidenceFacts.id, [...ids])),

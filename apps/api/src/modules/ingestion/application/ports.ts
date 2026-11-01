@@ -214,6 +214,18 @@ export interface IngestionStore {
   /** Names of several accounts in one read (deleted accounts have none). */
   accountNames(accountIds: readonly string[]): Promise<ReadonlyMap<string, string>>
   listSessions(studyId: string): Promise<Session[]>
+  /** What the Enrichment phase and the deck read of sessions; never the stored analysis. */
+  sessionSummaries(
+    studyId: string,
+  ): Promise<
+    Pick<Session, 'id' | 'state' | 'title' | 'interviewDate' | 'language' | 'transcriptFileId'>[]
+  >
+  /** Spec 017: what the Overview's costs need of a study's sessions. */
+  sessionIds(studyId: string): Promise<string[]>
+  /** Spec 017: the sessions every analysis run covered, even those deleted since. */
+  analysedSessionIds(studyId: string): Promise<string[]>
+  /** Spec 017: what the project's Overview counts; never the analysis stored with a session. */
+  sessionRosters(studyId: string): Promise<Pick<Session, 'id' | 'state' | 'roster'>[]>
   getSession(id: string): Promise<Session | null>
   /**
    * Writes the session if its version is still `expected` (and adds one), under the study's lock;

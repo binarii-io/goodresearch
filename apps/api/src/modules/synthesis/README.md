@@ -47,3 +47,7 @@ The project-level synthesis (context map #7 Synthesis): **insights** (spec 013),
   - one read of the project builds the deck shown and the deck as published;
   - French Slides words use the glossary and a non-breaking space before colons.
 - Table (migration `0038_debrief_deck.sql`): `synthesis_published_decks`; cascade with the project.
+
+## Project overview (spec 017)
+
+The Overview tab is read by the `reporting` module. Synthesis gives it `overviewReads` (`queries/overview-reads.ts`: SQL counts, the takeaways' text, ledger refs) and serves `GET .../takeaways/freshness` itself (`queries/takeaways-queries.ts`).

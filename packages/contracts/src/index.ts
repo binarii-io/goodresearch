@@ -192,6 +192,7 @@ export {
   VariantStatus,
   Verdict,
 } from './lexicon.ts'
+export { JourneyStep, ProjectOverview, ProjectOverviewCosts } from './overview.ts'
 export {
   GUIDE_LIMITS,
   GuideContent,
@@ -271,6 +272,7 @@ export {
   StartRecommendationRun,
   TakeawaysEstimate,
   TakeawaysEstimateRequest,
+  TakeawaysFreshness,
   TakeawaysView,
   ValidateRecommendations,
 } from './recommendations.ts'

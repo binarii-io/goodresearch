@@ -33,5 +33,6 @@ export interface InsightsOverviewInput {
   lastRunCost: number | null;
   /** @nullable */
   cost: number | null;
+  costIncomplete: boolean;
   consentNeeded: boolean;
 }

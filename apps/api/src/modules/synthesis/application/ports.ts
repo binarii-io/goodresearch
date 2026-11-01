@@ -184,6 +184,7 @@ export type TakeawaysRequest = {
 }
 
 export type SaveOutcome = 'ok' | 'stale'
+export type StatusCount = { readonly status: string; readonly count: number }
 
 export type SynthesisStore = {
   openRun(projectId: string): Promise<InsightRun | null>
@@ -196,6 +197,8 @@ export type SynthesisStore = {
   requestStop(runId: string): Promise<void>
 
   insightsOf(projectId: string): Promise<Insight[]>
+  /** Spec 017: how many insights, per status; no insight is read. */
+  insightCounts(projectId: string): Promise<StatusCount[]>
   getInsight(id: string): Promise<Insight | null>
   /** Saves an insight with its links if its version is still `expected` (null: a new one). */
   saveInsight(insight: Insight, expected: number | null): Promise<SaveOutcome>
@@ -215,6 +218,8 @@ export type SynthesisStore = {
   saveRecommendationRun(run: RecommendationRun): Promise<void>
   requestRecommendationStop(runId: string): Promise<void>
   recommendationsOf(projectId: string): Promise<Recommendation[]>
+  /** Spec 017: how many recommendations, per status; no recommendation is read. */
+  recommendationCounts(projectId: string): Promise<StatusCount[]>
   getRecommendation(id: string): Promise<Recommendation | null>
   saveRecommendation(r: Recommendation, expected: number | null): Promise<SaveOutcome>
   applyRecommendations(input: {
@@ -226,6 +231,8 @@ export type SynthesisStore = {
   }): Promise<{ skipped: number }>
   /** Null when never saved nor drafted. */
   getTakeaways(projectId: string): Promise<Takeaways | null>
+  /** Spec 017: only what the Overview's band shows. */
+  takeawaysText(projectId: string): Promise<Pick<Takeaways, 'text' | 'translation'> | null>
   /** Saves the text if its version is still `expected` (0: never saved). */
   saveTakeaways(t: Takeaways, expected: number): Promise<SaveOutcome>
   /** The draft alone, whatever the text's version. */

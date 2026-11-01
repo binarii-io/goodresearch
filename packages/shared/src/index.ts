@@ -8,6 +8,7 @@ export {
   type PracticeSection,
 } from './content/best-practices.ts'
 export { REGISTERS, WRITING_STYLE } from './content/writing-style.ts'
+export { anyCostUnknown, sumCosts, sumKnownCosts } from './costs.ts'
 export { ConcurrencyError } from './errors.ts'
 export { newId } from './id.ts'
 export { err, ok, type Result } from './result.ts'

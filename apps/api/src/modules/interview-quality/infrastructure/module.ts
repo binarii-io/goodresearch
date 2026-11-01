@@ -5,7 +5,7 @@ import { type JobHandler, QUEUES } from '#platform/jobs.ts'
 import { makeRemarkCommands } from '../application/commands/remark-commands.ts'
 import { makeReviewCommands } from '../application/commands/review-commands.ts'
 import type { QualityAi, QualityDeps, QualitySources } from '../application/ports.ts'
-import { makeQualityQueries } from '../application/queries/quality-queries.ts'
+import { makeQualityQueries, runRefs } from '../application/queries/quality-queries.ts'
 import { isReviewLive } from '../domain/review-run.ts'
 import type { QualityHandlers } from './http.routes.ts'
 import { createQualityStore } from './quality.drizzle-store.ts'
@@ -57,5 +57,7 @@ export const createInterviewQualityModule = (deps: {
   /** A review of the study is running: the other runs of the study wait (FR-013). */
   const qualityLive = async (studyId: string) =>
     isReviewLive(await store.openRun(studyId), deps.clock.now())
-  return { handlers, jobs, qualityLive }
+  /** Spec 017: the ledger refs of a study's reviews. */
+  const studyCostRefs = async (studyId: string) => (await store.runsOf(studyId)).flatMap(runRefs)
+  return { handlers, jobs, qualityLive, studyCostRefs }
 }

@@ -1,4 +1,11 @@
-import { err, isGenericLabel, isTranscriptEnd, ok, type Person } from '@goodresearch/shared'
+import {
+  err,
+  isGenericLabel,
+  isTranscriptEnd,
+  ok,
+  type Person,
+  sumCosts,
+} from '@goodresearch/shared'
 import { reviewActionOf } from '../../domain/evaluation-state.ts'
 import {
   addFigures,
@@ -21,14 +28,8 @@ import type { QualityDeps, StoredReformulation, StoredRemark, StudyAccess } from
 
 /** A sum of the costs recorded; null when there is none, or one has no price. */
 const sum = (refs: readonly string[], costs: ReadonlyMap<string, number | null>) => {
-  let total = 0
-  for (const r of refs) {
-    const c = costs.get(r)
-    if (c === undefined) continue
-    if (c === null) return null
-    total += c
-  }
-  return total > 0 ? total : null
+  const total = sumCosts(refs.map((r) => costs.get(r)))
+  return total ? total : null
 }
 
 const refsOf = (runs: readonly ReviewRun[], sessionId: string) =>
@@ -36,7 +37,7 @@ const refsOf = (runs: readonly ReviewRun[], sessionId: string) =>
     .filter((r) => r.sessions.some((s) => s.sessionId === sessionId))
     .map((r) => reviewRef(r.id, sessionId))
 
-const runRefs = (run: ReviewRun) => run.sessions.map((s) => reviewRef(run.id, s.sessionId))
+export const runRefs = (run: ReviewRun) => run.sessions.map((s) => reviewRef(run.id, s.sessionId))
 
 /** Figures only once reviewed: nothing to read before, not even a "0 of 0". */
 const hasReview = (i: InterviewNow) =>

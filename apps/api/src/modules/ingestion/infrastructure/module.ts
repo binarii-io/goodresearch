@@ -21,6 +21,7 @@ import type {
 } from '../application/ports.ts'
 import { makeSessionQueries } from '../application/queries/session-queries.ts'
 import { makeSourceQueries, makeStudyActionGate } from '../application/queries/source-queries.ts'
+import { makeStudyCostRefs, makeStudyOverview } from '../application/queries/study-overview.ts'
 import { makeStudyFiles } from '../application/study-files.ts'
 import type { DriveDocuments } from '../domain/drive-documents.ts'
 import type { DriveAuthorization, DriveGateway } from '../domain/drive-gateway.ts'
@@ -142,6 +143,9 @@ export const createIngestionModule = (deps: {
     /** The files of a study's folder with one person's own access (spec 007). */
     studyFiles,
     sourceSummaries: ingestion.store.folderSummaries,
+    /** Spec 017: a study's interviews for the project's Overview. */
+    studyOverview: makeStudyOverview(ingestion),
+    studyCostRefs: makeStudyCostRefs(ingestion),
     /** What the Enrichment phase reads from the validated interviews (spec 010). */
     enrichment: makeEnrichmentSources(ingestion),
     /** The research module tells when a planned interview changed (spec 009 FR-022). */

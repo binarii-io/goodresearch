@@ -27,6 +27,7 @@ export interface RecommendationsOverviewInput {
   lastRunCost: number | null;
   /** @nullable */
   cost: number | null;
+  costIncomplete: boolean;
   consentNeeded: boolean;
   takeaways: TakeawaysViewInput;
 }
