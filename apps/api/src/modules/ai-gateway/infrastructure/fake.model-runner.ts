@@ -456,6 +456,24 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
       ],
       delayMs: 0,
     }
+  const attachable = /attachable study id (\S+?)\)/.exec(request.system ?? '')?.[1]
+  if (/attach the study/i.test(text) && attachable && projectId && offered('attach_study'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Here is what reusing it means.' },
+        call('attach_study', { studyId: attachable, projectId }),
+      ],
+      delayMs: 0,
+    }
+  const ownStudy = /Study id: (\S+?)[),;\s]/.exec(`${request.system ?? ''} `)?.[1]
+  if (/detach the study/i.test(text) && ownStudy && projectId && offered('detach_study'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Here is what removing it means.' },
+        call('detach_study', { studyId: ownStudy, projectId }),
+      ],
+      delayMs: 0,
+    }
   if (/design the interview guide/i.test(text) && offered('load_skill'))
     return { parts: [call('load_skill', { name: 'interview-guide-design' })], delayMs: 0 }
   if (/write the guide/i.test(text) && offered('check_guide_questions'))

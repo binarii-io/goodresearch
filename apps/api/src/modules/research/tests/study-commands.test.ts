@@ -23,6 +23,7 @@ describe('study commands', () => {
       ...deps,
       studies: research.studyRepository,
       gate: research.gate,
+      runs: research.runs,
     })
     projectId = await research.addProject('team-a')
   })

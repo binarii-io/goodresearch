@@ -18,6 +18,9 @@ export const PROPOSAL_KINDS = [
   'report_project_progress',
   'load_skill',
   'check_guide_questions',
+  'attach_study',
+  'detach_study',
+  'update_study_goal',
 ] as const
 export type ProposalKind = (typeof PROPOSAL_KINDS)[number]
 
@@ -25,12 +28,19 @@ export type ProposalKind = (typeof PROPOSAL_KINDS)[number]
 export const isNavigation = (kind: ProposalKind): boolean =>
   kind === 'open_project' || kind === 'open_study'
 
+/** Spec 019: cards the model learns about at once, like a new project. */
+export const isStudyChange = (kind: ProposalKind): boolean =>
+  kind === 'attach_study' || kind === 'detach_study' || kind === 'update_study_goal'
+
 /**
  * Run by the app during the answer, their output given back to the model (spec 006). So is a new
  * project: the model learns at once why it was refused (spec 018).
  */
 export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
-  kind === 'load_skill' || kind === 'check_guide_questions' || kind === 'create_project'
+  kind === 'load_skill' ||
+  kind === 'check_guide_questions' ||
+  kind === 'create_project' ||
+  isStudyChange(kind)
 
 /**
  * Recorded at once when called, without a card. The progress report ends the answer (the skill

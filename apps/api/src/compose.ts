@@ -90,6 +90,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     rules: config.access,
     projects: () => ({
       countByTeam: bound(research).countProjectsByTeam,
+      countStudiesByTeam: bound(research).countStudiesByTeam,
       countByTeams: bound(research).countProjectsByTeams,
     }),
     aiProvider: () => bound(ai).providerGate,
@@ -103,6 +104,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     clock,
     teams: { getAccessContext: workspace.getAccessContext, teamExists: workspace.teamExists },
     teamNames: workspace.teamNames,
+    runs: () => ({ isRunning: (projectId) => synthesis.overviewReads.isRunning(projectId) }),
     ingestion: () => bound(ingestion),
   })
   ingestion = createIngestionModule({
@@ -224,14 +226,13 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         transcripts.analysedText(accountId, studyId, sessionId, mode, options),
       importTranscripts: (accountId, studyId, sessionIds) =>
         transcripts.importTranscripts(accountId, studyId, sessionIds),
-      // The research goal and the guide's theme sections (spec 012 research R12).
+      // The study's research goal (spec 019) and the guide's theme sections (spec 012 research R12).
       context: async (accountId, studyId) => {
         const study = await r.studyQueries.getStudy(accountId, studyId)
-        const project = study ? await r.queries.getProject(accountId, study.project.id) : null
         const guide = await r.preparationQueries.getGuide(accountId, studyId)
         const sections = guide.ok && guide.value ? guide.value.content.sections : []
         return {
-          goal: project?.goal ?? '',
+          goal: study?.goal ?? '',
           themes: sections
             .filter((s) => s.kind === 'theme')
             .map((s) => ({ id: s.id, title: s.title })),
@@ -269,11 +270,10 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         transcripts.importTranscripts(accountId, studyId, sessionIds),
       context: async (accountId, studyId) => {
         const study = await r.studyQueries.getStudy(accountId, studyId)
-        const project = study ? await r.queries.getProject(accountId, study.project.id) : null
         const guide = await r.preparationQueries.getGuide(accountId, studyId)
         const sections = guide.ok && guide.value ? guide.value.content.sections : []
         return {
-          goal: project?.goal ?? '',
+          goal: study?.goal ?? '',
           guide: sections.flatMap((s) => s.questions.map((q) => q.text)),
         }
       },
@@ -396,6 +396,15 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     renameProject: async (c) => outcome(await r.renameProject(c)),
     createStudy: async (c) => outcome(await r.studies.createStudy({ ...c, type: 'interviews' })),
     renameStudy: async (c) => outcome(await r.studies.renameStudy(c)),
+    attachStudy: async (c) => {
+      const done = await r.studies.attachStudy(c)
+      return done.ok ? { ok: true as const } : done
+    },
+    detachStudy: async (c) => {
+      const done = await r.studies.detachStudy(c)
+      return done.ok ? { ok: true as const } : done
+    },
+    updateStudyGoal: async (c) => outcome(await r.studies.updateStudyGoal(c)),
     saveGuide: async (c) =>
       outcome(
         await r.preparation.saveGuide({
@@ -418,6 +427,17 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       listStudies: (accountId, id) => r.studyQueries.listStudies(accountId, id),
       getStudy: (accountId, id) => r.studyQueries.getStudy(accountId, id),
       teamsOf: async (accountId) => (await workspace.handlers.getMe(accountId))?.teams ?? [],
+      attachableStudies: async (accountId, teamId, projectId) =>
+        (
+          await r.studyQueries.listTeamStudies(accountId, teamId, { notInProject: projectId })
+        )?.studies.filter((s) => s.canAttach) ?? [],
+      studyFolder: async (accountId, studyId) =>
+        (await bound(ingestion).sourceSummaries(accountId, [studyId])).get(studyId)?.folderName ??
+        null,
+      studyInTeam: async (accountId, studyId, teamId) =>
+        (await r.studyQueries.getStudy(accountId, studyId))?.team.id === teamId,
+      canActOnStudy: (accountId, studyId) => bound(ingestion).gate.canAct(accountId, studyId),
+      projectRunning: (projectId) => synthesis.overviewReads.isRunning(projectId),
       listProjects: (accountId) => r.queries.listProjects(accountId, {}),
       preparation: (accountId, studyId) =>
         r.preparationQueries.preparationForAssistant(accountId, studyId),
@@ -476,6 +496,11 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
   // Spec 017: read models across the modules, built after all of them.
   const reporting = createReportingModule({
     sources: {
+      teamStudies: async (accountId, teamId, filter) =>
+        (await r.studyQueries.listTeamStudies(accountId, teamId, filter))?.studies.map((s) => ({
+          id: s.id,
+          access: s.canAttach,
+        })) ?? null,
       studies: async (accountId, projectId) =>
         (await r.studyQueries.listStudies(accountId, projectId))?.map((s) => ({
           id: s.id,

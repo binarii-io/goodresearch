@@ -15,6 +15,56 @@ const counted = (counts: readonly StatusCount[]): StepCounts => {
  * write nothing, and call neither AI nor Drive.
  */
 export const makeOverviewQueries = ({ sources }: ReportingDeps) => ({
+  /** Spec 019: the counts of the studies on a team's page; closed ones show nothing. */
+  teamStudies: async (accountId: string, teamId: string, filter: { q?: string | undefined }) => {
+    const studies = await sources.teamStudies(accountId, teamId, filter)
+    if (!studies) return err('TEAM_NOT_FOUND' as const)
+    return ok({
+      studies: await Promise.all(
+        studies.map(async (study) => {
+          if (!study.access) return { id: study.id, access: false, counts: null }
+          const part = await sources.studyCounts(study.id)
+          const fact = counted(part.facts)
+          return {
+            id: study.id,
+            access: true,
+            counts: {
+              validated: part.interviews.validated,
+              toValidate: part.interviews.proposed,
+              excluded: part.interviews.excluded,
+              facts: fact.total,
+              factsToDecide: fact.toDecide,
+            },
+          }
+        }),
+      ),
+    })
+  },
+
+  /** Spec 019: what each study on a team's page cost, apart from the counts. */
+  teamStudiesCosts: async (
+    accountId: string,
+    teamId: string,
+    filter: { q?: string | undefined },
+  ) => {
+    const studies = await sources.teamStudies(accountId, teamId, filter)
+    if (!studies) return err('TEAM_NOT_FOUND' as const)
+    const open = studies.filter((s) => s.access)
+    const parts = await Promise.all(open.map((s) => sources.studyCostRefs(s.id)))
+    const costs = await sources.costs(parts.flatMap((refs) => USES.flatMap((use) => refs[use])))
+    const costOf = (refs: readonly string[]) => sumCosts(refs.map((r) => costs.get(r)))
+    return ok({
+      studies: open.map((study, n) => {
+        const refs = parts[n] as (typeof parts)[number]
+        const uses = Object.fromEntries(USES.map((use) => [use, costOf(refs[use])])) as Record<
+          (typeof USES)[number],
+          number | null
+        >
+        return { id: study.id, cost: { total: sumCosts(Object.values(uses)), ...uses } }
+      }),
+    })
+  },
+
   /** The journey and the counts: SQL counts, no row of facts, insights or recommendations. */
   get: async (accountId: string, projectId: string) => {
     const studies = await sources.studies(accountId, projectId)

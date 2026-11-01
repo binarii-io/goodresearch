@@ -90,13 +90,18 @@ export const fakeResearch = () => {
     name: 'First interviews',
     type: 'interviews',
     version: 1,
-    project: { id: 'p1', name: 'Onboarding' },
+    projects: [{ id: 'p1', name: 'Onboarding' }],
+    goal: 'Study goal',
   }
   const actionsLog: { action: string; input: unknown }[] = []
   let nextError: string | null = null
   const preparation: { guide: Awaited<ReturnType<ResearchReads['preparation']>> } = {
     guide: { guide: null, schedule: { scheduled: 2, 'to-contact': 1 } },
   }
+  const attachable: {
+    studies: { id: string; name: string; projects: { name: string }[] }[]
+  } = { studies: [] }
+  const running = { value: false }
   const reads: ResearchReads = {
     getProject: async (accountId, id) => (accountId === 'ada' && id === 'p1' ? project : null),
     listStudies: async (accountId, id) =>
@@ -107,6 +112,12 @@ export const fakeResearch = () => {
     teamsOf: async (accountId) => (accountId === 'ada' ? [{ id: 't1', name: 'Growth' }] : []),
     listProjects: async (accountId) =>
       accountId === 'ada' ? [{ id: 'p1', name: 'Onboarding', team: { name: 'Growth' } }] : [],
+    attachableStudies: async () => attachable.studies,
+    studyInTeam: async (_accountId, _studyId, teamId) => teamId === 't1',
+    studyFolder: async (accountId, id) =>
+      accountId === 'ada' && id === 's1' ? 'Interviews Q4' : null,
+    canActOnStudy: async () => true,
+    projectRunning: async () => running.value,
     preparation: async (accountId, id) =>
       accountId === 'ada' && id === 's1' ? preparation.guide : null,
   }
@@ -125,10 +136,16 @@ export const fakeResearch = () => {
     renameProject: async (c) => result('renameProject', c, {}),
     createStudy: async (c) => result('createStudy', c, { id: 's-new' }),
     renameStudy: async (c) => result('renameStudy', c, {}),
+    attachStudy: async (c) => result('attachStudy', c, {}),
+    detachStudy: async (c) => result('detachStudy', c, {}),
+    updateStudyGoal: async (c) => result('updateStudyGoal', c, {}),
     saveGuide: async (c) => result('saveGuide', c, {}),
   }
   return {
     reads,
+    attachable,
+    running,
+    study,
     preparation,
     actions,
     actionsLog,

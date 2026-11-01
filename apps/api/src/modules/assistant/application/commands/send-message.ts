@@ -12,6 +12,7 @@ import {
   isProposalKind,
   isRecordedAtOnce,
   isRunDuringAnswer,
+  isStudyChange,
   type ProposalKind,
 } from '../../domain/proposal.ts'
 import { titleFrom } from '../../domain/title.ts'
@@ -33,6 +34,7 @@ import {
   GUIDE_TOOLS,
   prepareProject,
   prepareProposal,
+  prepareStudyChange,
   TOOL_INPUTS,
   TOOLS,
 } from '../tools.ts'
@@ -55,6 +57,8 @@ const checksText = (checks: ProposalPreview['checks'] = []): string =>
         `${i + 1}. ${c.issues.length ? `to review (${c.issues.join(', ')})` : 'ok'}: ${c.question}`,
     )
     .join('\n') || 'Nothing to check.'
+
+const CARD_SHOWN = 'Card shown to the person. Wait for their decision and add nothing.'
 
 /** Marks a project card dismissed because a newer one replaced it, not by the person. */
 const REPLACED = 'REPLACED'
@@ -99,7 +103,10 @@ const callInput = (p: StoredProposal): Record<string, unknown> => {
   }
   if (p.state === 'invalid' || !p.targetId) return { ...p.values }
   const key =
-    p.kind === 'rename_study' || p.kind === 'open_study' || p.kind === 'propose_interview_guide'
+    p.kind === 'rename_study' ||
+    p.kind === 'open_study' ||
+    p.kind === 'propose_interview_guide' ||
+    isStudyChange(p.kind)
       ? 'studyId'
       : 'projectId'
   return { ...p.values, [key]: p.targetId }
@@ -306,7 +313,35 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       }
       await deps.store.saveProposal(proposal)
       pending.push({ type: 'proposal', proposal: proposalView(proposal) })
-      return 'Card shown to the person. Wait for their decision and add nothing.'
+      return CARD_SHOWN
+    }
+
+    /** A change of a study's links or goal (spec 019): a card, or the reason of a refusal. */
+    const proposeStudyChange = async (
+      name: string,
+      input: unknown,
+      callId: string,
+    ): Promise<string> => {
+      const prepared = await prepareStudyChange(deps.research, c.actor, { name, input })
+      if ('refused' in prepared) {
+        const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
+        await record(callId, name as ProposalKind, raw, null, prepared.refused)
+        return prepared.refused
+      }
+      const proposal: StoredProposal = {
+        id: deps.newId(),
+        callId,
+        messageId: answer.id,
+        ...prepared,
+        state: 'proposed',
+        resultKind: null,
+        resultId: null,
+        error: null,
+        decidedAt: null,
+      }
+      await deps.store.saveProposal(proposal)
+      pending.push({ type: 'proposal', proposal: proposalView(proposal) })
+      return CARD_SHOWN
     }
 
     /** The tools that run at once (spec 006, 018): skill, writing checks, progress, new project. */
@@ -315,6 +350,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       async (name: string, input: unknown, callId: string): Promise<string> => {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         if (name === 'create_project') return proposeProject(input, callId)
+        if (isStudyChange(name as ProposalKind)) return proposeStudyChange(name, input, callId)
         if (name === 'report_project_progress') {
           const parsed = TOOL_INPUTS.report_project_progress.safeParse(input)
           if (!parsed.success) {

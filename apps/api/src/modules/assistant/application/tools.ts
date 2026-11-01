@@ -41,6 +41,9 @@ const INPUTS = {
     hypotheses: z.enum(GUIDE_POINT_STATES),
     team: z.enum(GUIDE_POINT_STATES),
   }),
+  attach_study: z.object({ studyId: Id, projectId: Id }),
+  detach_study: z.object({ studyId: Id, projectId: Id }),
+  update_study_goal: z.object({ studyId: Id, goal: Goal }),
   load_skill: z.object({ name: z.enum(SKILL_NAMES as [string, ...string[]]) }),
   check_guide_questions: z.object({
     questions: z.array(z.string().trim().min(1).max(600)).min(1).max(60),
@@ -93,6 +96,24 @@ export const TOOLS: readonly ToolSpec[] = [
     description:
       'Open the page of a study for the person (use a study id from the context), optionally on one of its tabs: preparation, fieldwork, enrichment or analysis. Also use it to switch tabs on the study already open. Changes nothing; happens at once.',
     inputSchema: INPUTS.open_study,
+  },
+  {
+    name: 'attach_study',
+    description:
+      'Propose to reuse an existing study of the team in a project: its interviews and facts then feed the project, without any AI call, and it stays in its other projects. Use the attachable study ids of the context, given on a project page. The result says whether a card was shown or why it was refused.',
+    inputSchema: INPUTS.attach_study,
+  },
+  {
+    name: 'detach_study',
+    description:
+      "Propose to remove a study from a project. Nothing of the study is deleted: it stays in its other projects, or on the team's Studies page. The result says whether a card was shown or why it was refused.",
+    inputSchema: INPUTS.detach_study,
+  },
+  {
+    name: 'update_study_goal',
+    description:
+      "Propose a new research goal for a study, read by its AI steps. Facts already found do not change, and the project's own goal stays. The result says whether a card was shown or why it was refused.",
+    inputSchema: INPUTS.update_study_goal,
   },
   {
     name: 'load_skill',
@@ -184,6 +205,63 @@ export const prepareProject = async (
 }
 
 /**
+ * Checks a change of a study's links or goal (spec 019): the reason to give back to the model, or
+ * the card. The same checks run again on Apply, through the command.
+ */
+export const prepareStudyChange = async (
+  research: ResearchReads,
+  actor: Actor,
+  call: { name: string; input: unknown },
+): Promise<{ refused: string } | PreparedProposal> => {
+  if (call.name === 'update_study_goal') {
+    const input = INPUTS.update_study_goal.safeParse(call.input)
+    if (!input.success)
+      return { refused: 'Refused: send a studyId and a goal of at most 10,000 characters.' }
+    const study = await research.getStudy(actor.id, input.data.studyId)
+    if (!study) return { refused: 'Refused: use a study id listed in the context.' }
+    if (!(await research.canActOnStudy(actor.id, study.id)))
+      return { refused: 'Refused: the person has no access to the folder of this study.' }
+    return {
+      kind: 'update_study_goal',
+      targetId: study.id,
+      targetVersion: study.version,
+      values: { goal: input.data.goal },
+      preview: { studyName: study.name, goal: input.data.goal, previousGoal: study.goal },
+    }
+  }
+  const kind = call.name === 'attach_study' ? 'attach_study' : 'detach_study'
+  const input = INPUTS[kind].safeParse(call.input)
+  if (!input.success) return { refused: 'Refused: send a studyId and a projectId.' }
+  const study = await research.getStudy(actor.id, input.data.studyId)
+  if (!study) return { refused: 'Refused: use a study id listed in the context.' }
+  const project = await research.getProject(actor.id, input.data.projectId)
+  if (!project) return { refused: 'Refused: use a project id listed in the context.' }
+  const linked = study.projects.some((p) => p.id === project.id)
+  if (kind === 'attach_study') {
+    if (linked) return { refused: 'Refused: this study is already in this project.' }
+    if (!(await research.canActOnStudy(actor.id, study.id)))
+      return { refused: 'Refused: the person has no access to the folder of this study.' }
+    if (!(await research.studyInTeam(actor.id, study.id, project.team.id)))
+      return { refused: 'Refused: this study belongs to another team.' }
+  } else {
+    if (!linked) return { refused: 'Refused: this study is not in this project.' }
+    if (await research.projectRunning(project.id))
+      return { refused: 'Refused: wait for the run in progress on this project to finish.' }
+  }
+  return {
+    kind,
+    targetId: study.id,
+    targetVersion: null,
+    values: { projectId: project.id },
+    preview: {
+      studyName: study.name,
+      projectName: project.name,
+      otherProjects: study.projects.filter((p) => p.id !== project.id).map((p) => p.name),
+    },
+  }
+}
+
+/**
  * Validates a tool call like the app's forms, and only on objects the person can see (FR-006).
  * `null`: invalid values or an object out of reach; never shown, told to the model.
  */
@@ -248,7 +326,7 @@ export const prepareProposal = async (
         targetVersion: study.version,
         values: { name: input.data.name },
         preview: {
-          projectName: study.project.name,
+          projectName: study.projects[0]?.name ?? '',
           name: input.data.name,
           previousName: study.name,
         },
@@ -278,7 +356,7 @@ export const prepareProposal = async (
         targetVersion: null,
         values: {},
         preview: {
-          projectName: study.project.name,
+          projectName: study.projects[0]?.name ?? '',
           name: study.name,
           ...(input.data.phase ? { phase: input.data.phase } : {}),
         },

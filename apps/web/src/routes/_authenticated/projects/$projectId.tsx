@@ -190,6 +190,7 @@ function ProjectOverview() {
               }
             />
           </div>
+          <p className="text-muted-foreground text-sm">{t`Its studies keep their own goal: changing this one does not change theirs.`}</p>
           <p className="text-muted-foreground text-sm">
             {t`Created ${created} · Updated ${updated}`}
           </p>
@@ -197,7 +198,7 @@ function ProjectOverview() {
 
         <TakeawaysBand projectId={projectId} />
         <ProjectJourney projectId={projectId} />
-        <StudyList projectId={projectId} />
+        <StudyList projectId={projectId} teamId={p.team.id} />
       </TabsContent>
       <TabsContent value="insights">
         <InsightsTab projectId={projectId} />

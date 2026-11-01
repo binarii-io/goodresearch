@@ -26,6 +26,9 @@ export const ProposalKind = z.enum([
   'report_project_progress',
   'load_skill',
   'check_guide_questions',
+  'attach_study',
+  'detach_study',
+  'update_study_goal',
 ])
 
 /** What the app's writing rules flag in a question (spec 006). */
@@ -78,6 +81,8 @@ export const ProposalPreview = z
     /** For an opened study: the tab to show. */
     phase: z.enum(['preparation', 'fieldwork', 'enrichment', 'analysis']).optional(),
     studyName: z.string().optional(),
+    /** Spec 019: the other projects of a study attached or detached. */
+    otherProjects: z.array(z.string()).optional(),
     /** A proposed interview guide (spec 006). */
     guide: GuideDraft.optional(),
     /** Whether the proposed guide replaces an existing one. */

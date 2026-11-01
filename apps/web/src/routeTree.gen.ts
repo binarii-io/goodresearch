@@ -21,6 +21,7 @@ import { Route as AuthenticatedMembersIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedMembersMemberIdRouteImport } from './routes/_authenticated/members/$memberId'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects/$projectId'
 import { Route as AuthenticatedStudiesStudyIdRouteImport } from './routes/_authenticated/studies/$studyId'
+import { Route as AuthenticatedTeamStudiesTeamIdRouteImport } from './routes/_authenticated/team-studies/$teamId'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -85,6 +86,12 @@ const AuthenticatedStudiesStudyIdRoute =
     path: '/studies/$studyId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedTeamStudiesTeamIdRoute =
+  AuthenticatedTeamStudiesTeamIdRouteImport.update({
+    id: '/team-studies/$teamId',
+    path: '/team-studies/$teamId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/studies/$studyId': typeof AuthenticatedStudiesStudyIdRoute
+  '/team-studies/$teamId': typeof AuthenticatedTeamStudiesTeamIdRoute
   '/members/': typeof AuthenticatedMembersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -110,6 +118,7 @@ export interface FileRoutesByTo {
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/studies/$studyId': typeof AuthenticatedStudiesStudyIdRoute
+  '/team-studies/$teamId': typeof AuthenticatedTeamStudiesTeamIdRoute
   '/members': typeof AuthenticatedMembersIndexRoute
 }
 export interface FileRoutesById {
@@ -125,6 +134,7 @@ export interface FileRoutesById {
   '/_authenticated/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/_authenticated/studies/$studyId': typeof AuthenticatedStudiesStudyIdRoute
+  '/_authenticated/team-studies/$teamId': typeof AuthenticatedTeamStudiesTeamIdRoute
   '/_authenticated/members/': typeof AuthenticatedMembersIndexRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/members/$memberId'
     | '/projects/$projectId'
     | '/studies/$studyId'
+    | '/team-studies/$teamId'
     | '/members/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/members/$memberId'
     | '/projects/$projectId'
     | '/studies/$studyId'
+    | '/team-studies/$teamId'
     | '/members'
   id:
     | '__root__'
@@ -167,6 +179,7 @@ export interface FileRouteTypes {
     | '/_authenticated/members/$memberId'
     | '/_authenticated/projects/$projectId'
     | '/_authenticated/studies/$studyId'
+    | '/_authenticated/team-studies/$teamId'
     | '/_authenticated/members/'
   fileRoutesById: FileRoutesById
 }
@@ -262,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudiesStudyIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/team-studies/$teamId': {
+      id: '/_authenticated/team-studies/$teamId'
+      path: '/team-studies/$teamId'
+      fullPath: '/team-studies/$teamId'
+      preLoaderRoute: typeof AuthenticatedTeamStudiesTeamIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -274,6 +294,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMembersMemberIdRoute: typeof AuthenticatedMembersMemberIdRoute
   AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
   AuthenticatedStudiesStudyIdRoute: typeof AuthenticatedStudiesStudyIdRoute
+  AuthenticatedTeamStudiesTeamIdRoute: typeof AuthenticatedTeamStudiesTeamIdRoute
   AuthenticatedMembersIndexRoute: typeof AuthenticatedMembersIndexRoute
 }
 
@@ -286,6 +307,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMembersMemberIdRoute: AuthenticatedMembersMemberIdRoute,
   AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
   AuthenticatedStudiesStudyIdRoute: AuthenticatedStudiesStudyIdRoute,
+  AuthenticatedTeamStudiesTeamIdRoute: AuthenticatedTeamStudiesTeamIdRoute,
   AuthenticatedMembersIndexRoute: AuthenticatedMembersIndexRoute,
 }
 

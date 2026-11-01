@@ -37,12 +37,15 @@ describe('the Overview counts, on PostgreSQL', () => {
     updatedAt: now,
   })
 
+  let teamId = ''
+
   beforeAll(async () => {
     database = await createTestDatabase()
-    const [teamId] = await insertTeams(database.db, ['Team'])
+    const [created] = await insertTeams(database.db, ['Team'])
+    teamId = created ?? ''
     await database.db.insert(researchProjects).values({
       id: projectId,
-      teamId: teamId ?? '',
+      teamId,
       name: 'P',
       goal: '',
       createdAt: now,
@@ -51,7 +54,7 @@ describe('the Overview counts, on PostgreSQL', () => {
     await database.db.insert(researchStudies).values(
       [studyId, otherStudyId].map((id) => ({
         id,
-        projectId,
+        teamId,
         name: 'S',
         type: 'interviews',
         createdAt: now,
@@ -143,7 +146,7 @@ describe('the Overview counts, on PostgreSQL', () => {
     const study = newId()
     await database.db.insert(researchStudies).values({
       id: study,
-      projectId,
+      teamId,
       name: 'S',
       type: 'interviews',
       createdAt: now,

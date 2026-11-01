@@ -61,6 +61,27 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
         })
         return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: r.id } } : r
       }
+      case 'attach_study':
+      case 'detach_study': {
+        const change = { actor, projectId: str(v.projectId), studyId: p.targetId ?? '' }
+        const r = await (p.kind === 'attach_study'
+          ? deps.actions.attachStudy(change)
+          : deps.actions.detachStudy(change))
+        return r.ok
+          ? { ok: true as const, result: { kind: 'project' as const, id: change.projectId } }
+          : r
+      }
+      case 'update_study_goal': {
+        const r = await deps.actions.updateStudyGoal({
+          actor,
+          studyId: p.targetId ?? '',
+          goal: str(v.goal),
+          version: p.targetVersion ?? -1,
+        })
+        return r.ok
+          ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
+          : r
+      }
       case 'propose_interview_guide': {
         const r = await deps.actions.saveGuide({
           actor,

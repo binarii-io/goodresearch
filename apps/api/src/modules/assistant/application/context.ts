@@ -13,7 +13,7 @@ const INSTRUCTIONS = `You are the goodresearch assistant. You help people run us
 
 /** Said when the answer follows an applied project rather than a message (spec 018 US3). */
 const CONTINUATION =
-  'The person just applied your project proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the project is ready, then propose a first interview study for it with create_study. Do not repeat the framing.'
+  'The person just applied your project proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the project is ready, then propose a first interview study for it with create_study. If an existing study of the team looks related, mention it and offer to reuse it with attach_study as well. Do not repeat the framing.'
 
 /** The interview study of the page, for the guide tools (spec 006). */
 export type GuideStudy = { id: string; name: string; guideVersion: number | null }
@@ -56,30 +56,53 @@ export const buildContext = async (
     const project = await research.getProject(actor.id, page.id)
     if (project) {
       const studies = (await research.listStudies(actor.id, project.id)) ?? []
+      const attachable = await research.attachableStudies(actor.id, project.team.id, project.id)
       lines.push(
         'The person is on a project page.',
         `Project: ${project.name}`,
         `Project id: ${project.id}`,
         `Team: ${project.team.name}`,
         `Research goal: ${project.goal || '(empty)'}`,
+        `Other studies of the team, that attach_study can reuse: ${
+          attachable
+            .slice(0, 30)
+            .map(
+              (s) =>
+                `${s.name} (in: ${s.projects.map((p) => p.name).join(', ') || 'no project'}; attachable study id ${s.id})`,
+            )
+            .join('; ') || 'none'
+        }`,
         `Studies: ${studies.map((s) => `${s.name} (${s.type}, Study id: ${s.id})`).join('; ') || 'none'}`,
       )
     } else lines.push('The person is on a page they cannot open, or that does not exist.')
   } else if (page.kind === 'study' && page.id) {
     const study = await research.getStudy(actor.id, page.id)
-    const project = study ? await research.getProject(actor.id, study.project.id) : null
-    if (study && project) {
-      const folder = (await research.listStudies(actor.id, project.id))?.find(
-        (s) => s.id === study.id,
-      )?.folderName
+    if (study) {
+      const folder = await research.studyFolder(actor.id, study.id)
+      const first = study.projects[0]
+      const project = first ? await research.getProject(actor.id, first.id) : null
       lines.push(
         'The person is on a study page.',
         `Study: ${study.name} (${study.type}), Study id: ${study.id}`,
         `Tabs (study phases): preparation, fieldwork, enrichment, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
         `Source folder: ${folder ?? '(none, or no access)'}`,
-        `Project: ${project.name}`,
-        `Project id: ${project.id}`,
-        `Research goal: ${project.goal || '(empty)'}`,
+        `Research goal of the study, read by its AI steps: ${study.goal || '(empty)'}`,
+        // Spec 019: a study can feed several projects, or none.
+        ...(project
+          ? [
+              `Project: ${project.name}`,
+              `Project id: ${project.id}`,
+              `Research goal of that project: ${project.goal || '(empty)'}`,
+              ...(study.projects.length > 1
+                ? [
+                    `Also in: ${study.projects
+                      .slice(1)
+                      .map((p) => `${p.name} (project id ${p.id})`)
+                      .join('; ')}. Decisions on its facts apply in all of them.`,
+                  ]
+                : []),
+            ]
+          : ["This study is in no project: it stays on its team's Studies page."]),
       )
       const preparation = await research.preparation(actor.id, study.id)
       if (preparation) {

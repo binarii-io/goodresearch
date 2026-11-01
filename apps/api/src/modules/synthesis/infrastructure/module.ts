@@ -131,5 +131,5 @@ export const createSynthesisModule = (deps: {
       },
     },
   ]
-  return { handlers, jobs, overviewReads: makeOverviewReads(synthesis.store) }
+  return { handlers, jobs, overviewReads: makeOverviewReads(synthesis.store, deps.clock) }
 }

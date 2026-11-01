@@ -12,4 +12,7 @@ export type WorkspaceUnitOfWork = <T>(
 ) => Promise<T>
 
 /** Project counts come from the research module (wired in the composition root). */
-export type ProjectCounter = { countByTeam(teamId: string): Promise<number> }
+export type ProjectCounter = {
+  countStudiesByTeam(teamId: string): Promise<number>
+  countByTeam(teamId: string): Promise<number>
+}

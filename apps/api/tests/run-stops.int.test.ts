@@ -30,7 +30,7 @@ describe('one interview taken out of a reading, on PostgreSQL', () => {
     })
     await database.db.insert(researchStudies).values({
       id: studyId,
-      projectId,
+      teamId,
       name: 'S',
       type: 'interviews',
       createdAt: now,

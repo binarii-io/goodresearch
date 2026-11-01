@@ -8,7 +8,6 @@ import type { PlannedInterviewStatus } from '../../domain/planned-interview.ts'
 import {
   researchInterviewGuides,
   researchPlannedInterviews,
-  researchProjects,
   researchStudies,
 } from '../../infrastructure/schema.ts'
 import type { StudyActionGate, TeamDirectory } from '../ports.ts'
@@ -28,9 +27,8 @@ export const makePreparationQueries = (deps: {
     studyId: string,
   ): Promise<Result<{ type: string }, Denied>> => {
     const [row] = await db
-      .select({ teamId: researchProjects.teamId, type: researchStudies.type })
+      .select({ teamId: researchStudies.teamId, type: researchStudies.type })
       .from(researchStudies)
-      .innerJoin(researchProjects, eq(researchProjects.id, researchStudies.projectId))
       .where(eq(researchStudies.id, studyId))
     const access = await deps.teams.getAccessContext(accountId)
     if (!row || !access || (access.role !== 'admin' && !access.teamIds.includes(row.teamId)))

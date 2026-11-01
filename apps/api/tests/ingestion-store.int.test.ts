@@ -58,7 +58,7 @@ describe('ingestion store: run-scoped writes (PR #2 review B2/B3)', () => {
     })
     await database.db.insert(researchStudies).values({
       id: studyId,
-      projectId,
+      teamId: teamId ?? '',
       name: 'S',
       type: 'interviews',
       createdAt: now,

@@ -302,6 +302,20 @@
       "when": 1793532071078,
       "tag": "0042_project_framing",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793538976413,
+      "tag": "0043_study_links",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1793538977027,
+      "tag": "0044_study_links_drop_project",
+      "breakpoints": true
     }
   ]
 }

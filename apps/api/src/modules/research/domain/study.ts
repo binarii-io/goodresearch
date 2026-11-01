@@ -12,7 +12,12 @@ export type TextAnalysed = 'with-corrections' | 'clean-only'
 
 export type StudyProps = {
   readonly id: StudyId
-  readonly projectId: string
+  /** Spec 019: a study belongs to a team, like a project. */
+  readonly teamId: string
+  /** The projects it feeds, earliest link first; none is allowed. */
+  readonly projectIds: readonly string[]
+  /** Spec 019: read by the AI steps inside the study; a copy of the project's at creation. */
+  readonly goal: string
   readonly name: string
   readonly type: StudyType
   /** Spec 009: interview names and titles use pseudonyms instead of names. */
@@ -25,12 +30,17 @@ export type StudyProps = {
   readonly version: number
 }
 
+const validGoal = (goal: string): Result<string, 'VALIDATION'> => {
+  const trimmed = goal.trim()
+  return trimmed.length <= 10_000 ? ok(trimmed) : err('VALIDATION')
+}
+
 const validName = (name: string): Result<string, 'VALIDATION'> => {
   const trimmed = name.trim()
   return trimmed.length >= 1 && trimmed.length <= 120 ? ok(trimmed) : err('VALIDATION')
 }
 
-/** One method run to collect evidence for a project's research question. */
+/** One method run to collect evidence, for the research questions of the projects it feeds. */
 export class Study {
   #props: StudyProps
 
@@ -40,7 +50,9 @@ export class Study {
 
   static create(input: {
     id: string
+    teamId: string
     projectId: string
+    goal: string
     name: string
     type: string
     createdBy: string | null
@@ -49,10 +61,14 @@ export class Study {
     if (!CREATABLE.includes(input.type)) return err('VALIDATION')
     const name = validName(input.name)
     if (!name.ok) return name
+    const goal = validGoal(input.goal)
+    if (!goal.ok) return goal
     return ok(
       new Study({
         id: input.id as StudyId,
-        projectId: input.projectId,
+        teamId: input.teamId,
+        projectIds: [input.projectId],
+        goal: goal.value,
         name: name.value,
         type: input.type as StudyType,
         anonymised: false,
@@ -72,8 +88,14 @@ export class Study {
   get id(): StudyId {
     return this.#props.id
   }
-  get projectId(): string {
-    return this.#props.projectId
+  get teamId(): string {
+    return this.#props.teamId
+  }
+  get projectIds(): readonly string[] {
+    return this.#props.projectIds
+  }
+  get goal(): string {
+    return this.#props.goal
   }
   get type(): StudyType {
     return this.#props.type
@@ -107,6 +129,44 @@ export class Study {
     if (!valid.ok) return valid
     this.#props = { ...this.#props, name: valid.value, updatedAt: now }
     return ok(undefined)
+  }
+
+  /** Spec 019: only a project of its team, once. */
+  attach(
+    project: { id: string; teamId: string },
+    now: Date,
+  ): Result<void, 'DIFFERENT_TEAM' | 'ALREADY_LINKED'> {
+    if (project.teamId !== this.#props.teamId) return err('DIFFERENT_TEAM')
+    if (this.#props.projectIds.includes(project.id)) return err('ALREADY_LINKED')
+    this.#props = {
+      ...this.#props,
+      projectIds: [...this.#props.projectIds, project.id],
+      updatedAt: now,
+    }
+    return ok(undefined)
+  }
+
+  /** Spec 019: a study can end up without a project: its team's Studies page lists it. */
+  detach(projectId: string, now: Date): Result<void, 'NOT_LINKED'> {
+    if (!this.#props.projectIds.includes(projectId)) return err('NOT_LINKED')
+    this.#props = {
+      ...this.#props,
+      projectIds: this.#props.projectIds.filter((id) => id !== projectId),
+      updatedAt: now,
+    }
+    return ok(undefined)
+  }
+
+  changeGoal(goal: string, now: Date): Result<void, 'VALIDATION'> {
+    const valid = validGoal(goal)
+    if (!valid.ok) return valid
+    this.#props = { ...this.#props, goal: valid.value, updatedAt: now }
+    return ok(undefined)
+  }
+
+  /** With its only project (spec 019 R7). */
+  moveToTeam(teamId: string, now: Date): void {
+    this.#props = { ...this.#props, teamId, updatedAt: now }
   }
 
   snapshot(): StudyProps {

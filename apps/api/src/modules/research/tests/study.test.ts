@@ -6,7 +6,9 @@ const t1 = new Date('2026-10-24T11:00:00Z')
 const create = (overrides: Partial<Parameters<typeof Study.create>[0]> = {}) =>
   Study.create({
     id: 's1',
+    teamId: 't1',
     projectId: 'p1',
+    goal: '',
     name: 'Interviews Q4',
     type: 'interviews',
     createdBy: 'a1',

@@ -24,6 +24,9 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   report_project_progress: msg`Project framing progress`,
   load_skill: msg`Skill`,
   check_guide_questions: msg`Question check`,
+  attach_study: msg`Reuse a study in this project`,
+  detach_study: msg`Detach a study from this project`,
+  update_study_goal: msg`Change the study's goal`,
 }
 
 const SKILLS: Record<string, MessageDescriptor> = {
@@ -156,7 +159,10 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
   // The conversation and whatever the open page shows (project, studies, lists) may have changed.
   const refresh = () => queryClient.invalidateQueries()
 
+  const guide = p.guide
+  const others = (p.otherProjects ?? []).join(', ')
   const rows: [string, string | undefined][] = [
+    [t`Study`, guide ? undefined : p.studyName],
     [t`Project`, p.projectName],
     [t`Team`, p.teamName],
     [p.previousName ? t`New name` : t`Name`, p.name],
@@ -164,7 +170,6 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
     [t`New research goal`, p.goal],
   ]
 
-  const guide = p.guide
   const sectionCount = guide?.sections.length ?? 0
   const questions = guide ? questionCount(guide) : 0
   const minutes = guide ? totalMinutes(guide) : 0
@@ -219,6 +224,16 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
             </div>
           ))}
       </dl>
+      {proposal.kind === 'attach_study' ? (
+        <p className="text-muted-foreground text-xs">{t`Its facts feed this project too, without any AI cost. Decisions on them apply in every project it is in.`}</p>
+      ) : null}
+      {proposal.kind === 'detach_study' ? (
+        <p className="text-muted-foreground text-xs">
+          {others
+            ? t`Nothing is deleted: it stays in ${others}.`
+            : t`Nothing is deleted: it stays on the team's Studies page, in no project.`}
+        </p>
+      ) : null}
       {proposal.state === 'proposed' ? (
         <div className="flex flex-wrap gap-2">
           <Button

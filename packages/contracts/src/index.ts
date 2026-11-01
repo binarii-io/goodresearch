@@ -193,7 +193,13 @@ export {
   VariantStatus,
   Verdict,
 } from './lexicon.ts'
-export { JourneyStep, ProjectOverview, ProjectOverviewCosts } from './overview.ts'
+export {
+  JourneyStep,
+  ProjectOverview,
+  ProjectOverviewCosts,
+  TeamStudiesCosts,
+  TeamStudiesOverview,
+} from './overview.ts'
 export {
   GUIDE_LIMITS,
   GuideContent,
@@ -295,8 +301,12 @@ export {
   StudySettings,
   StudySummary,
   StudyType,
+  TeamStudies,
+  TeamStudiesQuery,
+  TeamStudy,
   TextAnalysed,
   UpdateProjectGoal,
+  UpdateStudyGoal,
 } from './research.ts'
 export {
   AnalysisEstimate,

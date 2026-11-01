@@ -17,15 +17,18 @@ const ALL = 'all'
 /** A fact's link to its interview in its study's Analysis tab. */
 export function FactSource({
   fact,
+  projectId,
 }: {
   fact: { studyId: string; sessionId: string; participant: string | null }
+  /** The project it is read from, for the study page's breadcrumb (spec 019). */
+  projectId: string
 }) {
   const { t } = useLingui()
   return (
     <Link
       to="/studies/$studyId"
       params={{ studyId: fact.studyId }}
-      search={{ phase: 'analysis', interview: fact.sessionId }}
+      search={{ phase: 'analysis', interview: fact.sessionId, from: projectId }}
       className="text-xs underline underline-offset-2"
     >
       {fact.participant ? t`See ${fact.participant} in the interview` : t`See in the interview`}
@@ -167,7 +170,7 @@ export function FactsPanel({
                 </span>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <FactSource fact={f} />
+                <FactSource fact={f} projectId={projectId} />
                 {actions ? <div className="flex gap-1">{actions(f)}</div> : null}
               </div>
             </li>

@@ -50,6 +50,7 @@ describe('preparation commands', () => {
       ...deps,
       studies: research.studyRepository,
       gate: research.gate,
+      runs: research.runs,
     })
     const projectId = await research.addProject('team-a')
     const created = await studies.createStudy({

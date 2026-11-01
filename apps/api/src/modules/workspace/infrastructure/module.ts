@@ -27,7 +27,11 @@ export const createWorkspaceModule = (deps: {
   clock: Clock
   rules: SignInRules
   /** Lazily bound: the research module is built after this one. */
-  projects: () => { countByTeam: ProjectCounter['countByTeam']; countByTeams: ProjectCountsByTeam }
+  projects: () => {
+    countByTeam: ProjectCounter['countByTeam']
+    countStudiesByTeam: ProjectCounter['countStudiesByTeam']
+    countByTeams: ProjectCountsByTeam
+  }
   /** Lazily bound: the AI Gateway module is built after this one. */
   aiProvider: () => AiProviderGate
   /** Lazily bound: modules holding credentials of the account forget them (spec 004 FR-013). */
@@ -45,7 +49,10 @@ export const createWorkspaceModule = (deps: {
     deleteTeam: makeDeleteTeam({
       uow,
       clock,
-      projects: { countByTeam: (id) => deps.projects().countByTeam(id) },
+      projects: {
+        countByTeam: (id) => deps.projects().countByTeam(id),
+        countStudiesByTeam: (id) => deps.projects().countStudiesByTeam(id),
+      },
     }),
     setLanguage: makeSetLanguage({
       preferences: {

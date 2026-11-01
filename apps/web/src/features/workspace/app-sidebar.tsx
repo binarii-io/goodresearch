@@ -8,6 +8,7 @@ import {
 import { BrandIcon, Wordmark } from '@goodresearch/ui/components/brand'
 import { Button } from '@goodresearch/ui/components/button'
 import {
+  BookOpenIcon,
   FolderOpenIcon,
   PlusIcon,
   ShieldCheckIcon,
@@ -22,8 +23,15 @@ import { AccountMenu } from './account-menu.tsx'
 export function AppSidebar({ me }: { me: Me }) {
   const { t } = useLingui()
   const pathname = useRouterState({ select: (state) => state.location.pathname })
+  // Spec 019: a study opened from the team's page stays under "Studies".
+  const fromTeam = useRouterState({
+    select: (state) => (state.location.search as { from?: string }).from === 'team',
+  })
+  const inStudies =
+    pathname.startsWith('/team-studies/') || (pathname.startsWith('/studies/') && fromTeam)
   const inProjects =
-    pathname === '/' || pathname.startsWith('/projects/') || pathname.startsWith('/studies/')
+    !inStudies &&
+    (pathname === '/' || pathname.startsWith('/projects/') || pathname.startsWith('/studies/'))
   return (
     <>
       <SidebarHeader
@@ -70,6 +78,19 @@ export function AppSidebar({ me }: { me: Me }) {
             ) : null
           }
         />
+        {me.teams[0] ? (
+          <SidebarNavItem
+            icon={<BookOpenIcon aria-hidden />}
+            label={t`Studies`}
+            render={
+              <Link
+                to="/team-studies/$teamId"
+                params={{ teamId: me.teams[0].id }}
+                aria-current={inStudies ? 'page' : undefined}
+              />
+            }
+          />
+        ) : null}
         <SidebarNavItem
           icon={<UsersIcon aria-hidden />}
           label={t`Teams`}

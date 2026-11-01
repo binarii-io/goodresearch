@@ -48,6 +48,8 @@ export const StudySummary = z
     hasFolder: z.boolean(),
     /** Only for people whose access to the folder was confirmed (spec 002 FR-010a). */
     folderName: z.string().nullable(),
+    /** Spec 019: the other projects it feeds. */
+    alsoIn: z.array(z.object({ id: Id, name: z.string() })),
     updatedAt: Timestamp,
   })
   .meta({ id: 'StudySummary' })
@@ -61,7 +63,11 @@ export const StudyDetail = z
     id: Id,
     name: z.string(),
     type: StudyType,
-    project: z.object({ id: Id, name: z.string() }),
+    /** Spec 019: the projects it feeds, earliest link first; possibly none. */
+    projects: z.array(z.object({ id: Id, name: z.string() })),
+    team: z.object({ id: Id, name: z.string() }),
+    /** Spec 019: read by the AI steps inside the study. */
+    goal: z.string(),
     /** Spec 009: names and titles of interviews use pseudonyms. */
     anonymised: z.boolean(),
     /** Spec 012: the text Analysis reads. */
@@ -72,6 +78,36 @@ export const StudyDetail = z
   })
   .meta({ id: 'StudyDetail' })
 export type StudyDetail = z.infer<typeof StudyDetail>
+
+/** Spec 019: a study of a team, on its Studies page and when attaching. */
+export const TeamStudy = z
+  .object({
+    id: Id,
+    name: z.string(),
+    type: StudyType,
+    projects: z.array(z.object({ id: Id, name: z.string() })),
+    hasFolder: z.boolean(),
+    /** Only for people whose access to the folder was confirmed. */
+    folderName: z.string().nullable(),
+    /** Whether this person can open it, so attach it. */
+    canAttach: z.boolean(),
+    updatedAt: Timestamp,
+  })
+  .meta({ id: 'TeamStudy' })
+
+export const TeamStudies = z
+  .object({ studies: z.array(TeamStudy), hasMore: z.boolean() })
+  .meta({ id: 'TeamStudies' })
+export type TeamStudies = z.infer<typeof TeamStudies>
+
+export const TeamStudiesQuery = z.object({
+  q: z.string().trim().max(120).optional(),
+  notInProject: Id.optional(),
+})
+
+export const UpdateStudyGoal = z
+  .object({ goal: z.string().trim().max(10_000), version: Version })
+  .meta({ id: 'UpdateStudyGoal' })
 
 export const CreateStudy = z
   .object({ name: StudyName, type: StudyType })

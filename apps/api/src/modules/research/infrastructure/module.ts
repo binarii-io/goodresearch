@@ -6,7 +6,12 @@ import { makePreparationCommands } from '../application/commands/preparation-com
 import { makeRenameProject } from '../application/commands/rename-project.ts'
 import { makeStudyCommands } from '../application/commands/study-commands.ts'
 import { makeUpdateProjectGoal } from '../application/commands/update-project-goal.ts'
-import type { ResearchCommandDeps, StudyActionGate, TeamDirectory } from '../application/ports.ts'
+import type {
+  ProjectRunGate,
+  ResearchCommandDeps,
+  StudyActionGate,
+  TeamDirectory,
+} from '../application/ports.ts'
 import { makePreparationQueries } from '../application/queries/preparation-queries.ts'
 import { makeProjectQueries, type TeamNames } from '../application/queries/project-queries.ts'
 import { makeStudyQueries, type SourceSummaries } from '../application/queries/study-queries.ts'
@@ -23,6 +28,8 @@ export const createResearchModule = (deps: {
   clock: Clock
   teams: TeamDirectory
   teamNames: TeamNames
+  /** Lazily bound: Synthesis is built after this one. */
+  runs: () => ProjectRunGate
   /** Lazily bound: the ingestion module is built after this one. */
   ingestion: () => {
     gate: StudyActionGate
@@ -32,7 +39,10 @@ export const createResearchModule = (deps: {
   }
 }) => {
   const commandDeps: ResearchCommandDeps = {
-    uow: (work) => deps.db.transaction((tx) => work({ projects: drizzleProjectRepository(tx) })),
+    uow: (work) =>
+      deps.db.transaction((tx) =>
+        work({ projects: drizzleProjectRepository(tx), studies: drizzleStudyRepository(tx) }),
+      ),
     clock: deps.clock,
     teams: deps.teams,
   }
@@ -40,6 +50,7 @@ export const createResearchModule = (deps: {
   const studyQueries = makeStudyQueries({
     db: deps.db,
     teams: deps.teams,
+    teamNames: deps.teamNames,
     sourceSummaries: (accountId, ids) => deps.ingestion().sourceSummaries(accountId, ids),
   })
   const gate: StudyActionGate = {
@@ -56,6 +67,7 @@ export const createResearchModule = (deps: {
       ...commandDeps,
       studies: drizzleStudyRepository(deps.db),
       gate,
+      runs: { isRunning: (projectId) => deps.runs().isRunning(projectId) },
     }),
     studyQueries,
     preparation: makePreparationCommands({
@@ -72,6 +84,7 @@ export const createResearchModule = (deps: {
     handlers,
     countProjectsByTeam: queries.countProjectsByTeam,
     countProjectsByTeams: queries.countProjectsByTeams,
+    countStudiesByTeam: studyQueries.countStudiesByTeam,
     getStudyAccess: studyQueries.getStudyAccess,
     preparationForAssistant: preparationQueries.preparationForAssistant,
   }

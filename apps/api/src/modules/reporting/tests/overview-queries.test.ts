@@ -33,6 +33,8 @@ const setup = (
   const sources: ReportingSources = {
     studies: async () =>
       options.studies === undefined ? [{ id: 'st', access: true }] : options.studies,
+    teamStudies: async () =>
+      options.studies === undefined ? [{ id: 'st', access: true }] : options.studies,
     studyCounts: async () => counts,
     studyCostRefs: async (id) => (id === 'closed' ? { ...refs, facts: ['closed'] } : refs),
     insightCounts: async () => [],
@@ -181,5 +183,27 @@ describe('project overview (spec 017)', () => {
     const q = setup({ studies: null })
     expect(await q.get('stranger', 'project')).toEqual({ ok: false, error: 'PROJECT_NOT_FOUND' })
     expect(await q.costs('stranger', 'project')).toEqual({ ok: false, error: 'PROJECT_NOT_FOUND' })
+  })
+
+  it('gives a team page the counts and cost of open studies only (spec 019)', async () => {
+    const q = setup({
+      studies: [
+        { id: 'st', access: true },
+        { id: 'closed', access: false },
+      ],
+    })
+    const overview = await q.teamStudies('a', 't', {})
+    expect(overview.ok && overview.value.studies[1]).toEqual({
+      id: 'closed',
+      access: false,
+      counts: null,
+    })
+    expect(overview.ok && overview.value.studies[0]?.counts).not.toBeNull()
+    const costs = await q.teamStudiesCosts('a', 't', {})
+    expect(costs.ok && costs.value.studies.map((s) => s.id)).toEqual(['st'])
+    expect(await setup({ studies: null }).teamStudies('a', 't', {})).toEqual({
+      ok: false,
+      error: 'TEAM_NOT_FOUND',
+    })
   })
 })

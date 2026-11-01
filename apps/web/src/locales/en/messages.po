@@ -49,24 +49,24 @@ msgid "{0, plural, one {{1} of # interview imported} other {{2} of # interviews 
 msgstr "{0, plural, one {{1} of # interview imported} other {{2} of # interviews imported}}"
 
 #. placeholder {0}: c.excluded
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "{0, plural, one {# excluded} other {# excluded}}"
 msgstr "{0, plural, one {# excluded} other {# excluded}}"
 
 #. placeholder {0}: c.factsToDecide
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "{0, plural, one {# fact to decide} other {# facts to decide}}"
 msgstr "{0, plural, one {# fact to decide} other {# facts to decide}}"
 
 #. placeholder {0}: c.facts
 #. placeholder {0}: slide.facts
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0, plural, one {# fact} other {# facts}}"
 msgstr "{0, plural, one {# fact} other {# facts}}"
 
 #. placeholder {0}: c.validated
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "{0, plural, one {# interview validated} other {# interviews validated}}"
 msgstr "{0, plural, one {# interview validated} other {# interviews validated}}"
 
@@ -84,7 +84,9 @@ msgstr "{0, plural, one {# interview} other {# interviews}}"
 msgid "{0, plural, one {# participant} other {# participants}}"
 msgstr "{0, plural, one {# participant} other {# participants}}"
 
+#. placeholder {0}: study.projects.length
 #. placeholder {0}: team.projectCount
+#: src/routes/_authenticated/team-studies/$teamId.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# project} other {# projects}}"
@@ -507,7 +509,7 @@ msgid "{toReview} changes made in Drive have not been reviewed. Updating replace
 msgstr "{toReview} changes made in Drive have not been reviewed. Updating replaces them with the app's version."
 
 #: src/features/research/project-journey.tsx
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "{toValidate} to validate"
 msgstr "{toValidate} to validate"
 
@@ -684,6 +686,10 @@ msgstr "About {cost} with your AI provider. Terms already decided by your team a
 #: src/features/preparation/labels.ts
 msgid "about the future"
 msgstr "about the future"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "About this study"
+msgstr "About this study"
 
 #: src/features/preparation/guide-editor.tsx
 msgid "About you"
@@ -983,7 +989,7 @@ msgstr "AI"
 msgid "AI cost of the project: {amount}"
 msgstr "AI cost of the project: {amount}"
 
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "AI cost: {amount}"
 msgstr "AI cost: {amount}"
 
@@ -1100,6 +1106,11 @@ msgstr "Also clean again the interviews already cleaned"
 msgid "Also finds misheard words the lexicon does not know, and wrong speakers."
 msgstr "Also finds misheard words the lexicon does not know, and wrong speakers."
 
+#. placeholder {0}: study.alsoIn.map((p) => p.name).join(', ')
+#: src/features/research/study-list.tsx
+msgid "Also in {0}"
+msgstr "Also in {0}"
+
 #. placeholder {0}: term.otherStudies
 #: src/features/enrichment/lexicon-table.tsx
 msgid "also in {0} other studies of the team"
@@ -1157,7 +1168,7 @@ msgstr "Analysed on"
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/assistant/proposal-card.tsx
 #: src/features/fieldwork/proposals.tsx
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "Analysis"
 msgstr "Analysis"
 
@@ -1330,6 +1341,20 @@ msgstr "At most 60 main questions."
 msgid "At most 8 follow-ups per question."
 msgstr "At most 8 follow-ups per question."
 
+#: src/features/research/attach-study-dialog.tsx
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "Attach"
+msgstr "Attach"
+
+#. placeholder {0}: study.name
+#: src/features/research/attach-study-dialog.tsx
+msgid "Attach {0}"
+msgstr "Attach {0}"
+
+#: src/features/research/attach-study-dialog.tsx
+msgid "Attach an existing study"
+msgstr "Attach an existing study"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Attach folder"
 msgstr "Attach folder"
@@ -1337,6 +1362,15 @@ msgstr "Attach folder"
 #: src/features/workspace/errors.ts
 msgid "Attach the study's Drive folder first (Fieldwork tab)."
 msgstr "Attach the study's Drive folder first (Fieldwork tab)."
+
+#. placeholder {0}: project.name
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "Attach to {0}"
+msgstr "Attach to {0}"
+
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "Attach to a project"
+msgstr "Attach to a project"
 
 #: src/features/assistant/labels.ts
 #: src/features/preparation/drive-review.tsx
@@ -1385,6 +1419,10 @@ msgstr "Back to the interviews"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Back to the project"
 msgstr "Back to the project"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Back to the team's studies"
+msgstr "Back to the team's studies"
 
 #. placeholder {0}: Math.min(run.batchesDone + 1, run.batchesTotal)
 #. placeholder {1}: run.batchesTotal
@@ -1477,6 +1515,7 @@ msgstr "Can't tell: {excerpt}"
 #: src/features/preparation/schedule.tsx
 #: src/features/quality/requalify-dialog.tsx
 #: src/features/quality/review-dialog.tsx
+#: src/features/research/detach-study-dialog.tsx
 #: src/features/synthesis/debrief-tab.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
@@ -1523,6 +1562,10 @@ msgstr "Change the research goal"
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Change the speaker of this turn"
 msgstr "Change the speaker of this turn"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Change the study's goal"
+msgstr "Change the study's goal"
 
 #. placeholder {0}: term.form
 #: src/features/enrichment/lexicon-table.tsx
@@ -1690,7 +1733,7 @@ msgid "Cleaned on"
 msgstr "Cleaned on"
 
 #: src/features/enrichment/enrichment-tab.tsx
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "Cleaning"
 msgstr "Cleaning"
 
@@ -1727,6 +1770,7 @@ msgstr "Click to change"
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/schedule.tsx
 #: src/features/quality/requalify-dialog.tsx
+#: src/features/research/attach-study-dialog.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/features/research/study-settings.tsx
@@ -1734,6 +1778,7 @@ msgstr "Click to change"
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
+#: src/routes/_authenticated/team-studies/$teamId.tsx
 msgid "Close"
 msgstr "Close"
 
@@ -2004,6 +2049,7 @@ msgstr "Created {created} · Updated {updated}"
 #: src/features/synthesis/recommendation-panel.tsx
 #: src/features/synthesis/takeaways.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Ctrl+Enter to save, Escape to cancel"
 msgstr "Ctrl+Enter to save, Escape to cancel"
 
@@ -2149,8 +2195,13 @@ msgid "Design with the assistant"
 msgstr "Design with the assistant"
 
 #: src/features/ingestion/source-panel.tsx
+#: src/features/research/detach-study-dialog.tsx
 msgid "Detach"
 msgstr "Detach"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Detach a study from this project"
+msgstr "Detach a study from this project"
 
 #: src/features/ingestion/source-panel.tsx
 msgid "Detach folder"
@@ -2159,6 +2210,10 @@ msgstr "Detach folder"
 #: src/features/ingestion/source-panel.tsx
 msgid "Detach this folder?"
 msgstr "Detach this folder?"
+
+#: src/features/research/detach-study-dialog.tsx
+msgid "Detach this study from the project?"
+msgstr "Detach this study from the project?"
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Details"
@@ -2462,7 +2517,7 @@ msgstr "Expand the sidebar"
 
 #: src/features/analysis/interview-facts.tsx
 #: src/features/research/project-journey.tsx
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "Facts"
@@ -2532,6 +2587,10 @@ msgstr "Facts validated"
 #: src/features/quality/labels.ts
 msgid "Failed"
 msgstr "Failed"
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Feeds these projects:"
+msgstr "Feeds these projects:"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Fieldwork"
@@ -2705,7 +2764,7 @@ msgstr "Findings"
 msgid "Findings and mixed topics"
 msgstr "Findings and mixed topics"
 
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "Folder attached"
 msgstr "Folder attached"
 
@@ -2843,6 +2902,7 @@ msgid "Go to Recommendations"
 msgstr "Go to Recommendations"
 
 #: src/routes/_authenticated/projects/$projectId.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Goal saved"
 msgstr "Goal saved"
 
@@ -3107,6 +3167,10 @@ msgstr "In {0} insights"
 msgid "In {0} recommendations"
 msgstr "In {0} recommendations"
 
+#: src/features/research/attach-study-dialog.tsx
+msgid "In {projects}"
+msgstr "In {projects}"
+
 #: src/features/preparation/drive-review.tsx
 msgid "In Drive"
 msgstr "In Drive"
@@ -3311,6 +3375,7 @@ msgstr "Interviewers"
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/quality-tab.tsx
 #: src/features/research/project-journey.tsx
+#: src/features/research/study-card.tsx
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
 msgid "Interviews"
@@ -3415,6 +3480,10 @@ msgstr "It should read"
 msgid "It shows what is validated only."
 msgstr "It shows what is validated only."
 
+#: src/features/research/detach-study-dialog.tsx
+msgid "It stays in {others}, with its interviews and facts. Insights already written keep citing its facts, marked as outside the project."
+msgstr "It stays in {others}, with its interviews and facts. Insights already written keep citing its facts, marked as outside the project."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "it stopped before the end; refresh to run it again"
 msgstr "it stopped before the end; refresh to run it again"
@@ -3422,6 +3491,22 @@ msgstr "it stopped before the end; refresh to run it again"
 #: src/features/ai/labels.ts
 msgid "It was withdrawn or has expired; some organisations ask you to sign in to Google again regularly. Reconnect Google, then run the checks again."
 msgstr "It was withdrawn or has expired; some organisations ask you to sign in to Google again regularly. Reconnect Google, then run the checks again."
+
+#: src/features/research/detach-study-dialog.tsx
+msgid "It will no longer be in any project and stays on the team's Studies page, with its interviews and facts. Insights already written keep citing its facts, marked as outside the project."
+msgstr "It will no longer be in any project and stays on the team's Studies page, with its interviews and facts. Insights already written keep citing its facts, marked as outside the project."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Its facts feed this project too, without any AI cost. Decisions on them apply in every project it is in."
+msgstr "Its facts feed this project too, without any AI cost. Decisions on them apply in every project it is in."
+
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "Its interviews and facts feed the project too, without any AI cost. Decisions on its facts apply in every project it is in."
+msgstr "Its interviews and facts feed the project too, without any AI cost. Decisions on its facts apply in every project it is in."
+
+#: src/features/research/attach-study-dialog.tsx
+msgid "Its interviews and facts feed this project too, without any AI cost. Decisions on its facts apply in every project it is in."
+msgstr "Its interviews and facts feed this project too, without any AI cost. Decisions on its facts apply in every project it is in."
 
 #: src/routes/_authenticated/teams.tsx
 msgid "Its members lose access to this team. This cannot be undone."
@@ -3439,6 +3524,10 @@ msgstr "its owner"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Its spellings become spellings of the term you pick, which is then accepted. “{0}” disappears from the lexicon."
 msgstr "Its spellings become spellings of the term you pick, which is then accepted. “{0}” disappears from the lexicon."
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Its studies keep their own goal: changing this one does not change theirs."
+msgstr "Its studies keep their own goal: changing this one does not change theirs."
 
 #: src/features/enrichment/labels.ts
 msgid "Jargon"
@@ -3584,7 +3673,7 @@ msgstr "Let goodresearch edit your Drive files first."
 
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/enrichment/labels.ts
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "Lexicon"
 msgstr "Lexicon"
 
@@ -3781,6 +3870,11 @@ msgstr "Model"
 #: src/features/ingestion/source-panel.tsx
 msgid "Modified"
 msgstr "Modified"
+
+#: src/features/research/attach-study-dialog.tsx
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "More studies exist: search by name to find them."
+msgstr "More studies exist: search by name to find them."
 
 #. placeholder {0}: qi + 1
 #: src/features/preparation/guide-editor.tsx
@@ -4006,7 +4100,7 @@ msgstr "No fact to read with this choice."
 msgid "No fact, no verbatim, no name and no study is sent."
 msgstr "No fact, no verbatim, no name and no study is sent."
 
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "No folder yet"
 msgstr "No folder yet"
 
@@ -4050,7 +4144,7 @@ msgstr "No interview reviewed yet: the figures come after a review."
 msgid "No interview to read for now. Those already reviewed can be read again with the box below."
 msgstr "No interview to read for now. Those already reviewed can be read again with the box below."
 
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "No interview yet"
 msgstr "No interview yet"
 
@@ -4066,6 +4160,14 @@ msgstr "No name, no verbatim and no interview title is sent."
 msgid "No opinion"
 msgstr "No opinion"
 
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "No other project in this team."
+msgstr "No other project in this team."
+
+#: src/features/research/attach-study-dialog.tsx
+msgid "No other study in this team. Create a new one from the project."
+msgstr "No other study in this team. Create a new one from the project."
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "No planned interview"
 msgstr "No planned interview"
@@ -4073,6 +4175,11 @@ msgstr "No planned interview"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "no planned interview matches"
 msgstr "no planned interview matches"
+
+#: src/features/research/attach-study-dialog.tsx
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "No project"
+msgstr "No project"
 
 #: src/features/analysis/analysis-tab.tsx
 msgid "No reading yet"
@@ -4115,6 +4222,11 @@ msgstr "No speaker"
 #: src/features/quality/interview-view.tsx
 msgid "No speaker found in this transcript."
 msgstr "No speaker found in this transcript."
+
+#: src/features/research/attach-study-dialog.tsx
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "No study found in this team."
+msgstr "No study found in this team."
 
 #: src/features/research/study-list.tsx
 msgid "No study yet. A study collects evidence for this project, for example a series of interviews."
@@ -4261,6 +4373,14 @@ msgstr "Notes"
 msgid "Nothing is created or changed in your Drive unless you publish a study's preparation, which asks separately for editing. Nothing is ever deleted. You can disconnect at any time from Connected sources."
 msgstr "Nothing is created or changed in your Drive unless you publish a study's preparation, which asks separately for editing. Nothing is ever deleted. You can disconnect at any time from Connected sources."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Nothing is deleted: it stays in {others}."
+msgstr "Nothing is deleted: it stays in {others}."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Nothing is deleted: it stays on the team's Studies page, in no project."
+msgstr "Nothing is deleted: it stays on the team's Studies page, in no project."
+
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Nothing is sent, no cost."
 msgstr "Nothing is sent, no cost."
@@ -4318,6 +4438,10 @@ msgstr "of {withTranscript} with a transcript"
 #: src/features/synthesis/insight-panel.tsx
 msgid "Once validated: {0}"
 msgstr "Once validated: {0}"
+
+#: src/features/workspace/errors.ts
+msgid "One of this project's studies is also in another project: detach it before moving the project."
+msgstr "One of this project's studies is also in another project: detach it before moving the project."
 
 #: src/features/workspace/errors.ts
 msgid "Only a remark made by a person can be withdrawn."
@@ -4765,6 +4889,10 @@ msgstr "Project views"
 msgid "Projects"
 msgstr "Projects"
 
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "Projects of the team"
+msgstr "Projects of the team"
+
 #: src/features/fieldwork/labels.ts
 msgid "Proposed"
 msgstr "Proposed"
@@ -4847,7 +4975,7 @@ msgstr "Publishing…"
 msgid "Q{n}"
 msgstr "Q{n}"
 
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "Quality"
 msgstr "Quality"
 
@@ -5148,6 +5276,10 @@ msgstr "Research debrief"
 msgid "Research goal"
 msgstr "Research goal"
 
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "Research goal of the study"
+msgstr "Research goal of the study"
+
 #: src/features/workspace/app-sidebar.tsx
 #: src/routes/_authenticated/index.tsx
 msgid "Research projects"
@@ -5171,6 +5303,10 @@ msgstr "Retry"
 #: src/features/fieldwork/proposals.tsx
 msgid "Retry {0} files"
 msgstr "Retry {0} files"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Reuse a study in this project"
+msgstr "Reuse a study in this project"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/review-dialog.tsx
@@ -5363,6 +5499,11 @@ msgstr "Search a spelling"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Search a term"
 msgstr "Search a term"
+
+#: src/features/research/attach-study-dialog.tsx
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "Search by name"
+msgstr "Search by name"
 
 #: src/routes/_authenticated/members/index.tsx
 msgid "Search by name or email"
@@ -5663,9 +5804,21 @@ msgstr "studies"
 
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
+#: src/features/workspace/app-sidebar.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Studies"
 msgstr "Studies"
 
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+#: src/routes/_authenticated/teams.tsx
+msgid "Studies of the team"
+msgstr "Studies of the team"
+
+#: src/features/research/attach-study-dialog.tsx
+msgid "Studies to attach"
+msgstr "Studies to attach"
+
+#: src/features/assistant/proposal-card.tsx
 #: src/features/synthesis/facts-panel.tsx
 msgid "Study"
 msgstr "Study"
@@ -5808,6 +5961,7 @@ msgstr "Team renamed"
 #: src/features/workspace/app-sidebar.tsx
 #: src/routes/_authenticated/index.tsx
 #: src/routes/_authenticated/members/index.tsx
+#: src/routes/_authenticated/team-studies/$teamId.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "Teams"
 msgstr "Teams"
@@ -5915,6 +6069,10 @@ msgstr "The AI answer could not be used: try again."
 #: src/features/research/study-list.tsx
 msgid "The AI cost could not be loaded."
 msgstr "The AI cost could not be loaded."
+
+#: src/features/research/study-list.tsx
+msgid "The AI cost includes studies shared with other projects: it counts in each of them."
+msgstr "The AI cost includes studies shared with other projects: it counts in each of them."
 
 #: src/features/enrichment/labels.ts
 msgid "The AI provider returned an error or took too long: some corrections may be missing, try again."
@@ -6217,6 +6375,10 @@ msgid "The statements of the insights are sent to your AI provider, with your ow
 msgstr "The statements of the insights are sent to your AI provider, with your own connection, with their theme, confidence and number of participants."
 
 #: src/routes/_authenticated/studies/$studyId.tsx
+msgid "The study, its inventory and its interviews are removed from goodresearch, and from all the projects it feeds: {others}. Nothing changes in Drive."
+msgstr "The study, its inventory and its interviews are removed from goodresearch, and from all the projects it feeds: {others}. Nothing changes in Drive."
+
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
 msgstr "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
 
@@ -6480,12 +6642,32 @@ msgid "This reformulation is already requalified."
 msgstr "This reformulation is already requalified."
 
 #: src/features/workspace/errors.ts
+msgid "This study belongs to another team."
+msgstr "This study belongs to another team."
+
+#: src/features/workspace/errors.ts
 msgid "This study does not exist or you do not have access to it."
 msgstr "This study does not exist or you do not have access to it."
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "This study feeds {others}: decisions on its facts apply in all of them."
+msgstr "This study feeds {others}: decisions on its facts apply in all of them."
+
+#: src/features/workspace/errors.ts
+msgid "This study is already in this project."
+msgstr "This study is already in this project."
+
+#: src/features/workspace/errors.ts
+msgid "This study is no longer in this project."
+msgstr "This study is no longer in this project."
 
 #: src/features/workspace/errors.ts
 msgid "This team does not exist or you do not have access to it."
 msgstr "This team does not exist or you do not have access to it."
+
+#: src/routes/_authenticated/team-studies/$teamId.tsx
+msgid "This team does not exist, or you are not in it."
+msgstr "This team does not exist, or you are not in it."
 
 #: src/routes/_authenticated/teams.tsx
 msgid "This team still has {projects}. Move them to another team first."
@@ -6494,6 +6676,10 @@ msgstr "This team still has {projects}. Move them to another team first."
 #: src/features/workspace/errors.ts
 msgid "This team still has projects. Move them to another team first."
 msgstr "This team still has projects. Move them to another team first."
+
+#: src/features/workspace/errors.ts
+msgid "This team still has studies, including some outside any project."
+msgstr "This team still has studies, including some outside any project."
 
 #: src/features/workspace/errors.ts
 msgid "This term is no longer in the lexicon."
@@ -6731,7 +6917,7 @@ msgstr "Update in Drive"
 msgid "Update in Google Slides"
 msgstr "Update in Google Slides"
 
-#: src/features/research/study-list.tsx
+#: src/features/research/study-card.tsx
 msgid "Updated {updated}"
 msgstr "Updated {updated}"
 
@@ -6863,6 +7049,10 @@ msgstr "View"
 msgid "Wait a minute and try again."
 msgstr "Wait a minute and try again."
 
+#: src/features/workspace/errors.ts
+msgid "Wait for the insights or recommendations being found in this project to finish."
+msgstr "Wait for the insights or recommendations being found in this project to finish."
+
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 msgid "Waiting"
@@ -6922,6 +7112,10 @@ msgstr "What the AI proposes stays a proposal until you accept it."
 #: src/features/research/study-settings.tsx
 msgid "What the Analysis phase reads to find verbatims and facts."
 msgstr "What the Analysis phase reads to find verbatims and facts."
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "What this study wants to find out. Its AI steps read it."
+msgstr "What this study wants to find out. Its AI steps read it."
 
 #: src/features/quality/interview-view.tsx
 #: src/features/quality/remarks-list.tsx

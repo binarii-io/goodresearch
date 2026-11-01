@@ -48,6 +48,7 @@ type Field = 'statement' | 'description' | 'counterEvidence' | 'minorityView'
 
 /** FR-014: the facts grouped by participant, each with its role and its state now. */
 function Links({
+  projectId,
   insight,
   onRole,
   onUnlink,
@@ -57,6 +58,7 @@ function Links({
   insight: InsightDetail
   onRole: (link: InsightLink, role: 'support' | 'counter') => void
   onUnlink: (link: InsightLink) => void
+  projectId: string
   /** A fact still to decide, decided from here (spec 013, update). */
   onDecideFact: (link: InsightLink, decision: 'accept' | 'reject') => void
   busy: boolean
@@ -106,6 +108,7 @@ function Links({
                         sessionId: l.sessionId,
                         participant: l.participant,
                       }}
+                      projectId={projectId}
                     />
                   ) : (
                     <span />
@@ -473,6 +476,7 @@ export function InsightPanel({
               />
             ) : null}
             <Links
+              projectId={projectId}
               insight={i}
               busy={busy}
               onRole={(l, role) =>

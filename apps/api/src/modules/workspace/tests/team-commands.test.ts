@@ -10,6 +10,7 @@ const member = { id: 'member-1', role: 'member' as const }
 describe('team commands', () => {
   let workspace: InMemoryWorkspace
   let projectCounts: Record<string, number>
+  let studyCounts: Record<string, number>
   const clock = fixedClock(new Date('2026-10-24T10:00:00Z'))
 
   beforeEach(() => {
@@ -19,6 +20,7 @@ describe('team commands', () => {
     workspace.addTeam({ id: 'team-a', name: 'Research' })
     workspace.addTeam({ id: 'team-b', name: 'Growth' })
     projectCounts = {}
+    studyCounts = {}
   })
 
   const renameTeam = () => makeRenameTeam({ uow: workspace.uow, clock })
@@ -26,7 +28,10 @@ describe('team commands', () => {
     makeDeleteTeam({
       uow: workspace.uow,
       clock,
-      projects: { countByTeam: async (id) => projectCounts[id] ?? 0 },
+      projects: {
+        countByTeam: async (id) => projectCounts[id] ?? 0,
+        countStudiesByTeam: async (id) => studyCounts[id] ?? 0,
+      },
     })
 
   it('renames a team and refuses a name already taken', async () => {
@@ -47,6 +52,14 @@ describe('team commands', () => {
     ).toEqual({
       ok: false,
       error: 'VERSION_CONFLICT',
+    })
+  })
+
+  it('refuses to delete a team that still has studies, even without a project (spec 019)', async () => {
+    studyCounts['team-a'] = 1
+    expect(await deleteTeam()({ actor: admin, teamId: 'team-a' })).toMatchObject({
+      ok: false,
+      error: 'TEAM_HAS_STUDIES',
     })
   })
 

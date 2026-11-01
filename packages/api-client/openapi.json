@@ -933,6 +933,12 @@
           "studyName": {
             "type": "string"
           },
+          "otherProjects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "guide": {
             "type": "object",
             "properties": {
@@ -1096,7 +1102,10 @@
               "report_guide_progress",
               "report_project_progress",
               "load_skill",
-              "check_guide_questions"
+              "check_guide_questions",
+              "attach_study",
+              "detach_study",
+              "update_study_goal"
             ]
           },
           "state": {
@@ -4608,6 +4617,12 @@
               "VERSION_CONFLICT",
               "TEAM_NAME_TAKEN",
               "TEAM_HAS_PROJECTS",
+              "TEAM_HAS_STUDIES",
+              "DIFFERENT_TEAM",
+              "ALREADY_LINKED",
+              "NOT_LINKED",
+              "SYNTHESIS_RUNNING",
+              "STUDY_SHARED",
               "LAST_ADMIN",
               "ACCOUNT_DELETED",
               "CONFIRMATION_MISMATCH",
@@ -8817,6 +8832,149 @@
           "studies"
         ]
       },
+      "TeamStudiesOverviewInput": {
+        "type": "object",
+        "properties": {
+          "studies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "access": {
+                  "type": "boolean"
+                },
+                "counts": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "validated": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "toValidate": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "excluded": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "facts": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "factsToDecide": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "validated",
+                        "toValidate",
+                        "excluded",
+                        "facts",
+                        "factsToDecide"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "access",
+                "counts"
+              ]
+            }
+          }
+        },
+        "required": [
+          "studies"
+        ]
+      },
+      "TeamStudiesCostsInput": {
+        "type": "object",
+        "properties": {
+          "studies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "cost": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "analysis": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "lexicon": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "cleaning": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "quality": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "facts": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "total",
+                    "analysis",
+                    "lexicon",
+                    "cleaning",
+                    "quality",
+                    "facts"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "cost"
+              ]
+            }
+          }
+        },
+        "required": [
+          "studies"
+        ]
+      },
       "PublicationInput": {
         "type": "object",
         "properties": {
@@ -9662,6 +9820,26 @@
               "null"
             ]
           },
+          "alsoIn": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
@@ -9674,6 +9852,7 @@
           "type",
           "hasFolder",
           "folderName",
+          "alsoIn",
           "updatedAt"
         ]
       },
@@ -9696,7 +9875,27 @@
               "usability-test"
             ]
           },
-          "project": {
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          },
+          "team": {
             "type": "object",
             "properties": {
               "id": {
@@ -9712,6 +9911,9 @@
               "id",
               "name"
             ]
+          },
+          "goal": {
+            "type": "string"
           },
           "anonymised": {
             "type": "boolean"
@@ -9743,11 +9945,117 @@
           "id",
           "name",
           "type",
-          "project",
+          "projects",
+          "team",
+          "goal",
           "anonymised",
           "textAnalysed",
           "createdAt",
           "updatedAt",
+          "version"
+        ]
+      },
+      "TeamStudyInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "interviews",
+              "survey",
+              "usability-test"
+            ]
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          },
+          "hasFolder": {
+            "type": "boolean"
+          },
+          "folderName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canAttach": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "projects",
+          "hasFolder",
+          "folderName",
+          "canAttach",
+          "updatedAt"
+        ]
+      },
+      "TeamStudiesInput": {
+        "type": "object",
+        "properties": {
+          "studies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamStudyInput"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "studies",
+          "hasMore"
+        ]
+      },
+      "UpdateStudyGoalInput": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "goal",
           "version"
         ]
       },
@@ -13090,6 +13398,12 @@
           "studyName": {
             "type": "string"
           },
+          "otherProjects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "guide": {
             "type": "object",
             "properties": {
@@ -13259,7 +13573,10 @@
               "report_guide_progress",
               "report_project_progress",
               "load_skill",
-              "check_guide_questions"
+              "check_guide_questions",
+              "attach_study",
+              "detach_study",
+              "update_study_goal"
             ]
           },
           "state": {
@@ -16877,6 +17194,12 @@
               "VERSION_CONFLICT",
               "TEAM_NAME_TAKEN",
               "TEAM_HAS_PROJECTS",
+              "TEAM_HAS_STUDIES",
+              "DIFFERENT_TEAM",
+              "ALREADY_LINKED",
+              "NOT_LINKED",
+              "SYNTHESIS_RUNNING",
+              "STUDY_SHARED",
               "LAST_ADMIN",
               "ACCOUNT_DELETED",
               "CONFIRMATION_MISMATCH",
@@ -21214,6 +21537,155 @@
         ],
         "additionalProperties": false
       },
+      "TeamStudiesOverview": {
+        "type": "object",
+        "properties": {
+          "studies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "access": {
+                  "type": "boolean"
+                },
+                "counts": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "validated": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "toValidate": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "excluded": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "facts": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "factsToDecide": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "validated",
+                        "toValidate",
+                        "excluded",
+                        "facts",
+                        "factsToDecide"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "access",
+                "counts"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "studies"
+        ],
+        "additionalProperties": false
+      },
+      "TeamStudiesCosts": {
+        "type": "object",
+        "properties": {
+          "studies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "cost": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "analysis": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "lexicon": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "cleaning": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "quality": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "facts": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "total",
+                    "analysis",
+                    "lexicon",
+                    "cleaning",
+                    "quality",
+                    "facts"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "cost"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "studies"
+        ],
+        "additionalProperties": false
+      },
       "Publication": {
         "type": "object",
         "properties": {
@@ -22091,6 +22563,27 @@
               "null"
             ]
           },
+          "alsoIn": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
@@ -22103,6 +22596,7 @@
           "type",
           "hasFolder",
           "folderName",
+          "alsoIn",
           "updatedAt"
         ],
         "additionalProperties": false
@@ -22126,7 +22620,28 @@
               "usability-test"
             ]
           },
-          "project": {
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "team": {
             "type": "object",
             "properties": {
               "id": {
@@ -22143,6 +22658,9 @@
               "name"
             ],
             "additionalProperties": false
+          },
+          "goal": {
+            "type": "string"
           },
           "anonymised": {
             "type": "boolean"
@@ -22174,11 +22692,121 @@
           "id",
           "name",
           "type",
-          "project",
+          "projects",
+          "team",
+          "goal",
           "anonymised",
           "textAnalysed",
           "createdAt",
           "updatedAt",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "TeamStudy": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "interviews",
+              "survey",
+              "usability-test"
+            ]
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "hasFolder": {
+            "type": "boolean"
+          },
+          "folderName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canAttach": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "projects",
+          "hasFolder",
+          "folderName",
+          "canAttach",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "TeamStudies": {
+        "type": "object",
+        "properties": {
+          "studies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamStudy"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "studies",
+          "hasMore"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateStudyGoal": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "goal",
           "version"
         ],
         "additionalProperties": false
@@ -25400,6 +26028,158 @@
         "tags": [
           "studies"
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/studies/{studyId}/link": {
+      "post": {
+        "operationId": "attachStudy",
+        "tags": [
+          "studies"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "detachStudy",
+        "tags": [
+          "studies"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/teams/{teamId}/studies": {
+      "get": {
+        "operationId": "listTeamStudies",
+        "tags": [
+          "studies"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "notInProject",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "teamId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamStudies"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/goal": {
+      "put": {
+        "operationId": "updateStudyGoal",
+        "tags": [
+          "studies"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudyGoalInput"
+              }
+            }
+          }
+        },
         "parameters": [
           {
             "schema": {
@@ -31228,6 +32008,84 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProjectOverviewCosts"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamId}/studies/overview": {
+      "get": {
+        "operationId": "getTeamStudiesOverview",
+        "tags": [
+          "studies"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "teamId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamStudiesOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamId}/studies/overview/costs": {
+      "get": {
+        "operationId": "getTeamStudiesCosts",
+        "tags": [
+          "studies"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "teamId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamStudiesCosts"
                 }
               }
             }

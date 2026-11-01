@@ -2,7 +2,11 @@ import { type Clock, err, ok, type Result } from '@goodresearch/shared'
 import type { Actor, TeamId } from '../../domain/actor.ts'
 import type { ProjectCounter, WorkspaceUnitOfWork } from '../ports.ts'
 
-export type DeleteTeamError = 'FORBIDDEN' | 'TEAM_NOT_FOUND' | 'TEAM_HAS_PROJECTS'
+export type DeleteTeamError =
+  | 'FORBIDDEN'
+  | 'TEAM_NOT_FOUND'
+  | 'TEAM_HAS_PROJECTS'
+  | 'TEAM_HAS_STUDIES'
 
 /**
  * FR-022: a team with projects cannot be deleted; an empty team is deleted with its memberships,
@@ -18,6 +22,8 @@ export const makeDeleteTeam =
       if (!team) return err('TEAM_NOT_FOUND')
       const projectCount = await deps.projects.countByTeam(team.id)
       if (projectCount > 0) return err('TEAM_HAS_PROJECTS', { projectCount })
+      // Spec 019: a study can outlive its projects, and still belongs to its team.
+      if ((await deps.projects.countStudiesByTeam(team.id)) > 0) return err('TEAM_HAS_STUDIES')
       const now = deps.clock.now()
       for (const member of await accounts.findByTeam(team.id)) {
         member.removeTeam({ id: team.id, name: team.name }, c.actor.id, now)

@@ -26,7 +26,7 @@ import { Folder } from '@goodresearch/ui/components/team-folder'
 import { plural } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { errorMessage } from '../../features/workspace/errors.ts'
 import { CreateTeamForm } from '../../features/workspace/first-team.tsx'
@@ -113,6 +113,9 @@ function TeamCard({ team, admin, tint }: { team: TeamDetail; admin: boolean; tin
           team.name
         )}
       </h3>
+      <Link className="text-sm underline" to="/team-studies/$teamId" params={{ teamId: team.id }}>
+        {t`Studies of the team`}
+      </Link>
       <div>
         <h4 className="text-sm font-medium">{t`Members`}</h4>
         {team.members.length ? (

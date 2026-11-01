@@ -18,8 +18,11 @@ import {
   StudyParams,
   StudySettings,
   StudySummary,
+  TeamStudies,
+  TeamStudiesQuery,
   UpdatePlannedInterview,
   UpdateProjectGoal,
+  UpdateStudyGoal,
   VersionAck,
 } from '@goodresearch/contracts'
 import type { FastifyInstance, preHandlerAsyncHookHandler } from 'fastify'
@@ -239,6 +242,82 @@ export const registerResearchRoutes = (
     async (request, res) =>
       (await h.studyQueries.getStudy(request.account.id, request.params.studyId)) ??
       sendError(res, 'STUDY_NOT_FOUND'),
+  )
+
+  // Spec 019: a study in several projects, or none.
+  api.post(
+    '/api/projects/:projectId/studies/:studyId/link',
+    {
+      ...secured,
+      schema: {
+        operationId: 'attachStudy',
+        tags: studyTags,
+        params: StudyParams.extend(ProjectParams.shape),
+      },
+    },
+    async (request, res) =>
+      reply(res, await h.studies.attachStudy({ actor: request.account, ...request.params }), () =>
+        res.status(204).send(),
+      ),
+  )
+
+  api.delete(
+    '/api/projects/:projectId/studies/:studyId/link',
+    {
+      ...secured,
+      schema: {
+        operationId: 'detachStudy',
+        tags: studyTags,
+        params: StudyParams.extend(ProjectParams.shape),
+      },
+    },
+    async (request, res) =>
+      reply(res, await h.studies.detachStudy({ actor: request.account, ...request.params }), () =>
+        res.status(204).send(),
+      ),
+  )
+
+  api.get(
+    '/api/teams/:teamId/studies',
+    {
+      ...secured,
+      schema: {
+        operationId: 'listTeamStudies',
+        tags: studyTags,
+        params: z.object({ teamId: z.string() }),
+        querystring: TeamStudiesQuery,
+        response: { 200: TeamStudies },
+      },
+    },
+    async (request, res) =>
+      (await h.studyQueries.listTeamStudies(
+        request.account.id,
+        request.params.teamId,
+        request.query,
+      )) ?? sendError(res, 'TEAM_NOT_FOUND'),
+  )
+
+  api.put(
+    '/api/studies/:studyId/goal',
+    {
+      ...secured,
+      schema: {
+        operationId: 'updateStudyGoal',
+        tags: studyTags,
+        params: StudyParams,
+        body: UpdateStudyGoal,
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.studies.updateStudyGoal({
+          actor: request.account,
+          studyId: request.params.studyId,
+          ...request.body,
+        }),
+        (value) => res.send(value),
+      ),
   )
 
   api.put(

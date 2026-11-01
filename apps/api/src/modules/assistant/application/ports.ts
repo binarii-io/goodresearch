@@ -52,6 +52,7 @@ export type ProposalPreview = {
   readonly previousGoal?: string
   readonly phase?: 'preparation' | 'fieldwork' | 'enrichment' | 'analysis'
   readonly studyName?: string
+  readonly otherProjects?: string[]
   readonly guide?: GuideDraft
   readonly replacesGuide?: boolean
   readonly progress?: {
@@ -153,9 +154,23 @@ export interface ResearchReads {
     name: string
     type: string
     version: number
-    project: { id: string; name: string }
+    projects: readonly { id: string; name: string }[]
+    goal: string
   } | null>
   teamsOf(accountId: string): Promise<{ id: string; name: string }[]>
+  /** Spec 019: the team's studies not in this project; names and projects only. */
+  attachableStudies(
+    accountId: string,
+    teamId: string,
+    projectId: string,
+  ): Promise<{ id: string; name: string; projects: readonly { name: string }[] }[]>
+  studyInTeam(accountId: string, studyId: string, teamId: string): Promise<boolean>
+  /** The study's folder name, for people with access to it. */
+  studyFolder(accountId: string, studyId: string): Promise<string | null>
+  /** The person's own access to the study's folder (spec 002 FR-010a). */
+  canActOnStudy(accountId: string, studyId: string): Promise<boolean>
+  /** An insight or recommendation run is in progress on the project. */
+  projectRunning(projectId: string): Promise<boolean>
   /** Most recently updated first. */
   listProjects(accountId: string): Promise<{ id: string; name: string; team: { name: string } }[]>
   /** `null` without access to the study (folder included) or for another type than interviews. */
@@ -187,6 +202,22 @@ export interface ResearchActions {
     projectId: string
     name: string
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
+  attachStudy(c: {
+    actor: Actor
+    projectId: string
+    studyId: string
+  }): Promise<{ ok: true } | { ok: false; error: string }>
+  detachStudy(c: {
+    actor: Actor
+    projectId: string
+    studyId: string
+  }): Promise<{ ok: true } | { ok: false; error: string }>
+  updateStudyGoal(c: {
+    actor: Actor
+    studyId: string
+    goal: string
+    version: number
+  }): Promise<{ ok: true } | { ok: false; error: string }>
   renameStudy(c: {
     actor: Actor
     studyId: string

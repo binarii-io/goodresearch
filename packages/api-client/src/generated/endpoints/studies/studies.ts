@@ -26,10 +26,17 @@ import type {
 import type {
   CreateStudyInput,
   Created,
+  GetTeamStudiesCostsParams,
+  GetTeamStudiesOverviewParams,
+  ListTeamStudiesParams,
   RenameStudyInput,
   StudyDetail,
   StudySettingsInput,
   StudySummary,
+  TeamStudies,
+  TeamStudiesCosts,
+  TeamStudiesOverview,
+  UpdateStudyGoalInput,
   VersionAck
 } from '../../model';
 
@@ -396,6 +403,335 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getDeleteStudyMutationOptions(options), queryClient);
     }
+    export const getAttachStudyUrl = (projectId: string,
+    studyId: string,) => {
+
+
+
+
+  return `/api/projects/${projectId}/studies/${studyId}/link`
+}
+
+export const attachStudy = async (projectId: string,
+    studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getAttachStudyUrl(projectId,studyId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAttachStudyMutationKey = () => ['attachStudy'] as const;
+
+export const getAttachStudyMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachStudy>>, TError,AttachStudyMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof attachStudy>>, TError,AttachStudyMutationVariables, TContext> => {
+
+const mutationKey = getAttachStudyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof attachStudy>>, AttachStudyMutationVariables> = (props) => {
+          const {projectId,studyId} = props ?? {};
+
+          return  attachStudy(projectId,studyId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AttachStudyMutationResult = NonNullable<Awaited<ReturnType<typeof attachStudy>>>
+
+    export type AttachStudyMutationError = unknown
+    export type AttachStudyMutationVariables = {projectId: string;studyId: string}
+
+    export const useAttachStudy = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachStudy>>, TError,AttachStudyMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof attachStudy>>,
+        TError,
+        AttachStudyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAttachStudyMutationOptions(options), queryClient);
+    }
+    export const getDetachStudyUrl = (projectId: string,
+    studyId: string,) => {
+
+
+
+
+  return `/api/projects/${projectId}/studies/${studyId}/link`
+}
+
+export const detachStudy = async (projectId: string,
+    studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getDetachStudyUrl(projectId,studyId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDetachStudyMutationKey = () => ['detachStudy'] as const;
+
+export const getDetachStudyMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof detachStudy>>, TError,DetachStudyMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof detachStudy>>, TError,DetachStudyMutationVariables, TContext> => {
+
+const mutationKey = getDetachStudyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof detachStudy>>, DetachStudyMutationVariables> = (props) => {
+          const {projectId,studyId} = props ?? {};
+
+          return  detachStudy(projectId,studyId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DetachStudyMutationResult = NonNullable<Awaited<ReturnType<typeof detachStudy>>>
+
+    export type DetachStudyMutationError = unknown
+    export type DetachStudyMutationVariables = {projectId: string;studyId: string}
+
+    export const useDetachStudy = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof detachStudy>>, TError,DetachStudyMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof detachStudy>>,
+        TError,
+        DetachStudyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDetachStudyMutationOptions(options), queryClient);
+    }
+    export const getListTeamStudiesUrl = (teamId: string,
+    params?: ListTeamStudiesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/teams/${teamId}/studies?${stringifiedParams}` : `/api/teams/${teamId}/studies`
+}
+
+export const listTeamStudies = async (teamId: string,
+    params?: ListTeamStudiesParams, options?: Parameters<typeof apiFetch>[1]): Promise<TeamStudies> => {
+
+  return apiFetch<TeamStudies>(getListTeamStudiesUrl(teamId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTeamStudiesQueryKey = (teamId: string,
+    params?: ListTeamStudiesParams,) => {
+    return [
+    `/api/teams/${teamId}/studies`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListTeamStudiesQueryOptions = <TData = Awaited<ReturnType<typeof listTeamStudies>>, TError = unknown>(teamId: string,
+    params?: ListTeamStudiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamStudies>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTeamStudiesQueryKey(teamId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTeamStudies>>> = ({ signal }) => listTeamStudies(teamId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: teamId !== null && teamId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTeamStudies>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListTeamStudiesQueryResult = NonNullable<Awaited<ReturnType<typeof listTeamStudies>>>
+export type ListTeamStudiesQueryError = unknown
+
+
+export function useListTeamStudies<TData = Awaited<ReturnType<typeof listTeamStudies>>, TError = unknown>(
+ teamId: string,
+    params: undefined |  ListTeamStudiesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamStudies>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTeamStudies>>,
+          TError,
+          Awaited<ReturnType<typeof listTeamStudies>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTeamStudies<TData = Awaited<ReturnType<typeof listTeamStudies>>, TError = unknown>(
+ teamId: string,
+    params?: ListTeamStudiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamStudies>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTeamStudies>>,
+          TError,
+          Awaited<ReturnType<typeof listTeamStudies>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTeamStudies<TData = Awaited<ReturnType<typeof listTeamStudies>>, TError = unknown>(
+ teamId: string,
+    params?: ListTeamStudiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamStudies>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListTeamStudies<TData = Awaited<ReturnType<typeof listTeamStudies>>, TError = unknown>(
+ teamId: string,
+    params?: ListTeamStudiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamStudies>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListTeamStudiesQueryOptions(teamId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getUpdateStudyGoalUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/goal`
+}
+
+export const updateStudyGoal = async (studyId: string,
+    updateStudyGoalInput: UpdateStudyGoalInput, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getUpdateStudyGoalUrl(studyId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateStudyGoalInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateStudyGoalMutationKey = () => ['updateStudyGoal'] as const;
+
+export const getUpdateStudyGoalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudyGoal>>, TError,UpdateStudyGoalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStudyGoal>>, TError,UpdateStudyGoalMutationVariables, TContext> => {
+
+const mutationKey = getUpdateStudyGoalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStudyGoal>>, UpdateStudyGoalMutationVariables> = (props) => {
+          const {studyId,data} = props ?? {};
+
+          return  updateStudyGoal(studyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStudyGoalMutationResult = NonNullable<Awaited<ReturnType<typeof updateStudyGoal>>>
+    export type UpdateStudyGoalMutationBody = UpdateStudyGoalInput
+    export type UpdateStudyGoalMutationError = unknown
+    export type UpdateStudyGoalMutationVariables = {studyId: string;data: UpdateStudyGoalInput}
+
+    export const useUpdateStudyGoal = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStudyGoal>>, TError,UpdateStudyGoalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateStudyGoal>>,
+        TError,
+        UpdateStudyGoalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateStudyGoalMutationOptions(options), queryClient);
+    }
     export const getRenameStudyUrl = (studyId: string,) => {
 
 
@@ -560,3 +896,221 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateStudySettingsMutationOptions(options), queryClient);
     }
+    export const getGetTeamStudiesOverviewUrl = (teamId: string,
+    params?: GetTeamStudiesOverviewParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/teams/${teamId}/studies/overview?${stringifiedParams}` : `/api/teams/${teamId}/studies/overview`
+}
+
+export const getTeamStudiesOverview = async (teamId: string,
+    params?: GetTeamStudiesOverviewParams, options?: Parameters<typeof apiFetch>[1]): Promise<TeamStudiesOverview> => {
+
+  return apiFetch<TeamStudiesOverview>(getGetTeamStudiesOverviewUrl(teamId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTeamStudiesOverviewQueryKey = (teamId: string,
+    params?: GetTeamStudiesOverviewParams,) => {
+    return [
+    `/api/teams/${teamId}/studies/overview`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTeamStudiesOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError = unknown>(teamId: string,
+    params?: GetTeamStudiesOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTeamStudiesOverviewQueryKey(teamId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTeamStudiesOverview>>> = ({ signal }) => getTeamStudiesOverview(teamId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: teamId !== null && teamId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTeamStudiesOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getTeamStudiesOverview>>>
+export type GetTeamStudiesOverviewQueryError = unknown
+
+
+export function useGetTeamStudiesOverview<TData = Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError = unknown>(
+ teamId: string,
+    params: undefined |  GetTeamStudiesOverviewParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeamStudiesOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getTeamStudiesOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeamStudiesOverview<TData = Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError = unknown>(
+ teamId: string,
+    params?: GetTeamStudiesOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeamStudiesOverview>>,
+          TError,
+          Awaited<ReturnType<typeof getTeamStudiesOverview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeamStudiesOverview<TData = Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError = unknown>(
+ teamId: string,
+    params?: GetTeamStudiesOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTeamStudiesOverview<TData = Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError = unknown>(
+ teamId: string,
+    params?: GetTeamStudiesOverviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesOverview>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTeamStudiesOverviewQueryOptions(teamId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getGetTeamStudiesCostsUrl = (teamId: string,
+    params?: GetTeamStudiesCostsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/teams/${teamId}/studies/overview/costs?${stringifiedParams}` : `/api/teams/${teamId}/studies/overview/costs`
+}
+
+export const getTeamStudiesCosts = async (teamId: string,
+    params?: GetTeamStudiesCostsParams, options?: Parameters<typeof apiFetch>[1]): Promise<TeamStudiesCosts> => {
+
+  return apiFetch<TeamStudiesCosts>(getGetTeamStudiesCostsUrl(teamId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTeamStudiesCostsQueryKey = (teamId: string,
+    params?: GetTeamStudiesCostsParams,) => {
+    return [
+    `/api/teams/${teamId}/studies/overview/costs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTeamStudiesCostsQueryOptions = <TData = Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError = unknown>(teamId: string,
+    params?: GetTeamStudiesCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTeamStudiesCostsQueryKey(teamId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTeamStudiesCosts>>> = ({ signal }) => getTeamStudiesCosts(teamId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: teamId !== null && teamId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTeamStudiesCostsQueryResult = NonNullable<Awaited<ReturnType<typeof getTeamStudiesCosts>>>
+export type GetTeamStudiesCostsQueryError = unknown
+
+
+export function useGetTeamStudiesCosts<TData = Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError = unknown>(
+ teamId: string,
+    params: undefined |  GetTeamStudiesCostsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeamStudiesCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getTeamStudiesCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeamStudiesCosts<TData = Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError = unknown>(
+ teamId: string,
+    params?: GetTeamStudiesCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeamStudiesCosts>>,
+          TError,
+          Awaited<ReturnType<typeof getTeamStudiesCosts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeamStudiesCosts<TData = Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError = unknown>(
+ teamId: string,
+    params?: GetTeamStudiesCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTeamStudiesCosts<TData = Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError = unknown>(
+ teamId: string,
+    params?: GetTeamStudiesCostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeamStudiesCosts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTeamStudiesCostsQueryOptions(teamId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+

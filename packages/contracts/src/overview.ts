@@ -73,3 +73,12 @@ export const ProjectOverviewCosts = z
     ),
   })
   .meta({ id: 'ProjectOverviewCosts' })
+
+/** Spec 019: the same counts and costs per study, on the team's Studies page. */
+export const TeamStudiesOverview = z
+  .object({ studies: ProjectOverview.shape.studies })
+  .meta({ id: 'TeamStudiesOverview' })
+
+export const TeamStudiesCosts = z
+  .object({ studies: ProjectOverviewCosts.shape.studies })
+  .meta({ id: 'TeamStudiesCosts' })

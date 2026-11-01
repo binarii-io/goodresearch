@@ -1,4 +1,13 @@
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+} from 'drizzle-orm/pg-core'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 
 export const researchProjects = pgTable(
@@ -22,9 +31,10 @@ export const researchStudies = pgTable(
   'research_studies',
   {
     id: text('id').primaryKey(),
-    projectId: text('project_id')
-      .notNull()
-      .references(() => researchProjects.id, { onDelete: 'cascade' }),
+    /** Spec 019: the owner; the key to the workspace's teams is added in SQL, as for projects. */
+    teamId: text('team_id').notNull(),
+    /** Spec 019: read by the AI steps inside the study. */
+    goal: text('goal').notNull().default(''),
     name: text('name').notNull(),
     type: text('type').notNull(),
     /** Spec 009: names and titles use pseudonyms. */
@@ -36,7 +46,25 @@ export const researchStudies = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
     version: integer('version').notNull().default(0),
   },
-  (t) => [index('research_studies_project_updated_idx').on(t.projectId, t.updatedAt)],
+  (t) => [index('research_studies_team_updated_idx').on(t.teamId, t.updatedAt)],
+)
+
+/** Spec 019: the projects a study feeds. Deleting a project takes its links, not its studies. */
+export const researchStudyProjects = pgTable(
+  'research_study_projects',
+  {
+    studyId: text('study_id')
+      .notNull()
+      .references(() => researchStudies.id, { onDelete: 'cascade' }),
+    projectId: text('project_id')
+      .notNull()
+      .references(() => researchProjects.id, { onDelete: 'cascade' }),
+    linkedAt: timestamp('linked_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.studyId, t.projectId] }),
+    index('research_study_projects_project_idx').on(t.projectId),
+  ],
 )
 
 /** One interview guide per study (spec 006); the content is checked by the domain. */

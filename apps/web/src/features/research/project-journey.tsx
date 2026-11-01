@@ -38,7 +38,11 @@ export function ProjectJourney({ projectId }: { projectId: string }) {
   /** One study opens at the phase; with several, or none, the choice is in the Studies section. */
   const studyLink = (phase: 'fieldwork' | 'analysis') =>
     only ? (
-      <Link to="/studies/$studyId" params={{ studyId: only.id }} search={{ phase }} />
+      <Link
+        to="/studies/$studyId"
+        params={{ studyId: only.id }}
+        search={{ phase, from: projectId }}
+      />
     ) : (
       // Focus follows, so a keyboard reaches the Studies section in one activation (SC-002).
       <Link

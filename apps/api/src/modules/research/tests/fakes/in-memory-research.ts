@@ -1,5 +1,6 @@
 import { type Clock, ConcurrencyError } from '@goodresearch/shared'
 import type {
+  ProjectRunGate,
   ResearchCommandDeps,
   StudyActionGate,
   TeamDirectory,
@@ -53,6 +54,10 @@ export class InMemoryResearch {
       const study = this.studies.get(id)
       return study ? Study.fromPersistence(study.snapshot()) : null
     },
+    findByProject: async (projectId) =>
+      [...this.studies.values()]
+        .filter((s) => s.projectIds.includes(projectId))
+        .map((s) => Study.fromPersistence(s.snapshot())),
     save: async (study) => {
       const stored = this.studies.get(study.id)
       if (stored && stored.version !== study.version) throw new ConcurrencyError()
@@ -116,6 +121,12 @@ export class InMemoryResearch {
     canAct: async (accountId, studyId) => !this.folderAccessDenied.has(`${accountId}:${studyId}`),
   }
 
+  /** Projects with a synthesis run in progress (spec 019). */
+  readonly runningProjects = new Set<string>()
+  readonly runs: ProjectRunGate = {
+    isRunning: async (projectId) => this.runningProjects.has(projectId),
+  }
+
   async addProject(teamId: string): Promise<string> {
     const id = `project-${++this.#nextProject}`
     const created = Project.create({
@@ -133,7 +144,7 @@ export class InMemoryResearch {
 
   deps(clock: Clock): ResearchCommandDeps {
     return {
-      uow: (work) => work({ projects: this.projectRepository }),
+      uow: (work) => work({ projects: this.projectRepository, studies: this.studyRepository }),
       clock,
       teams: this.#directory,
     }

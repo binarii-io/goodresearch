@@ -38,6 +38,12 @@ export type ProjectTakeaways = {
 export type ReportingSources = {
   /** The project's studies; null without access to the project. */
   studies(accountId: string, projectId: string): Promise<readonly ReportedStudy[] | null>
+  /** Spec 019: the studies on a team's page; null without access to the team. */
+  teamStudies(
+    accountId: string,
+    teamId: string,
+    filter: { q?: string | undefined },
+  ): Promise<readonly ReportedStudy[] | null>
   studyCounts(studyId: string): Promise<StudyCounts>
   studyCostRefs(studyId: string): Promise<StudyCostRefs>
   insightCounts(projectId: string): Promise<readonly StatusCount[]>

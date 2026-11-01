@@ -9,6 +9,7 @@ A journey is defined and delivered on its own: one journey, one pull request, on
 | # | Journey | Status |
 |---|---|---|
 | 1 | [Create a research project](01-create-project.md) | Built by [spec 018](../../specs/018-agent-create-project/spec.md) |
+| 2 | [Reuse a study in another project](02-attach-study.md) | Built by [spec 019](../../specs/019-attach-study/spec.md) |
 
 ## How a journey is written
 

@@ -59,12 +59,7 @@ export const makePreparationCommands = (
     if (!study) return err('STUDY_NOT_FOUND')
     // The team first: outside it, a study's existence and type are not revealed (PR #6 review).
     const access = await deps.teams.getAccessContext(actor.id)
-    const project = await deps.uow(({ projects }) => projects.findById(study.projectId))
-    if (
-      !access ||
-      !project ||
-      (access.role !== 'admin' && !access.teamIds.includes(project.teamId))
-    )
+    if (!access || (access.role !== 'admin' && !access.teamIds.includes(study.teamId)))
       return err('STUDY_NOT_FOUND')
     // Only interview studies are prepared with a guide and a schedule (spec 006 edge cases).
     if (study.type !== 'interviews') return err('NOT_AN_INTERVIEW_STUDY')

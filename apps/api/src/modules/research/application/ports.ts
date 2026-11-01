@@ -1,5 +1,6 @@
 import type { Clock } from '@goodresearch/shared'
 import type { ProjectRepository } from '../domain/project.repository.ts'
+import type { StudyRepository } from '../domain/study.repository.ts'
 
 /** Access rules come from the workspace module's public API (wired in the composition root). */
 export type AccessContext = {
@@ -12,7 +13,10 @@ export type TeamDirectory = {
   teamExists(teamId: string): Promise<boolean>
 }
 
-export type ResearchRepositories = { readonly projects: ProjectRepository }
+export type ResearchRepositories = {
+  readonly projects: ProjectRepository
+  readonly studies: StudyRepository
+}
 
 export type ResearchUnitOfWork = <T>(
   work: (repositories: ResearchRepositories) => Promise<T>,
@@ -22,6 +26,11 @@ export type ResearchCommandDeps = {
   readonly uow: ResearchUnitOfWork
   readonly clock: Clock
   readonly teams: TeamDirectory
+}
+
+export type ProjectRunGate = {
+  /** Spec 019: an insight or recommendation run is not finished on this project. */
+  isRunning(projectId: string): Promise<boolean>
 }
 
 /**

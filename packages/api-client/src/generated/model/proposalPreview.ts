@@ -18,6 +18,7 @@ export interface ProposalPreview {
   previousGoal?: string;
   phase?: ProposalPreviewPhase;
   studyName?: string;
+  otherProjects?: string[];
   guide?: ProposalPreviewGuide;
   replacesGuide?: boolean;
   progress?: GuideProgress;

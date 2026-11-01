@@ -23,12 +23,14 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { type FormEvent, useId, useState } from 'react'
 import { errorMessage } from '../workspace/errors.ts'
-import { useFormatDate } from '../workspace/format.ts'
+import { AttachStudyDialog } from './attach-study-dialog.tsx'
 import { CostBreakdown } from './cost-breakdown.tsx'
+import { DetachStudyDialog } from './detach-study-dialog.tsx'
 import { useProjectCosts, useProjectOverview } from './project-journey.tsx'
+import { StudyCard } from './study-card.tsx'
 
 /** Studies of a project, on the project overview (spec 002 FR-004). */
-export function StudyList({ projectId }: { projectId: string }) {
+export function StudyList({ projectId, teamId }: { projectId: string; teamId: string }) {
   const { t } = useLingui()
   const studies = useListStudies(projectId)
   const overview = useProjectOverview(projectId)
@@ -36,7 +38,6 @@ export function StudyList({ projectId }: { projectId: string }) {
   const costs = projectCosts.data
   const cost = costs?.cost
   const hidden = overview.data?.hiddenStudies ?? 0
-  const formatDate = useFormatDate()
 
   return (
     <section className="grid gap-3" aria-labelledby="studies-heading">
@@ -70,9 +71,13 @@ export function StudyList({ projectId }: { projectId: string }) {
               </Button>
             </span>
           ) : null}
+          <AttachStudyDialog projectId={projectId} teamId={teamId} />
           <CreateStudyDialog projectId={projectId} />
         </div>
       </div>
+      {studies.data?.some((s) => s.alsoIn.length > 0) ? (
+        <p className="text-muted-foreground text-sm">{t`The AI cost includes studies shared with other projects: it counts in each of them.`}</p>
+      ) : null}
       {hidden > 0 ? (
         <p className="text-muted-foreground text-sm">
           {plural(hidden, {
@@ -87,61 +92,25 @@ export function StudyList({ projectId }: { projectId: string }) {
       ) : studies.data?.length ? (
         <ul className="grid gap-2" aria-label={t`Studies`}>
           {studies.data.map((study) => {
-            const updated = formatDate(study.updatedAt)
-            const folder = study.folderName
             const seen = overview.data?.studies.find((s) => s.id === study.id)
             const studyCost = costs?.studies.find((s) => s.id === study.id)?.cost
             return (
-              <li
+              <StudyCard
                 key={study.id}
-                className="relative grid grid-cols-[52px_minmax(0,1fr)] items-start gap-4 rounded-lg border bg-card px-[18px] py-4 transition-shadow hover:border-input hover:shadow-card has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-ring has-[a:focus-visible]:outline-solid"
-              >
-                <div
-                  aria-hidden
-                  className="size-[52px] rounded-[12px]"
-                  style={{ background: sky(study.id) }}
-                />
-                <div className="grid min-w-0 gap-2.5">
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <Badge variant="secondary">{t`Interviews`}</Badge>
-                    <Link
-                      to="/studies/$studyId"
-                      params={{ studyId: study.id }}
-                      className="truncate text-[1.05rem] font-semibold outline-none focus-visible:shadow-none after:absolute after:inset-0 after:rounded-lg"
-                    >
-                      {study.name}
-                    </Link>
-                    <ArrowRightIcon
-                      aria-hidden
-                      className="ml-auto size-4 shrink-0 text-muted-foreground"
-                    />
-                  </div>
-                  {seen?.counts ? <StudyChips counts={seen.counts} /> : null}
-                  {/* Spec 017 US2: a closed study shows its name and type; its page asks for access. */}
-                  {seen?.access === false ? null : (
-                    <p className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-sm">
-                      <span className="inline-flex items-center gap-1.5">
-                        <FolderOpenIcon aria-hidden className="size-3.5" />
-                        {folder ? folder : study.hasFolder ? t`Folder attached` : t`No folder yet`}
-                      </span>
-                      <span>{t`Updated ${updated}`}</span>
-                      {studyCost ? (
-                        <CostBreakdown
-                          label={(amount) => t`AI cost: ${amount}`}
-                          total={studyCost.total}
-                          uses={[
-                            { label: t`Analysis`, cost: studyCost.analysis },
-                            { label: t`Lexicon`, cost: studyCost.lexicon },
-                            { label: t`Cleaning`, cost: studyCost.cleaning },
-                            { label: t`Quality`, cost: studyCost.quality },
-                            { label: t`Facts`, cost: studyCost.facts },
-                          ]}
-                        />
-                      ) : null}
+                study={study}
+                search={{ from: projectId }}
+                closed={seen?.access === false}
+                counts={seen?.counts}
+                cost={studyCost}
+                note={
+                  study.alsoIn.length ? (
+                    <p className="text-muted-foreground text-sm">
+                      {t`Also in ${study.alsoIn.map((p) => p.name).join(', ')}`}
                     </p>
-                  )}
-                </div>
-              </li>
+                  ) : null
+                }
+                actions={<DetachStudyDialog projectId={projectId} study={study} />}
+              />
             )
           })}
         </ul>
@@ -149,47 +118,6 @@ export function StudyList({ projectId }: { projectId: string }) {
         <p className="text-muted-foreground">{t`No study yet. A study collects evidence for this project, for example a series of interviews.`}</p>
       )}
     </section>
-  )
-}
-
-/** Spec 017 US2: what a study holds and what waits for a person; nothing to report is left out. */
-function StudyChips({
-  counts: c,
-}: {
-  counts: {
-    validated: number
-    toValidate: number
-    excluded: number
-    facts: number
-    factsToDecide: number
-  }
-}) {
-  const { t, i18n } = useLingui()
-  const toValidate = i18n.number(c.toValidate)
-  if (c.validated + c.toValidate + c.excluded === 0)
-    return <p className="text-muted-foreground text-sm">{t`No interview yet`}</p>
-  return (
-    <p className="flex flex-wrap gap-1.5">
-      {c.validated > 0 ? (
-        <Badge className="bg-polarity-positive text-foreground">
-          {plural(c.validated, { one: '# interview validated', other: '# interviews validated' })}
-        </Badge>
-      ) : null}
-      {c.toValidate > 0 ? <Badge variant="highlight">{t`${toValidate} to validate`}</Badge> : null}
-      {c.excluded > 0 ? (
-        <Badge variant="secondary">
-          {plural(c.excluded, { one: '# excluded', other: '# excluded' })}
-        </Badge>
-      ) : null}
-      {c.facts > 0 ? (
-        <Badge variant="secondary">{plural(c.facts, { one: '# fact', other: '# facts' })}</Badge>
-      ) : null}
-      {c.factsToDecide > 0 ? (
-        <Badge variant="highlight">
-          {plural(c.factsToDecide, { one: '# fact to decide', other: '# facts to decide' })}
-        </Badge>
-      ) : null}
-    </p>
   )
 }
 
@@ -211,7 +139,11 @@ function CreateStudyDialog({ projectId }: { projectId: string }) {
     const { id } = await createStudy.mutateAsync({ projectId, data: { name, type: 'interviews' } })
     await queryClient.invalidateQueries({ queryKey: getListStudiesQueryKey(projectId) })
     setOpen(false)
-    await navigate({ to: '/studies/$studyId', params: { studyId: id } })
+    await navigate({
+      to: '/studies/$studyId',
+      params: { studyId: id },
+      search: { from: projectId },
+    })
   }
 
   const types = [

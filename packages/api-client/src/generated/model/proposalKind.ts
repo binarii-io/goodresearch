@@ -21,4 +21,7 @@ export const ProposalKind = {
   report_project_progress: 'report_project_progress',
   load_skill: 'load_skill',
   check_guide_questions: 'check_guide_questions',
+  attach_study: 'attach_study',
+  detach_study: 'detach_study',
+  update_study_goal: 'update_study_goal',
 } as const;

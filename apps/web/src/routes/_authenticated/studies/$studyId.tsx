@@ -1,6 +1,5 @@
 import {
   getGetStudyQueryKey,
-  getListStudiesQueryKey,
   useDeleteStudy,
   useGetEnrichment,
   useGetInterviewFacts,
@@ -8,6 +7,7 @@ import {
   useGetStudy,
   useGetStudySource,
   useRenameStudy,
+  useUpdateStudyGoal,
 } from '@goodresearch/api-client'
 import {
   AlertDialog,
@@ -60,6 +60,8 @@ export const Route = createFileRoute('/_authenticated/studies/$studyId')({
     // The Quality tab's view (spec 016 US4).
     view: z.enum(['overall', 'person', 'interview']).optional().catch(undefined),
     person: z.string().min(1).max(64).optional().catch(undefined),
+    // Spec 019: where the study was opened from, a project or `team` (its Studies page), for "back".
+    from: z.string().min(1).max(64).optional().catch(undefined),
   }),
   component: StudyPage,
 })
@@ -67,9 +69,11 @@ export const Route = createFileRoute('/_authenticated/studies/$studyId')({
 function StudyPage() {
   const { t, i18n } = useLingui()
   const { studyId } = Route.useParams()
-  const { drive, phase = 'fieldwork', interview, turn } = Route.useSearch()
+  const { drive, phase = 'fieldwork', interview, turn, from } = Route.useSearch()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const updateGoal = useUpdateStudyGoal()
+  const [goalError, setGoalError] = useState<unknown>(null)
   const me = useMe()
   const study = useGetStudy(studyId)
   const source = useGetStudySource(studyId)
@@ -128,7 +132,22 @@ function StudyPage() {
   if (study.isPending) return <Skeleton className="h-40 w-full" />
   if (errorCode(study.error) === 'STUDY_NOT_FOUND' || !study.data) return <NotFound />
   const s = study.data
-  const projectName = s.project.name
+  // Spec 019: where it was opened from if still linked, else its first project, else its team.
+  const parent =
+    from === 'team' ? undefined : (s.projects.find((p) => p.id === from) ?? s.projects[0])
+  const others = s.projects.map((p) => p.name).join(', ')
+  const parentLink = parent ? (
+    <Link to="/projects/$projectId" params={{ projectId: parent.id }} />
+  ) : (
+    <Link to="/team-studies/$teamId" params={{ teamId: s.team.id }} />
+  )
+  const refreshLists = () =>
+    queryClient.invalidateQueries({
+      predicate: (query) =>
+        [s.team.id, ...s.projects.map((p) => p.id)].some((id) =>
+          query.queryKey.join('/').includes(id),
+        ),
+    })
   // FR-010a: without folder access, only the name and type are shown and nothing can be changed.
   const canAct = source.data?.access === 'full'
   const canDelete = canAct || me.role === 'admin'
@@ -159,7 +178,7 @@ function StudyPage() {
               search={(previous) => ({ ...previous, interview: undefined, turn: undefined })}
             />
           ) : (
-            <Link to="/projects/$projectId" params={{ projectId: s.project.id }} />
+            parentLink
           )
         }
         backLabel={
@@ -169,16 +188,26 @@ function StudyPage() {
               : phase === 'quality'
                 ? t`Back to the interviews`
                 : t`Back to the cleaning`
-            : t`Back to the project`
+            : parent
+              ? t`Back to the project`
+              : t`Back to the team's studies`
         }
         foldedLabel={t`Pages above`}
         crumbs={[
-          <Link key="projects" to="/">
-            {t`Projects`}
-          </Link>,
-          <Link key="project" to="/projects/$projectId" params={{ projectId: s.project.id }}>
-            {projectName}
-          </Link>,
+          ...(parent
+            ? [
+                <Link key="projects" to="/">
+                  {t`Projects`}
+                </Link>,
+                <Link key="project" to="/projects/$projectId" params={{ projectId: parent.id }}>
+                  {parent.name}
+                </Link>,
+              ]
+            : [
+                <Link key="team" to="/team-studies/$teamId" params={{ teamId: s.team.id }}>
+                  {t`Studies`}
+                </Link>,
+              ]),
           ...(deep
             ? [
                 <Link
@@ -207,9 +236,7 @@ function StudyPage() {
                 try {
                   await rename.mutateAsync({ studyId, data: { name, version: s.version } })
                   await queryClient.invalidateQueries({ queryKey: getGetStudyQueryKey(studyId) })
-                  await queryClient.invalidateQueries({
-                    queryKey: getListStudiesQueryKey(s.project.id),
-                  })
+                  await refreshLists()
                 } catch (failure) {
                   setError(failure)
                   throw failure
@@ -239,6 +266,45 @@ function StudyPage() {
           </>
         }
       />
+      <section className="grid gap-1" aria-label={t`About this study`}>
+        {s.projects.length > 1 ? (
+          <p className="text-muted-foreground text-sm">
+            {t`Feeds these projects:`}{' '}
+            {s.projects.map((p, i) => (
+              <span key={p.id}>
+                {i > 0 ? ', ' : ''}
+                <Link className="underline" to="/projects/$projectId" params={{ projectId: p.id }}>
+                  {p.name}
+                </Link>
+              </span>
+            ))}
+          </p>
+        ) : null}
+        {canAct ? (
+          <div className="max-w-[900px] text-sm">
+            <InlineEdit
+              label={t`Research goal of the study`}
+              value={s.goal}
+              multiline
+              maxLength={10_000}
+              placeholder={t`What this study wants to find out. Its AI steps read it.`}
+              savedMessage={t`Goal saved`}
+              editHint={t`Ctrl+Enter to save, Escape to cancel`}
+              error={goalError ? errorMessage(i18n, goalError) : undefined}
+              onSave={async (goal) => {
+                setGoalError(null)
+                try {
+                  await updateGoal.mutateAsync({ studyId, data: { goal, version: s.version } })
+                  await queryClient.invalidateQueries({ queryKey: getGetStudyQueryKey(studyId) })
+                } catch (failure) {
+                  setGoalError(failure)
+                  throw failure
+                }
+              }}
+            />
+          </div>
+        ) : null}
+      </section>
       <TabsContent value="preparation">
         {s.type !== 'interviews' ? (
           <p className="text-muted-foreground text-base">{t`Preparation for this type of study is coming in a later version.`}</p>
@@ -299,6 +365,9 @@ function StudyPage() {
         )}
       </TabsContent>
       <TabsContent value="analysis">
+        {s.projects.length > 1 ? (
+          <p className="mb-3 text-muted-foreground text-sm">{t`This study feeds ${others}: decisions on its facts apply in all of them.`}</p>
+        ) : null}
         {s.type !== 'interviews' ? (
           <p className="text-muted-foreground text-base">{t`Analysis for this type of study is coming in a later version.`}</p>
         ) : source.isPending ? (
@@ -331,7 +400,11 @@ function StudyPage() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>{t`Delete this study?`}</AlertDialogTitle>
-                  <AlertDialogDescription>{t`The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive.`}</AlertDialogDescription>
+                  <AlertDialogDescription>
+                    {s.projects.length > 1
+                      ? t`The study, its inventory and its interviews are removed from goodresearch, and from all the projects it feeds: ${others}. Nothing changes in Drive.`
+                      : t`The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive.`}
+                  </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
@@ -340,13 +413,16 @@ function StudyPage() {
                       void remove
                         .mutateAsync({ studyId })
                         .then(async () => {
-                          await queryClient.invalidateQueries({
-                            queryKey: getListStudiesQueryKey(s.project.id),
-                          })
-                          await navigate({
-                            to: '/projects/$projectId',
-                            params: { projectId: s.project.id },
-                          })
+                          await refreshLists()
+                          await (parent
+                            ? navigate({
+                                to: '/projects/$projectId',
+                                params: { projectId: parent.id },
+                              })
+                            : navigate({
+                                to: '/team-studies/$teamId',
+                                params: { teamId: s.team.id },
+                              }))
                         })
                         .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
                     }

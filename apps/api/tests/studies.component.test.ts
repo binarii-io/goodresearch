@@ -76,7 +76,7 @@ describe('studies API (spec 002 US1)', () => {
     expect((await call(alex, 'GET', `/api/studies/${id}`)).json()).toMatchObject({
       name: 'Draft',
       type: 'interviews',
-      project: { id: projectId },
+      projects: [{ id: projectId }],
     })
     expect(
       (await call(alex, 'PUT', `/api/studies/${id}/name`, { name: 'Final', version: 0 })).json(),
