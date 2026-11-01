@@ -1,6 +1,7 @@
 import { GuideDraft } from '@goodresearch/contracts'
 import { z } from 'zod'
 import { GUIDE_CHECKLIST, GUIDE_POINT_STATES } from '../domain/guide-progress.ts'
+import { composeGoal, type Framing, openPoints } from '../domain/project-framing.ts'
 import type { ProposalKind } from '../domain/proposal.ts'
 import { checkQuestion } from '../domain/question-checks.ts'
 import type { GuideStudy } from './context.ts'
@@ -12,7 +13,13 @@ const Goal = z.string().trim().max(10_000)
 const Id = z.string().min(1).max(100)
 
 const INPUTS = {
-  create_project: z.object({ name: Name, teamId: Id, goal: Goal.default('') }),
+  create_project: z.object({
+    name: Name,
+    teamId: Id,
+    question: Goal,
+    objectives: Goal,
+    hypotheses: Goal.default(''),
+  }),
   update_project_goal: z.object({ projectId: Id, goal: Goal.min(1) }),
   rename_project: z.object({ projectId: Id, name: Name }),
   create_study: z.object({ projectId: Id, name: Name }),
@@ -27,6 +34,13 @@ const INPUTS = {
     studyId: Id,
     ...Object.fromEntries(GUIDE_CHECKLIST.map(([key]) => [key, z.enum(GUIDE_POINT_STATES)])),
   }) as z.ZodType<{ studyId: string } & Record<string, (typeof GUIDE_POINT_STATES)[number]>>,
+  report_project_progress: z.object({
+    question: z.enum(GUIDE_POINT_STATES),
+    audience: z.enum(GUIDE_POINT_STATES),
+    decision: z.enum(GUIDE_POINT_STATES),
+    hypotheses: z.enum(GUIDE_POINT_STATES),
+    team: z.enum(GUIDE_POINT_STATES),
+  }),
   load_skill: z.object({ name: z.enum(SKILL_NAMES as [string, ...string[]]) }),
   check_guide_questions: z.object({
     questions: z.array(z.string().trim().min(1).max(600)).min(1).max(60),
@@ -43,7 +57,7 @@ export const TOOLS: readonly ToolSpec[] = [
   {
     name: 'create_project',
     description:
-      'Propose a new research project to the person. Use a team id from the context. The person confirms before anything is created.',
+      'Propose a new research project to the person, once every point of the framing is done and they agreed (load the skill project-framing first). Use a team id from the context. Empty hypotheses mean the person has none yet. The result says whether a card was shown or why it was refused. The person confirms before anything is created.',
     inputSchema: INPUTS.create_project,
   },
   {
@@ -80,20 +94,26 @@ export const TOOLS: readonly ToolSpec[] = [
       'Open the page of a study for the person (use a study id from the context), optionally on one of its tabs: preparation, fieldwork, enrichment or analysis. Also use it to switch tabs on the study already open. Changes nothing; happens at once.',
     inputSchema: INPUTS.open_study,
   },
+  {
+    name: 'load_skill',
+    description:
+      'Load the instructions of a skill listed in the context, before doing what it covers (for example before framing a new project, or before designing or changing an interview guide). Returns the instructions.',
+    inputSchema: INPUTS.load_skill,
+  },
+  {
+    name: 'report_project_progress',
+    description:
+      'Record how far the framing of a new project is: for each of the five points, missing, partial or done. Call it last, after your text, at the end of each answer while framing a project: it ends the answer. Changes nothing else.',
+    inputSchema: INPUTS.report_project_progress,
+  },
 ]
 
 /**
  * Tools of the interview guide design (spec 006), offered on the page of an interview study the
- * person can act on. The use case adds the `run` of `load_skill` and `check_guide_questions` (it
- * needs the answer); `report_guide_progress` is recorded when called and ends the answer.
+ * person can act on. The use case adds the `run` of the tools run during the answer (it needs the
+ * answer); `report_guide_progress` is recorded when called and ends the answer.
  */
 export const GUIDE_TOOLS: readonly ToolSpec[] = [
-  {
-    name: 'load_skill',
-    description:
-      'Load the instructions of a skill listed in the context, before doing what it covers (for example before designing or changing an interview guide). Returns the instructions.',
-    inputSchema: INPUTS.load_skill,
-  },
   {
     name: 'check_guide_questions',
     description:
@@ -127,6 +147,43 @@ export type PreparedProposal = {
 }
 
 /**
+ * Checks a project proposal (spec 018): a reason to give back to the model, or the card. The goal
+ * is composed here and stored as before, so applying a card does not change. Reasons name points
+ * and fields only.
+ */
+export const prepareProject = async (
+  research: ResearchReads,
+  actor: Actor,
+  rawInput: unknown,
+  framing: Framing | null,
+  language: 'en' | 'fr',
+): Promise<{ refused: string } | PreparedProposal> => {
+  const input = INPUTS.create_project.safeParse(rawInput)
+  if (!input.success)
+    return { refused: 'Refused: send name, teamId, question, objectives and hypotheses.' }
+  const { question, objectives, hypotheses, name, teamId } = input.data
+  if (!question || !objectives)
+    return { refused: 'Refused: question and objectives must not be empty.' }
+  const team = (await research.teamsOf(actor.id)).find((t) => t.id === teamId)
+  if (!team) return { refused: 'Refused: use a team id listed in the context.' }
+  const open = openPoints(framing)
+  if (open.length > 0)
+    return {
+      refused: `Refused: ${open.join(', ')} not done. Ask the person, report the progress, and propose only once every point is done.`,
+    }
+  const goal = composeGoal({ question, objectives, hypotheses }, language)
+  const valid = Goal.safeParse(goal)
+  if (!valid.success) return { refused: 'Refused: the goal is too long.' }
+  return {
+    kind: 'create_project',
+    targetId: null,
+    targetVersion: null,
+    values: { ...input.data, goal },
+    preview: { name, teamName: team.name, goal },
+  }
+}
+
+/**
  * Validates a tool call like the app's forms, and only on objects the person can see (FR-006).
  * `null`: invalid values or an object out of reach; never shown, told to the model.
  */
@@ -138,19 +195,6 @@ export const prepareProposal = async (
   guideStudy: GuideStudy | null = null,
 ): Promise<PreparedProposal | null> => {
   switch (call.name) {
-    case 'create_project': {
-      const input = INPUTS.create_project.safeParse(call.input)
-      if (!input.success) return null
-      const team = (await research.teamsOf(actor.id)).find((t) => t.id === input.data.teamId)
-      if (!team) return null
-      return {
-        kind: 'create_project',
-        targetId: null,
-        targetVersion: null,
-        values: input.data,
-        preview: { name: input.data.name, teamName: team.name, goal: input.data.goal },
-      }
-    }
     case 'update_project_goal':
     case 'rename_project': {
       const parsed =

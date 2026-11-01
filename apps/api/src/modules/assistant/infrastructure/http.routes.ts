@@ -1,4 +1,5 @@
 import {
+  ContinueAssistantConversation,
   ConversationDetail,
   ConversationParams,
   ConversationSummary,
@@ -7,14 +8,19 @@ import {
   RenameConversation,
   SendAssistantMessage,
 } from '@goodresearch/contracts'
-import type { FastifyInstance, preHandlerAsyncHookHandler } from 'fastify'
+import type {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+  preHandlerAsyncHookHandler,
+} from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { sendError } from '#platform/http/errors.ts'
 import { reply } from '#platform/http/result.ts'
 import type { ConversationCommands } from '../application/commands/conversation-commands.ts'
 import type { ProposalCommands } from '../application/commands/proposal-commands.ts'
-import type { SendMessage } from '../application/commands/send-message.ts'
+import type { SendMessage, StreamEvent } from '../application/commands/send-message.ts'
 import type { ConversationQueries } from '../application/queries/conversation-queries.ts'
 
 export type AssistantHandlers = {
@@ -22,6 +28,38 @@ export type AssistantHandlers = {
   readonly send: SendMessage
   readonly proposals: ProposalCommands
   readonly queries: ConversationQueries
+}
+
+/** Writes an answer as server-sent events; closing the request stops it. */
+const streamAnswer = async (
+  request: FastifyRequest,
+  res: FastifyReply,
+  events: AsyncGenerator<StreamEvent>,
+): Promise<void> => {
+  res.hijack()
+  const raw = res.raw
+  raw.writeHead(200, {
+    'content-type': 'text/event-stream; charset=utf-8',
+    'cache-control': 'no-cache, no-transform',
+    connection: 'keep-alive',
+    'x-accel-buffering': 'no',
+  })
+  let closed = false
+  raw.on('close', () => {
+    closed = true
+  })
+  try {
+    for await (const event of events) {
+      if (closed) break
+      raw.write(`data: ${JSON.stringify(event)}\n\n`)
+    }
+  } catch (error) {
+    request.log.error({ err: error }, 'assistant stream failed')
+  } finally {
+    // Ends the answer (stopped) when the browser went away before the end.
+    await events.return(undefined)
+    raw.end()
+  }
 }
 
 export const registerAssistantRoutes = (
@@ -135,31 +173,28 @@ export const registerAssistantRoutes = (
       const { conversationId } = request.params
       const opened = await send.open({ actor, conversationId })
       if (!opened.ok) return sendError(res, opened.error)
-      res.hijack()
-      const raw = res.raw
-      raw.writeHead(200, {
-        'content-type': 'text/event-stream; charset=utf-8',
-        'cache-control': 'no-cache, no-transform',
-        connection: 'keep-alive',
-        'x-accel-buffering': 'no',
-      })
-      const events = send.send({ actor, conversationId, ...request.body })
-      let closed = false
-      raw.on('close', () => {
-        closed = true
-      })
-      try {
-        for await (const event of events) {
-          if (closed) break
-          raw.write(`data: ${JSON.stringify(event)}\n\n`)
-        }
-      } catch (error) {
-        request.log.error({ err: error }, 'assistant stream failed')
-      } finally {
-        // Ends the answer (stopped) when the browser went away before the end.
-        await events.return(undefined)
-        raw.end()
-      }
+      return streamAnswer(request, res, send.send({ actor, conversationId, ...request.body }))
+    },
+  )
+
+  /** The answer that follows an applied project (spec 018 US3), streamed like any other. */
+  api.post(
+    '/api/assistant/conversations/:conversationId/continue',
+    {
+      ...secured,
+      schema: {
+        operationId: 'continueAssistantConversation',
+        tags,
+        params: ConversationParams,
+        body: ContinueAssistantConversation,
+      },
+    },
+    async (request, res) => {
+      const actor = request.account
+      const { conversationId } = request.params
+      const opened = await send.openContinue({ actor, conversationId })
+      if (!opened.ok) return sendError(res, opened.error)
+      return streamAnswer(request, res, send.send({ actor, conversationId, ...request.body }))
     },
   )
 

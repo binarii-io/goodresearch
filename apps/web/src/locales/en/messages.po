@@ -1338,6 +1338,7 @@ msgstr "Attach folder"
 msgid "Attach the study's Drive folder first (Fieldwork tab)."
 msgstr "Attach the study's Drive folder first (Fieldwork tab)."
 
+#: src/features/assistant/labels.ts
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
@@ -2066,6 +2067,10 @@ msgstr "Decided terms stay as they are; new spellings are proposed on them."
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Decision"
 msgstr "Decision"
+
+#: src/features/assistant/labels.ts
+msgid "Decision to support"
+msgstr "Decision to support"
 
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Decisions already made stay as they are."
@@ -3032,6 +3037,7 @@ msgstr "How to run a neutral interview: phases, questions, follow-ups, biases, w
 msgid "How we ran the research"
 msgstr "How we ran the research"
 
+#: src/features/assistant/labels.ts
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
@@ -4731,6 +4737,16 @@ msgstr "Progress of the research"
 msgid "Project"
 msgstr "Project"
 
+#: src/features/assistant/panel.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Project framing"
+msgstr "Project framing"
+
+#: src/features/assistant/panel.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Project framing progress"
+msgstr "Project framing progress"
+
 #: src/features/ai/provider-forms.tsx
 msgid "Project ID format"
 msgstr "Project ID format"
@@ -5136,6 +5152,10 @@ msgstr "Research goal"
 #: src/routes/_authenticated/index.tsx
 msgid "Research projects"
 msgstr "Research projects"
+
+#: src/features/assistant/labels.ts
+msgid "Research question"
+msgstr "Research question"
 
 #. placeholder {0}: k.toValidate
 #: src/features/synthesis/takeaways.tsx
@@ -5760,6 +5780,7 @@ msgstr "Taken out of the analysis: find its facts again when you wish."
 msgid "Taken out of the reading: find its terms again when you wish."
 msgstr "Taken out of the reading: find its terms again when you wish."
 
+#: src/features/assistant/labels.ts
 #: src/features/assistant/proposal-card.tsx
 #: src/features/research/create-project-dialog.tsx
 #: src/routes/_authenticated/projects/$projectId.tsx
@@ -5968,6 +5989,10 @@ msgstr "The app's checks left out {0} verbatims (not found in the text, or not a
 #: src/features/preparation/preparation-tab.tsx
 msgid "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
 msgstr "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
+
+#: src/features/workspace/errors.ts
+msgid "The assistant has nothing to continue here."
+msgstr "The assistant has nothing to continue here."
 
 #: src/features/preparation/drive-review.tsx
 msgid "The best practices are not brought back: the next update replaces this."

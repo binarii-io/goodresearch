@@ -15,6 +15,7 @@ export {
   AssistantMessage,
   AssistantPage,
   AssistantStreamEvent,
+  ContinueAssistantConversation,
   ConversationDetail,
   ConversationParams,
   ConversationSummary,

@@ -15,6 +15,7 @@ export const PROPOSAL_KINDS = [
   'open_study',
   'propose_interview_guide',
   'report_guide_progress',
+  'report_project_progress',
   'load_skill',
   'check_guide_questions',
 ] as const
@@ -24,15 +25,19 @@ export type ProposalKind = (typeof PROPOSAL_KINDS)[number]
 export const isNavigation = (kind: ProposalKind): boolean =>
   kind === 'open_project' || kind === 'open_study'
 
-/** Run by the app during the answer, their output given back to the model (spec 006). */
+/**
+ * Run by the app during the answer, their output given back to the model (spec 006). So is a new
+ * project: the model learns at once why it was refused (spec 018).
+ */
 export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
-  kind === 'load_skill' || kind === 'check_guide_questions'
+  kind === 'load_skill' || kind === 'check_guide_questions' || kind === 'create_project'
 
 /**
  * Recorded at once when called, without a card. The progress report ends the answer (the skill
  * asks for it last): running it would cost one more model step for a "Recorded" (PR #6 review).
  */
-export const isRecordedAtOnce = (kind: ProposalKind): boolean => kind === 'report_guide_progress'
+export const isRecordedAtOnce = (kind: ProposalKind): boolean =>
+  kind === 'report_guide_progress' || kind === 'report_project_progress'
 
 export const isProposalKind = (name: string): name is ProposalKind =>
   (PROPOSAL_KINDS as readonly string[]).includes(name)

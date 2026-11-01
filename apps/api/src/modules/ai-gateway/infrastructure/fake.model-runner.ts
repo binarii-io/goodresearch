@@ -358,7 +358,8 @@ const FAKE_GUIDE = {
  * Scripted conversation of the test provider (spec 005 research R7, spec 006 R8): "propose goal"
  * and "propose study" call the matching tool for the project named in the context, "design the
  * interview guide" loads the skill then reports progress, "write the guide" checks the questions
- * then proposes a guide, "long answer" streams slowly (to test Stop), anything else echoes.
+ * then proposes a guide, "help me create a project", "framing answered" and "propose the project"
+ * follow spec 018, "long answer" streams slowly (to test Stop), anything else echoes.
  */
 const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number } => {
   const messages = request.messages ?? []
@@ -377,6 +378,31 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     return { type: 'tool-call', call: { id: `fake-call-${Date.now()}-${calls}`, name, input } }
   }
   const guideStudy = /Study id: (\S+?)[),;\s]/.exec(`${request.system ?? ''} `)?.[1]
+  const toolOutput = lastMessage?.role === 'tool' ? lastMessage.results[0]?.output : undefined
+  const framingStates = (state: string, question = state) => ({
+    question,
+    audience: state,
+    decision: state,
+    hypotheses: state,
+    team: state,
+  })
+  // Spec 018: the journey of a new project.
+  if (ranTool === 'load_skill' && toolOutput?.includes('frame a research project'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Let us frame it. What do you want to understand, and about whom?' },
+        call('report_project_progress', framingStates('missing', 'partial')),
+      ],
+      delayMs: 0,
+    }
+  if (ranTool === 'create_project' && toolOutput?.startsWith('Applied') && projectId)
+    return {
+      parts: [
+        { type: 'text', delta: 'The project is ready. I suggest a first study.' },
+        call('create_study', { projectId, name: 'First interviews' }),
+      ],
+      delayMs: 0,
+    }
   if (ranTool === 'load_skill' && guideStudy)
     return {
       parts: [
@@ -405,6 +431,31 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     }
   // After any other tool run, the answer is over.
   if (ranTool) return { parts: [], delayMs: 0 }
+  if (/help me create a project/i.test(text) && offered('load_skill'))
+    return { parts: [call('load_skill', { name: 'project-framing' })], delayMs: 0 }
+  if (/framing answered/i.test(text) && offered('report_project_progress'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Here is what I understood. May I propose the project?' },
+        call('report_project_progress', framingStates('done')),
+      ],
+      delayMs: 0,
+    }
+  const teamId = /Team id: (\S+?)\)/.exec(request.system ?? '')?.[1]
+  if (/propose the project/i.test(text) && teamId && offered('create_project'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Here is the project.' },
+        call('create_project', {
+          name: `Framed project ${Date.now()}`,
+          teamId,
+          question: 'Why do new users drop off, and who are they?',
+          objectives: 'Decide what to fix in the first week.',
+          hypotheses: '',
+        }),
+      ],
+      delayMs: 0,
+    }
   if (/design the interview guide/i.test(text) && offered('load_skill'))
     return { parts: [call('load_skill', { name: 'interview-guide-design' })], delayMs: 0 }
   if (/write the guide/i.test(text) && offered('check_guide_questions'))

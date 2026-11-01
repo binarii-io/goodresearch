@@ -40,6 +40,9 @@ type AssistantState = {
   /** An answer is being written: `ask` then only opens the panel. */
   answering: boolean
   setAnswering: (answering: boolean) => void
+  /** A project just applied from a card: the panel continues the answer on it (spec 018 US3). */
+  appliedProject: { projectId: string; conversationId: string | null } | null
+  setAppliedProject: (applied: AssistantState['appliedProject']) => void
 }
 
 const threadKey = (thread: string) => `goodresearch.assistant.thread.${thread}`
@@ -68,6 +71,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   }, [])
   const [pending, setPending] = useState<AssistantState['pending']>(null)
   const [answering, setAnswering] = useState(false)
+  const [appliedProject, setAppliedProject] = useState<AssistantState['appliedProject']>(null)
   const ask = useCallback(
     (text: string, options: { thread?: string } = {}) => {
       write(OPEN_KEY, 'open')
@@ -101,6 +105,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       rememberThread,
       answering,
       setAnswering,
+      appliedProject,
+      setAppliedProject,
     }),
     [
       open,
@@ -113,6 +119,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       clearPending,
       rememberThread,
       answering,
+      appliedProject,
     ],
   )
   return <AssistantContext value={value}>{children}</AssistantContext>

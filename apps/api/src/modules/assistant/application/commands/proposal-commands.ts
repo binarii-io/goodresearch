@@ -76,6 +76,7 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       case 'open_project':
       case 'open_study':
       case 'report_guide_progress':
+      case 'report_project_progress':
       case 'load_skill':
       case 'check_guide_questions':
         return { ok: false as const, error: 'PROPOSAL_DECIDED' }

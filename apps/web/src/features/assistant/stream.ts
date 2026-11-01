@@ -2,16 +2,16 @@ import { ApiError, type AssistantPage } from '@goodresearch/api-client'
 import { AssistantStreamEvent } from '@goodresearch/contracts'
 
 /**
- * Sends a message and reads the answer as server-sent events (contracts/http-api.md). Every event
- * is validated before use; aborting `signal` stops the answer (the server keeps the partial text).
+ * Reads an answer as server-sent events (contracts/http-api.md). Every event is validated before
+ * use; aborting `signal` stops the answer (the server keeps the partial text).
  */
-export const sendAssistantMessage = async (
-  conversationId: string,
-  body: { text: string; page: AssistantPage; language: 'en' | 'fr' },
+const streamAnswer = async (
+  url: string,
+  body: unknown,
   onEvent: (event: AssistantStreamEvent) => void,
   signal: AbortSignal,
 ): Promise<void> => {
-  const response = await fetch(`/api/assistant/conversations/${conversationId}/messages`, {
+  const response = await fetch(url, {
     method: 'POST',
     credentials: 'include',
     headers: { 'content-type': 'application/json' },
@@ -40,3 +40,20 @@ export const sendAssistantMessage = async (
     }
   }
 }
+
+export const sendAssistantMessage = (
+  conversationId: string,
+  body: { text: string; page: AssistantPage; language: 'en' | 'fr' },
+  onEvent: (event: AssistantStreamEvent) => void,
+  signal: AbortSignal,
+): Promise<void> =>
+  streamAnswer(`/api/assistant/conversations/${conversationId}/messages`, body, onEvent, signal)
+
+/** The answer that follows an applied project, without a message (spec 018 US3). */
+export const continueAssistantConversation = (
+  conversationId: string,
+  body: { page: AssistantPage; language: 'en' | 'fr' },
+  onEvent: (event: AssistantStreamEvent) => void,
+  signal: AbortSignal,
+): Promise<void> =>
+  streamAnswer(`/api/assistant/conversations/${conversationId}/continue`, body, onEvent, signal)

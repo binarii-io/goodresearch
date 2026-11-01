@@ -867,7 +867,10 @@
                     "intro",
                     "themes",
                     "followUps",
-                    "biasReview"
+                    "biasReview",
+                    "question",
+                    "decision",
+                    "team"
                   ]
                 },
                 "weight": {
@@ -1091,6 +1094,7 @@
               "open_study",
               "propose_interview_guide",
               "report_guide_progress",
+              "report_project_progress",
               "load_skill",
               "check_guide_questions"
             ]
@@ -1321,6 +1325,25 @@
         },
         "required": [
           "text",
+          "page",
+          "language"
+        ]
+      },
+      "ContinueAssistantConversationInput": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/AssistantPageInput"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr"
+            ]
+          }
+        },
+        "required": [
           "page",
           "language"
         ]
@@ -4606,6 +4629,7 @@
               "CONVERSATION_NOT_FOUND",
               "PROPOSAL_NOT_FOUND",
               "PROPOSAL_DECIDED",
+              "NOTHING_TO_CONTINUE",
               "PLANNED_INTERVIEW_NOT_FOUND",
               "SCHEDULE_FULL",
               "NOT_AN_INTERVIEW_STUDY",
@@ -12998,7 +13022,10 @@
                     "intro",
                     "themes",
                     "followUps",
-                    "biasReview"
+                    "biasReview",
+                    "question",
+                    "decision",
+                    "team"
                   ]
                 },
                 "weight": {
@@ -13230,6 +13257,7 @@
               "open_study",
               "propose_interview_guide",
               "report_guide_progress",
+              "report_project_progress",
               "load_skill",
               "check_guide_questions"
             ]
@@ -13467,6 +13495,26 @@
         },
         "required": [
           "text",
+          "page",
+          "language"
+        ],
+        "additionalProperties": false
+      },
+      "ContinueAssistantConversation": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/AssistantPage"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "fr"
+            ]
+          }
+        },
+        "required": [
           "page",
           "language"
         ],
@@ -16850,6 +16898,7 @@
               "CONVERSATION_NOT_FOUND",
               "PROPOSAL_NOT_FOUND",
               "PROPOSAL_DECIDED",
+              "NOTHING_TO_CONTINUE",
               "PLANNED_INTERVIEW_NOT_FOUND",
               "SCHEDULE_FULL",
               "NOT_AN_INTERVIEW_STUDY",
@@ -26614,6 +26663,41 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SendAssistantMessageInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "conversationId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/assistant/conversations/{conversationId}/continue": {
+      "post": {
+        "operationId": "continueAssistantConversation",
+        "tags": [
+          "assistant"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContinueAssistantConversationInput"
               }
             }
           }

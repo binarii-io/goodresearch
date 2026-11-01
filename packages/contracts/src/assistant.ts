@@ -23,6 +23,7 @@ export const ProposalKind = z.enum([
   'open_study',
   'propose_interview_guide',
   'report_guide_progress',
+  'report_project_progress',
   'load_skill',
   'check_guide_questions',
 ])
@@ -53,6 +54,10 @@ export const GuideProgress = z
           'themes',
           'followUps',
           'biasReview',
+          // The points of a project framing (spec 018); `audience` and `hypotheses` are shared.
+          'question',
+          'decision',
+          'team',
         ]),
         weight: z.number().int(),
         status: z.enum(['missing', 'partial', 'done']),
@@ -146,9 +151,17 @@ export const SendAssistantMessage = z
   })
   .meta({ id: 'SendAssistantMessage' })
 
+/** Asks for the answer that follows an applied project, without a message (spec 018 US3). */
+export const ContinueAssistantConversation = z
+  .object({
+    page: AssistantPage,
+    language: z.enum(['en', 'fr']),
+  })
+  .meta({ id: 'ContinueAssistantConversation' })
+
 /** Server-sent events of an answer (contracts/http-api.md); the client validates them. */
 export const AssistantStreamEvent = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('start'), personMessageId: Id, assistantMessageId: Id }),
+  z.object({ type: z.literal('start'), personMessageId: Id.optional(), assistantMessageId: Id }),
   z.object({ type: z.literal('text'), delta: z.string() }),
   z.object({ type: z.literal('proposal'), proposal: Proposal }),
   z.object({ type: z.literal('done'), status: z.enum(['complete', 'stopped', 'failed']) }),

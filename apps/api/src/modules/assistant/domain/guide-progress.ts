@@ -19,8 +19,12 @@ export type GuidePointState = (typeof GUIDE_POINT_STATES)[number]
 
 const VALUE: Record<GuidePointState, number> = { missing: 0, partial: 0.5, done: 1 }
 
-export const completeness = (states: Partial<Record<GuidePoint, string>>) => {
-  const items = GUIDE_CHECKLIST.map(([key, weight]) => {
+/** The percentage and the state of each point of a checklist; an unknown state counts as missing. */
+export const weighted = <K extends string>(
+  checklist: readonly (readonly [K, number])[],
+  states: Partial<Record<K, string>>,
+) => {
+  const items = checklist.map(([key, weight]) => {
     const state = states[key]
     const status: GuidePointState = GUIDE_POINT_STATES.includes(state as GuidePointState)
       ? (state as GuidePointState)
@@ -32,3 +36,6 @@ export const completeness = (states: Partial<Record<GuidePoint, string>>) => {
     items,
   }
 }
+
+export const completeness = (states: Partial<Record<GuidePoint, string>>) =>
+  weighted(GUIDE_CHECKLIST, states)

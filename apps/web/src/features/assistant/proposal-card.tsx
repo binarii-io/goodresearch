@@ -5,10 +5,11 @@ import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { GuideView, questionCount, totalMinutes } from '../preparation/guide-view.tsx'
 import { QUESTION_ISSUES } from '../preparation/labels.ts'
 import { errorMessage, messageForCode } from '../workspace/errors.ts'
+import { useAssistant } from './state.tsx'
 
 const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   create_project: msg`Create a project`,
@@ -20,12 +21,14 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   open_study: msg`Open a study`,
   propose_interview_guide: msg`Interview guide`,
   report_guide_progress: msg`Guide design progress`,
+  report_project_progress: msg`Project framing progress`,
   load_skill: msg`Skill`,
   check_guide_questions: msg`Question check`,
 }
 
 const SKILLS: Record<string, MessageDescriptor> = {
   'interview-guide-design': msg`Interview guide design`,
+  'project-framing': msg`Project framing`,
 }
 
 /**
@@ -36,7 +39,8 @@ export function ProposalCard({ proposal }: { proposal: Proposal }) {
   if (proposal.kind === 'open_project' || proposal.kind === 'open_study')
     return <OpenedPage proposal={proposal} />
   // Shown as the progress bar at the top of the conversation.
-  if (proposal.kind === 'report_guide_progress') return null
+  if (proposal.kind === 'report_guide_progress' || proposal.kind === 'report_project_progress')
+    return null
   if (proposal.kind === 'load_skill') return <SkillLine proposal={proposal} />
   if (proposal.kind === 'check_guide_questions') return <ChecksLine proposal={proposal} />
   return <ChangeCard proposal={proposal} />
@@ -142,6 +146,8 @@ function OpenedPage({ proposal }: { proposal: Proposal }) {
 function ChangeCard({ proposal }: { proposal: Proposal }) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const { conversationId, setAppliedProject } = useAssistant()
   const apply = useApplyProposal()
   const dismiss = useDismissProposal()
   const p = proposal.preview
@@ -221,7 +227,17 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
             onClick={() =>
               void apply
                 .mutateAsync({ proposalId: proposal.id })
-                .then(refresh)
+                .then(async (applied) => {
+                  await refresh()
+                  // As with the form, the new project opens; the assistant goes on (spec 018 US3).
+                  if (proposal.kind !== 'create_project' || applied.result?.kind !== 'project')
+                    return
+                  setAppliedProject({ projectId: applied.result.id, conversationId })
+                  await navigate({
+                    to: '/projects/$projectId',
+                    params: { projectId: applied.result.id },
+                  })
+                })
                 .catch(() => undefined)
             }
           >

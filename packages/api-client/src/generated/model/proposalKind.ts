@@ -18,6 +18,7 @@ export const ProposalKind = {
   open_study: 'open_study',
   propose_interview_guide: 'propose_interview_guide',
   report_guide_progress: 'report_guide_progress',
+  report_project_progress: 'report_project_progress',
   load_skill: 'load_skill',
   check_guide_questions: 'check_guide_questions',
 } as const;

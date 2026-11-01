@@ -9,7 +9,11 @@ const INSTRUCTIONS = `You are the goodresearch assistant. You help people run us
 - When the person dismissed a proposal, do not propose it again unchanged.
 - Only use ids that appear in the context.
 - Each message of the person starts with the page it was sent from. The context below describes the page the person is on now; when it differs from earlier messages, the person has moved.
-- Skills hold instructions for specific tasks. When a task matches a skill listed below that is not loaded yet, call load_skill first and follow its instructions.`
+- Skills hold instructions for specific tasks. When a task matches a skill listed below that is not loaded yet, call load_skill first and follow its instructions. When the person wants to create a research project, that is the skill project-framing.`
+
+/** Said when the answer follows an applied project rather than a message (spec 018 US3). */
+const CONTINUATION =
+  'The person just applied your project proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the project is ready, then propose a first interview study for it with create_study. Do not repeat the framing.'
 
 /** The interview study of the page, for the guide tools (spec 006). */
 export type GuideStudy = { id: string; name: string; guideVersion: number | null }
@@ -35,6 +39,7 @@ export const buildContext = async (
   page: PageRef,
   language: 'en' | 'fr',
   loadedSkills: readonly string[] = [],
+  continuation = false,
 ): Promise<{ system: string; guideStudy: GuideStudy | null }> => {
   let guideStudy: GuideStudy | null = null
   const lines: string[] = []
@@ -98,8 +103,12 @@ export const buildContext = async (
 
   const skills: string[] = []
   const loaded = SKILL_NAMES.filter((name) => loadedSkills.includes(name))
-  const available = SKILL_NAMES.filter((name) => !loadedSkills.includes(name))
-  if (guideStudy && available.length)
+  // The guide design only makes sense on an interview study; framing a project, on every page.
+  const available = SKILL_NAMES.filter(
+    (name) =>
+      !loadedSkills.includes(name) && (name !== 'interview-guide-design' || guideStudy !== null),
+  )
+  if (available.length)
     skills.push(
       `Skills you can load: ${available.map((name) => `${name} (${SKILLS[name].summary})`).join('; ')}.`,
     )
@@ -107,13 +116,13 @@ export const buildContext = async (
   // tools only exist on an interview study page (PR #6 review).
   for (const name of loaded as SkillName[])
     skills.push(`Loaded skill ${name}:\n${SKILLS[name].instructions}`)
-  if (loaded.length && !guideStudy)
+  if (loaded.includes('interview-guide-design') && !guideStudy)
     skills.push(
       'The interview guide tools (check_guide_questions, report_guide_progress, propose_interview_guide) are only available on the page of an interview study: open it with open_study to go on with the guide.',
     )
 
   return {
-    system: `${INSTRUCTIONS}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language.\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
+    system: `${INSTRUCTIONS}${continuation ? `\n- ${CONTINUATION}` : ''}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language.\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
     guideStudy,
   }
 }

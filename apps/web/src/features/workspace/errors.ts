@@ -24,6 +24,7 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   DRIVE_UNAVAILABLE: msg`Google Drive did not answer. Try again in a moment.`,
   CONVERSATION_NOT_FOUND: msg`This conversation does not exist any more.`,
   PROPOSAL_DECIDED: msg`This proposal was already applied or dismissed.`,
+  NOTHING_TO_CONTINUE: msg`The assistant has nothing to continue here.`,
   PROPOSAL_NOT_FOUND: msg`This proposal does not exist any more.`,
   PLANNED_INTERVIEW_NOT_FOUND: msg`This interview is no longer in the schedule.`,
   SCHEDULE_FULL: msg`The schedule is full: at most 300 interviews per study.`,

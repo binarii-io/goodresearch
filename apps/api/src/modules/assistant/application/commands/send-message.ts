@@ -3,6 +3,11 @@ import { AiProviderRequired, failureOf } from '../../../ai-gateway/index.ts'
 import { completeness, type GuidePoint } from '../../domain/guide-progress.ts'
 import { selectHistory } from '../../domain/history.ts'
 import {
+  currentFraming,
+  type FramingPoint,
+  framingCompleteness,
+} from '../../domain/project-framing.ts'
+import {
   isNavigation,
   isProposalKind,
   isRecordedAtOnce,
@@ -23,13 +28,20 @@ import type {
   ToolSpec,
 } from '../ports.ts'
 import { SKILLS } from '../skills.ts'
-import { checksOf, GUIDE_TOOLS, prepareProposal, TOOL_INPUTS, TOOLS } from '../tools.ts'
+import {
+  checksOf,
+  GUIDE_TOOLS,
+  prepareProject,
+  prepareProposal,
+  TOOL_INPUTS,
+  TOOLS,
+} from '../tools.ts'
 import { proposalView } from '../views.ts'
 
 const BUDGET = { maxMessages: 30, maxCharacters: 40_000 }
 
 export type StreamEvent =
-  | { type: 'start'; personMessageId: string; assistantMessageId: string }
+  | { type: 'start'; personMessageId?: string; assistantMessageId: string }
   | { type: 'text'; delta: string }
   | { type: 'proposal'; proposal: ReturnType<typeof proposalView> }
   | { type: 'done'; status: 'complete' | 'stopped' | 'failed' }
@@ -44,13 +56,19 @@ const checksText = (checks: ProposalPreview['checks'] = []): string =>
     )
     .join('\n') || 'Nothing to check.'
 
+/** Marks a project card dismissed because a newer one replaced it, not by the person. */
+const REPLACED = 'REPLACED'
+
 /** What the model is told about a tool call in the next turns (research R2). */
 const outcomeOf = (p: StoredProposal): string => {
   if (p.state === 'applied' && p.kind === 'load_skill')
     return 'Loaded: its instructions are in your context.'
   if (p.state === 'applied' && p.kind === 'check_guide_questions')
     return checksText(p.preview.checks)
-  if (p.state === 'applied' && p.kind === 'report_guide_progress')
+  if (
+    p.state === 'applied' &&
+    (p.kind === 'report_guide_progress' || p.kind === 'report_project_progress')
+  )
     return `Recorded: ${p.preview.progress?.percent ?? 0} % covered.`
   switch (p.state) {
     case 'applied':
@@ -58,11 +76,15 @@ const outcomeOf = (p: StoredProposal): string => {
         ? 'The page is open for the person.'
         : `Applied by the person${p.resultId ? ` (id ${p.resultId})` : ''}.`
     case 'dismissed':
+      if (p.error === REPLACED) return 'Replaced by your newer card.'
       return 'Dismissed by the person: do not propose it again unchanged.'
     case 'failed':
       return `The person tried to apply it and it failed: ${p.error ?? 'unknown error'}.`
     case 'invalid':
-      return 'Not shown: the values were invalid or the object is out of reach. Check the context.'
+      return (
+        p.error ??
+        'Not shown: the values were invalid or the object is out of reach. Check the context.'
+      )
     default:
       return 'Shown to the person, not decided yet.'
   }
@@ -70,6 +92,11 @@ const outcomeOf = (p: StoredProposal): string => {
 
 /** The arguments of the original tool call, as the model sent them. */
 const callInput = (p: StoredProposal): Record<string, unknown> => {
+  // A framed project: what the model sent, without the goal the app composed from it (spec 018).
+  if (p.kind === 'create_project' && 'question' in p.values) {
+    const { goal: _composed, ...sent } = p.values
+    return sent
+  }
   if (p.state === 'invalid' || !p.targetId) return { ...p.values }
   const key =
     p.kind === 'rename_study' || p.kind === 'open_study' || p.kind === 'propose_interview_guide'
@@ -118,7 +145,8 @@ const historyOf = (
 
 /**
  * Spec 005 US1–US3: stores the person's message, streams the answer with the page context and the
- * proposal tools, and stores everything; a stopped answer keeps its text.
+ * proposal tools, and stores everything; a stopped answer keeps its text. Spec 018 US3: `continue`
+ * streams the answer that follows an applied project, without a message from the person.
  */
 export const makeSendMessage = (deps: AssistantDeps) => {
   /** Checked before the stream starts, so errors are plain HTTP answers. */
@@ -130,10 +158,27 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       ? ok(true)
       : err('CONVERSATION_NOT_FOUND')
 
+  /** Only right after the answer holding the applied project; a second call finds a later one. */
+  const openContinue = async (c: {
+    actor: Actor
+    conversationId: string
+  }): Promise<Result<true, 'CONVERSATION_NOT_FOUND' | 'NOTHING_TO_CONTINUE'>> => {
+    const opened = await open(c)
+    if (!opened.ok) return opened
+    const last = (await deps.store.listMessages(c.conversationId)).at(-1)
+    // Stopped or failed after its card was shown, the answer can still have been applied.
+    if (last?.role !== 'assistant' || last.status === 'streaming') return err('NOTHING_TO_CONTINUE')
+    const applied = (await deps.store.listProposals(c.conversationId)).some(
+      (p) => p.messageId === last.id && p.kind === 'create_project' && p.state === 'applied',
+    )
+    return applied ? ok(true) : err('NOTHING_TO_CONTINUE')
+  }
+
   async function* send(c: {
     actor: Actor
     conversationId: string
-    text: string
+    /** Absent when the answer continues after an applied project. */
+    text?: string
     page: PageRef
     language: 'en' | 'fr'
   }): AsyncGenerator<StreamEvent> {
@@ -141,33 +186,45 @@ export const makeSendMessage = (deps: AssistantDeps) => {
     if (!conversation) return
     const previous = await deps.store.listMessages(c.conversationId)
     const now = deps.clock.now()
-    const person: StoredMessage = {
-      id: deps.newId(),
-      conversationId: c.conversationId,
-      role: 'person',
-      text: c.text.trim(),
-      status: 'complete',
-      failure: null,
-      pageKind: c.page.kind,
-      pageId: c.page.id ?? null,
-      createdAt: now,
+    const person: StoredMessage | null =
+      c.text === undefined
+        ? null
+        : {
+            id: deps.newId(),
+            conversationId: c.conversationId,
+            role: 'person',
+            text: c.text.trim(),
+            status: 'complete',
+            failure: null,
+            pageKind: c.page.kind,
+            pageId: c.page.id ?? null,
+            createdAt: now,
+          }
+    if (person) {
+      await deps.store.saveMessage(person)
+      await deps.store.updateConversation(c.conversationId, {
+        lastActivityAt: now,
+        ...(previous.length === 0 ? { title: titleFrom(person.text) } : {}),
+      })
     }
-    await deps.store.saveMessage(person)
-    await deps.store.updateConversation(c.conversationId, {
-      lastActivityAt: now,
-      ...(previous.length === 0 ? { title: titleFrom(person.text) } : {}),
-    })
 
     let answer: StoredMessage = {
-      ...person,
       id: deps.newId(),
+      conversationId: c.conversationId,
       role: 'assistant',
       text: '',
       status: 'streaming',
+      failure: null,
+      pageKind: c.page.kind,
+      pageId: c.page.id ?? null,
       createdAt: new Date(now.getTime() + 1),
     }
     await deps.store.saveMessage(answer)
-    yield { type: 'start', personMessageId: person.id, assistantMessageId: answer.id }
+    yield {
+      type: 'start',
+      ...(person ? { personMessageId: person.id } : {}),
+      assistantMessageId: answer.id,
+    }
 
     let text = ''
     let settled = false
@@ -185,6 +242,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       kind: ProposalKind,
       values: Record<string, unknown>,
       preview: ProposalPreview | null,
+      refused: string | null = null,
     ) => {
       const proposal: StoredProposal = {
         id: deps.newId(),
@@ -198,21 +256,79 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         state: preview ? 'applied' : 'invalid',
         resultKind: null,
         resultId: null,
-        error: null,
+        error: refused,
         decidedAt: deps.clock.now(),
       }
       await deps.store.saveProposal(proposal)
       if (preview) pending.push({ type: 'proposal', proposal: proposalView(proposal) })
     }
 
-    /** The guide design tools that run at once (spec 006): skill, writing checks, progress. */
+    /** A project proposal (spec 018): a card replacing the open one, or the reason of a refusal. */
+    // One at a time: calls of one step run together, and each must see the card before it.
+    let proposing: Promise<unknown> = Promise.resolve()
+    const proposeProject = (input: unknown, callId: string): Promise<string> => {
+      const next = proposing.then(() => proposeOne(input, callId))
+      proposing = next.catch(() => undefined)
+      return next
+    }
+    const proposeOne = async (input: unknown, callId: string): Promise<string> => {
+      const proposals = await deps.store.listProposals(c.conversationId)
+      const prepared = await prepareProject(
+        deps.research,
+        c.actor,
+        input,
+        currentFraming(proposals),
+        c.language,
+      )
+      if ('refused' in prepared) {
+        const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
+        await record(callId, 'create_project', raw, null, prepared.refused)
+        return prepared.refused
+      }
+      for (const open of proposals)
+        if (open.kind === 'create_project' && open.state === 'proposed')
+          await deps.store.transitionProposal(open.id, 'proposed', {
+            ...open,
+            state: 'dismissed',
+            error: REPLACED,
+            decidedAt: deps.clock.now(),
+          })
+      const proposal: StoredProposal = {
+        id: deps.newId(),
+        callId,
+        messageId: answer.id,
+        ...prepared,
+        state: 'proposed',
+        resultKind: null,
+        resultId: null,
+        error: null,
+        decidedAt: null,
+      }
+      await deps.store.saveProposal(proposal)
+      pending.push({ type: 'proposal', proposal: proposalView(proposal) })
+      return 'Card shown to the person. Wait for their decision and add nothing.'
+    }
+
+    /** The tools that run at once (spec 006, 018): skill, writing checks, progress, new project. */
     const runFor =
-      (guideStudy: GuideStudy) =>
+      (guideStudy: GuideStudy | null) =>
       async (name: string, input: unknown, callId: string): Promise<string> => {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
+        if (name === 'create_project') return proposeProject(input, callId)
+        if (name === 'report_project_progress') {
+          const parsed = TOOL_INPUTS.report_project_progress.safeParse(input)
+          if (!parsed.success) {
+            await record(callId, 'report_project_progress', raw, null)
+            return 'Invalid: use missing, partial or done for every point.'
+          }
+          const progress = framingCompleteness(parsed.data as Partial<Record<FramingPoint, string>>)
+          await record(callId, 'report_project_progress', parsed.data, { progress })
+          return `Recorded: ${progress.percent} % covered.`
+        }
         if (name === 'load_skill') {
           const parsed = TOOL_INPUTS.load_skill.safeParse(input)
-          if (!parsed.success) {
+          // The guide design and its tools only exist on an interview study (spec 006).
+          if (!parsed.success || (parsed.data.name === 'interview-guide-design' && !guideStudy)) {
             await record(callId, 'load_skill', raw, null)
             return 'Unknown skill: use a name listed in the context.'
           }
@@ -231,7 +347,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           return checksText(checks)
         }
         const parsed = TOOL_INPUTS.report_guide_progress.safeParse(input)
-        if (!parsed.success || parsed.data.studyId !== guideStudy.id) {
+        if (!parsed.success || !guideStudy || parsed.data.studyId !== guideStudy.id) {
           await record(callId, 'report_guide_progress', raw, null)
           return 'Invalid: use the Study id of the context, and missing, partial or done for every point.'
         }
@@ -254,27 +370,27 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         c.page,
         c.language,
         loadedSkills,
+        person === null,
       )
-      const run = guideStudy ? runFor(guideStudy) : null
-      const tools: ToolSpec[] = [
-        ...TOOLS,
-        ...(run
-          ? GUIDE_TOOLS.map((t) =>
-              isRunDuringAnswer(t.name as ProposalKind)
-                ? {
-                    ...t,
-                    run: (input: unknown, call: { id: string }) => run(t.name, input, call.id),
-                  }
-                : t,
-            )
-          : []),
-      ]
+      const run = runFor(guideStudy)
+      // A continuing answer follows a project just applied: the framing is over.
+      const offered = [...TOOLS, ...(guideStudy ? GUIDE_TOOLS : [])].filter(
+        (t) => person || (t.name !== 'create_project' && t.name !== 'report_project_progress'),
+      )
+      const tools: ToolSpec[] = offered.map((t) =>
+        isRunDuringAnswer(t.name as ProposalKind)
+          ? {
+              ...t,
+              run: (input: unknown, call: { id: string }) => run(t.name, input, call.id),
+            }
+          : t,
+      )
       const { parts, done } = await deps.gateway.stream(
         c.actor.id,
         'assistant',
         {
           system,
-          messages: historyOf([...previous, person], proposals),
+          messages: historyOf(person ? [...previous, person] : previous, proposals),
           tools,
           maxOutputTokens: 4000,
         },
@@ -293,7 +409,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         // Run (and recorded) by the app during the answer.
         if (isRunDuringAnswer(part.call.name)) continue
         if (isRecordedAtOnce(part.call.name)) {
-          await run?.(part.call.name, part.call.input, part.call.id)
+          await run(part.call.name, part.call.input, part.call.id)
           yield* pending.splice(0)
           continue
         }
@@ -344,7 +460,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
     }
   }
 
-  return { open, send }
+  return { open, openContinue, send }
 }
 
 export type SendMessage = ReturnType<typeof makeSendMessage>

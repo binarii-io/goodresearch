@@ -13,6 +13,7 @@ import {
   useListConversations,
   useRenameConversation,
 } from '@goodresearch/api-client'
+import type { AssistantStreamEvent } from '@goodresearch/contracts'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,14 +44,15 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { normalise } from '../../app/i18n.ts'
 import { FailureNotice } from '../ai/provider-forms.tsx'
 import { GUIDE_POINTS, POINT_STATES } from '../preparation/labels.ts'
-import { errorMessage } from '../workspace/errors.ts'
+import { errorCode, errorMessage } from '../workspace/errors.ts'
 import { useFormatRelative } from '../workspace/format.ts'
 import { ConversationCostIndicator } from './cost.tsx'
+import { FRAMING_POINTS } from './labels.ts'
 import { Markdown } from './markdown.tsx'
 import { usePageRef } from './page-ref.ts'
 import { ProposalCard } from './proposal-card.tsx'
 import { useAssistant } from './state.tsx'
-import { sendAssistantMessage } from './stream.ts'
+import { continueAssistantConversation, sendAssistantMessage } from './stream.ts'
 
 /** Failures only the person can fix: link to the AI provider page (spec 004). */
 const NEEDS_PERSON: readonly AiFailure[] = [
@@ -62,7 +64,8 @@ const NEEDS_PERSON: readonly AiFailure[] = [
 
 /** An answer being written, before it is stored and reloaded with the conversation. */
 type Live = {
-  personText: string
+  /** `null` when the answer continues without a message (spec 018 US3). */
+  personText: string | null
   text: string
   proposals: Proposal[]
   failure: AiFailure | null
@@ -222,23 +225,39 @@ function ConversationList({ onOpen }: { onOpen: (id: string | null) => void }) {
   )
 }
 
-/** The latest guide design progress of the conversation (spec 006 US1), as a segmented bar. */
-function GuideProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
+const isProgress = (p: Proposal) =>
+  (p.kind === 'report_guide_progress' || p.kind === 'report_project_progress') &&
+  Boolean(p.preview.progress)
+
+/**
+ * The latest progress of the conversation, guide design (spec 006 US1) or project framing (spec
+ * 018), as a segmented bar. A framing is over once its project is applied.
+ */
+function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
   const { t, i18n } = useLingui()
-  const latest = proposals.findLast((p) => p.kind === 'report_guide_progress' && p.preview.progress)
+  const index = proposals.findLastIndex(isProgress)
+  const latest = proposals[index]
   const progress = latest?.preview.progress
-  if (!progress) return null
+  if (!latest || !progress) return null
+  const framing = latest.kind === 'report_project_progress'
+  if (
+    framing &&
+    proposals.slice(index).some((p) => p.kind === 'create_project' && p.state === 'applied')
+  )
+    return null
   const study = latest.preview.studyName ?? ''
   const count = progress.items.length
   return (
     <div className="grid gap-1 border-b px-4 py-2.5">
-      <p className="truncate font-medium text-xs">{t`Interview guide · ${study}`}</p>
+      <p className="truncate font-medium text-xs">
+        {framing ? t`Project framing` : t`Interview guide · ${study}`}
+      </p>
       <SegmentedProgress
-        label={t`Interview guide design progress`}
+        label={framing ? t`Project framing progress` : t`Interview guide design progress`}
         percent={progress.percent}
         listLabel={t`${count} points`}
         segments={progress.items.map((item) => {
-          const point = GUIDE_POINTS[item.key]
+          const point = (framing ? FRAMING_POINTS : GUIDE_POINTS)[item.key]
           return {
             key: item.key,
             label: point ? i18n._(point) : item.key,
@@ -264,6 +283,8 @@ export function AssistantPanel() {
     clearPending,
     rememberThread,
     setAnswering,
+    appliedProject,
+    setAppliedProject,
   } = useAssistant()
   const queryClient = useQueryClient()
   const page = usePageRef()
@@ -334,53 +355,63 @@ export function AssistantPanel() {
       if (request?.thread) rememberThread(request.thread, id)
     }
     if (request === undefined) setDraft('')
+    try {
+      await readAnswer(
+        id,
+        text,
+        (onEvent, signal) =>
+          sendAssistantMessage(
+            id,
+            { text, page, language: normalise(i18n.locale) },
+            onEvent,
+            signal,
+          ),
+        conversationId ? (conversation.data?.messages.length ?? 0) : 0,
+      )
+    } catch (error) {
+      // Anything else than Stop is shown, and the message is given back so nothing typed is lost.
+      setSendError(error)
+      if (request === undefined) setDraft(text)
+    }
+  }
+
+  /** Shows an answer while it is written, then the stored one. Stop is not a failure. */
+  const readAnswer = async (
+    id: string,
+    personText: string | null,
+    start: (onEvent: (event: AssistantStreamEvent) => void, signal: AbortSignal) => Promise<void>,
+    shownBefore: number,
+  ) => {
     // Sending brings the conversation back to its end.
     follow.current = true
     const controller = new AbortController()
     abort.current = controller
-    setLive({
-      personText: text,
-      text: '',
-      proposals: [],
-      failure: null,
-      shownBefore: conversationId ? (conversation.data?.messages.length ?? 0) : 0,
-    })
+    setLive({ personText, text: '', proposals: [], failure: null, shownBefore })
     try {
-      await sendAssistantMessage(
-        id,
-        { text, page, language: normalise(i18n.locale) },
-        (event) => {
-          // The assistant opened a page: go there, as if the person had clicked (US5).
-          const result = event.type === 'proposal' ? event.proposal.result : null
-          if (event.type === 'proposal' && result && /^open_/.test(event.proposal.kind))
-            void (result.kind === 'study'
-              ? navigate({
-                  to: '/studies/$studyId',
-                  params: { studyId: result.id },
-                  search: event.proposal.preview.phase
-                    ? { phase: event.proposal.preview.phase }
-                    : {},
-                })
-              : navigate({ to: '/projects/$projectId', params: { projectId: result.id } }))
-          setLive((current) => {
-            if (!current) return current
-            if (event.type === 'text') return { ...current, text: current.text + event.delta }
-            if (event.type === 'proposal')
-              // Same shape as the API's Proposal; only optional fields are typed differently.
-              return { ...current, proposals: [...current.proposals, event.proposal as Proposal] }
-            if (event.type === 'error') return { ...current, failure: event.failure }
-            return current
-          })
-        },
-        controller.signal,
-      )
+      await start((event) => {
+        // The assistant opened a page: go there, as if the person had clicked (US5).
+        const result = event.type === 'proposal' ? event.proposal.result : null
+        if (event.type === 'proposal' && result && /^open_/.test(event.proposal.kind))
+          void (result.kind === 'study'
+            ? navigate({
+                to: '/studies/$studyId',
+                params: { studyId: result.id },
+                search: event.proposal.preview.phase ? { phase: event.proposal.preview.phase } : {},
+              })
+            : navigate({ to: '/projects/$projectId', params: { projectId: result.id } }))
+        setLive((current) => {
+          if (!current) return current
+          if (event.type === 'text') return { ...current, text: current.text + event.delta }
+          if (event.type === 'proposal')
+            // Same shape as the API's Proposal; only optional fields are typed differently.
+            return { ...current, proposals: [...current.proposals, event.proposal as Proposal] }
+          if (event.type === 'error') return { ...current, failure: event.failure }
+          return current
+        })
+      }, controller.signal)
     } catch (error) {
-      // Stopped by the person: the server keeps what was written. Anything else is shown, and the
-      // message is given back so nothing typed is lost.
-      if (!controller.signal.aborted) {
-        setSendError(error)
-        if (request === undefined) setDraft(text)
-      }
+      // Stopped by the person: the server keeps what was written.
+      if (!controller.signal.aborted) throw error
     } finally {
       abort.current = null
       const key = getGetConversationQueryKey(id)
@@ -409,6 +440,39 @@ export function AssistantPanel() {
       setBusy(false)
     }
   }
+
+  /** A project was just applied: the assistant goes on, on its page (spec 018 US3). */
+  const continueOn = async (id: string, projectId: string) => {
+    setBusy(true)
+    setSendError(null)
+    try {
+      await readAnswer(
+        id,
+        null,
+        (onEvent, signal) =>
+          continueAssistantConversation(
+            id,
+            { page: { kind: 'project', id: projectId }, language: normalise(i18n.locale) },
+            onEvent,
+            signal,
+          ),
+        conversation.data?.messages.length ?? 0,
+      )
+    } catch (error) {
+      // The conversation went on after the card: the page opening is enough.
+      if (errorCode(error) !== 'NOTHING_TO_CONTINUE') setSendError(error)
+    }
+  }
+
+  const continueRef = useRef(continueOn)
+  continueRef.current = continueOn
+  useEffect(() => {
+    if (!appliedProject || busy) return
+    setAppliedProject(null)
+    // The person moved to another conversation in between: the page opening is enough.
+    if (conversationId && appliedProject.conversationId === conversationId)
+      void continueRef.current(conversationId, appliedProject.projectId)
+  }, [appliedProject, busy, conversationId, setAppliedProject])
 
   // A page asked the assistant something for the person: send it once, on a new conversation.
   const submitRef = useRef(submit)
@@ -465,7 +529,7 @@ export function AssistantPanel() {
         <ConversationList onOpen={openConversation} />
       ) : (
         <>
-          <GuideProgressBar proposals={progressSources} />
+          <ProgressBar proposals={progressSources} />
           <div
             ref={log}
             onScroll={onScroll}
@@ -482,9 +546,11 @@ export function AssistantPanel() {
             ))}
             {live ? (
               <>
-                <div className="ml-8 self-end rounded-lg bg-muted px-3 py-2 whitespace-pre-wrap">
-                  {live.personText}
-                </div>
+                {live.personText !== null ? (
+                  <div className="ml-8 self-end rounded-lg bg-muted px-3 py-2 whitespace-pre-wrap">
+                    {live.personText}
+                  </div>
+                ) : null}
                 <div className="grid gap-3">
                   {live.text ? (
                     <Markdown text={live.text} />

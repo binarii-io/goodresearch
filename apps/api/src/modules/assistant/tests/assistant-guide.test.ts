@@ -44,9 +44,7 @@ beforeEach(async () => {
 describe('spec 006 — guide design mode', () => {
   it('lists the skill and offers the guide tools only on an interview study the person can act on', async () => {
     await send('Hello')
-    expect(world.model.requests.at(-1)?.system).toContain(
-      'Skills you can load: interview-guide-design',
-    )
+    expect(world.model.requests.at(-1)?.system).toContain('interview-guide-design (')
     expect(toolNames()).toEqual(
       expect.arrayContaining([
         'load_skill',
@@ -56,8 +54,8 @@ describe('spec 006 — guide design mode', () => {
       ]),
     )
     await send('Hello', { kind: 'project', id: 'p1' })
-    expect(toolNames()).not.toContain('load_skill')
-    expect(world.model.requests.at(-1)?.system).not.toContain('Skills you can load')
+    expect(toolNames()).not.toContain('check_guide_questions')
+    expect(world.model.requests.at(-1)?.system).not.toContain('interview-guide-design (')
     world.research.preparation.guide = null
     await send('Hello')
     expect(toolNames()).not.toContain('propose_interview_guide')
@@ -85,7 +83,7 @@ describe('spec 006 — guide design mode', () => {
     await send('Go on')
     const system = world.model.requests.at(-1)?.system ?? ''
     expect(system).toContain('Loaded skill interview-guide-design')
-    expect(system).not.toContain('Skills you can load')
+    expect(system).not.toContain('interview-guide-design (')
     // On another page the skill is still there, and the model is told where its tools are.
     await send('And now?', { kind: 'project', id: 'p1' })
     const elsewhere = world.model.requests.at(-1)?.system ?? ''

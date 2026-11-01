@@ -6,6 +6,7 @@ import type {
   ToolSpec,
 } from '../../ai-gateway/index.ts'
 import type { GuidePoint, GuidePointState } from '../domain/guide-progress.ts'
+import type { FramingPoint } from '../domain/project-framing.ts'
 import type { ProposalKind, ProposalState } from '../domain/proposal.ts'
 import type { QuestionIssue } from '../domain/question-checks.ts'
 
@@ -55,7 +56,7 @@ export type ProposalPreview = {
   readonly replacesGuide?: boolean
   readonly progress?: {
     percent: number
-    items: { key: GuidePoint; weight: number; status: GuidePointState }[]
+    items: { key: GuidePoint | FramingPoint; weight: number; status: GuidePointState }[]
   }
   readonly checks?: { question: string; issues: QuestionIssue[] }[]
   readonly skill?: string

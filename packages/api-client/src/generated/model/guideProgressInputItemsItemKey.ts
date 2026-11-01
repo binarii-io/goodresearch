@@ -17,4 +17,7 @@ export const GuideProgressInputItemsItemKey = {
   themes: 'themes',
   followUps: 'followUps',
   biasReview: 'biasReview',
+  question: 'question',
+  decision: 'decision',
+  team: 'team',
 } as const;

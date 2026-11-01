@@ -161,9 +161,11 @@ Spec 016: how the interviews were conducted, as facts to read: no score, no verd
 - **Page context** — built on the server with the person's own permissions at each message (project, goal, studies; study, phase, folder name only with folder access); never file names or contents.
 - **Page opening** — the assistant can also open a project or study page the person can access (a tool too, run at once: it changes no data).
 - **Action proposal** — an action the assistant proposes through a tool (create a project or study, rename them, write the research goal, write the whole interview guide). It changes nothing until the person applies it; applying runs the Research commands with the person's permissions and the version seen at proposal time; it is decided once (applied, dismissed or failed), and the outcome is given back to the assistant.
-- **Skill** (spec 006) — instructions for a task (interview guide design) that the assistant loads with a tool when the task comes up; the context lists the available skills, and a loaded skill stays in the context for the rest of the conversation.
-- **Tools run during the answer** (spec 006) — loading a skill and **checking questions** (the app's fixed writing rules: closed, leading, hypothetical, about the future, asking for a solution, double, too long): run by the app, their result goes back to the assistant, which goes on in the same answer. **Reporting the guide design progress** is recorded when called and ends the answer.
+- **Skill** (spec 006) — instructions for a task (project framing on every page, interview guide design on an interview study) that the assistant loads with a tool when the task comes up; the context lists the available skills, and a loaded skill stays in the context for the rest of the conversation.
+- **Tools run during the answer** (spec 006) — loading a skill and **checking questions** (the app's fixed writing rules: closed, leading, hypothetical, about the future, asking for a solution, double, too long): run by the app, their result goes back to the assistant, which goes on in the same answer. A **project proposal** (spec 018) too: it returns the card's confirmation or the reason of its refusal. **Reporting the progress** of a guide design or a project framing is recorded when called and ends the answer.
 - **Guide design progress** (spec 006) — the latest progress report of a conversation: for each of the eight points (objectives and themes 15, hypotheses 10, audience 15, format 10, introduction and warm-up 10, thematic questions 25, follow-ups 10, bias review 5) whether it is missing, partial or covered; the app computes the percentage.
+- **Project framing** (spec 018) — the dialogue before proposing a project, and its latest progress report in a conversation: five points (research question 30, audience 20, decision to support 25, hypotheses 15, team 10). The app refuses a project proposal until every point is done, and composes the research goal from the question, objectives and hypotheses. A framing ends when its project is applied; a new card replaces an open one.
+- **Continuing answer** (spec 018) — the answer the assistant gives on its own right after a project is applied, on the project's page, without a message from the person; only one, and only if the conversation has not gone on.
 
 ### 9. AI Gateway
 
@@ -203,6 +205,7 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Interview guide | Guide d'entretien | |
 | Guide question | Question du guide | |
 | Framing | Cadrage | Objectives, hypotheses, audience, format of a guide |
+| Project framing | Cadrage du projet | The dialogue before proposing a project |
 | Follow-up | Relance | |
 | Section kinds: introduction / warm-up / theme / wrap-up | Introduction / Questions introductives / Thématique / Conclusion | |
 | Guide design progress | Avancement de la conception du guide | |
