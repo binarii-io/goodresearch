@@ -41,6 +41,19 @@ export class InMemoryResearch {
       const project = this.projects.get(id)
       return project ? Project.fromPersistence(project.snapshot()) : null
     },
+    delete: async (id) => {
+      this.projects.delete(id)
+      for (const [studyId, study] of this.studies) {
+        const props = study.snapshot()
+        this.studies.set(
+          studyId,
+          Study.fromPersistence({
+            ...props,
+            projectIds: props.projectIds.filter((p) => p !== id),
+          }),
+        )
+      }
+    },
     save: async (project) => {
       const stored = this.projects.get(project.id)
       if (stored && stored.version !== project.version) throw new ConcurrencyError()

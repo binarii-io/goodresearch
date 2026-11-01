@@ -44,6 +44,11 @@ export type ReportingSources = {
     teamId: string,
     filter: { q?: string | undefined },
   ): Promise<readonly ReportedStudy[] | null>
+  /** Spec 020: null without access to the project, else whether this person may delete it. */
+  canDelete(accountId: string, projectId: string): Promise<boolean | null>
+  /** Spec 020: each study of the project, and how many other projects it is in. */
+  linkedStudies(accountId: string, projectId: string): Promise<readonly { otherProjects: number }[]>
+  hasPublishedDeck(projectId: string): Promise<boolean>
   studyCounts(studyId: string): Promise<StudyCounts>
   studyCostRefs(studyId: string): Promise<StudyCostRefs>
   insightCounts(projectId: string): Promise<readonly StatusCount[]>

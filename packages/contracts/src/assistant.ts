@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { AiFailure } from './ai.ts'
 import { Id, Timestamp } from './common.ts'
+import { ProjectDeletion } from './overview.ts'
 import { GuideDraft } from './preparation.ts'
 
 /** The page the assistant is looking at (spec 005 US2); the server builds its context. */
@@ -29,6 +30,7 @@ export const ProposalKind = z.enum([
   'attach_study',
   'detach_study',
   'update_study_goal',
+  'delete_project',
 ])
 
 /** What the app's writing rules flag in a question (spec 006). */
@@ -81,6 +83,10 @@ export const ProposalPreview = z
     /** For an opened study: the tab to show. */
     phase: z.enum(['preparation', 'fieldwork', 'enrichment', 'analysis']).optional(),
     studyName: z.string().optional(),
+    /** Spec 020: the project a deletion is about. */
+    projectId: Id.optional(),
+    /** Spec 020: what deleting the project removes, when it was proposed. */
+    deletion: ProjectDeletion.optional(),
     /** Spec 019: the other projects of a study attached or detached. */
     otherProjects: z.array(z.string()).optional(),
     /** A proposed interview guide (spec 006). */

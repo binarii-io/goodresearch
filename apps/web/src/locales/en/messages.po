@@ -41,6 +41,11 @@ msgstr "(no longer in the text)"
 msgid "(none)"
 msgstr "(none)"
 
+#. placeholder {0}: d.studies
+#: src/features/research/delete-project-dialog.tsx
+msgid "{0, plural, =0 {No study to keep} one {# study, with its interviews and facts} other {# studies, with their interviews and facts}}"
+msgstr "{0, plural, =0 {No study to keep} one {# study, with its interviews and facts} other {# studies, with their interviews and facts}}"
+
 #. placeholder {0}: run.total
 #. placeholder {1}: run.done
 #. placeholder {2}: run.done
@@ -64,6 +69,11 @@ msgstr "{0, plural, one {# fact to decide} other {# facts to decide}}"
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0, plural, one {# fact} other {# facts}}"
 msgstr "{0, plural, one {# fact} other {# facts}}"
+
+#. placeholder {0}: d.insights
+#: src/features/research/delete-project-dialog.tsx
+msgid "{0, plural, one {# insight} other {# insights}}"
+msgstr "{0, plural, one {# insight} other {# insights}}"
 
 #. placeholder {0}: c.validated
 #: src/features/research/study-card.tsx
@@ -91,6 +101,11 @@ msgstr "{0, plural, one {# participant} other {# participants}}"
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# project} other {# projects}}"
 
+#. placeholder {0}: d.recommendations
+#: src/features/research/delete-project-dialog.tsx
+msgid "{0, plural, one {# recommendation} other {# recommendations}}"
+msgstr "{0, plural, one {# recommendation} other {# recommendations}}"
+
 #. placeholder {0}: step.validated
 #: src/features/research/project-journey.tsx
 msgid "{0, plural, one {# validated} other {# validated}}"
@@ -101,6 +116,11 @@ msgstr "{0, plural, one {# validated} other {# validated}}"
 msgctxt "recommendations"
 msgid "{0, plural, one {# validated} other {# validated}}"
 msgstr "{0, plural, one {# validated} other {# validated}}"
+
+#. placeholder {0}: d.studiesWithoutProject
+#: src/features/research/delete-project-dialog.tsx
+msgid "{0, plural, one {# will be in no project, on the team's Studies page} other {# will be in no project, on the team's Studies page}}"
+msgstr "{0, plural, one {# will be in no project, on the team's Studies page} other {# will be in no project, on the team's Studies page}}"
 
 #. placeholder {0}: data.namedFiles
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -1772,6 +1792,7 @@ msgstr "Click to change"
 #: src/features/quality/requalify-dialog.tsx
 #: src/features/research/attach-study-dialog.tsx
 #: src/features/research/create-project-dialog.tsx
+#: src/features/research/delete-project-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/features/research/study-settings.tsx
 #: src/features/synthesis/debrief-tab.tsx
@@ -2149,6 +2170,11 @@ msgstr "Delete {title}"
 msgid "Delete account"
 msgstr "Delete account"
 
+#: src/features/assistant/proposal-card.tsx
+#: src/features/research/delete-project-dialog.tsx
+msgid "Delete for good"
+msgstr "Delete for good"
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Delete study"
 msgstr "Delete study"
@@ -2156,6 +2182,10 @@ msgstr "Delete study"
 #: src/routes/_authenticated/teams.tsx
 msgid "Delete team"
 msgstr "Delete team"
+
+#: src/features/research/delete-project-dialog.tsx
+msgid "Delete the project"
+msgstr "Delete the project"
 
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "Delete this account?"
@@ -2165,6 +2195,15 @@ msgstr "Delete this account?"
 msgid "Delete this conversation?"
 msgstr "Delete this conversation?"
 
+#: src/features/assistant/proposal-card.tsx
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "Delete this project"
+msgstr "Delete this project"
+
+#: src/features/research/delete-project-dialog.tsx
+msgid "Delete this project?"
+msgstr "Delete this project?"
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Delete this study"
 msgstr "Delete this study"
@@ -2173,6 +2212,7 @@ msgstr "Delete this study"
 msgid "Delete this study?"
 msgstr "Delete this study?"
 
+#: src/features/assistant/proposal-card.tsx
 #: src/features/synthesis/labels.ts
 #: src/features/workspace/member-labels.ts
 msgid "Deleted"
@@ -2181,6 +2221,10 @@ msgstr "Deleted"
 #: src/features/workspace/member-labels.ts
 msgid "Deleted account"
 msgstr "Deleted account"
+
+#: src/features/research/delete-project-dialog.tsx
+msgid "Deleted for good, with no way back:"
+msgstr "Deleted for good, with no way back:"
 
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Describe the research question, objectives and hypotheses."
@@ -2612,6 +2656,10 @@ msgstr "Files"
 #: src/features/fieldwork/analysis.tsx
 msgid "files changed since"
 msgstr "files changed since"
+
+#: src/features/research/delete-project-dialog.tsx
+msgid "Files in Drive and AI costs already recorded"
+msgstr "Files in Drive and AI costs already recorded"
 
 #: src/features/fieldwork/proposals.tsx
 msgid "Files named in Drive"
@@ -6272,6 +6320,10 @@ msgstr "The inventory is removed from goodresearch. Nothing changes in Drive."
 msgid "The key or the Google access was refused."
 msgstr "The key or the Google access was refused."
 
+#: src/features/research/delete-project-dialog.tsx
+msgid "The key takeaways"
+msgstr "The key takeaways"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "The last refresh failed ({reason}). The list below is from {when}."
 msgstr "The last refresh failed ({reason}). The list below is from {when}."
@@ -6280,6 +6332,10 @@ msgstr "The last refresh failed ({reason}). The list below is from {when}."
 msgid "The lexicon for this type of study is coming in a later version."
 msgstr "The lexicon for this type of study is coming in a later version."
 
+#: src/features/research/delete-project-dialog.tsx
+msgid "The link to the published debrief: the file stays in Drive"
+msgstr "The link to the published debrief: the file stays in Drive"
+
 #: src/features/ai/labels.ts
 msgid "The model is not available for this account or region."
 msgstr "The model is not available for this account or region."
@@ -6287,6 +6343,10 @@ msgstr "The model is not available for this account or region."
 #: src/routes/_authenticated/members/$memberId.tsx
 msgid "The name and email are erased for good and the person can no longer sign in. Projects and history stay, shown as \"Deleted account\". This cannot be undone."
 msgstr "The name and email are erased for good and the person can no longer sign in. Projects and history stay, shown as \"Deleted account\". This cannot be undone."
+
+#: src/features/workspace/errors.ts
+msgid "The name does not match the project's name."
+msgstr "The name does not match the project's name."
 
 #: src/features/research/study-settings.tsx
 msgid "The names and titles proposed for the interviews use a pseudonym (P01, P02…) instead of the interviewee's name. Before the beginning of a transcript goes to the AI, the names the app knows (schedule, people of the interview, team) are replaced; names it does not know stay in the text. Replacing every name inside the transcripts comes with the cleaning phase."
@@ -6325,6 +6385,14 @@ msgstr "The presentation was deleted or moved to the trash in Drive: publish a n
 #: src/features/synthesis/debrief-tab.tsx
 msgid "The presentation was edited in Google Slides since it was published. Updating replaces those changes with the deck as it is now."
 msgstr "The presentation was edited in Google Slides since it was published. Updating replaces those changes with the deck as it is now."
+
+#: src/features/research/delete-project-dialog.tsx
+msgid "The project and its research goal"
+msgstr "The project and its research goal"
+
+#: src/routes/_authenticated/projects/$projectId.tsx
+msgid "The project, its insights, recommendations and key takeaways are deleted for good. Its studies stay."
+msgstr "The project, its insights, recommendations and key takeaways are deleted for good. Its studies stay."
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "The provider answered."
@@ -6879,6 +6947,14 @@ msgstr "Type"
 msgid "Type {email} to confirm"
 msgstr "Type {email} to confirm"
 
+#: src/features/research/delete-project-dialog.tsx
+msgid "Type the project's name to confirm:"
+msgstr "Type the project's name to confirm:"
+
+#: src/features/workspace/errors.ts
+msgid "Type the project's name to confirm."
+msgstr "Type the project's name to confirm."
+
 #: src/features/preparation/drive-publishing.tsx
 msgid "Unavailable in Drive"
 msgstr "Unavailable in Drive"
@@ -7100,6 +7176,10 @@ msgstr "What it should read"
 #: src/features/synthesis/deck-slide.tsx
 msgid "What qualifies it"
 msgstr "What qualifies it"
+
+#: src/features/research/delete-project-dialog.tsx
+msgid "What stays:"
+msgstr "What stays:"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "What the AI proposes stays a proposal until a person accepts it."

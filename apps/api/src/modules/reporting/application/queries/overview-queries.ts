@@ -15,6 +15,29 @@ const counted = (counts: readonly StatusCount[]): StepCounts => {
  * write nothing, and call neither AI nor Drive.
  */
 export const makeOverviewQueries = ({ sources }: ReportingDeps) => ({
+  /** Spec 020: counts only, for the confirmation of a deletion; every status goes. */
+  deletion: async (accountId: string, projectId: string) => {
+    const allowed = await sources.canDelete(accountId, projectId)
+    if (allowed === null) return err('PROJECT_NOT_FOUND' as const)
+    if (!allowed) return err('FORBIDDEN' as const)
+    const [insights, recommendations, takeaways, deck, studies] = await Promise.all([
+      sources.insightCounts(projectId),
+      sources.recommendationCounts(projectId),
+      sources.takeaways(projectId),
+      sources.hasPublishedDeck(projectId),
+      sources.linkedStudies(accountId, projectId),
+    ])
+    const sum = (counts: readonly StatusCount[]) => counts.reduce((n, c) => n + c.count, 0)
+    return ok({
+      insights: sum(insights),
+      recommendations: sum(recommendations),
+      hasTakeaways: takeaways !== null,
+      hasPublishedDeck: deck,
+      studies: studies.length,
+      studiesWithoutProject: studies.filter((s) => s.otherProjects === 0).length,
+    })
+  },
+
   /** Spec 019: the counts of the studies on a team's page; closed ones show nothing. */
   teamStudies: async (accountId: string, teamId: string, filter: { q?: string | undefined }) => {
     const studies = await sources.teamStudies(accountId, teamId, filter)

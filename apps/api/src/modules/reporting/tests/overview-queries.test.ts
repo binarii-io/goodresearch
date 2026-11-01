@@ -27,12 +27,16 @@ const setup = (
     studies?: { id: string; access: boolean }[] | null
     prices?: Record<string, number | null>
     over?: Partial<ReportingSources>
+    canDelete?: boolean
   } = {},
 ) => {
   const prices = options.prices ?? { a: 1, l: 0.5, c: 0.25, q: 0.25, f: 1 }
   const sources: ReportingSources = {
     studies: async () =>
       options.studies === undefined ? [{ id: 'st', access: true }] : options.studies,
+    canDelete: async () => options.canDelete ?? true,
+    linkedStudies: async () => [{ otherProjects: 0 }, { otherProjects: 2 }],
+    hasPublishedDeck: async () => true,
     teamStudies: async () =>
       options.studies === undefined ? [{ id: 'st', access: true }] : options.studies,
     studyCounts: async () => counts,
@@ -204,6 +208,20 @@ describe('project overview (spec 017)', () => {
     expect(await setup({ studies: null }).teamStudies('a', 't', {})).toEqual({
       ok: false,
       error: 'TEAM_NOT_FOUND',
+    })
+  })
+
+  it('counts what a deletion removes and the studies left without a project (spec 020)', async () => {
+    const q = setup({})
+    const preview = await q.deletion('a', 'p')
+    expect(preview.ok && preview.value).toMatchObject({
+      hasPublishedDeck: true,
+      studies: 2,
+      studiesWithoutProject: 1,
+    })
+    expect(await setup({ canDelete: false }).deletion('a', 'p')).toEqual({
+      ok: false,
+      error: 'FORBIDDEN',
     })
   })
 })

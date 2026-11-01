@@ -23,6 +23,7 @@ export const makeOverviewReads = (store: SynthesisStore, clock: Clock) => ({
   },
   insightCounts: store.insightCounts,
   recommendationCounts: store.recommendationCounts,
+  hasPublishedDeck: async (projectId: string) => (await store.getPublishedDeck(projectId)) !== null,
   /** Null until written in one language. */
   takeaways: async (projectId: string) => {
     const takeaways = await store.takeawaysText(projectId)

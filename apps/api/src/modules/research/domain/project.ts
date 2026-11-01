@@ -82,6 +82,16 @@ export class Project {
     return this.#props.version
   }
 
+  /** Spec 020: a team member alone cannot erase the others' work. */
+  canBeDeletedBy(actor: { id: string; role: 'admin' | 'member' }): boolean {
+    return actor.role === 'admin' || this.#props.createdBy === actor.id
+  }
+
+  /** Spec 020: the exact name confirms a deletion, apart from spaces at both ends. */
+  confirms(typed: string): boolean {
+    return typed.trim() === this.#props.name
+  }
+
   rename(name: string, now: Date): Result<void, ProjectError> {
     const valid = validName(name)
     if (!valid.ok) return valid

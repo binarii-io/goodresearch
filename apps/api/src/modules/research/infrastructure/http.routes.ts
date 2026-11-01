@@ -1,4 +1,5 @@
 import {
+  ConfirmWithName,
   Created,
   CreateProject,
   CreateStudy,
@@ -31,6 +32,7 @@ import { z } from 'zod'
 import { sendError } from '#platform/http/errors.ts'
 import { reply } from '#platform/http/result.ts'
 import type { makeCreateProject } from '../application/commands/create-project.ts'
+import type { makeDeleteProject } from '../application/commands/delete-project.ts'
 import type { makeMoveProjectToTeam } from '../application/commands/move-project-to-team.ts'
 import type { PreparationCommands } from '../application/commands/preparation-commands.ts'
 import type { makeRenameProject } from '../application/commands/rename-project.ts'
@@ -42,6 +44,7 @@ import type { StudyQueries } from '../application/queries/study-queries.ts'
 
 export type ResearchHandlers = {
   readonly createProject: ReturnType<typeof makeCreateProject>
+  readonly deleteProject: ReturnType<typeof makeDeleteProject>
   readonly renameProject: ReturnType<typeof makeRenameProject>
   readonly updateProjectGoal: ReturnType<typeof makeUpdateProjectGoal>
   readonly moveProjectToTeam: ReturnType<typeof makeMoveProjectToTeam>
@@ -78,6 +81,29 @@ export const registerResearchRoutes = (
       },
     },
     async (request) => h.queries.listProjects(request.account.id, { team: request.query.team }),
+  )
+
+  api.post(
+    '/api/projects/:projectId/delete',
+    {
+      ...secured,
+      schema: {
+        operationId: 'deleteProject',
+        tags,
+        params: ProjectParams,
+        body: ConfirmWithName,
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.deleteProject({
+          actor: request.account,
+          projectId: request.params.projectId,
+          name: request.body.name,
+        }),
+        () => res.status(204).send(),
+      ),
   )
 
   api.post(

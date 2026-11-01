@@ -2,7 +2,7 @@ import type { ProjectDetail, ProjectSummary } from '@goodresearch/contracts'
 import { and, count, desc, eq, inArray, type SQL } from 'drizzle-orm'
 import type { Db } from '#platform/db.ts'
 import { researchProjects } from '../../infrastructure/schema.ts'
-import type { TeamDirectory } from '../ports.ts'
+import type { AccessContext, TeamDirectory } from '../ports.ts'
 
 export type TeamNames = (teamIds: readonly string[]) => Promise<ReadonlyMap<string, string>>
 
@@ -14,14 +14,15 @@ export const makeProjectQueries = (deps: {
 }) => {
   const { db } = deps
 
-  const scope = async (accountId: string): Promise<SQL | undefined | 'none'> => {
-    const access = await deps.teams.getAccessContext(accountId)
+  const scopeOf = (access: AccessContext | null): SQL | undefined | 'none' => {
     if (!access) return 'none'
     if (access.role === 'admin') return undefined
     return access.teamIds.length > 0
       ? inArray(researchProjects.teamId, [...access.teamIds])
       : 'none'
   }
+
+  const scope = async (accountId: string) => scopeOf(await deps.teams.getAccessContext(accountId))
 
   return {
     listProjects: async (
@@ -50,7 +51,8 @@ export const makeProjectQueries = (deps: {
     },
 
     getProject: async (accountId: string, projectId: string): Promise<ProjectDetail | null> => {
-      const visible = await scope(accountId)
+      const access = await deps.teams.getAccessContext(accountId)
+      const visible = scopeOf(access)
       if (visible === 'none') return null
       const [row] = await db
         .select()
@@ -63,6 +65,7 @@ export const makeProjectQueries = (deps: {
         name: row.name,
         goal: row.goal,
         team: { id: row.teamId, name: names.get(row.teamId) ?? '' },
+        canDelete: access?.role === 'admin' || row.createdBy === accountId,
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
         version: row.version,

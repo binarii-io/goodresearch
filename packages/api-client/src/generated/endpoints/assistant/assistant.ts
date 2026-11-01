@@ -24,6 +24,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ConfirmWithNameInput,
   ContinueAssistantConversationInput,
   ConversationDetail,
   ConversationSummary,
@@ -626,6 +627,88 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getContinueAssistantConversationMutationOptions(options), queryClient);
+    }
+    export const getConfirmDeleteProposalUrl = (proposalId: string,) => {
+
+
+
+
+  return `/api/assistant/proposals/${proposalId}/confirm-delete`
+}
+
+export const confirmDeleteProposal = async (proposalId: string,
+    confirmWithNameInput: ConfirmWithNameInput, options?: Parameters<typeof apiFetch>[1]): Promise<Proposal> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<Proposal>(getConfirmDeleteProposalUrl(proposalId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(confirmWithNameInput)
+  }
+);}
+
+
+
+
+
+export const getConfirmDeleteProposalMutationKey = () => ['confirmDeleteProposal'] as const;
+
+export const getConfirmDeleteProposalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmDeleteProposal>>, TError,ConfirmDeleteProposalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmDeleteProposal>>, TError,ConfirmDeleteProposalMutationVariables, TContext> => {
+
+const mutationKey = getConfirmDeleteProposalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmDeleteProposal>>, ConfirmDeleteProposalMutationVariables> = (props) => {
+          const {proposalId,data} = props ?? {};
+
+          return  confirmDeleteProposal(proposalId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmDeleteProposalMutationResult = NonNullable<Awaited<ReturnType<typeof confirmDeleteProposal>>>
+    export type ConfirmDeleteProposalMutationBody = ConfirmWithNameInput
+    export type ConfirmDeleteProposalMutationError = unknown
+    export type ConfirmDeleteProposalMutationVariables = {proposalId: string;data: ConfirmWithNameInput}
+
+    export const useConfirmDeleteProposal = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmDeleteProposal>>, TError,ConfirmDeleteProposalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmDeleteProposal>>,
+        TError,
+        ConfirmDeleteProposalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmDeleteProposalMutationOptions(options), queryClient);
     }
     export const getApplyProposalUrl = (proposalId: string,) => {
 

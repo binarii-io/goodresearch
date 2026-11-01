@@ -53,6 +53,15 @@ export type ProposalPreview = {
   readonly phase?: 'preparation' | 'fieldwork' | 'enrichment' | 'analysis'
   readonly studyName?: string
   readonly otherProjects?: string[]
+  readonly projectId?: string
+  readonly deletion?: {
+    insights: number
+    recommendations: number
+    hasTakeaways: boolean
+    hasPublishedDeck: boolean
+    studies: number
+    studiesWithoutProject: number
+  }
   readonly guide?: GuideDraft
   readonly replacesGuide?: boolean
   readonly progress?: {
@@ -165,6 +174,11 @@ export interface ResearchReads {
     projectId: string,
   ): Promise<{ id: string; name: string; projects: readonly { name: string }[] }[]>
   studyInTeam(accountId: string, studyId: string, teamId: string): Promise<boolean>
+  /** Spec 020: null without the right to delete this project. */
+  projectDeletion(
+    accountId: string,
+    projectId: string,
+  ): Promise<NonNullable<ProposalPreview['deletion']> | null>
   /** The study's folder name, for people with access to it. */
   studyFolder(accountId: string, studyId: string): Promise<string | null>
   /** The person's own access to the study's folder (spec 002 FR-010a). */
@@ -202,6 +216,11 @@ export interface ResearchActions {
     projectId: string
     name: string
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
+  deleteProject(c: {
+    actor: Actor
+    projectId: string
+    name: string
+  }): Promise<{ ok: true } | { ok: false; error: string }>
   attachStudy(c: {
     actor: Actor
     projectId: string

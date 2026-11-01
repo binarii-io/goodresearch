@@ -82,3 +82,16 @@ export const TeamStudiesOverview = z
 export const TeamStudiesCosts = z
   .object({ studies: ProjectOverviewCosts.shape.studies })
   .meta({ id: 'TeamStudiesCosts' })
+
+/** Spec 020: what deleting a project removes, and the studies that stay. */
+export const ProjectDeletion = z
+  .object({
+    insights: z.number().int(),
+    recommendations: z.number().int(),
+    hasTakeaways: z.boolean(),
+    hasPublishedDeck: z.boolean(),
+    studies: z.number().int(),
+    /** Those linked only to this project: they end up in no project. */
+    studiesWithoutProject: z.number().int(),
+  })
+  .meta({ id: 'ProjectDeletion' })

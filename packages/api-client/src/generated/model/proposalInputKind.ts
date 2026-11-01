@@ -24,4 +24,5 @@ export const ProposalInputKind = {
   attach_study: 'attach_study',
   detach_study: 'detach_study',
   update_study_goal: 'update_study_goal',
+  delete_project: 'delete_project',
 } as const;

@@ -12,6 +12,8 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   NOT_LINKED: msg`This study is no longer in this project.`,
   SYNTHESIS_RUNNING: msg`Wait for the insights or recommendations being found in this project to finish.`,
   STUDY_SHARED: msg`One of this project's studies is also in another project: detach it before moving the project.`,
+  NAME_MISMATCH: msg`The name does not match the project's name.`,
+  NAME_REQUIRED: msg`Type the project's name to confirm.`,
   TEAM_HAS_PROJECTS: msg`This team still has projects. Move them to another team first.`,
   LAST_ADMIN: msg`The workspace needs at least one active admin.`,
   CONFIRMATION_MISMATCH: msg`The email you typed does not match.`,

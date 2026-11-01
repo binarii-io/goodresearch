@@ -1,6 +1,7 @@
 import type { Clock } from '@goodresearch/shared'
 import type { Db } from '#platform/db.ts'
 import { makeCreateProject } from '../application/commands/create-project.ts'
+import { makeDeleteProject } from '../application/commands/delete-project.ts'
 import { makeMoveProjectToTeam } from '../application/commands/move-project-to-team.ts'
 import { makePreparationCommands } from '../application/commands/preparation-commands.ts'
 import { makeRenameProject } from '../application/commands/rename-project.ts'
@@ -59,6 +60,10 @@ export const createResearchModule = (deps: {
   const preparationQueries = makePreparationQueries({ db: deps.db, teams: deps.teams, gate })
   const handlers: ResearchHandlers = {
     createProject: makeCreateProject(commandDeps),
+    deleteProject: makeDeleteProject({
+      ...commandDeps,
+      runs: { isRunning: (projectId) => deps.runs().isRunning(projectId) },
+    }),
     renameProject: makeRenameProject(commandDeps),
     updateProjectGoal: makeUpdateProjectGoal(commandDeps),
     moveProjectToTeam: makeMoveProjectToTeam(commandDeps),

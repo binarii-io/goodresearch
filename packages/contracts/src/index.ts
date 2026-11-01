@@ -195,6 +195,7 @@ export {
 } from './lexicon.ts'
 export {
   JourneyStep,
+  ProjectDeletion,
   ProjectOverview,
   ProjectOverviewCosts,
   TeamStudiesCosts,
@@ -284,6 +285,7 @@ export {
   ValidateRecommendations,
 } from './recommendations.ts'
 export {
+  ConfirmWithName,
   CreateProject,
   CreateStudy,
   ListProjectsQuery,

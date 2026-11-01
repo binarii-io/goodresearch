@@ -474,6 +474,14 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
       ],
       delayMs: 0,
     }
+  if (/delete this project/i.test(text) && projectId && offered('delete_project'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Here is what deleting it means.' },
+        call('delete_project', { projectId }),
+      ],
+      delayMs: 0,
+    }
   if (/design the interview guide/i.test(text) && offered('load_skill'))
     return { parts: [call('load_skill', { name: 'interview-guide-design' })], delayMs: 0 }
   if (/write the guide/i.test(text) && offered('check_guide_questions'))

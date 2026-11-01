@@ -41,6 +41,8 @@ const INPUTS = {
     hypotheses: z.enum(GUIDE_POINT_STATES),
     team: z.enum(GUIDE_POINT_STATES),
   }),
+  // Spec 020: never the name, which only the person types, on the card.
+  delete_project: z.object({ projectId: Id }),
   attach_study: z.object({ studyId: Id, projectId: Id }),
   detach_study: z.object({ studyId: Id, projectId: Id }),
   update_study_goal: z.object({ studyId: Id, goal: Goal }),
@@ -96,6 +98,12 @@ export const TOOLS: readonly ToolSpec[] = [
     description:
       'Open the page of a study for the person (use a study id from the context), optionally on one of its tabs: preparation, fieldwork, enrichment or analysis. Also use it to switch tabs on the study already open. Changes nothing; happens at once.',
     inputSchema: INPUTS.open_study,
+  },
+  {
+    name: 'delete_project',
+    description:
+      "Propose to delete a project for good, only when the person asks for it. It shows a card on which the person types the project's name: never ask for the name in the conversation, you cannot provide it. Studies stay. The result says whether a card was shown or why it was refused.",
+    inputSchema: INPUTS.delete_project,
   },
   {
     name: 'attach_study',
@@ -201,6 +209,30 @@ export const prepareProject = async (
     targetVersion: null,
     values: { ...input.data, goal },
     preview: { name, teamName: team.name, goal },
+  }
+}
+
+/** Spec 020: the card of a deletion, or the reason given back to the model. */
+export const prepareDeletion = async (
+  research: ResearchReads,
+  actor: Actor,
+  rawInput: unknown,
+): Promise<{ refused: string } | PreparedProposal> => {
+  const input = INPUTS.delete_project.safeParse(rawInput)
+  if (!input.success) return { refused: 'Refused: send a projectId.' }
+  const project = await research.getProject(actor.id, input.data.projectId)
+  if (!project) return { refused: 'Refused: use a project id listed in the context.' }
+  const deletion = await research.projectDeletion(actor.id, project.id)
+  if (!deletion)
+    return { refused: "Refused: only an administrator or the project's creator can delete it." }
+  if (await research.projectRunning(project.id))
+    return { refused: 'Refused: wait for the run in progress on this project to finish.' }
+  return {
+    kind: 'delete_project',
+    targetId: project.id,
+    targetVersion: null,
+    values: {},
+    preview: { projectId: project.id, projectName: project.name, deletion },
   }
 }
 

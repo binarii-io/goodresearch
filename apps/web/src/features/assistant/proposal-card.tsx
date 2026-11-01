@@ -1,13 +1,22 @@
-import { type Proposal, useApplyProposal, useDismissProposal } from '@goodresearch/api-client'
+import {
+  type Proposal,
+  useApplyProposal,
+  useConfirmDeleteProposal,
+  useDismissProposal,
+  useGetProjectDeletion,
+} from '@goodresearch/api-client'
 import { Button } from '@goodresearch/ui/components/button'
 import { SparklesIcon } from '@goodresearch/ui/components/icons'
+import { Input } from '@goodresearch/ui/components/input'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
+import { useId, useState } from 'react'
 import { GuideView, questionCount, totalMinutes } from '../preparation/guide-view.tsx'
 import { QUESTION_ISSUES } from '../preparation/labels.ts'
+import { DeletionSummary, forgetProject, NameToType } from '../research/delete-project-dialog.tsx'
 import { errorMessage, messageForCode } from '../workspace/errors.ts'
 import { useAssistant } from './state.tsx'
 
@@ -27,6 +36,7 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   attach_study: msg`Reuse a study in this project`,
   detach_study: msg`Detach a study from this project`,
   update_study_goal: msg`Change the study's goal`,
+  delete_project: msg`Delete this project`,
 }
 
 const SKILLS: Record<string, MessageDescriptor> = {
@@ -46,6 +56,7 @@ export function ProposalCard({ proposal }: { proposal: Proposal }) {
     return null
   if (proposal.kind === 'load_skill') return <SkillLine proposal={proposal} />
   if (proposal.kind === 'check_guide_questions') return <ChecksLine proposal={proposal} />
+  if (proposal.kind === 'delete_project') return <DeleteCard proposal={proposal} />
   return <ChangeCard proposal={proposal} />
 }
 
@@ -307,6 +318,106 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
       {apply.isError || dismiss.isError ? (
         <p role="alert" className="text-destructive text-sm">
           {errorMessage(i18n, apply.error ?? dismiss.error)}
+        </p>
+      ) : null}
+    </section>
+  )
+}
+
+/**
+ * Spec 020: the person types the project's name here; it only leaves with Apply. A wrong name
+ * leaves the card open.
+ */
+function DeleteCard({ proposal }: { proposal: Proposal }) {
+  const { t, i18n } = useLingui()
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const confirm = useConfirmDeleteProposal()
+  const dismiss = useDismissProposal()
+  const [typed, setTyped] = useState('')
+  const field = useId()
+  const name = proposal.preview.projectName ?? ''
+  const busy = confirm.isPending || dismiss.isPending
+  const decided = proposal.state !== 'proposed'
+  // What goes now, not when the card was shown; once decided, what was shown.
+  const current = useGetProjectDeletion(proposal.preview.projectId ?? '', {
+    query: { enabled: !decided && !confirm.data, staleTime: 0, gcTime: 0, retry: false },
+  })
+  const deletion = current.data ?? proposal.preview.deletion
+  const applied = confirm.data?.state === 'applied' || proposal.state === 'applied'
+  return (
+    <section
+      aria-label={t`Delete this project`}
+      className="grid gap-3 rounded-lg border bg-card p-3 text-sm shadow-card"
+    >
+      <h3 className="font-semibold">{t`Delete this project`}</h3>
+      <p className="font-medium">{name}</p>
+      {deletion ? <DeletionSummary deletion={deletion} /> : null}
+      {decided || confirm.data ? (
+        <p role="status" className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-medium">
+            {applied ? t`Deleted` : proposal.state === 'dismissed' ? t`Dismissed` : t`Not applied`}
+          </span>
+          {(confirm.data?.error ?? proposal.error) && !applied ? (
+            <span className="text-destructive">
+              {messageForCode(i18n, confirm.data?.error ?? proposal.error ?? undefined)}
+            </span>
+          ) : null}
+        </p>
+      ) : (
+        <form
+          className="grid gap-2"
+          onSubmit={(event) => {
+            event.preventDefault()
+            void confirm
+              .mutateAsync({ proposalId: proposal.id, data: { name: typed } })
+              .then(async (result) => {
+                if (result.state !== 'applied') return
+                const projectId = proposal.preview.projectId ?? ''
+                if (pathname.startsWith(`/projects/${projectId}`)) await navigate({ to: '/' })
+                forgetProject(queryClient, projectId)
+              })
+              .catch(() => undefined)
+              .finally(() => void queryClient.invalidateQueries())
+          }}
+        >
+          <NameToType name={name} field={field} />
+          <Input
+            id={field}
+            value={typed}
+            autoComplete="off"
+            onChange={(e) => setTyped(e.target.value)}
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="submit"
+              size="sm"
+              variant="destructive"
+              disabled={busy || typed.trim() !== name}
+            >
+              {t`Delete for good`}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() =>
+                void dismiss
+                  .mutateAsync({ proposalId: proposal.id })
+                  .then(() => queryClient.invalidateQueries())
+                  .catch(() => undefined)
+              }
+            >
+              {t`Dismiss`}
+            </Button>
+          </div>
+        </form>
+      )}
+      {confirm.isError || dismiss.isError ? (
+        <p role="alert" className="text-destructive text-sm">
+          {errorMessage(i18n, confirm.error ?? dismiss.error)}
         </p>
       ) : null}
     </section>

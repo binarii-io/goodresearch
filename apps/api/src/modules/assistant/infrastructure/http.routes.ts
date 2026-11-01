@@ -1,4 +1,5 @@
 import {
+  ConfirmWithName,
   ContinueAssistantConversation,
   ConversationDetail,
   ConversationParams,
@@ -196,6 +197,30 @@ export const registerAssistantRoutes = (
       if (!opened.ok) return sendError(res, opened.error)
       return streamAnswer(request, res, send.send({ actor, conversationId, ...request.body }))
     },
+  )
+
+  api.post(
+    '/api/assistant/proposals/:proposalId/confirm-delete',
+    {
+      ...secured,
+      schema: {
+        operationId: 'confirmDeleteProposal',
+        tags,
+        params: ProposalParams,
+        body: ConfirmWithName,
+        response: { 200: Proposal },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await proposals.confirmDelete({
+          actor: request.account,
+          proposalId: request.params.proposalId,
+          name: request.body.name,
+        }),
+        (value) => res.send(value),
+      ),
   )
 
   for (const decision of ['apply', 'dismiss'] as const)

@@ -102,6 +102,17 @@ export const fakeResearch = () => {
     studies: { id: string; name: string; projects: { name: string }[] }[]
   } = { studies: [] }
   const running = { value: false }
+  let deleteThrows = false
+  const deletion: { value: Awaited<ReturnType<ResearchReads['projectDeletion']>> } = {
+    value: {
+      insights: 3,
+      recommendations: 1,
+      hasTakeaways: true,
+      hasPublishedDeck: false,
+      studies: 2,
+      studiesWithoutProject: 1,
+    },
+  }
   const reads: ResearchReads = {
     getProject: async (accountId, id) => (accountId === 'ada' && id === 'p1' ? project : null),
     listStudies: async (accountId, id) =>
@@ -113,6 +124,7 @@ export const fakeResearch = () => {
     listProjects: async (accountId) =>
       accountId === 'ada' ? [{ id: 'p1', name: 'Onboarding', team: { name: 'Growth' } }] : [],
     attachableStudies: async () => attachable.studies,
+    projectDeletion: async () => deletion.value,
     studyInTeam: async (_accountId, _studyId, teamId) => teamId === 't1',
     studyFolder: async (accountId, id) =>
       accountId === 'ada' && id === 's1' ? 'Interviews Q4' : null,
@@ -137,6 +149,10 @@ export const fakeResearch = () => {
     createStudy: async (c) => result('createStudy', c, { id: 's-new' }),
     renameStudy: async (c) => result('renameStudy', c, {}),
     attachStudy: async (c) => result('attachStudy', c, {}),
+    deleteProject: async (c) => {
+      if (deleteThrows) throw new Error('down')
+      return result('deleteProject', c, {})
+    },
     detachStudy: async (c) => result('detachStudy', c, {}),
     updateStudyGoal: async (c) => result('updateStudyGoal', c, {}),
     saveGuide: async (c) => result('saveGuide', c, {}),
@@ -145,6 +161,13 @@ export const fakeResearch = () => {
     reads,
     attachable,
     running,
+    renameProject: (name: string) => {
+      project.name = name
+    },
+    throwOnDelete: () => {
+      deleteThrows = true
+    },
+    deletion,
     study,
     preparation,
     actions,

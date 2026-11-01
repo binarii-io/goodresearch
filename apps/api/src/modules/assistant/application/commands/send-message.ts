@@ -32,6 +32,7 @@ import { SKILLS } from '../skills.ts'
 import {
   checksOf,
   GUIDE_TOOLS,
+  prepareDeletion,
   prepareProject,
   prepareProposal,
   prepareStudyChange,
@@ -322,7 +323,10 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       input: unknown,
       callId: string,
     ): Promise<string> => {
-      const prepared = await prepareStudyChange(deps.research, c.actor, { name, input })
+      const prepared =
+        name === 'delete_project'
+          ? await prepareDeletion(deps.research, c.actor, input)
+          : await prepareStudyChange(deps.research, c.actor, { name, input })
       if ('refused' in prepared) {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         await record(callId, name as ProposalKind, raw, null, prepared.refused)
@@ -341,7 +345,9 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       }
       await deps.store.saveProposal(proposal)
       pending.push({ type: 'proposal', proposal: proposalView(proposal) })
-      return CARD_SHOWN
+      return name === 'delete_project'
+        ? "Card shown to the person, who must type the project's name on it. Wait for their decision and add nothing."
+        : CARD_SHOWN
     }
 
     /** The tools that run at once (spec 006, 018): skill, writing checks, progress, new project. */
@@ -350,7 +356,8 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       async (name: string, input: unknown, callId: string): Promise<string> => {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         if (name === 'create_project') return proposeProject(input, callId)
-        if (isStudyChange(name as ProposalKind)) return proposeStudyChange(name, input, callId)
+        if (isStudyChange(name as ProposalKind) || name === 'delete_project')
+          return proposeStudyChange(name, input, callId)
         if (name === 'report_project_progress') {
           const parsed = TOOL_INPUTS.report_project_progress.safeParse(input)
           if (!parsed.success) {

@@ -396,6 +396,10 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     renameProject: async (c) => outcome(await r.renameProject(c)),
     createStudy: async (c) => outcome(await r.studies.createStudy({ ...c, type: 'interviews' })),
     renameStudy: async (c) => outcome(await r.studies.renameStudy(c)),
+    deleteProject: async (c) => {
+      const done = await r.deleteProject(c)
+      return done.ok ? { ok: true as const } : done
+    },
     attachStudy: async (c) => {
       const done = await r.studies.attachStudy(c)
       return done.ok ? { ok: true as const } : done
@@ -431,6 +435,10 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         (
           await r.studyQueries.listTeamStudies(accountId, teamId, { notInProject: projectId })
         )?.studies.filter((s) => s.canAttach) ?? [],
+      projectDeletion: async (accountId, projectId) => {
+        const preview = await reporting.handlers.overviewQueries.deletion(accountId, projectId)
+        return preview.ok ? preview.value : null
+      },
       studyFolder: async (accountId, studyId) =>
         (await bound(ingestion).sourceSummaries(accountId, [studyId])).get(studyId)?.folderName ??
         null,
@@ -496,6 +504,13 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
   // Spec 017: read models across the modules, built after all of them.
   const reporting = createReportingModule({
     sources: {
+      canDelete: async (accountId, projectId) =>
+        (await r.queries.getProject(accountId, projectId))?.canDelete ?? null,
+      linkedStudies: async (accountId, projectId) =>
+        ((await r.studyQueries.listStudies(accountId, projectId)) ?? []).map((s) => ({
+          otherProjects: s.alsoIn.length,
+        })),
+      hasPublishedDeck: synthesis.overviewReads.hasPublishedDeck,
       teamStudies: async (accountId, teamId, filter) =>
         (await r.studyQueries.listTeamStudies(accountId, teamId, filter))?.studies.map((s) => ({
           id: s.id,

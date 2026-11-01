@@ -11,6 +11,10 @@ export const drizzleProjectRepository = (tx: Executor): ProjectRepository => ({
     return row ? Project.fromPersistence({ ...row, id: row.id as ProjectId }) : null
   },
 
+  delete: async (id) => {
+    await tx.delete(researchProjects).where(eq(researchProjects.id, id))
+  },
+
   save: async (project) => {
     const p = project.snapshot()
     const updated = await tx

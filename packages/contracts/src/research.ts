@@ -16,6 +16,8 @@ export const ProjectDetail = z
     name: z.string(),
     goal: z.string(),
     team: TeamRef,
+    /** Spec 020: an admin, or its creator. */
+    canDelete: z.boolean(),
     createdAt: Timestamp,
     updatedAt: Timestamp,
     version: Version,
@@ -25,6 +27,10 @@ export type ProjectDetail = z.infer<typeof ProjectDetail>
 
 // Query strings and params stay anonymous: @fastify/swagger cannot resolve named refs there.
 export const ListProjectsQuery = z.object({ team: Id.optional() })
+/** Spec 020: the project's name, typed by the person to confirm a deletion. */
+export const ConfirmWithName = z
+  .object({ name: z.string().max(200) })
+  .meta({ id: 'ConfirmWithName' })
 export const CreateProject = z
   .object({ name: ProjectName, goal: ProjectGoal.default(''), teamId: Id })
   .meta({ id: 'CreateProject' })

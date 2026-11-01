@@ -21,6 +21,7 @@ export const PROPOSAL_KINDS = [
   'attach_study',
   'detach_study',
   'update_study_goal',
+  'delete_project',
 ] as const
 export type ProposalKind = (typeof PROPOSAL_KINDS)[number]
 
@@ -40,7 +41,8 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
   kind === 'load_skill' ||
   kind === 'check_guide_questions' ||
   kind === 'create_project' ||
-  isStudyChange(kind)
+  isStudyChange(kind) ||
+  kind === 'delete_project'
 
 /**
  * Recorded at once when called, without a card. The progress report ends the answer (the skill

@@ -1,4 +1,5 @@
 import {
+  ProjectDeletion,
   ProjectOverview,
   ProjectOverviewCosts,
   ProjectParams,
@@ -19,6 +20,22 @@ export const registerOverviewRoutes = (
 ): void => {
   const queries = deps.handlers.overviewQueries
   const api = app.withTypeProvider<ZodTypeProvider>()
+  api.get(
+    '/api/projects/:projectId/deletion',
+    {
+      preHandler: deps.guard,
+      schema: {
+        operationId: 'getProjectDeletion',
+        tags: ['projects'],
+        params: ProjectParams,
+        response: { 200: ProjectDeletion },
+      },
+    },
+    async (request, res) =>
+      reply(res, await queries.deletion(request.account.id, request.params.projectId), (v) =>
+        res.send(v),
+      ),
+  )
   api.get(
     '/api/projects/:projectId/overview',
     {

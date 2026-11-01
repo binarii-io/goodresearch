@@ -7,6 +7,7 @@ import {
   useUpdateProjectGoal,
 } from '@goodresearch/api-client'
 import { Button } from '@goodresearch/ui/components/button'
+import { DangerZone } from '@goodresearch/ui/components/danger-zone'
 import { UsersIcon } from '@goodresearch/ui/components/icons'
 import { InlineEdit } from '@goodresearch/ui/components/inline-edit'
 import { PageBar } from '@goodresearch/ui/components/page-header'
@@ -24,6 +25,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useId, useState } from 'react'
 import { z } from 'zod'
+import { DeleteProjectDialog } from '../../../features/research/delete-project-dialog.tsx'
 import { ProjectJourney } from '../../../features/research/project-journey.tsx'
 import { StudyList } from '../../../features/research/study-list.tsx'
 import { DebriefTab } from '../../../features/synthesis/debrief-tab.tsx'
@@ -199,6 +201,20 @@ function ProjectOverview() {
         <TakeawaysBand projectId={projectId} />
         <ProjectJourney projectId={projectId} />
         <StudyList projectId={projectId} teamId={p.team.id} />
+        {p.canDelete ? (
+          <details className="group mt-10">
+            <summary className="w-fit cursor-pointer text-muted-foreground text-sm hover:text-destructive">
+              {t`Delete this project`}
+            </summary>
+            <DangerZone
+              className="mt-2.5"
+              title={t`Delete this project`}
+              description={t`The project, its insights, recommendations and key takeaways are deleted for good. Its studies stay.`}
+            >
+              <DeleteProjectDialog projectId={projectId} name={p.name} />
+            </DangerZone>
+          </details>
+        ) : null}
       </TabsContent>
       <TabsContent value="insights">
         <InsightsTab projectId={projectId} />

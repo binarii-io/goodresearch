@@ -316,6 +316,13 @@
       "when": 1793538977027,
       "tag": "0044_study_links_drop_project",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1793543918202,
+      "tag": "0045_delete_project_card",
+      "breakpoints": true
     }
   ]
 }
