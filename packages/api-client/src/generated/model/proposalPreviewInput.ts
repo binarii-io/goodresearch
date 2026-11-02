@@ -11,9 +11,11 @@ import type { ProposalPreviewInputChecksItem } from './proposalPreviewInputCheck
 import type { ProposalPreviewInputDocumentsItem } from './proposalPreviewInputDocumentsItem.ts';
 import type { ProposalPreviewInputGuide } from './proposalPreviewInputGuide.ts';
 import type { ProposalPreviewInputInterviewLinesItem } from './proposalPreviewInputInterviewLinesItem.ts';
+import type { ProposalPreviewInputItemChecks } from './proposalPreviewInputItemChecks.ts';
 import type { ProposalPreviewInputLinesItem } from './proposalPreviewInputLinesItem.ts';
 import type { ProposalPreviewInputOpensOn } from './proposalPreviewInputOpensOn.ts';
 import type { ProposalPreviewInputPhase } from './proposalPreviewInputPhase.ts';
+import type { ProposalPreviewInputQuestionnaire } from './proposalPreviewInputQuestionnaire.ts';
 
 export interface ProposalPreviewInput {
   projectName?: string;
@@ -52,6 +54,10 @@ export interface ProposalPreviewInput {
   otherProjects?: string[];
   guide?: ProposalPreviewInputGuide;
   replacesGuide?: boolean;
+  type?: 'survey';
+  questionnaire?: ProposalPreviewInputQuestionnaire;
+  replacesQuestionnaire?: boolean;
+  itemChecks?: ProposalPreviewInputItemChecks;
   progress?: GuideProgressInput;
   checks?: ProposalPreviewInputChecksItem[];
   skill?: string;

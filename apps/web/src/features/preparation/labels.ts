@@ -55,3 +55,69 @@ export const QUESTION_ISSUES: Record<string, MessageDescriptor> = {
   double: msg`two questions in one`,
   long: msg`too long`,
 }
+
+export type QuestionnaireSectionKind = 'introduction' | 'profiling' | 'theme' | 'closing'
+
+export const QUESTIONNAIRE_SECTION_KINDS: Record<QuestionnaireSectionKind, MessageDescriptor> = {
+  introduction: msg`Introduction`,
+  profiling: msg`Profiling`,
+  theme: msg`Theme`,
+  closing: msg`Closing`,
+}
+
+export type ItemKind = 'likert' | 'single-choice' | 'multiple-choice' | 'open'
+
+export const ITEM_KINDS: Record<ItemKind, MessageDescriptor> = {
+  likert: msg`Likert scale`,
+  'single-choice': msg`Single choice`,
+  'multiple-choice': msg`Multiple choice`,
+  open: msg`Open question`,
+}
+
+/** What each kind of item allows at the analysis (spec 027 FR-009). */
+export const ITEM_ANALYSIS: Record<ItemKind, MessageDescriptor> = {
+  likert: msg`Allows a distribution and a median, read as ordered and not as a measure.`,
+  'single-choice': msg`Allows counts, shares and crossing with the profiling items.`,
+  'multiple-choice': msg`Allows counts, shares and crossing with the profiling items.`,
+  open: msg`Allows a reading by theme, with a person's validation.`,
+}
+
+export const ITEM_MEASURES: Record<'factual' | 'subjective', MessageDescriptor> = {
+  factual: msg`A fact`,
+  subjective: msg`A perception`,
+}
+
+export const RECRUITMENTS: Record<'targeted' | 'wide-then-filter', MessageDescriptor> = {
+  targeted: msg`Sent to people matching the target`,
+  'wide-then-filter': msg`Sent widely, then filtered`,
+}
+
+/** The eight points of a questionnaire design (spec 027 US2). */
+export const QUESTIONNAIRE_POINTS: Record<string, MessageDescriptor> = {
+  objectiveThemes: msg`Objective and themes`,
+  hypotheses: msg`Hypotheses`,
+  audience: msg`Target audience and recruitment`,
+  administration: msg`Administration and consent`,
+  profiling: msg`Profiling items`,
+  thematicItems: msg`Thematic items`,
+  formatOrder: msg`Format and order`,
+  biasReview: msg`Bias review`,
+}
+
+/** What the writing rules flag in an item (spec 027 FR-007). */
+export const ITEM_FLAGS: Record<string, MessageDescriptor> = {
+  double: msg`two ideas in one item`,
+  negation: msg`a negation`,
+  leading: msg`suggests the answer`,
+  absolute: msg`an absolute word`,
+  'too-long': msg`too long`,
+  'factual-on-likert': msg`a fact asked on a scale: prefer a choice`,
+  identifying: msg`asks for directly identifying data`,
+}
+
+export const QUESTIONNAIRE_FLAGS: Record<string, MessageDescriptor> = {
+  'legends-differ': msg`The scales do not all share one legend.`,
+  'closed-series': msg`More than 10 closed items in a row: an open question would break the series.`,
+  'no-profiling': msg`No profiling item to check the target audience.`,
+  'too-many-open': msg`Many open questions: they are harder to interpret.`,
+}

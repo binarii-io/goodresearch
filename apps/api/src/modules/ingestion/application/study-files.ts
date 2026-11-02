@@ -11,6 +11,7 @@ import {
   type TableRead,
 } from '../domain/drive-documents.ts'
 import { DriveConnectionLost, type DriveItem } from '../domain/drive-gateway.ts'
+import { type FormOperation, type FormRead, FormServiceDisabled } from '../domain/form-model.ts'
 import { resolveStudyAccess } from './access.ts'
 import { readRefreshToken } from './connection.ts'
 import type { IngestionDeps } from './ports.ts'
@@ -25,6 +26,7 @@ export type StudyFilesError =
   | 'DRIVE_WRITE_REQUIRED'
 
 export type FileError = 'DRIVE_NOT_CONNECTED' | 'DRIVE_CANNOT_EDIT' | 'DRIVE_CHANGED_MEANWHILE'
+type FormFileError = FileError | 'FORMS_DISABLED'
 
 /**
  * The files of a study's folder, used with one person's own access (spec 007). The token never
@@ -51,6 +53,18 @@ export type StudyFiles = {
     slides: readonly PresentationSlide[],
     expected: string | null,
   ): Promise<Result<{ revision: string | null }, FileError>>
+  /** Spec 027: the study's form. */
+  createForm(
+    name: string,
+    title: string,
+    operations: readonly FormOperation[],
+  ): Promise<Result<CreatedFile, FormFileError>>
+  readForm(fileId: string): Promise<Result<FormRead, FormFileError>>
+  updateForm(
+    fileId: string,
+    operations: readonly FormOperation[],
+    revision: string,
+  ): Promise<Result<void, FormFileError>>
   metadata(fileId: string): Promise<Result<FileMeta | null, FileError>>
   renameFile(fileId: string, name: string): Promise<Result<FileMeta | null, FileError>>
   /** Spec 024: reading and moving, for the assistant's work in the folder. */
@@ -106,6 +120,14 @@ export const makeStudyFiles =
         throw error
       }
     }
+    const runForm = async <T>(work: () => Promise<T>): Promise<Result<T, FormFileError>> => {
+      try {
+        return await run(work)
+      } catch (error) {
+        if (error instanceof FormServiceDisabled) return err('FORMS_DISABLED')
+        throw error
+      }
+    }
     const folderId = study.source.folderId
     const { gateway } = deps.drive
     return ok({
@@ -122,6 +144,11 @@ export const makeStudyFiles =
         run(() => documents.createPresentation(token, folderId, name, slides)),
       rewritePresentation: (fileId, slides, expected) =>
         run(() => documents.rewritePresentation(token, fileId, slides, expected)),
+      createForm: (name, title, operations) =>
+        runForm(() => documents.createForm(token, folderId, name, title, operations)),
+      readForm: (fileId) => runForm(() => documents.readForm(token, fileId)),
+      updateForm: (fileId, operations, revision) =>
+        runForm(() => documents.updateForm(token, fileId, operations, revision)),
       metadata: (fileId) => run(() => documents.metadata(token, fileId)),
       renameFile: (fileId, name) => run(() => documents.renameFile(token, fileId, name)),
       item: (id) => run(() => gateway.getItem(token, id)),

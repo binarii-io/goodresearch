@@ -1,11 +1,12 @@
-import { GuideDraft } from '@goodresearch/contracts'
+import { GuideDraft, QuestionnaireDraft } from '@goodresearch/contracts'
 import { z } from 'zod'
 import { GUIDE_CHECKLIST, GUIDE_POINT_STATES } from '../domain/guide-progress.ts'
 import { composeGoal, type Framing, openPoints } from '../domain/project-framing.ts'
 import type { ProposalKind } from '../domain/proposal.ts'
 import { checkQuestion } from '../domain/question-checks.ts'
+import { QUESTIONNAIRE_CHECKLIST } from '../domain/questionnaire-progress.ts'
 import { openStudyPoints, type StudyFraming } from '../domain/study-framing.ts'
-import type { GuideStudy } from './context.ts'
+import type { GuideStudy, SurveyStudy } from './context.ts'
 import type { Actor, ProposalPreview, ResearchReads, ToolSpec } from './ports.ts'
 import { SKILL_NAMES } from './skills.ts'
 
@@ -23,10 +24,11 @@ const INPUTS = {
   }),
   update_project_goal: z.object({ projectId: Id, goal: Goal.min(1) }),
   rename_project: z.object({ projectId: Id, name: Name }),
-  // Spec 021: a project, or a team for a study in no project.
+  // Spec 021: a project, or a team for a study in no project. Spec 027: interviews by default.
   create_study: z.object({
     name: Name,
     goal: Goal,
+    type: z.enum(['interviews', 'survey']).optional(),
     projectId: Id.optional(),
     teamId: Id.optional(),
   }),
@@ -37,6 +39,14 @@ const INPUTS = {
     phase: z.enum(['preparation', 'fieldwork', 'enrichment', 'analysis']).optional(),
   }),
   propose_interview_guide: z.object({ studyId: Id, guide: GuideDraft }),
+  propose_questionnaire: z.object({ studyId: Id, questionnaire: QuestionnaireDraft }),
+  report_questionnaire_progress: z.object({
+    studyId: Id,
+    ...Object.fromEntries(
+      QUESTIONNAIRE_CHECKLIST.map(([key]) => [key, z.enum(GUIDE_POINT_STATES)]),
+    ),
+  }) as z.ZodType<{ studyId: string } & Record<string, (typeof GUIDE_POINT_STATES)[number]>>,
+  check_questionnaire_items: z.object({ studyId: Id, questionnaire: QuestionnaireDraft }),
   report_guide_progress: z.object({
     studyId: Id,
     ...Object.fromEntries(GUIDE_CHECKLIST.map(([key]) => [key, z.enum(GUIDE_POINT_STATES)])),
@@ -63,9 +73,9 @@ const INPUTS = {
   publish_preparation: z.object({
     studyId: Id,
     kinds: z
-      .array(z.enum(['guide', 'best-practices']))
+      .array(z.enum(['guide', 'best-practices', 'questionnaire']))
       .min(1)
-      .max(2),
+      .max(3),
   }),
   // Spec 024: there is no line to delete, trash or share, and no way to write one.
   browse_folder: z.object({ studyId: Id, folderId: Id.optional() }),
@@ -177,6 +187,31 @@ const INPUTS = {
 export const TOOL_INPUTS = INPUTS
 
 /**
+ * Tools of the questionnaire design (spec 027), offered on the page of a survey study the person
+ * can change, as the guide's on an interview study.
+ */
+export const QUESTIONNAIRE_TOOLS: readonly ToolSpec[] = [
+  {
+    name: 'check_questionnaire_items',
+    description:
+      "Check a whole questionnaire against the app's writing rules: double question, negation, leading wording, absolute word, too long, a factual measure on a Likert scale, directly identifying data, inconsistent legends, a long series of closed items, no profiling item, too many open items. Returns what to review and the estimated time. Call it before proposing.",
+    inputSchema: INPUTS.check_questionnaire_items,
+  },
+  {
+    name: 'report_questionnaire_progress',
+    description:
+      'Record how far the design of the questionnaire is: for each of the eight points, missing, partial or done. Call it last, after your text, at the end of each answer while designing: it ends the answer. Changes nothing else.',
+    inputSchema: INPUTS.report_questionnaire_progress,
+  },
+  {
+    name: 'propose_questionnaire',
+    description:
+      'Propose the complete questionnaire of the study (use the Study id from the context): framing with consent and thanks, sections in order (introduction, profiling, one theme section per theme, closing) and their items. The person reviews and applies it; it replaces the current one only then.',
+    inputSchema: INPUTS.propose_questionnaire,
+  },
+]
+
+/**
  * The tools the model may call (spec 005 US3). They have no execution: a call becomes a proposal
  * card, applied only on the person's explicit Apply (constitution IV, research R2).
  */
@@ -201,7 +236,7 @@ export const TOOLS: readonly ToolSpec[] = [
   {
     name: 'create_study',
     description:
-      'Propose a new interview study, once every point of the framing is done and they agreed (load the skill study-framing first). Send its goal, and a project id from the context, or a team id for a study in no project. The result says whether a card was shown or why it was refused. The person confirms before anything is created.',
+      'Propose a new study (type: interviews by default, or survey for a questionnaire), once every point of the framing is done and they agreed (load the skill study-framing first). Send its goal, and a project id from the context, or a team id for a study in no project. The result says whether a card was shown or why it was refused. The person confirms before anything is created.',
     inputSchema: INPUTS.create_study,
   },
   {
@@ -443,7 +478,9 @@ export const prepareStudy = async (
       refused:
         'Refused: send a name of 1 to 120 characters, a goal of at most 10,000 characters, and a projectId or teamId as text, leaving the other one out.',
     }
-  const { name, goal, projectId, teamId } = input.data
+  const { name, goal, projectId, teamId, type } = input.data
+  // Spec 027: an interview study stays described as before.
+  const typed = type === 'survey' ? { type } : {}
   if (Boolean(projectId) === Boolean(teamId))
     return { refused: 'Refused: send a projectId, or a teamId for a study in no project.' }
   const project = projectId ? await research.getProject(actor.id, projectId) : null
@@ -461,15 +498,15 @@ export const prepareStudy = async (
         kind: 'create_study',
         targetId: project.id,
         targetVersion: null,
-        values: { name, goal },
-        preview: { name, goal, projectName: project.name },
+        values: { name, goal, ...typed },
+        preview: { name, goal, ...typed, projectName: project.name },
       }
     : {
         kind: 'create_study',
         targetId: null,
         targetVersion: null,
-        values: { name, goal, teamId },
-        preview: { name, goal, teamName: team?.name ?? '' },
+        values: { name, goal, teamId, ...typed },
+        preview: { name, goal, ...typed, teamName: team?.name ?? '' },
       }
 }
 
@@ -532,6 +569,7 @@ const PUBLICATION_REFUSALS: Record<string, string> = {
   ...FOLDER_REFUSALS,
   NO_SOURCE_FOLDER: 'Refused: this study has no folder. Offer to add the folder first.',
   GUIDE_MISSING: 'Refused: this study has no interview guide yet. Write it first.',
+  QUESTIONNAIRE_NOT_FOUND: 'Refused: this study has no questionnaire yet. Write it first.',
   NOTHING_TO_PUBLISH:
     'Refused: already published. Updates happen on the Preparation tab, which compares with the files.',
 }
@@ -548,7 +586,9 @@ export const preparePublication = async (
 ): Promise<{ refused: string } | PreparedProposal> => {
   const input = INPUTS.publish_preparation.safeParse(rawInput)
   if (!input.success)
-    return { refused: 'Refused: send a studyId, and kinds among guide and best-practices.' }
+    return {
+      refused: 'Refused: send a studyId, and kinds among guide, best-practices and questionnaire.',
+    }
   const { studyId, kinds } = input.data
   const study = await research.getStudy(actor.id, studyId)
   if (!study) return { refused: PUBLICATION_REFUSALS.STUDY_NOT_FOUND ?? '' }
@@ -795,6 +835,7 @@ export const prepareProposal = async (
   call: { name: string; input: unknown },
   /** The interview study of the page, the only one a guide may be proposed for (FR-006). */
   guideStudy: GuideStudy | null = null,
+  surveyStudy: SurveyStudy | null = null,
 ): Promise<PreparedProposal | null> => {
   switch (call.name) {
     case 'update_project_goal':
@@ -870,6 +911,23 @@ export const prepareProposal = async (
           projectName: study.projects[0]?.name ?? '',
           name: study.name,
           ...(input.data.phase ? { phase: input.data.phase } : {}),
+        },
+      }
+    }
+    case 'propose_questionnaire': {
+      const input = INPUTS.propose_questionnaire.safeParse(call.input)
+      if (!input.success || !surveyStudy || input.data.studyId !== surveyStudy.id) return null
+      const questionnaire = input.data.questionnaire
+      return {
+        kind: 'propose_questionnaire',
+        targetId: surveyStudy.id,
+        targetVersion: surveyStudy.version,
+        values: { questionnaire },
+        preview: {
+          studyName: surveyStudy.name,
+          questionnaire,
+          replacesQuestionnaire: surveyStudy.version !== null,
+          itemChecks: research.checkQuestionnaire(questionnaire),
         },
       }
     }

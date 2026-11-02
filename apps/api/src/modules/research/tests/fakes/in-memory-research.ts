@@ -13,6 +13,11 @@ import type {
 } from '../../domain/preparation.repository.ts'
 import type { ProjectRepository } from '../../domain/project.repository.ts'
 import { Project } from '../../domain/project.ts'
+import type {
+  QuestionnaireRepository,
+  ReadinessMarkRow,
+} from '../../domain/questionnaire.repository.ts'
+import { Questionnaire } from '../../domain/questionnaire.ts'
 import type { StudyRepository } from '../../domain/study.repository.ts'
 import { Study } from '../../domain/study.ts'
 
@@ -103,6 +108,34 @@ export class InMemoryResearch {
         guide.studyId,
         InterviewGuide.fromPersistence({ ...guide.snapshot(), version: guide.version + 1 }),
       )
+    },
+  }
+
+  readonly questionnaires = new Map<string, Questionnaire>()
+  readonly readinessMarks = new Map<string, ReadinessMarkRow>()
+
+  readonly questionnaireRepository: QuestionnaireRepository = {
+    findByStudy: async (studyId) => {
+      const q = this.questionnaires.get(studyId)
+      return q ? Questionnaire.fromPersistence(q.snapshot()) : null
+    },
+    insert: async (q) => {
+      if (this.questionnaires.has(q.studyId)) throw new ConcurrencyError()
+      this.questionnaires.set(q.studyId, Questionnaire.fromPersistence(q.snapshot()))
+    },
+    update: async (q) => {
+      const stored = this.questionnaires.get(q.studyId)
+      if (!stored || stored.version !== q.version) throw new ConcurrencyError()
+      this.questionnaires.set(
+        q.studyId,
+        Questionnaire.fromPersistence({ ...q.snapshot(), version: q.version + 1 }),
+      )
+    },
+    mark: async (row) => {
+      this.readinessMarks.set(`${row.studyId}:${row.kind}`, row)
+    },
+    unmark: async (studyId, kind) => {
+      this.readinessMarks.delete(`${studyId}:${kind}`)
     },
   }
 

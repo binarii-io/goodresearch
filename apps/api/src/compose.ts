@@ -495,7 +495,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     createProject: async (c) => outcome(await r.createProject(c)),
     updateProjectGoal: async (c) => outcome(await r.updateProjectGoal(c)),
     renameProject: async (c) => outcome(await r.renameProject(c)),
-    createStudy: async (c) => outcome(await r.studies.createStudy({ ...c, type: 'interviews' })),
+    createStudy: async (c) =>
+      outcome(await r.studies.createStudy({ ...c, type: c.type ?? 'interviews' })),
     applyInterviewCard: async (c) =>
       outcome(
         await bound(ingestion).handlers.interviewWork.apply(
@@ -537,7 +538,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       return done.ok ? { ok: true as const } : done
     },
     createTeamStudy: async (c) =>
-      outcome(await r.studies.createTeamStudy({ ...c, type: 'interviews' })),
+      outcome(await r.studies.createTeamStudy({ ...c, type: c.type ?? 'interviews' })),
     renameStudy: async (c) => outcome(await r.studies.renameStudy(c)),
     deleteProject: async (c) => {
       const done = await r.deleteProject(c)
@@ -552,6 +553,16 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       return done.ok ? { ok: true as const } : done
     },
     updateStudyGoal: async (c) => outcome(await r.studies.updateStudyGoal(c)),
+    saveQuestionnaire: async (c) =>
+      outcome(
+        await r.questionnaires.saveQuestionnaire({
+          actor: c.actor,
+          studyId: c.studyId,
+          content: c.questionnaire,
+          version: c.version,
+          origin: 'assistant',
+        }),
+      ),
     saveGuide: async (c) =>
       outcome(
         await r.preparation.saveGuide({
@@ -568,6 +579,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     clock,
     gateway: ai.gateway,
     costs: ai.usageCosts,
+    studyCosts: ai.studyCosts,
     actions,
     research: {
       getProject: (accountId, id) => r.queries.getProject(accountId, id),
@@ -634,7 +646,10 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       checkPublication: async (c) => {
         const done = await publishing.handlers.queries.checkPublication(c)
         return done.ok
-          ? { ok: true as const, kinds: done.value.kinds as ('guide' | 'best-practices')[] }
+          ? {
+              ok: true as const,
+              kinds: done.value.kinds as ('guide' | 'best-practices' | 'questionnaire')[],
+            }
           : { ok: false as const, error: String(done.error) }
       },
       publishedKinds: (actor, studyId) =>
@@ -650,6 +665,9 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       listProjects: (accountId) => r.queries.listProjects(accountId, {}),
       preparation: (accountId, studyId) =>
         r.preparationQueries.preparationForAssistant(accountId, studyId),
+      questionnaire: (accountId, studyId) =>
+        r.questionnaireQueries.questionnaireForAssistant(accountId, studyId),
+      checkQuestionnaire: research.checkQuestionnaire,
     },
   })
   const at = (iso: string | null) => (iso ? new Date(iso) : null)
@@ -670,11 +688,23 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
             : null,
         }
       },
+      questionnaire: async (accountId, studyId) => {
+        const found = await r.questionnaireQueries.getQuestionnaire(accountId, studyId)
+        if (!found.ok) return found
+        return {
+          ok: true as const,
+          value: found.value
+            ? { content: found.value.content, version: found.value.version }
+            : null,
+        }
+      },
       schedule: (accountId, studyId) =>
         r.preparationQueries.listPlannedInterviews(accountId, studyId),
     },
     actions: {
       saveGuide: async (c) => outcome(await r.preparation.saveGuide({ ...c, origin: 'drive' })),
+      saveQuestionnaire: async (c) =>
+        outcome(await r.questionnaires.saveQuestionnaire({ ...c, origin: 'drive' })),
       addPlanned: async (c) =>
         outcome(
           await r.preparation.addPlannedInterview({

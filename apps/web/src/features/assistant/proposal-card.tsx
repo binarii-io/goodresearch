@@ -19,7 +19,14 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useId, useState } from 'react'
 import { connectUrl, DriveExplanation } from '../ingestion/source-panel.tsx'
 import { GuideView, questionCount, totalMinutes } from '../preparation/guide-view.tsx'
-import { QUESTION_ISSUES } from '../preparation/labels.ts'
+import {
+  ITEM_FLAGS,
+  ITEM_KINDS,
+  type ItemKind,
+  QUESTION_ISSUES,
+  QUESTIONNAIRE_FLAGS,
+} from '../preparation/labels.ts'
+import { itemCount, QuestionnaireView } from '../preparation/questionnaire-view.tsx'
 import { DeletionSummary, forgetProject, NameToType } from '../research/delete-project-dialog.tsx'
 import { errorMessage, messageForCode } from '../workspace/errors.ts'
 import { Choices } from './choices.tsx'
@@ -31,11 +38,14 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   create_project: msg`Create a project`,
   update_project_goal: msg`Change the research goal`,
   rename_project: msg`Rename the project`,
-  create_study: msg`Create an interview study`,
+  create_study: msg`Create a study`,
   rename_study: msg`Rename the study`,
   open_project: msg`Open a project`,
   open_study: msg`Open a study`,
   propose_interview_guide: msg`Interview guide`,
+  propose_questionnaire: msg`Questionnaire`,
+  report_questionnaire_progress: msg`Questionnaire design progress`,
+  check_questionnaire_items: msg`Item check`,
   report_guide_progress: msg`Guide design progress`,
   report_project_progress: msg`Project framing progress`,
   report_study_progress: msg`Study framing progress`,
@@ -72,10 +82,12 @@ const PROVIDERS: Record<string, string> = {
 const DOCUMENTS: Record<string, MessageDescriptor> = {
   guide: msg`Interview guide`,
   'best-practices': msg`Interview best practices`,
+  questionnaire: msg`Questionnaire`,
 }
 
 const SKILLS: Record<string, MessageDescriptor> = {
   'interview-guide-design': msg`Interview guide design`,
+  'questionnaire-design': msg`Questionnaire design`,
   'project-framing': msg`Project framing`,
   'study-framing': msg`Study framing`,
 }
@@ -98,12 +110,14 @@ export function ProposalCard({
   // Shown as the progress bar at the top of the conversation.
   if (
     proposal.kind === 'report_guide_progress' ||
+    proposal.kind === 'report_questionnaire_progress' ||
     proposal.kind === 'report_project_progress' ||
     proposal.kind === 'report_study_progress'
   )
     return null
   if (proposal.kind === 'load_skill') return <SkillLine proposal={proposal} />
   if (proposal.kind === 'check_guide_questions') return <ChecksLine proposal={proposal} />
+  if (proposal.kind === 'check_questionnaire_items') return <ItemChecksLine proposal={proposal} />
   if (proposal.kind === 'delete_project') return <DeleteCard proposal={proposal} />
   if (proposal.kind === 'connect_source') return <ConnectCard proposal={proposal} />
   if (proposal.kind === 'propose_folder_changes') return <FolderChangesCard proposal={proposal} />
@@ -131,6 +145,7 @@ export function ProposalCard({
 export const isActivity = (proposal: Proposal) =>
   proposal.kind === 'load_skill' ||
   proposal.kind === 'check_guide_questions' ||
+  proposal.kind === 'check_questionnaire_items' ||
   proposal.kind === 'browse_folder' ||
   proposal.kind === 'find_files' ||
   proposal.kind === 'read_file' ||
@@ -295,6 +310,12 @@ function FlaggedQuestions({ checks }: { checks: NonNullable<Proposal['preview'][
 }
 
 /** The assistant checked wordings with the app's rules (spec 006). */
+function ItemChecksLine({ proposal }: { proposal: Proposal }) {
+  const { t } = useLingui()
+  const n = proposal.preview.itemChecks?.items.length ?? 0
+  return <p className="text-muted-foreground text-xs">{t`Checked ${n} items`}</p>
+}
+
 function ChecksLine({ proposal }: { proposal: Proposal }) {
   const { t } = useLingui()
   const checks = proposal.preview.checks ?? []
@@ -373,12 +394,19 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
   const refresh = () => queryClient.invalidateQueries()
 
   const guide = p.guide
+  const questionnaire = p.questionnaire
+  const itemCountOf = questionnaire ? itemCount(questionnaire) : 0
+  const sectionsOf = questionnaire?.sections.length ?? 0
+  const estimated = p.itemChecks?.estimatedMinutes ?? 0
+  const flaggedItems = (p.itemChecks?.items ?? []).filter((i) => i.flags.length > 0)
+  const flaggedItemCount = flaggedItems.length
   const others = (p.otherProjects ?? []).join(', ')
   const provider = PROVIDERS[p.provider ?? ''] ?? p.provider ?? ''
   const interviewCount = p.interviews ?? 0
   const estimatedCost = (p.estimatedCost ?? 0).toFixed(2)
   const rows: [string, string | undefined][] = [
-    [t`Study`, guide ? undefined : p.studyName],
+    [t`Study`, guide || questionnaire ? undefined : p.studyName],
+    [t`Type`, p.type === 'survey' ? t`Survey` : undefined],
     [t`Project`, p.projectName ?? (proposal.kind === 'create_study' ? t`No project` : undefined)],
     [t`Team`, p.teamName],
     [t`Folder`, p.folderName],
@@ -428,6 +456,49 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
             <summary className="cursor-pointer font-medium">{t`Read the whole guide`}</summary>
             <div className="mt-2">
               <GuideView guide={guide} compact />
+            </div>
+          </details>
+        </div>
+      ) : null}
+      {questionnaire ? (
+        <div className="grid gap-2">
+          <p>
+            {p.studyName ? `${p.studyName} · ` : ''}
+            {t`${sectionsOf} sections · ${itemCountOf} items · about ${estimated} min`}
+          </p>
+          {p.replacesQuestionnaire ? (
+            <p className="text-muted-foreground text-xs">{t`Replaces the current questionnaire of the study.`}</p>
+          ) : null}
+          {(Object.keys(ITEM_KINDS) as ItemKind[]).map((kind) => {
+            const n = questionnaire.sections
+              .flatMap((s) => s.items)
+              .filter((i) => i.kind === kind).length
+            return n ? (
+              <p key={kind} className="text-muted-foreground text-xs">
+                {i18n._(ITEM_KINDS[kind])}: {n}
+              </p>
+            ) : null
+          })}
+          {flaggedItemCount || p.itemChecks?.whole.length ? (
+            <details>
+              <summary className="cursor-pointer font-medium">{t`${flaggedItemCount} items to review`}</summary>
+              <ul className="mt-2 ml-5 list-disc">
+                {flaggedItems.map((item) => (
+                  <li key={item.text}>
+                    {item.text}:{' '}
+                    {item.flags.map((f) => (ITEM_FLAGS[f] ? i18n._(ITEM_FLAGS[f]) : f)).join(', ')}
+                  </li>
+                ))}
+                {(p.itemChecks?.whole ?? []).map((f) => (
+                  <li key={f}>{QUESTIONNAIRE_FLAGS[f] ? i18n._(QUESTIONNAIRE_FLAGS[f]) : f}</li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+          <details>
+            <summary className="cursor-pointer font-medium">{t`Read the whole questionnaire`}</summary>
+            <div className="mt-2">
+              <QuestionnaireView questionnaire={questionnaire} compact />
             </div>
           </details>
         </div>
@@ -534,6 +605,7 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
                   // Spec 023: the guide or the documents are there; the assistant says what is next.
                   if (
                     (proposal.kind === 'propose_interview_guide' ||
+                      proposal.kind === 'propose_questionnaire' ||
                       proposal.kind === 'publish_preparation') &&
                     created.kind === 'study'
                   )
@@ -600,12 +672,17 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
               params={{ studyId: proposal.result.id }}
               search={
                 proposal.kind === 'propose_interview_guide' ||
+                proposal.kind === 'propose_questionnaire' ||
                 proposal.kind === 'publish_preparation'
                   ? { phase: 'preparation' }
                   : {}
               }
             >
-              {proposal.kind === 'propose_interview_guide' ? t`See the guide` : t`Open the study`}
+              {proposal.kind === 'propose_interview_guide'
+                ? t`See the guide`
+                : proposal.kind === 'propose_questionnaire'
+                  ? t`See the questionnaire`
+                  : t`Open the study`}
             </Link>
           ) : null}
         </p>

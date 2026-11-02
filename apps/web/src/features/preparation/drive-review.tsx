@@ -27,7 +27,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { errorMessage } from '../workspace/errors.ts'
-import { PLANNED_STATUSES, type PlannedStatus } from './labels.ts'
+import { ITEM_KINDS, type ItemKind, PLANNED_STATUSES, type PlannedStatus } from './labels.ts'
 
 const KINDS: Record<DriveChange['kind'], MessageDescriptor> = {
   changed: msg`Changed in Drive`,
@@ -42,10 +42,23 @@ const KINDS: Record<DriveChange['kind'], MessageDescriptor> = {
 type Value =
   | { type: 'text'; text: string }
   | { type: 'list'; items: string[] }
-  | { type: 'section'; title: string; minutes: number | null }
+  | { type: 'section'; title: string; minutes?: number | null }
   | { type: 'order'; ids: string[] }
   | { type: 'question'; section: string | null; text: string; followUps: string[] }
   | { type: 'unread'; text: string }
+  | { type: 'consent'; text: string; exits: boolean }
+  | { type: 'thanks'; text: string }
+  | { type: 'layout'; grids: string[][] }
+  | {
+      type: 'item'
+      kind: ItemKind
+      text: string
+      required: boolean
+      points?: number
+      lowLabel?: string
+      highLabel?: string
+      options?: string[]
+    }
   | {
       type: 'row'
       interviewee: string
@@ -69,6 +82,10 @@ function useItemLabel() {
   return (change: DriveChange): string => {
     const framing = FRAMING[change.key]
     if (framing) return i18n._(framing)
+    if (change.key === 'consent') return t`Consent text`
+    if (change.key === 'thanks') return t`Thanks`
+    if (change.key === 'layout') return t`Grids of the form`
+    if (change.key.startsWith('item:')) return t`Item`
     if (change.key.startsWith('section:')) return t`Section`
     if (change.key === 'order:sections') return t`Order of the sections`
     if (change.key.startsWith('order:')) return t`Order of the questions`
@@ -87,6 +104,28 @@ function ValueView({ value }: { value: unknown }) {
   const v = value as Value | null
   if (!v) return <span className="text-muted-foreground italic">{t`(none)`}</span>
   switch (v.type) {
+    case 'consent':
+      return (
+        <span className="whitespace-pre-wrap">
+          {v.text}
+          {v.exits ? null : ` (${t`refusing no longer ends the form`})`}
+        </span>
+      )
+    case 'layout':
+      return <span>{t`${v.grids.length} grids`}</span>
+    case 'item':
+      return (
+        <span className="grid gap-0.5">
+          <span>
+            {v.text} ({i18n._(ITEM_KINDS[v.kind])})
+          </span>
+          {v.options ? <span className="text-xs">{v.options.join(' · ')}</span> : null}
+          {v.points ? (
+            <span className="text-xs">{`1 ${v.lowLabel ?? ''} … ${v.points} ${v.highLabel ?? ''}`}</span>
+          ) : null}
+        </span>
+      )
+    case 'thanks':
     case 'text':
     case 'unread':
       return <span className="whitespace-pre-wrap">{v.text || t`(empty)`}</span>
@@ -101,7 +140,12 @@ function ValueView({ value }: { value: unknown }) {
     case 'section':
       return (
         <span>
-          {v.title} {v.minutes === null ? t`(no duration)` : t`(${v.minutes} min)`}
+          {v.title}{' '}
+          {v.minutes === undefined
+            ? null
+            : v.minutes === null
+              ? t`(no duration)`
+              : t`(${v.minutes} min)`}
         </span>
       )
     case 'order':

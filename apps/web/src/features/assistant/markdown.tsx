@@ -95,5 +95,7 @@ export function Markdown({ text }: { text: string }) {
     if (paragraph.length === 0) paragraph.push(lines[i++] ?? '')
     blocks.push(<p key={key}>{inline(paragraph.join(' '), key)}</p>)
   }
-  return <div className="grid gap-2 break-words">{blocks}</div>
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-2 [overflow-wrap:anywhere]">{blocks}</div>
+  )
 }

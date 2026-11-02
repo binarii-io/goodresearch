@@ -10,7 +10,7 @@ import type { PublishPreparationLanguage } from './publishPreparationLanguage.ts
 export interface PublishPreparation {
   /**
      * @minItems 1
-     * @maxItems 3
+     * @maxItems 4
      */
   kinds: PublishPreparationKindsItem[];
   language: PublishPreparationLanguage;

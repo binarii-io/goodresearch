@@ -17,7 +17,7 @@ test.describe('spec 002 — studies', () => {
 
     await page.getByRole('button', { name: 'New study' }).click()
     const dialog = page.getByRole('dialog')
-    await expect(dialog.getByRole('radio', { name: /Survey/ })).toBeDisabled()
+    await expect(dialog.getByRole('radio', { name: /Usability test/ })).toBeDisabled()
     await expect(dialog.getByRole('radio', { name: 'Interviews' })).toBeChecked()
     await dialog.getByLabel('Name').fill(`Interviews ${runId}`)
     await expectAccessible(page)

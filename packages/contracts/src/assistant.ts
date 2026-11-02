@@ -3,6 +3,7 @@ import { AiFailure } from './ai.ts'
 import { Id, Timestamp } from './common.ts'
 import { ProjectDeletion } from './overview.ts'
 import { GuideDraft } from './preparation.ts'
+import { ItemFlag, QuestionnaireDraft, QuestionnaireFlag } from './questionnaire.ts'
 
 /** The page the assistant is looking at (spec 005 US2); the server builds its context. */
 export const AssistantPage = z
@@ -28,6 +29,9 @@ export const ProposalKind = z.enum([
   'report_study_progress',
   'load_skill',
   'check_guide_questions',
+  'propose_questionnaire',
+  'report_questionnaire_progress',
+  'check_questionnaire_items',
   'attach_study',
   'detach_study',
   'update_study_goal',
@@ -83,6 +87,12 @@ export const GuideProgress = z
           'reuse',
           'goal',
           'place',
+          // The points of a questionnaire design (spec 027); `audience` and others are shared.
+          'objectiveThemes',
+          'administration',
+          'profiling',
+          'thematicItems',
+          'formatOrder',
         ]),
         weight: z.number().int(),
         status: z.enum(['missing', 'partial', 'done']),
@@ -110,7 +120,7 @@ export const ProposalPreview = z
     /** The tab that opens once the folder is attached: Fieldwork waits for the preparation. */
     opensOn: z.enum(['preparation', 'fieldwork']).optional(),
     /** Spec 023: the documents a publication creates, and what a connection card asks for. */
-    documents: z.array(z.enum(['guide', 'best-practices'])).optional(),
+    documents: z.array(z.enum(['guide', 'best-practices', 'questionnaire'])).optional(),
     access: z.enum(['read', 'write']).optional(),
     /** Spec 025: the lines of a card on interviews, built by the app. */
     interviewLines: z
@@ -161,6 +171,18 @@ export const ProposalPreview = z
     guide: GuideDraft.optional(),
     /** Whether the proposed guide replaces an existing one. */
     replacesGuide: z.boolean().optional(),
+    /** A study created through the assistant: only said for a survey (spec 027). */
+    type: z.literal('survey').optional(),
+    /** A proposed questionnaire (spec 027), and what the app's rules say of it. */
+    questionnaire: QuestionnaireDraft.optional(),
+    replacesQuestionnaire: z.boolean().optional(),
+    itemChecks: z
+      .object({
+        items: z.array(z.object({ text: z.string(), flags: z.array(ItemFlag) })),
+        whole: z.array(QuestionnaireFlag),
+        estimatedMinutes: z.number().int(),
+      })
+      .optional(),
     /** A guide design progress report (spec 006). */
     progress: GuideProgress.optional(),
     /** Questions the writing rules flag (checked questions, or a proposed guide). */

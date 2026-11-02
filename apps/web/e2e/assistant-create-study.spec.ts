@@ -23,7 +23,7 @@ test.describe('spec 021 — create a study', () => {
       await expect(panel.getByRole('log').getByText(text, { exact: true }).last()).toBeVisible()
       await expect(panel.getByRole('button', { name: 'Stop' })).toHaveCount(0)
     }
-    const card = panel.getByRole('region', { name: 'Create an interview study' })
+    const card = panel.getByRole('region', { name: 'Create a study' })
 
     await say('help me create a study')
     await expect(panel.getByText('What must this study learn?')).toBeVisible()

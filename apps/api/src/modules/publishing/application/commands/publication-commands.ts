@@ -1,5 +1,17 @@
 import { err, ok, type Result } from '@goodresearch/shared'
 import {
+  applyToQuestionnaire,
+  type FormItemMap,
+  type FormModel,
+  formItems,
+  mapFromRead,
+  planFormUpdate,
+  type QuestionnaireContent,
+  questionnaireItems,
+  renderForm,
+  validFormItem,
+} from '../../domain/form.ts'
+import {
   applyToGuide,
   type GuideContent,
   guideItems,
@@ -48,15 +60,25 @@ const RESERVATION_MS = 10 * 60 * 1000
 
 type AppSide = {
   items: Items
-  file: { doc: DocModel } | { table: TableModel }
+  file: { doc: DocModel } | { table: TableModel } | { form: FormModel }
   guide?: { content: GuideContent; version: number }
+  questionnaire?: { content: QuestionnaireContent; version: number }
   rows?: (PlannedRow & { version: number })[]
 }
 
-const NAMES: Record<PublicationKind, 'guide' | 'practices' | 'schedule'> = {
+const NAMES: Record<PublicationKind, 'guide' | 'practices' | 'schedule' | 'questionnaire'> = {
+  questionnaire: 'questionnaire',
   guide: 'guide',
   'best-practices': 'practices',
   schedule: 'schedule',
+}
+
+/** What a form's reading adds to a publication; nothing for the other kinds of file. */
+const formFields = (read: object) => {
+  if (!('itemMap' in read)) return {}
+  const { itemMap, drive, linkedSheetLink, acceptingResponses, collectsIdentity } =
+    read as StoredPublication
+  return { itemMap, drive, linkedSheetLink, acceptingResponses, collectsIdentity }
 }
 
 /**
@@ -73,6 +95,9 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
   ): Promise<Result<AppSide | null, string>> => {
     const name = (await deps.reads.studyName(actor.id, p.studyId)) ?? ''
     if (p.kind === 'best-practices') {
+      // The interview best practices only belong to an interview study.
+      const guide = await deps.reads.guide(actor.id, p.studyId)
+      if (!guide.ok) return guide
       const doc = renderPractices(p.language)
       return ok({ items: practicesItems(doc), file: { doc } })
     }
@@ -84,6 +109,16 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         items: guideItems(guide.value.content),
         file: { doc: renderGuide(guide.value.content, name, p.language) },
         guide: guide.value,
+      })
+    }
+    if (p.kind === 'questionnaire') {
+      const questionnaire = await deps.reads.questionnaire(actor.id, p.studyId)
+      if (!questionnaire.ok) return questionnaire
+      if (!questionnaire.value) return ok(null)
+      return ok({
+        items: questionnaireItems(questionnaire.value.content),
+        file: { form: renderForm(questionnaire.value.content, name) },
+        questionnaire: questionnaire.value,
       })
     }
     const rows = await deps.reads.schedule(actor.id, p.studyId)
@@ -98,8 +133,20 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
   /** The file side: its items as read now, and the revision to rewrite it. */
   const fileSide = async (
     files: StudyFiles,
-    p: Pick<StoredPublication, 'kind' | 'fileId' | 'language' | 'timeZone'>,
+    p: Pick<StoredPublication, 'kind' | 'fileId' | 'language' | 'timeZone'> & {
+      itemMap?: FormItemMap | null
+    },
   ) => {
+    if (p.kind === 'questionnaire') {
+      const read = await files.readForm(p.fileId)
+      return read.ok
+        ? ok({
+            items: formItems(read.value.blocks, p.itemMap ?? {}) as Items,
+            revision: read.value.revision as string | null,
+            form: read.value,
+          })
+        : read
+    }
     if (p.kind === 'schedule') {
       const read = await files.readTable(p.fileId, {
         columns: scheduleColumns(p.language),
@@ -116,7 +163,12 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
     return ok({ items, revision: read.value.revision })
   }
 
-  const valid = (kind: PublicationKind) => (kind === 'schedule' ? validRow : validGuideItem)
+  const valid = (kind: PublicationKind) =>
+    kind === 'schedule' ? validRow : kind === 'questionnaire' ? validFormItem : validGuideItem
+
+  /** What only people changed stays to review: never part of what the app wrote. */
+  const known = (items: Items): [string, unknown][] =>
+    [...items].filter(([key]) => !key.startsWith('new:') && !key.startsWith('unread:'))
 
   /**
    * Compares base, app and file and stores the state and the pending changes; decisions already
@@ -166,7 +218,8 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
     for (const c of changes) {
       const known = decided.find((d) => d.key === c.key && same(d.drive, c.drive))
       if (known) {
-        rejected += 1
+        // What only stays in the form is reported once: updating would not change it.
+        if (!/^(new|unread):/.test(c.key)) rejected += 1
         continue
       }
       fresh.push({
@@ -196,7 +249,7 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       drive: [...drive],
       checkedVersion: meta.version,
       checkedRevision: meta.revision,
-      appVersion: app.value?.guide?.version ?? null,
+      appVersion: app.value?.guide?.version ?? app.value?.questionnaire?.version ?? null,
       state,
       unavailableReason: null,
       lastCheckedAt: now(),
@@ -273,7 +326,27 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
     }
     let drive: Items
     let revision: string | null
-    if (m.version === p.baseVersion) {
+    let seen = p
+    // A form is only read with the right to edit it: a viewer keeps the team's state.
+    if (p.kind === 'questionnaire' && !m.canEdit) {
+      await deps.store.touchChecked(p.id, now())
+      return ok({ publication: p, canEdit: false, owner: m.ownerName })
+    }
+    if (p.kind === 'questionnaire') {
+      // Read at every check: spreadsheet, opening and identities do not all move the version.
+      const read = await fileSide(files, p)
+      if (!read.ok) return read
+      drive = read.value.items
+      revision = read.value.revision
+      const form = 'form' in read.value ? read.value.form : null
+      if (form)
+        seen = {
+          ...p,
+          linkedSheetLink: form.linkedSheetLink,
+          acceptingResponses: form.acceptingResponses,
+          collectsIdentity: form.collectsIdentity,
+        }
+    } else if (m.version === p.baseVersion) {
       drive = new Map(p.base)
       revision = p.baseRevision
     } else if (m.version === p.checkedVersion && p.drive) {
@@ -285,7 +358,7 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       drive = read.value.items
       revision = read.value.revision
     }
-    const next = await recompute(actor, p, drive, {
+    const next = await recompute(actor, seen, drive, {
       version: m.version,
       revision,
       name: m.name,
@@ -311,6 +384,27 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       revision: read.value.revision,
       version: meta.value?.version ?? 0,
       name: meta.value?.name,
+    })
+  }
+
+  /** Reads a form just written: the identity of each block, and that as the new base. */
+  const formBase = async (files: StudyFiles, fileId: string, model: FormModel) => {
+    const meta = await files.metadata(fileId)
+    if (!meta.ok) return meta
+    const read = await files.readForm(fileId)
+    if (!read.ok) return read
+    const itemMap: FormItemMap = mapFromRead(model, read.value.blocks)
+    const all = formItems(read.value.blocks, itemMap)
+    return ok({
+      base: known(all),
+      drive: [...all] as [string, unknown][],
+      revision: read.value.revision as string | null,
+      version: meta.value?.version ?? 0,
+      name: meta.value?.name,
+      itemMap,
+      linkedSheetLink: read.value.linkedSheetLink,
+      acceptingResponses: read.value.acceptingResponses,
+      collectsIdentity: read.value.collectsIdentity,
     })
   }
 
@@ -375,6 +469,10 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
           publishedAt: at,
           updatedBy: c.actor.id,
           updatedAt: at,
+          itemMap: null,
+          linkedSheetLink: null,
+          acceptingResponses: null,
+          collectsIdentity: null,
         })
         if (!reserved) return err('ALREADY_PUBLISHED')
         const file = app.value.file
@@ -383,18 +481,35 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         let created: Awaited<ReturnType<StudyFiles['createDocument']>> | undefined
         try {
           created =
-            'doc' in file
-              ? await files.value.createDocument(name, file.doc)
-              : await files.value.createTable(name, file.table)
+            'form' in file
+              ? await files.value.createForm(
+                  name,
+                  file.form.title,
+                  planFormUpdate([], file.form, {}),
+                )
+              : 'doc' in file
+                ? await files.value.createDocument(name, file.doc)
+                : await files.value.createTable(name, file.table)
         } finally {
           if (!created?.ok) await deps.store.delete(id)
         }
         if (!created.ok) return created
-        const base = await writeBase(files.value, { ...target, fileId: created.value.id }).catch(
-          () => null,
-        )
+        const base = await ('form' in file
+          ? formBase(files.value, created.value.id, file.form)
+          : writeBase(files.value, { ...target, fileId: created.value.id })
+        ).catch(() => null)
         // Not read back: tracked with no base, shown out of date; updating writes and reads it.
-        const read = base?.ok ? base.value : { base: [], revision: null, version: 0, name }
+        const read: {
+          base: [string, unknown][]
+          drive?: [string, unknown][]
+          revision: string | null
+          version: number
+          name?: string | undefined
+          itemMap?: FormItemMap
+          linkedSheetLink?: string | null
+          acceptingResponses?: boolean
+          collectsIdentity?: boolean
+        } = base?.ok ? base.value : { base: [], revision: null, version: 0, name }
         // A file the source could not fill completely is kept and shown out of date too.
         const state = same(Object.fromEntries(read.base), Object.fromEntries(app.value.items))
           ? ('in-sync' as const)
@@ -412,10 +527,10 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
           baseVersion: read.version,
           baseRevision: read.revision,
           baseRev: 1,
-          drive: read.base,
+          drive: read.drive ?? read.base,
           checkedVersion: read.version,
           checkedRevision: read.revision,
-          appVersion: app.value.guide?.version ?? null,
+          appVersion: app.value.guide?.version ?? app.value.questionnaire?.version ?? null,
           state,
           unavailableReason: null,
           lastCheckedAt: at,
@@ -424,6 +539,10 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
           publishedAt: at,
           updatedBy: c.actor.id,
           updatedAt: at,
+          itemMap: read.itemMap ?? null,
+          linkedSheetLink: read.linkedSheetLink ?? null,
+          acceptingResponses: read.acceptingResponses ?? null,
+          collectsIdentity: read.collectsIdentity ?? null,
         }
         await deps.store.save(publication)
         ids.push(publication.id)
@@ -530,14 +649,18 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       const base = new Map(fresh?.base ?? p.base)
       for (const change of outcome.done) {
         const v = value(change)
-        if (v === undefined) base.delete(change.key)
-        else base.set(change.key, v)
+        const key = outcome.renamed?.get(change.key) ?? change.key
+        if (v === undefined) base.delete(key)
+        else base.set(key, v)
       }
       if (fresh && fresh.baseRev === p.baseRev) {
+        // A form's accepted additions now have their identity: read it again under it.
+        const reread =
+          fresh.kind === 'questionnaire' ? await fileSide(loaded.value.files, fresh) : null
         const next = await recompute(
           c.actor,
           { ...fresh, base: [...base], baseRev: fresh.baseRev + 1 },
-          new Map(fresh.drive ?? fresh.base),
+          reread?.ok ? reread.value.items : new Map(fresh.drive ?? fresh.base),
           {
             version: fresh.checkedVersion ?? fresh.baseVersion,
             revision: fresh.checkedRevision,
@@ -590,15 +713,31 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       const app = await appSide(c.actor, p)
       if (!app.ok) return app
       if (!app.value) return err('VALIDATION')
+      const target = app.value.file
+      const form = 'form' in current.value ? current.value.form : null
       const written =
-        'doc' in app.value.file
-          ? await files.rewriteDocument(p.fileId, app.value.file.doc, current.value.revision ?? '')
-          : await files.rewriteTable(p.fileId, app.value.file.table)
+        'form' in target
+          ? await files.updateForm(
+              p.fileId,
+              planFormUpdate(
+                form?.blocks ?? [],
+                target.form,
+                // Never read back: what the app wrote comes first, in its order.
+                p.itemMap ?? mapFromRead(target.form, form?.blocks ?? []),
+              ),
+              current.value.revision ?? '',
+            )
+          : 'doc' in target
+            ? await files.rewriteDocument(p.fileId, target.doc, current.value.revision ?? '')
+            : await files.rewriteTable(p.fileId, target.table)
       if (!written.ok) {
         if (written.error === 'DRIVE_CHANGED_MEANWHILE') await checkWith(c.actor, p, files)
         return written
       }
-      const base = await writeBase(files, p).catch(() => null)
+      const base = await ('form' in target
+        ? formBase(files, p.fileId, target.form)
+        : writeBase(files, p)
+      ).catch(() => null)
       await deps.store.clearChanges(p.id)
       if (!base?.ok) {
         // Written but not read back: the file holds the app's version; with no base, the next
@@ -611,6 +750,7 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
             baseVersion: 0,
             baseRevision: null,
             baseRev: p.baseRev + 1,
+            itemMap: null,
             drive: null,
             checkedVersion: null,
             checkedRevision: null,
@@ -631,7 +771,8 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         drive: base.value.base,
         checkedVersion: base.value.version,
         checkedRevision: base.value.revision,
-        appVersion: app.value.guide?.version ?? null,
+        appVersion: app.value.guide?.version ?? app.value.questionnaire?.version ?? null,
+        ...formFields(base.value),
         state: 'in-sync',
         unavailableReason: null,
         lastCheckedAt: now(),
@@ -668,7 +809,11 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
     p: StoredPublication,
     claimed: readonly StoredChange[],
     value: (change: StoredChange) => unknown,
-  ): Promise<{ done: StoredChange[]; error: string | null }> {
+  ): Promise<{
+    done: StoredChange[]
+    error: string | null
+    renamed?: ReadonlyMap<string, string>
+  }> {
     if (!claimed.length) return { done: [], error: null }
     const app = await appSide(actor, p)
     if (!app.ok) return { done: [], error: app.error }
@@ -683,6 +828,40 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         version: guide.version,
       })
       return saved.ok ? { done: [...claimed], error: null } : { done: [], error: saved.error }
+    }
+    if (p.kind === 'questionnaire') {
+      const questionnaire = app.value?.questionnaire
+      if (!questionnaire || questionnaire.version !== p.appVersion)
+        return { done: [], error: 'VERSION_CONFLICT' }
+      const accepted = new Map(claimed.map((x) => [x.key, value(x)]))
+      const saved = await deps.actions.saveQuestionnaire({
+        actor,
+        studyId: p.studyId,
+        content: applyToQuestionnaire(questionnaire.content, accepted),
+        version: questionnaire.version,
+      })
+      if (!saved.ok) return { done: [], error: saved.error }
+      // An item added in the form keeps its identity there, under the id the app just gave it.
+      const after = await deps.reads.questionnaire(actor.id, p.studyId)
+      const map: Record<string, FormItemMap[string]> = { ...p.itemMap }
+      const renamed = new Map<string, string>()
+      const normal = (text: unknown) => String(text).trim().replace(/\s+/g, ' ').toLowerCase()
+      if (after.ok && after.value)
+        for (const [key, v] of accepted) {
+          if (!key.startsWith('new:') || !v) continue
+          const [, formItemId, questionId] = key.split(':')
+          const item = after.value.content.sections
+            .flatMap((s) => s.items)
+            .find(
+              (i) =>
+                !map[`item:${i.id}`] && normal(i.text) === normal((v as { text: unknown }).text),
+            )
+          if (!item || !formItemId) continue
+          map[`item:${item.id}`] = { formItemId, questionId: questionId ?? null }
+          renamed.set(key, `item:${item.id}`)
+        }
+      if (renamed.size) await deps.store.saveBase({ ...p, itemMap: map }, p.baseRev)
+      return { done: [...claimed], error: null, renamed }
     }
     const rows = new Map((app.value?.rows ?? []).map((r) => [r.id, r]))
     const done: StoredChange[] = []

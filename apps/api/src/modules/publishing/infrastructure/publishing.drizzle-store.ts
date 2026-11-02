@@ -14,6 +14,7 @@ const toPublication = (r: DocRow): StoredPublication => ({
   base: r.base as StoredPublication['base'],
   drive: (r.drive as StoredPublication['drive']) ?? null,
   state: r.state as StoredPublication['state'],
+  itemMap: (r.itemMap as StoredPublication['itemMap']) ?? null,
   unavailableReason: r.unavailableReason as StoredPublication['unavailableReason'],
 })
 
@@ -94,6 +95,9 @@ export const createPublishingStore = (db: Db): PublishingStore => ({
           lastCheckedAt: p.lastCheckedAt,
           lastEditor: p.lastEditor,
           fileName: p.fileName,
+          linkedSheetLink: p.linkedSheetLink,
+          acceptingResponses: p.acceptingResponses,
+          collectsIdentity: p.collectsIdentity,
         })
         .where(eq(publishingDocuments.id, p.id))
       if (pending === null) return

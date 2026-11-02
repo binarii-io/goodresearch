@@ -36,6 +36,7 @@ const KINDS: Record<Publication['kind'], MessageDescriptor> = {
   guide: msg`Interview guide`,
   'best-practices': msg`Interview best practices`,
   schedule: msg`Interview schedule`,
+  questionnaire: msg`Questionnaire`,
 }
 
 const STATES: Record<Publication['state'], MessageDescriptor> = {
@@ -57,6 +58,35 @@ const askWriteConsent = (studyId: string) => {
   const back = `/studies/${studyId}?phase=preparation`
   window.location.assign(
     `/api/sources/google-drive/connect?access=write&returnTo=${encodeURIComponent(back)}`,
+  )
+}
+
+/** What the last check read of a form (spec 027 FR-014, FR-017, FR-024). */
+function FormFacts({ form }: { form: NonNullable<Publication['form']> }) {
+  const { t } = useLingui()
+  return (
+    <div className="grid gap-1 text-sm">
+      {form.collectsIdentity ? (
+        <p role="alert" className="text-destructive">
+          {t`This form collects the respondents' email addresses. Turn this off in the form's settings: the questionnaire promises anonymity, and it will not open while this stays on.`}
+        </p>
+      ) : null}
+      <p>
+        {form.acceptingResponses
+          ? t`Open to responses: someone opened it by hand.`
+          : t`Closed to responses until Fieldwork.`}
+      </p>
+      {form.linkedSheetLink ? (
+        <p>
+          <a className="underline" href={form.linkedSheetLink} target="_blank" rel="noreferrer">
+            {t`Open the results spreadsheet`}
+          </a>
+        </p>
+      ) : (
+        <p className="text-muted-foreground">{t`No results spreadsheet yet. To have one for your team, open the form, go to Responses, and choose "Link to Sheets". The app does not need it.`}</p>
+      )}
+      <p className="text-muted-foreground text-xs">{t`If you use the contact item, deleting the addresses in the form and its spreadsheet is up to your team.`}</p>
+    </div>
   )
 }
 
@@ -96,6 +126,7 @@ function PublicationRow({ studyId, publication }: { studyId: string; publication
 
   return (
     <div className="grid gap-2 rounded-md border bg-card p-3">
+      {p.form ? <FormFacts form={p.form} /> : null}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2 text-sm">
           <GoogleDriveIcon />
@@ -186,7 +217,7 @@ function PublicationRow({ studyId, publication }: { studyId: string; publication
 }
 
 /** The publication of one element, and what publishing it needs (shared by the two parts). */
-const useDrivePublication = (studyId: string, kind: Publication['kind']) => {
+export const useDrivePublication = (studyId: string, kind: Publication['kind']) => {
   const list = useListPublications(studyId)
   const sources = useListMySources()
   return {

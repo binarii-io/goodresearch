@@ -80,6 +80,35 @@ export const researchInterviewGuides = pgTable('research_interview_guides', {
   version: integer('version').notNull().default(0),
 })
 
+/** The questionnaire of a survey study (spec 027). */
+export const researchQuestionnaires = pgTable('research_questionnaires', {
+  studyId: text('study_id')
+    .primaryKey()
+    .references(() => researchStudies.id, { onDelete: 'cascade' }),
+  content: jsonb('content').notNull(),
+  origin: text('origin').notNull(),
+  updatedBy: text('updated_by').references(() => auth_users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+  version: integer('version').notNull().default(0),
+})
+
+/** What a person checked before sending a questionnaire (spec 027 US6). */
+export const researchQuestionnaireChecks = pgTable(
+  'research_questionnaire_checks',
+  {
+    studyId: text('study_id')
+      .notNull()
+      .references(() => researchStudies.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    people: integer('people'),
+    questionnaireVersion: integer('questionnaire_version').notNull(),
+    markedBy: text('marked_by').references(() => auth_users.id, { onDelete: 'set null' }),
+    markedAt: timestamp('marked_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.studyId, t.kind] })],
+)
+
 /** The interview schedule of a study (spec 006 US5). */
 export const researchPlannedInterviews = pgTable(
   'research_planned_interviews',

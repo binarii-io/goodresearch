@@ -312,6 +312,42 @@ const lexiconAnswer = (prompt: string) => {
   return terms
 }
 
+/** A fixed questionnaire, as the assistant writes it (spec 027). */
+const FAKE_QUESTIONNAIRE = {
+  framing: {
+    objective: 'Measure how teams feel about planning.',
+    hypotheses: [],
+    audience: 'Team leads',
+    recruitment: 'targeted',
+    administration: 'Online, alone',
+    targetResponses: 100,
+    targetReason: 'Enough to compare two teams',
+    language: 'en',
+    consent: 'We are studying planning. It takes five minutes. There is no right or wrong answer.',
+    thanks: 'Thank you.',
+    shuffle: true,
+  },
+  sections: [
+    {
+      kind: 'theme',
+      title: 'Planning',
+      items: [
+        {
+          text: 'Planning my week is easy.',
+          measure: 'subjective',
+          required: true,
+          subTheme: null,
+          contact: false,
+          kind: 'likert',
+          points: 7,
+          lowLabel: 'Strongly disagree',
+          highLabel: 'Strongly agree',
+        },
+      ],
+    },
+  ],
+}
+
 /** A fixed interview guide, as the assistant writes it (spec 006 research R8). */
 const TIDY_FOLDER = (studyId: string | undefined) => ({
   studyId,
@@ -539,6 +575,32 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
       parts: [call('attach_folder', { studyId: guideStudy, link: FAKE_FOLDER_LINK })],
       delayMs: 0,
     }
+  if (ranTool === 'load_skill' && guideStudy && offered('report_questionnaire_progress'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Let us design the questionnaire. What is its objective?' },
+        call('report_questionnaire_progress', {
+          studyId: guideStudy,
+          objectiveThemes: 'partial',
+          hypotheses: 'missing',
+          audience: 'missing',
+          administration: 'missing',
+          profiling: 'missing',
+          thematicItems: 'missing',
+          formatOrder: 'missing',
+          biasReview: 'missing',
+        }),
+      ],
+      delayMs: 0,
+    }
+  if (ranTool === 'check_questionnaire_items' && guideStudy)
+    return {
+      parts: [
+        { type: 'text', delta: 'Here is the questionnaire.' },
+        call('propose_questionnaire', { studyId: guideStudy, questionnaire: FAKE_QUESTIONNAIRE }),
+      ],
+      delayMs: 0,
+    }
   if (ranTool === 'load_skill' && guideStudy)
     return {
       parts: [
@@ -688,6 +750,18 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
       parts: [
         { type: 'text', delta: 'Here is what deleting it means.' },
         call('delete_project', { projectId }),
+      ],
+      delayMs: 0,
+    }
+  if (/design the questionnaire/i.test(text) && offered('load_skill'))
+    return { parts: [call('load_skill', { name: 'questionnaire-design' })], delayMs: 0 }
+  if (/write the questionnaire/i.test(text) && offered('check_questionnaire_items'))
+    return {
+      parts: [
+        call('check_questionnaire_items', {
+          studyId: guideStudy,
+          questionnaire: FAKE_QUESTIONNAIRE,
+        }),
       ],
       delayMs: 0,
     }

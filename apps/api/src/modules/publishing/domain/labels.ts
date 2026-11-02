@@ -7,6 +7,7 @@ import type { Language } from './model.ts'
 export const LABELS = {
   en: {
     guide: 'Interview guide',
+    questionnaire: 'Questionnaire',
     practices: 'Interview best practices',
     schedule: 'Interview schedule',
     framing: 'Framing',
@@ -33,6 +34,7 @@ export const LABELS = {
     },
   },
   fr: {
+    questionnaire: 'Questionnaire',
     guide: 'Guide d’entretien',
     practices: 'Bonnes pratiques d’entretien',
     schedule: 'Planning des entretiens',

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { Id, Timestamp } from './common.ts'
 
-export const PublicationKind = z.enum(['guide', 'best-practices', 'schedule'])
+export const PublicationKind = z.enum(['guide', 'best-practices', 'schedule', 'questionnaire'])
 
 export const PublicationState = z.enum([
   'in-sync',
@@ -33,6 +33,14 @@ export const Publication = z
     updatedBy: z.string().nullable(),
     updatedAt: Timestamp,
     lastCheckedAt: Timestamp.nullable(),
+    /** Spec 027, a questionnaire's form: what the last check read. */
+    form: z
+      .object({
+        linkedSheetLink: z.string().nullable(),
+        acceptingResponses: z.boolean(),
+        collectsIdentity: z.boolean(),
+      })
+      .nullable(),
     /** After a check: whether the acting person can edit the file at the source, and its owner. */
     access: z.object({ canEdit: z.boolean(), owner: z.string().nullable() }).nullable(),
   })
@@ -61,7 +69,7 @@ export const DriveChange = z
 
 export const PublishPreparation = z
   .object({
-    kinds: z.array(PublicationKind).min(1).max(3),
+    kinds: z.array(PublicationKind).min(1).max(4),
     language: z.enum(['en', 'fr']),
     /** The person's time zone, for the schedule's dates (IANA name). */
     timeZone: z

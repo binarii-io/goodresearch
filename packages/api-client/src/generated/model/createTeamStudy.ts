@@ -4,6 +4,7 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
+import type { CreateTeamStudyType } from './createTeamStudyType.ts';
 
 export interface CreateTeamStudy {
   /**
@@ -13,4 +14,5 @@ export interface CreateTeamStudy {
   name: string;
   /** @maxLength 10000 */
   goal: string;
+  type: CreateTeamStudyType;
 }

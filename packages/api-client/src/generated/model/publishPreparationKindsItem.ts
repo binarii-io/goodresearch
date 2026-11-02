@@ -12,4 +12,5 @@ export const PublishPreparationKindsItem = {
   guide: 'guide',
   'best-practices': 'best-practices',
   schedule: 'schedule',
+  questionnaire: 'questionnaire',
 } as const;

@@ -11,4 +11,5 @@ export type ProposalPreviewDocumentsItem = typeof ProposalPreviewDocumentsItem[k
 export const ProposalPreviewDocumentsItem = {
   guide: 'guide',
   'best-practices': 'best-practices',
+  questionnaire: 'questionnaire',
 } as const;

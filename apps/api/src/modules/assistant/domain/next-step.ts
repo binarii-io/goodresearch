@@ -26,3 +26,23 @@ export const nextStep = (s: {
   if (!s.interviews || s.interviews === 'none') return 'fieldwork'
   return s.interviews
 }
+
+/** What comes next on a survey study (spec 027 US6); the checks advise, they block nothing. */
+export type SurveyNextStep =
+  | 'write-questionnaire'
+  | 'add-folder'
+  | 'publish-questionnaire'
+  | 'readiness'
+  | 'fieldwork-later'
+
+export const surveyNextStep = (s: {
+  hasQuestionnaire: boolean
+  hasFolder: boolean
+  published: readonly string[]
+  checksDone: boolean
+}): SurveyNextStep => {
+  if (!s.hasQuestionnaire) return 'write-questionnaire'
+  if (!s.hasFolder) return 'add-folder'
+  if (!s.published.includes('questionnaire')) return 'publish-questionnaire'
+  return s.checksDone ? 'fieldwork-later' : 'readiness'
+}

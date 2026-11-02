@@ -11,6 +11,7 @@ import {
 } from '@goodresearch/ui/components/dialog'
 import { Input } from '@goodresearch/ui/components/input'
 import { Label } from '@goodresearch/ui/components/label'
+import { RadioGroup, RadioGroupItem } from '@goodresearch/ui/components/radio-group'
 import { Textarea } from '@goodresearch/ui/components/textarea'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
@@ -28,14 +29,15 @@ export function CreateTeamStudyDialog({ teamId }: { teamId: string }) {
   const [name, setName] = useState('')
   const [goal, setGoal] = useState('')
   const [touched, setTouched] = useState(false)
-  const ids = { name: useId(), nameError: useId(), goal: useId() }
+  const [studyType, setStudyType] = useState<'interviews' | 'survey'>('interviews')
+  const ids = { name: useId(), nameError: useId(), goal: useId(), type: useId() }
   const missing = touched && name.trim().length === 0
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setTouched(true)
     if (name.trim().length === 0) return
-    const { id } = await create.mutateAsync({ teamId, data: { name, goal } })
+    const { id } = await create.mutateAsync({ teamId, data: { name, goal, type: studyType } })
     await queryClient.invalidateQueries({ queryKey: getListTeamStudiesQueryKey(teamId) })
     setOpen(false)
     await navigate({
@@ -56,7 +58,7 @@ export function CreateTeamStudyDialog({ teamId }: { teamId: string }) {
         >
           <DialogHeader>
             <DialogTitle>{t`New study`}</DialogTitle>
-            <DialogDescription>{t`An interview study of this team, in no project for now. You can link it to a project later.`}</DialogDescription>
+            <DialogDescription>{t`A study of this team, in no project for now. You can link it to a project later.`}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">
             <Label htmlFor={ids.name}>{t`Name`}</Label>
@@ -74,6 +76,27 @@ export function CreateTeamStudyDialog({ teamId }: { teamId: string }) {
               </p>
             ) : null}
           </div>
+          <fieldset className="grid gap-2">
+            <legend className="text-sm font-medium">{t`Type`}</legend>
+            <RadioGroup
+              value={studyType}
+              onValueChange={(value) => setStudyType(value as typeof studyType)}
+            >
+              {(
+                [
+                  ['interviews', t`Interviews`],
+                  ['survey', t`Survey`],
+                ] as const
+              ).map(([value, label]) => (
+                <div key={value} className="flex items-center gap-2">
+                  <RadioGroupItem value={value} id={`${ids.type}-${value}`} />
+                  <Label htmlFor={`${ids.type}-${value}`} className="font-normal">
+                    {label}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </fieldset>
           <div className="grid gap-2">
             <Label htmlFor={ids.goal}>{t`Research goal`}</Label>
             <Textarea

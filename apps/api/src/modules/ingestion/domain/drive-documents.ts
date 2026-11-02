@@ -1,3 +1,4 @@
+import type { FormOperation, FormRead } from './form-model.ts'
 /**
  * Documents and tables written to a source with one person's own access (spec 007). Neutral
  * models: the publishing module renders and reads them; adapters translate them for a connector
@@ -142,6 +143,22 @@ export interface DriveDocuments {
     table: Pick<TableModel, 'columns' | 'timeZone'>,
   ): Promise<TableRead>
   rewriteTable(refreshToken: string, fileId: string, table: TableModel): Promise<void>
+  /** Spec 027: a form in the folder, closed to responses, collecting no identity. */
+  createForm(
+    refreshToken: string,
+    folderId: string,
+    name: string,
+    title: string,
+    operations: readonly FormOperation[],
+  ): Promise<CreatedFile>
+  readForm(refreshToken: string, fileId: string): Promise<FormRead>
+  /** Only if it is still at `revision`, else DriveRevisionMismatch. */
+  updateForm(
+    refreshToken: string,
+    fileId: string,
+    operations: readonly FormOperation[],
+    revision: string,
+  ): Promise<void>
   /** `null` when the file does not exist or the person cannot open it. */
   metadata(refreshToken: string, fileId: string): Promise<FileMeta | null>
   /**

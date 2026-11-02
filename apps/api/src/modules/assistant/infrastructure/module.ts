@@ -17,6 +17,7 @@ export const createAssistantModule = (deps: {
   research: ResearchReads
   actions: ResearchActions
   costs: AssistantDeps['costs']
+  studyCosts: AssistantDeps['studyCosts']
   log?: { warn(object: object, message: string): void }
 }) => {
   const assistant: AssistantDeps = {
@@ -25,6 +26,7 @@ export const createAssistantModule = (deps: {
     research: deps.research,
     actions: deps.actions,
     costs: deps.costs,
+    studyCosts: deps.studyCosts,
     clock: deps.clock,
     newId,
     log: deps.log ?? console,

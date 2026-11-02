@@ -43,9 +43,33 @@ export const practicesToMarkdown = (doc: BestPractices): string => {
 /** The interview best practices (US4), in the interface language. */
 export function BestPracticesCard({ studyId }: { studyId: string }) {
   const { t, i18n } = useLingui()
-  const doc = BEST_PRACTICES[normalise(i18n.locale)]
-  const download = () =>
-    downloadText(t`interview-best-practices.md`, practicesToMarkdown(doc), 'text/markdown')
+  return (
+    <PracticesCard
+      doc={BEST_PRACTICES[normalise(i18n.locale)]}
+      summary={t`How to run a neutral interview: phases, questions, follow-ups, biases, what is measured.`}
+      fileName={t`interview-best-practices.md`}
+      actions={<DriveButton studyId={studyId} kind="best-practices" size="default" />}
+      status={<DriveStatus studyId={studyId} kind="best-practices" />}
+    />
+  )
+}
+
+/** A best practices document: read in a dialog, downloaded (also spec 027 US7). */
+export function PracticesCard({
+  doc,
+  summary,
+  fileName,
+  actions,
+  status,
+}: {
+  doc: BestPractices
+  summary: string
+  fileName: string
+  actions?: ReactNode
+  status?: ReactNode
+}) {
+  const { t } = useLingui()
+  const download = () => downloadText(fileName, practicesToMarkdown(doc), 'text/markdown')
   return (
     <section
       aria-labelledby="practices-heading"
@@ -55,7 +79,7 @@ export function BestPracticesCard({ studyId }: { studyId: string }) {
         <h3 id="practices-heading" className="font-semibold">
           {doc.title}
         </h3>
-        <p className="text-sm">{t`How to run a neutral interview: phases, questions, follow-ups, biases, what is measured.`}</p>
+        <p className="text-sm">{summary}</p>
       </div>
       <div className="flex flex-wrap gap-2">
         <Dialog>
@@ -114,11 +138,9 @@ export function BestPracticesCard({ studyId }: { studyId: string }) {
           <DownloadIcon aria-hidden />
           {t`Download (Markdown)`}
         </Button>
-        <DriveButton studyId={studyId} kind="best-practices" size="default" />
+        {actions}
       </div>
-      <div className="basis-full empty:hidden">
-        <DriveStatus studyId={studyId} kind="best-practices" />
-      </div>
+      <div className="basis-full empty:hidden">{status}</div>
     </section>
   )
 }

@@ -141,7 +141,11 @@ export const CreateStudy = z
   .meta({ id: 'CreateStudy' })
 /** Spec 021: a study of the team, in no project. */
 export const CreateTeamStudy = z
-  .object({ name: StudyName, goal: z.string().trim().max(10_000).default('') })
+  .object({
+    name: StudyName,
+    goal: z.string().trim().max(10_000).default(''),
+    type: z.enum(['interviews', 'survey']).default('interviews'),
+  })
   .meta({ id: 'CreateTeamStudy' })
 export const RenameStudy = z
   .object({ name: StudyName, version: Version })

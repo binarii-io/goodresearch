@@ -9,6 +9,7 @@ import type {
   StudyFiles,
 } from '../../application/ports.ts'
 import { makePublicationQueries } from '../../application/queries/publication-queries.ts'
+import type { QuestionnaireContent } from '../../domain/form.ts'
 import type { GuideContent, GuideInput } from '../../domain/guide.ts'
 import type { PlannedRow } from '../../domain/schedule.ts'
 
@@ -137,6 +138,54 @@ export const publishingWorld = () => {
         version: 0,
       },
     ] as (PlannedRow & { version: number })[],
+    questionnaire: {
+      version: 0,
+      content: {
+        framing: {
+          objective: 'Measure',
+          hypotheses: [],
+          audience: '',
+          recruitment: 'targeted',
+          administration: '',
+          targetResponses: null,
+          targetReason: '',
+          language: 'en',
+          consent: 'You choose.',
+          thanks: 'Thank you.',
+          shuffle: true,
+        },
+        sections: [
+          {
+            id: 'qs1',
+            kind: 'theme',
+            title: 'Planning',
+            items: [
+              {
+                id: 'a',
+                text: 'Planning is easy',
+                measure: 'subjective',
+                required: true,
+                subTheme: null,
+                contact: false,
+                kind: 'likert',
+                points: 7,
+                lowLabel: 'Disagree',
+                highLabel: 'Agree',
+              },
+              {
+                id: 'b',
+                text: 'Tell us more',
+                measure: 'subjective',
+                required: false,
+                subTheme: null,
+                contact: false,
+                kind: 'open',
+              },
+            ],
+          },
+        ],
+      },
+    } as { version: number; content: QuestionnaireContent } | null,
     canWrite: new Set(['ada', 'ben']),
     saved: [] as GuideInput[],
   }
@@ -162,6 +211,11 @@ export const publishingWorld = () => {
       createTable: (name, table) => wrap(() => drive.createTable(account, 'folder-1', name, table)),
       readTable: (id) => wrap(() => drive.readTable(account, id)),
       rewriteTable: (id, table) => wrap(() => drive.rewriteTable(account, id, table)),
+      createForm: (name, title, operations) =>
+        wrap(() => drive.createForm(account, 'folder-1', name, title, operations)),
+      readForm: (id) => wrap(() => drive.readForm(account, id)),
+      updateForm: (id, operations, revision) =>
+        wrap(() => drive.updateForm(account, id, operations, revision)),
       metadata: (id) => wrap(() => drive.metadata(account, id)),
     }
   }
@@ -175,6 +229,8 @@ export const publishingWorld = () => {
     reads: {
       studyName: async () => 'Study A',
       guide: async (accountId) => (accountId === 'eve' ? err('STUDY_NOT_FOUND') : ok(state.guide)),
+      questionnaire: async (accountId) =>
+        accountId === 'eve' ? err('STUDY_NOT_FOUND') : ok(state.questionnaire),
       schedule: async (accountId) =>
         accountId === 'eve' ? err('STUDY_NOT_FOUND') : ok(state.rows),
     },
@@ -194,6 +250,22 @@ export const publishingWorld = () => {
               questions: s.questions.map((q) => ({ ...q, id: q.id ?? `q-new-${++n}` })),
             })),
           },
+        }
+        return { ok: true }
+      },
+      saveQuestionnaire: async (c) => {
+        if (!state.questionnaire || c.version !== state.questionnaire.version)
+          return { ok: false, error: 'VERSION_CONFLICT' }
+        let n = 0
+        state.questionnaire = {
+          version: state.questionnaire.version + 1,
+          content: {
+            ...c.content,
+            sections: c.content.sections.map((s) => ({
+              ...s,
+              items: s.items.map((i) => ({ ...i, id: i.id ?? `i-new-${++n}` })),
+            })),
+          } as QuestionnaireContent,
         }
         return { ok: true }
       },

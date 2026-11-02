@@ -32,6 +32,7 @@ import type {
   ConversationSummary,
   CreateConversation201,
   Proposal,
+  QuestionnaireDesignCost,
   RenameConversationInput,
   SendAssistantMessageInput
 } from '../../model';
@@ -223,7 +224,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCreateConversationMutationOptions(options), queryClient);
     }
-    export const getGetConversationUrl = (conversationId: string,) => {
+    export const getGetQuestionnaireDesignCostUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/questionnaire/design-cost`
+}
+
+export const getQuestionnaireDesignCost = async (studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuestionnaireDesignCost> => {
+
+  return apiFetch<QuestionnaireDesignCost>(getGetQuestionnaireDesignCostUrl(studyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetQuestionnaireDesignCostQueryKey = (studyId: string,) => {
+    return [
+    `/api/studies/${studyId}/questionnaire/design-cost`
+    ] as const;
+    }
+
+
+export const getGetQuestionnaireDesignCostQueryOptions = <TData = Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError = unknown>(studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQuestionnaireDesignCostQueryKey(studyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuestionnaireDesignCost>>> = ({ signal }) => getQuestionnaireDesignCost(studyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQuestionnaireDesignCostQueryResult = NonNullable<Awaited<ReturnType<typeof getQuestionnaireDesignCost>>>
+export type GetQuestionnaireDesignCostQueryError = unknown
+
+
+export function useGetQuestionnaireDesignCost<TData = Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError = unknown>(
+ studyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuestionnaireDesignCost>>,
+          TError,
+          Awaited<ReturnType<typeof getQuestionnaireDesignCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuestionnaireDesignCost<TData = Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuestionnaireDesignCost>>,
+          TError,
+          Awaited<ReturnType<typeof getQuestionnaireDesignCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuestionnaireDesignCost<TData = Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQuestionnaireDesignCost<TData = Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaireDesignCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQuestionnaireDesignCostQueryOptions(studyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getGetConversationUrl = (conversationId: string,) => {
 
 
 

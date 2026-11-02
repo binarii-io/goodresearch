@@ -9,6 +9,7 @@ import {
   type TableRead,
 } from '../domain/drive-documents.ts'
 import { DriveConnectionLost } from '../domain/drive-gateway.ts'
+import { createGoogleForms } from './google-forms.ts'
 import { createGoogleRequests, type GoogleRequests } from './google-requests.ts'
 import { instantToSerial, serialToInstant } from './sheet-time.ts'
 
@@ -425,6 +426,8 @@ export const createGoogleDocuments = (options: {
   }
 
   const adapter: DriveDocuments = {
+    ...createGoogleForms(call),
+
     createFolder: async (token, parentId, name) =>
       createFile(token, parentId, name, 'application/vnd.google-apps.folder'),
 

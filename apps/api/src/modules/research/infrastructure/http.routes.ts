@@ -6,6 +6,7 @@ import {
   CreateTeamStudy,
   InterviewGuide,
   ListProjectsQuery,
+  MarkReadiness,
   MoveProject,
   PlannedInterview,
   PlannedInterviewInput,
@@ -13,9 +14,12 @@ import {
   ProjectDetail,
   ProjectParams,
   ProjectSummary,
+  Questionnaire,
+  ReadinessParams,
   RenameProject,
   RenameStudy,
   SaveInterviewGuide,
+  SaveQuestionnaire,
   StudyDetail,
   StudyParams,
   StudySettings,
@@ -36,11 +40,13 @@ import type { makeCreateProject } from '../application/commands/create-project.t
 import type { makeDeleteProject } from '../application/commands/delete-project.ts'
 import type { makeMoveProjectToTeam } from '../application/commands/move-project-to-team.ts'
 import type { PreparationCommands } from '../application/commands/preparation-commands.ts'
+import type { QuestionnaireCommands } from '../application/commands/questionnaire-commands.ts'
 import type { makeRenameProject } from '../application/commands/rename-project.ts'
 import type { StudyCommands } from '../application/commands/study-commands.ts'
 import type { makeUpdateProjectGoal } from '../application/commands/update-project-goal.ts'
 import type { PreparationQueries } from '../application/queries/preparation-queries.ts'
 import type { ProjectQueries } from '../application/queries/project-queries.ts'
+import type { QuestionnaireQueries } from '../application/queries/questionnaire-queries.ts'
 import type { StudyQueries } from '../application/queries/study-queries.ts'
 
 export type ResearchHandlers = {
@@ -54,6 +60,8 @@ export type ResearchHandlers = {
   readonly studyQueries: StudyQueries
   readonly preparation: PreparationCommands
   readonly preparationQueries: PreparationQueries
+  readonly questionnaires: QuestionnaireCommands
+  readonly questionnaireQueries: QuestionnaireQueries
 }
 
 const fieldsOf = (body: z.infer<typeof PlannedInterviewInput>) => ({
@@ -347,7 +355,6 @@ export const registerResearchRoutes = (
         await h.studies.createTeamStudy({
           actor: request.account,
           teamId: request.params.teamId,
-          type: 'interviews',
           ...request.body,
         }),
         (v) => res.status(201).send(v),
@@ -481,6 +488,97 @@ export const registerResearchRoutes = (
           origin: 'person',
         }),
         (v) => res.send(v),
+      ),
+  )
+
+  api.get(
+    '/api/studies/:studyId/questionnaire',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getQuestionnaire',
+        tags: prepTags,
+        params: StudyParams,
+        response: { 200: Questionnaire.nullable() },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.questionnaireQueries.getQuestionnaire(request.account.id, request.params.studyId),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.put(
+    '/api/studies/:studyId/questionnaire',
+    {
+      ...secured,
+      schema: {
+        operationId: 'saveQuestionnaire',
+        tags: prepTags,
+        params: StudyParams,
+        body: SaveQuestionnaire,
+        response: { 200: VersionAck },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.questionnaires.saveQuestionnaire({
+          actor: request.account,
+          studyId: request.params.studyId,
+          content: request.body.content,
+          version: request.body.version,
+          origin: 'person',
+        }),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.put(
+    '/api/studies/:studyId/questionnaire/readiness/:kind',
+    {
+      ...secured,
+      schema: {
+        operationId: 'markQuestionnaireReadiness',
+        tags: prepTags,
+        params: ReadinessParams,
+        body: MarkReadiness,
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.questionnaires.markReadiness({
+          actor: request.account,
+          studyId: request.params.studyId,
+          kind: request.params.kind,
+          people: request.body.people,
+        }),
+        () => res.code(204).send(),
+      ),
+  )
+
+  api.delete(
+    '/api/studies/:studyId/questionnaire/readiness/:kind',
+    {
+      ...secured,
+      schema: {
+        operationId: 'unmarkQuestionnaireReadiness',
+        tags: prepTags,
+        params: ReadinessParams,
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.questionnaires.unmarkReadiness({
+          actor: request.account,
+          studyId: request.params.studyId,
+          kind: request.params.kind,
+        }),
+        () => res.code(204).send(),
       ),
   )
 

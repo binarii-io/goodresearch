@@ -77,6 +77,22 @@ export const inMemoryAssistantStore = () => {
   const messages: StoredMessage[] = []
   const proposalRows = new Map<string, StoredProposal>()
   const store: AssistantStore = {
+    answersWithSkill: async (studyId, skill) => {
+      const designing = new Set(
+        [...proposalRows.values()]
+          .filter(
+            (p) => p.kind === 'load_skill' && p.state === 'applied' && p.values.name === skill,
+          )
+          .map((p) => messages.find((m) => m.id === p.messageId))
+          .filter((m) => m?.pageId === studyId)
+          .map((m) => m?.conversationId),
+      )
+      return messages
+        .filter(
+          (m) => designing.has(m.conversationId) && m.role === 'assistant' && m.pageId === studyId,
+        )
+        .map((m) => m.id)
+    },
     listConversations: async (accountId) =>
       [...conversations.values()]
         .filter((c) => c.accountId === accountId)
@@ -160,6 +176,9 @@ export const fakeResearch = () => {
   const preparation: { guide: Awaited<ReturnType<ResearchReads['preparation']>> } = {
     guide: { guide: null, schedule: { scheduled: 2, 'to-contact': 1 } },
   }
+  const questionnaire: { value: Awaited<ReturnType<ResearchReads['questionnaire']>> } = {
+    value: null,
+  }
   const attachable: {
     studies: { id: string; name: string; projects: { name: string }[] }[]
   } = { studies: [] }
@@ -237,6 +256,18 @@ export const fakeResearch = () => {
     publishedKinds: async () => publication.published,
     canActOnStudy: async () => true,
     projectRunning: async () => running.value,
+    questionnaire: async (accountId, id) =>
+      accountId === 'ada' && id === 's1' ? questionnaire.value : null,
+    checkQuestionnaire: (draft) => ({
+      items: draft.sections.flatMap((s) =>
+        s.items.map((i) => ({
+          text: i.text,
+          flags: i.text.includes(' and ') ? (['double'] as const).slice() : [],
+        })),
+      ),
+      whole: ['no-profiling'],
+      estimatedMinutes: 3,
+    }),
     preparation: async (accountId, id) =>
       accountId === 'ada' && id === 's1' ? preparation.guide : null,
   }
@@ -273,6 +304,7 @@ export const fakeResearch = () => {
     detachStudy: async (c) => result('detachStudy', c, {}),
     updateStudyGoal: async (c) => result('updateStudyGoal', c, {}),
     saveGuide: async (c) => result('saveGuide', c, {}),
+    saveQuestionnaire: async (c) => result('saveQuestionnaire', c, {}),
   }
   return {
     reads,
@@ -293,6 +325,7 @@ export const fakeResearch = () => {
     deletion,
     study,
     preparation,
+    questionnaire,
     actions,
     actionsLog,
     failNext: (error: string) => {
@@ -353,6 +386,7 @@ export const assistantWorld = () => {
     research: research.reads,
     actions: research.actions,
     costs: async (_accountId, ids) => new Map(ids.map((id, i) => [id, 0.001 * (i + 1)])),
+    studyCosts: async (ids) => new Map(ids.map((id) => [id, 0.01])),
     clock,
     newId,
     log: { warn: () => {} },

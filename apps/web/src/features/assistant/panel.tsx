@@ -44,7 +44,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { normalise } from '../../app/i18n.ts'
 import { FailureNotice } from '../ai/provider-forms.tsx'
-import { GUIDE_POINTS, POINT_STATES } from '../preparation/labels.ts'
+import { GUIDE_POINTS, POINT_STATES, QUESTIONNAIRE_POINTS } from '../preparation/labels.ts'
 import { errorCode, errorMessage } from '../workspace/errors.ts'
 import { useFormatRelative } from '../workspace/format.ts'
 import { ConversationCostIndicator } from './cost.tsx'
@@ -121,12 +121,12 @@ function Message({
   const { t } = useLingui()
   if (message.role === 'person')
     return (
-      <div className="ml-8 self-end rounded-lg bg-muted px-3 py-2 whitespace-pre-wrap">
+      <div className="ml-8 self-end rounded-lg bg-muted px-3 py-2 whitespace-pre-wrap [overflow-wrap:anywhere]">
         {message.text}
       </div>
     )
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
       <Activity proposals={message.proposals} />
       {message.text ? <Markdown text={message.text} /> : null}
       {message.status === 'stopped' ? (
@@ -250,6 +250,7 @@ function ConversationList({ onOpen }: { onOpen: (id: string | null) => void }) {
 
 const isProgress = (p: Proposal) =>
   (p.kind === 'report_guide_progress' ||
+    p.kind === 'report_questionnaire_progress' ||
     p.kind === 'report_project_progress' ||
     p.kind === 'report_study_progress') &&
   Boolean(p.preview.progress)
@@ -267,6 +268,7 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
   if (!latest || !progress) return null
   const framing = latest.kind === 'report_project_progress'
   const studyFraming = latest.kind === 'report_study_progress'
+  const surveyDesign = latest.kind === 'report_questionnaire_progress'
   const created = framing ? 'create_project' : studyFraming ? 'create_study' : null
   if (proposals.slice(index).some((p) => p.kind === created && p.state === 'applied')) return null
   const study = latest.preview.studyName ?? ''
@@ -274,10 +276,14 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
   // Spec 023: a guide applied is a design finished: one quiet line, until closed. A later change
   // of the guide reports again, and shows the bar again.
   if (
-    latest.kind === 'report_guide_progress' &&
-    proposals
-      .slice(index)
-      .some((p) => p.kind === 'propose_interview_guide' && p.state === 'applied')
+    (latest.kind === 'report_guide_progress' &&
+      proposals
+        .slice(index)
+        .some((p) => p.kind === 'propose_interview_guide' && p.state === 'applied')) ||
+    (surveyDesign &&
+      proposals
+        .slice(index)
+        .some((p) => p.kind === 'propose_questionnaire' && p.state === 'applied'))
   ) {
     const key = `goodresearch.assistant.guideDone.${latest.id}`
     if (closed === latest.id || read(key)) return null
@@ -285,7 +291,9 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
       <div className="flex items-center gap-2 border-b px-4 py-1.5 text-xs">
         <CheckIcon aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
         <p role="status" className="min-w-0 flex-1 truncate font-medium">
-          {t`Interview guide finished · ${study}`}
+          {surveyDesign
+            ? t`Questionnaire finished · ${study}`
+            : t`Interview guide finished · ${study}`}
         </p>
         <Button
           variant="ghost"
@@ -316,13 +324,21 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
             ? t`Project framing progress`
             : studyFraming
               ? t`Study framing progress`
-              : t`Interview guide design progress`
+              : surveyDesign
+                ? t`Questionnaire design progress`
+                : t`Interview guide design progress`
         }
         percent={progress.percent}
         listLabel={t`${count} points`}
         segments={progress.items.map((item) => {
           const point = (
-            framing ? FRAMING_POINTS : studyFraming ? STUDY_FRAMING_POINTS : GUIDE_POINTS
+            framing
+              ? FRAMING_POINTS
+              : studyFraming
+                ? STUDY_FRAMING_POINTS
+                : surveyDesign
+                  ? QUESTIONNAIRE_POINTS
+                  : GUIDE_POINTS
           )[item.key]
           return {
             key: item.key,
@@ -606,7 +622,7 @@ export function AssistantPanel() {
             role="log"
             aria-label={t`Conversation`}
             aria-busy={streaming}
-            className="grid flex-1 grid-cols-[minmax(0,1fr)] content-start gap-4 overflow-y-auto p-4 text-sm"
+            className="grid flex-1 grid-cols-[minmax(0,1fr)] content-start gap-4 overflow-x-hidden overflow-y-auto p-4 text-sm"
           >
             {!conversationId && !live ? (
               <p className="text-muted-foreground">{t`Ask anything about your research. The assistant sees the page you are on and can propose changes, which you apply or dismiss.`}</p>
@@ -625,11 +641,11 @@ export function AssistantPanel() {
             {live ? (
               <>
                 {live.personText !== null ? (
-                  <div className="ml-8 self-end rounded-lg bg-muted px-3 py-2 whitespace-pre-wrap">
+                  <div className="ml-8 self-end rounded-lg bg-muted px-3 py-2 whitespace-pre-wrap [overflow-wrap:anywhere]">
                     {live.personText}
                   </div>
                 ) : null}
-                <div className="grid gap-3">
+                <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
                   <Activity proposals={live.proposals} />
                   {live.text ? (
                     <Markdown text={live.text} />

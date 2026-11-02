@@ -30,6 +30,7 @@ export const OPEN_READS: ReadonlySet<string> = new Set([
   '/api/projects/:projectId/debrief',
   '/api/studies/:studyId',
   '/api/studies/:studyId/guide',
+  '/api/studies/:studyId/questionnaire',
   '/api/studies/:studyId/source',
   '/api/studies/:studyId/facts',
   '/api/teams/:teamId/studies',

@@ -1,3 +1,4 @@
+import type { QuestionnaireDraft } from '@goodresearch/contracts'
 import { err, ok, type Result } from '@goodresearch/shared'
 import { decideProposal, isInterviewCard } from '../../domain/proposal.ts'
 import type {
@@ -6,6 +7,7 @@ import type {
   FolderLineInput,
   GuideDraft,
   InterviewCardLine,
+  PublishableKind,
   StoredProposal,
 } from '../ports.ts'
 import { proposalView } from '../views.ts'
@@ -72,12 +74,14 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
               projectId: p.targetId,
               name: str(v.name),
               ...('goal' in v ? { goal: str(v.goal) } : {}),
+              ...(v.type === 'survey' ? { type: 'survey' as const } : {}),
             })
           : await deps.actions.createTeamStudy({
               actor,
               teamId: str(v.teamId),
               name: str(v.name),
               goal: str(v.goal),
+              ...(v.type === 'survey' ? { type: 'survey' as const } : {}),
             })
         return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: r.id } } : r
       }
@@ -112,7 +116,7 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
         const r = await deps.actions.publishPreparation({
           actor,
           studyId,
-          kinds: v.kinds as ('guide' | 'best-practices')[],
+          kinds: v.kinds as PublishableKind[],
           language: v.language === 'fr' ? 'fr' : 'en',
         })
         return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: studyId } } : r
@@ -143,6 +147,17 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
           ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
           : r
       }
+      case 'propose_questionnaire': {
+        const r = await deps.actions.saveQuestionnaire({
+          actor,
+          studyId: p.targetId ?? '',
+          questionnaire: v.questionnaire as QuestionnaireDraft,
+          version: p.targetVersion,
+        })
+        return r.ok
+          ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
+          : r
+      }
       case 'propose_interview_guide': {
         const r = await deps.actions.saveGuide({
           actor,
@@ -161,6 +176,8 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       case 'open_project':
       case 'open_study':
       case 'report_guide_progress':
+      case 'report_questionnaire_progress':
+      case 'check_questionnaire_items':
       case 'report_project_progress':
       case 'report_study_progress':
       case 'connect_source':

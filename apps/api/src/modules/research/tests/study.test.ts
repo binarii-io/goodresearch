@@ -25,8 +25,8 @@ describe('Study', () => {
     expect(create({ name: ' ' })).toEqual({ ok: false, error: 'VALIDATION' })
   })
 
-  it('only creates interview studies for now (FR-002)', () => {
-    expect(create({ type: 'survey' })).toEqual({ ok: false, error: 'VALIDATION' })
+  it('creates interview and survey studies (spec 027)', () => {
+    expect(create({ type: 'survey' }).ok).toBe(true)
     expect(create({ type: 'usability-test' })).toEqual({ ok: false, error: 'VALIDATION' })
     expect(create({ type: 'anything' })).toEqual({ ok: false, error: 'VALIDATION' })
   })

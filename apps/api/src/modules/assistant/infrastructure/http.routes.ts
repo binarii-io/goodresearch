@@ -8,8 +8,10 @@ import {
   ConversationSummary,
   Proposal,
   ProposalParams,
+  QuestionnaireDesignCost,
   RenameConversation,
   SendAssistantMessage,
+  StudyParams,
 } from '@goodresearch/contracts'
 import type {
   FastifyInstance,
@@ -101,6 +103,22 @@ export const registerAssistantRoutes = (
       reply(res, await conversations.create({ actor: request.account }), (value) =>
         res.status(201).send(value),
       ),
+  )
+
+  api.get(
+    '/api/studies/:studyId/questionnaire/design-cost',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getQuestionnaireDesignCost',
+        tags,
+        params: StudyParams,
+        response: { 200: QuestionnaireDesignCost },
+      },
+    },
+    async (request, res) =>
+      (await queries.questionnaireDesignCost(request.account.id, request.params.studyId)) ??
+      sendError(res, 'STUDY_NOT_FOUND'),
   )
 
   api.get(

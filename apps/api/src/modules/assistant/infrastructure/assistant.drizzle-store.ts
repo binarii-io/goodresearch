@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
 import type { Db } from '#platform/db.ts'
 import type {
   AiFailure,
@@ -117,6 +117,33 @@ export const createAssistantStore = (db: Db): AssistantStore => ({
       .insert(assistantMessages)
       .values(m)
       .onConflictDoUpdate({ target: assistantMessages.id, set: update })
+  },
+
+  answersWithSkill: async (studyId, skill) => {
+    const designing = db
+      .selectDistinct({ id: assistantMessages.conversationId })
+      .from(assistantProposals)
+      .innerJoin(assistantMessages, eq(assistantMessages.id, assistantProposals.messageId))
+      .where(
+        and(
+          eq(assistantProposals.kind, 'load_skill'),
+          eq(assistantProposals.state, 'applied'),
+          sql`${assistantProposals.values}->>'name' = ${skill}`,
+          eq(assistantMessages.pageId, studyId),
+        ),
+      )
+    return (
+      await db
+        .select({ id: assistantMessages.id })
+        .from(assistantMessages)
+        .where(
+          and(
+            inArray(assistantMessages.conversationId, designing),
+            eq(assistantMessages.role, 'assistant'),
+            eq(assistantMessages.pageId, studyId),
+          ),
+        )
+    ).map((m) => m.id)
   },
 
   listProposals: async (conversationId) => {

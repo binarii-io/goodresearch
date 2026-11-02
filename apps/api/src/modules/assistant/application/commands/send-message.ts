@@ -18,12 +18,22 @@ import {
   type ProposalKind,
 } from '../../domain/proposal.ts'
 import {
+  type QuestionnairePoint,
+  questionnaireCompleteness,
+} from '../../domain/questionnaire-progress.ts'
+import {
   currentStudyFraming,
   type StudyFramingPoint,
   studyFramingCompleteness,
 } from '../../domain/study-framing.ts'
 import { titleFrom } from '../../domain/title.ts'
-import { buildContext, type Continuation, type GuideStudy, reusableStudies } from '../context.ts'
+import {
+  buildContext,
+  type Continuation,
+  type GuideStudy,
+  reusableStudies,
+  type SurveyStudy,
+} from '../context.ts'
 import type {
   Actor,
   AiFailure,
@@ -51,6 +61,7 @@ import {
   preparePublication,
   prepareStudy,
   prepareStudyChange,
+  QUESTIONNAIRE_TOOLS,
   TOOL_INPUTS,
   TOOLS,
 } from '../tools.ts'
@@ -110,6 +121,7 @@ const continuationOf = (held: readonly StoredProposal[]): Continuation => {
   if (has('attach_folder')) return 'folder'
   if (has('publish_preparation')) return 'published'
   if (has('propose_interview_guide')) return 'guide'
+  if (has('propose_questionnaire')) return 'questionnaire'
   if (has('create_study')) return 'study'
   return has('create_project') ? 'project' : 'connected'
 }
@@ -141,6 +153,21 @@ const NOT_CONTINUING = [
 
 /** Marks a project or study card dismissed because a newer one replaced it, not by the person. */
 const REPLACED = 'REPLACED'
+
+/** What the app's rules say of a questionnaire, for the model. */
+const itemChecksText = (checks: ProposalPreview['itemChecks']): string => {
+  if (!checks) return 'Not checked.'
+  const flagged = checks.items.filter((i) => i.flags.length > 0)
+  return [
+    `Estimated time: ${checks.estimatedMinutes} minutes.`,
+    flagged.length
+      ? `To review: ${flagged.map((i) => `"${i.text}": ${i.flags.join(', ')}`).join('; ')}.`
+      : 'No item flagged.',
+    checks.whole.length ? `On the whole: ${checks.whole.join(', ')}.` : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
 
 /** What the model is told about a tool call in the next turns (research R2). */
 const outcomeOf = (p: StoredProposal): string => {
@@ -175,6 +202,8 @@ const outcomeOf = (p: StoredProposal): string => {
   if (p.state === 'applied' && p.kind === 'offer_choices') return CHOICES_SHOWN
   if (p.state === 'applied' && p.kind === 'load_skill')
     return 'Loaded: its instructions are in your context.'
+  if (p.state === 'applied' && p.kind === 'check_questionnaire_items')
+    return itemChecksText(p.preview.itemChecks)
   if (p.state === 'applied' && p.kind === 'check_guide_questions')
     return checksText(p.preview.checks)
   if (p.state === 'applied' && isRecordedAtOnce(p.kind))
@@ -229,6 +258,7 @@ const callInput = (p: StoredProposal): Record<string, unknown> => {
     p.kind === 'rename_study' ||
     p.kind === 'open_study' ||
     p.kind === 'propose_interview_guide' ||
+    p.kind === 'propose_questionnaire' ||
     p.kind === 'attach_folder' ||
     p.kind === 'publish_preparation' ||
     p.kind === 'propose_folder_changes' ||
@@ -320,6 +350,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
             p.kind === 'attach_folder' ||
             p.kind === 'publish_preparation' ||
             p.kind === 'propose_interview_guide' ||
+            p.kind === 'propose_questionnaire' ||
             p.kind === 'propose_folder_changes' ||
             p.kind === 'folder_consent' ||
             p.kind === 'propose_analysis' ||
@@ -652,7 +683,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
 
     /** The tools that run at once (spec 006, 018): skill, writing checks, progress, new project. */
     const runFor =
-      (guideStudy: GuideStudy | null) =>
+      (guideStudy: GuideStudy | null, surveyStudy: SurveyStudy | null) =>
       async (name: string, input: unknown, callId: string): Promise<string> => {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         if (
@@ -735,7 +766,11 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         if (name === 'load_skill') {
           const parsed = TOOL_INPUTS.load_skill.safeParse(input)
           // The guide design and its tools only exist on an interview study (spec 006).
-          if (!parsed.success || (parsed.data.name === 'interview-guide-design' && !guideStudy)) {
+          if (
+            !parsed.success ||
+            (parsed.data.name === 'interview-guide-design' && !guideStudy) ||
+            (parsed.data.name === 'questionnaire-design' && !surveyStudy)
+          ) {
             await record(callId, 'load_skill', raw, null)
             return 'Unknown skill: use a name listed in the context.'
           }
@@ -745,6 +780,31 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           return skill === 'study-framing'
             ? `${SKILLS[skill].instructions}\n\n${await reusableStudies(deps.research, c.actor, c.page)}`
             : SKILLS[skill].instructions
+        }
+        if (name === 'check_questionnaire_items') {
+          const parsed = TOOL_INPUTS.check_questionnaire_items.safeParse(input)
+          if (!parsed.success || !surveyStudy || parsed.data.studyId !== surveyStudy.id) {
+            await record(callId, 'check_questionnaire_items', raw, null)
+            return 'Invalid: use the Study id of the context and a whole questionnaire within its limits.'
+          }
+          const itemChecks = deps.research.checkQuestionnaire(parsed.data.questionnaire)
+          await record(callId, 'check_questionnaire_items', parsed.data, { itemChecks })
+          return itemChecksText(itemChecks)
+        }
+        if (name === 'report_questionnaire_progress') {
+          const parsed = TOOL_INPUTS.report_questionnaire_progress.safeParse(input)
+          if (!parsed.success || !surveyStudy || parsed.data.studyId !== surveyStudy.id) {
+            await record(callId, 'report_questionnaire_progress', raw, null)
+            return 'Invalid: use the Study id of the context, and missing, partial or done for every point.'
+          }
+          const progress = questionnaireCompleteness(
+            parsed.data as Partial<Record<QuestionnairePoint, string>>,
+          )
+          await record(callId, 'report_questionnaire_progress', parsed.data, {
+            studyName: surveyStudy.name,
+            progress,
+          })
+          return `Recorded: ${progress.percent} % covered.`
         }
         if (name === 'check_guide_questions') {
           const parsed = TOOL_INPUTS.check_guide_questions.safeParse(input)
@@ -786,7 +846,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       const loadedSkills = proposals
         .filter((p) => p.kind === 'load_skill' && p.state === 'applied')
         .map((p) => String(p.values.name))
-      const { system, guideStudy, readOnly } = await buildContext(
+      const { system, guideStudy, surveyStudy, readOnly } = await buildContext(
         deps.research,
         c.actor,
         c.page,
@@ -794,12 +854,16 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         loadedSkills,
         continuation,
       )
-      const run = runFor(guideStudy)
+      const run = runFor(guideStudy, surveyStudy)
       // A continuing answer follows a card just applied: it offers the next step, no new card.
       const offered = (
         readOnly
           ? offeredOnReadOnlyPage(TOOLS)
-          : [...TOOLS, ...(guideStudy && person ? GUIDE_TOOLS : [])]
+          : [
+              ...TOOLS,
+              ...(guideStudy && person ? GUIDE_TOOLS : []),
+              ...(surveyStudy && person ? QUESTIONNAIRE_TOOLS : []),
+            ]
       ).filter(
         (t) =>
           person ||
@@ -852,7 +916,13 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           yield* pending.splice(0)
           continue
         }
-        const prepared = await prepareProposal(deps.research, c.actor, part.call, guideStudy)
+        const prepared = await prepareProposal(
+          deps.research,
+          c.actor,
+          part.call,
+          guideStudy,
+          surveyStudy,
+        )
         const raw = typeof part.call.input === 'object' && part.call.input ? part.call.input : {}
         const proposal: StoredProposal = {
           id: deps.newId(),

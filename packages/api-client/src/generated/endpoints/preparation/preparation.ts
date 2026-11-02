@@ -26,9 +26,12 @@ import type {
 import type {
   Created,
   InterviewGuide,
+  MarkReadinessInput,
   NewPlannedInterviewInput,
   PlannedInterview,
+  Questionnaire,
   SaveInterviewGuideInput,
+  SaveQuestionnaireInput,
   UpdatePlannedInterviewInput,
   VersionAck
 } from '../../model';
@@ -234,6 +237,335 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSaveInterviewGuideMutationOptions(options), queryClient);
+    }
+    export const getGetQuestionnaireUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/questionnaire`
+}
+
+export const getQuestionnaire = async (studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<Questionnaire | null> => {
+
+  return apiFetch<Questionnaire | null>(getGetQuestionnaireUrl(studyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetQuestionnaireQueryKey = (studyId: string,) => {
+    return [
+    `/api/studies/${studyId}/questionnaire`
+    ] as const;
+    }
+
+
+export const getGetQuestionnaireQueryOptions = <TData = Awaited<ReturnType<typeof getQuestionnaire>>, TError = unknown>(studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaire>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetQuestionnaireQueryKey(studyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getQuestionnaire>>> = ({ signal }) => getQuestionnaire(studyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaire>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetQuestionnaireQueryResult = NonNullable<Awaited<ReturnType<typeof getQuestionnaire>>>
+export type GetQuestionnaireQueryError = unknown
+
+
+export function useGetQuestionnaire<TData = Awaited<ReturnType<typeof getQuestionnaire>>, TError = unknown>(
+ studyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaire>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuestionnaire>>,
+          TError,
+          Awaited<ReturnType<typeof getQuestionnaire>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuestionnaire<TData = Awaited<ReturnType<typeof getQuestionnaire>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaire>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getQuestionnaire>>,
+          TError,
+          Awaited<ReturnType<typeof getQuestionnaire>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetQuestionnaire<TData = Awaited<ReturnType<typeof getQuestionnaire>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaire>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetQuestionnaire<TData = Awaited<ReturnType<typeof getQuestionnaire>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionnaire>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetQuestionnaireQueryOptions(studyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getSaveQuestionnaireUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/questionnaire`
+}
+
+export const saveQuestionnaire = async (studyId: string,
+    saveQuestionnaireInput: SaveQuestionnaireInput, options?: Parameters<typeof apiFetch>[1]): Promise<VersionAck> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<VersionAck>(getSaveQuestionnaireUrl(studyId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(saveQuestionnaireInput)
+  }
+);}
+
+
+
+
+
+export const getSaveQuestionnaireMutationKey = () => ['saveQuestionnaire'] as const;
+
+export const getSaveQuestionnaireMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveQuestionnaire>>, TError,SaveQuestionnaireMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveQuestionnaire>>, TError,SaveQuestionnaireMutationVariables, TContext> => {
+
+const mutationKey = getSaveQuestionnaireMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveQuestionnaire>>, SaveQuestionnaireMutationVariables> = (props) => {
+          const {studyId,data} = props ?? {};
+
+          return  saveQuestionnaire(studyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveQuestionnaireMutationResult = NonNullable<Awaited<ReturnType<typeof saveQuestionnaire>>>
+    export type SaveQuestionnaireMutationBody = SaveQuestionnaireInput
+    export type SaveQuestionnaireMutationError = unknown
+    export type SaveQuestionnaireMutationVariables = {studyId: string;data: SaveQuestionnaireInput}
+
+    export const useSaveQuestionnaire = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveQuestionnaire>>, TError,SaveQuestionnaireMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveQuestionnaire>>,
+        TError,
+        SaveQuestionnaireMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveQuestionnaireMutationOptions(options), queryClient);
+    }
+    export const getMarkQuestionnaireReadinessUrl = (studyId: string,
+    kind: 'review' | 'pre-test',) => {
+
+
+
+
+  return `/api/studies/${studyId}/questionnaire/readiness/${kind}`
+}
+
+export const markQuestionnaireReadiness = async (studyId: string,
+    kind: 'review' | 'pre-test',
+    markReadinessInput: MarkReadinessInput, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getMarkQuestionnaireReadinessUrl(studyId,kind),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(markReadinessInput)
+  }
+);}
+
+
+
+
+
+export const getMarkQuestionnaireReadinessMutationKey = () => ['markQuestionnaireReadiness'] as const;
+
+export const getMarkQuestionnaireReadinessMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markQuestionnaireReadiness>>, TError,MarkQuestionnaireReadinessMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markQuestionnaireReadiness>>, TError,MarkQuestionnaireReadinessMutationVariables, TContext> => {
+
+const mutationKey = getMarkQuestionnaireReadinessMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markQuestionnaireReadiness>>, MarkQuestionnaireReadinessMutationVariables> = (props) => {
+          const {studyId,kind,data} = props ?? {};
+
+          return  markQuestionnaireReadiness(studyId,kind,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkQuestionnaireReadinessMutationResult = NonNullable<Awaited<ReturnType<typeof markQuestionnaireReadiness>>>
+    export type MarkQuestionnaireReadinessMutationBody = MarkReadinessInput
+    export type MarkQuestionnaireReadinessMutationError = unknown
+    export type MarkQuestionnaireReadinessMutationVariables = {studyId: string;kind: 'review' | 'pre-test';data: MarkReadinessInput}
+
+    export const useMarkQuestionnaireReadiness = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markQuestionnaireReadiness>>, TError,MarkQuestionnaireReadinessMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markQuestionnaireReadiness>>,
+        TError,
+        MarkQuestionnaireReadinessMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkQuestionnaireReadinessMutationOptions(options), queryClient);
+    }
+    export const getUnmarkQuestionnaireReadinessUrl = (studyId: string,
+    kind: 'review' | 'pre-test',) => {
+
+
+
+
+  return `/api/studies/${studyId}/questionnaire/readiness/${kind}`
+}
+
+export const unmarkQuestionnaireReadiness = async (studyId: string,
+    kind: 'review' | 'pre-test', options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getUnmarkQuestionnaireReadinessUrl(studyId,kind),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUnmarkQuestionnaireReadinessMutationKey = () => ['unmarkQuestionnaireReadiness'] as const;
+
+export const getUnmarkQuestionnaireReadinessMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unmarkQuestionnaireReadiness>>, TError,UnmarkQuestionnaireReadinessMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unmarkQuestionnaireReadiness>>, TError,UnmarkQuestionnaireReadinessMutationVariables, TContext> => {
+
+const mutationKey = getUnmarkQuestionnaireReadinessMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unmarkQuestionnaireReadiness>>, UnmarkQuestionnaireReadinessMutationVariables> = (props) => {
+          const {studyId,kind} = props ?? {};
+
+          return  unmarkQuestionnaireReadiness(studyId,kind,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnmarkQuestionnaireReadinessMutationResult = NonNullable<Awaited<ReturnType<typeof unmarkQuestionnaireReadiness>>>
+
+    export type UnmarkQuestionnaireReadinessMutationError = unknown
+    export type UnmarkQuestionnaireReadinessMutationVariables = {studyId: string;kind: 'review' | 'pre-test'}
+
+    export const useUnmarkQuestionnaireReadiness = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unmarkQuestionnaireReadiness>>, TError,UnmarkQuestionnaireReadinessMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unmarkQuestionnaireReadiness>>,
+        TError,
+        UnmarkQuestionnaireReadinessMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUnmarkQuestionnaireReadinessMutationOptions(options), queryClient);
     }
     export const getListPlannedInterviewsUrl = (studyId: string,) => {
 

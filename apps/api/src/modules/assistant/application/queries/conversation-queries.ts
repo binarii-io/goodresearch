@@ -2,6 +2,23 @@ import type { AssistantDeps } from '../ports.ts'
 import { messageView } from '../views.ts'
 
 export const makeConversationQueries = (deps: AssistantDeps) => ({
+  /**
+   * Spec 027 FR-012: what designing a study's questionnaire cost, whoever ran it; a total only, a
+   * conversation stays private. Unknown as soon as one call has no price.
+   */
+  questionnaireDesignCost: async (accountId: string, studyId: string) => {
+    if (!(await deps.research.getStudy(accountId, studyId))) return null
+    const answers = await deps.store.answersWithSkill(studyId, 'questionnaire-design')
+    const costs = await deps.studyCosts(answers)
+    const values = answers.map((id) => costs.get(id) ?? null)
+    return {
+      currency: 'USD' as const,
+      total: values.some((v) => v === null)
+        ? null
+        : values.reduce<number>((a, v) => a + (v ?? 0), 0),
+    }
+  },
+
   list: async (accountId: string) =>
     (await deps.store.listConversations(accountId)).map((c) => ({
       id: c.id,

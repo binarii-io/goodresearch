@@ -45,6 +45,10 @@ import {
   PreparationTab,
   ReaderPreparation,
 } from '../../../features/preparation/preparation-tab.tsx'
+import {
+  QuestionnaireTab,
+  ReaderQuestionnaire,
+} from '../../../features/preparation/questionnaire-tab.tsx'
 import { QualityTab } from '../../../features/quality/quality-tab.tsx'
 import { StudySettingsButton } from '../../../features/research/study-settings.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
@@ -89,7 +93,9 @@ function StudyPage() {
   const study = useGetStudy(studyId)
   // Spec 026: another team's study opens on its facts; the Fieldwork tab is reserved.
   const reader = study.data?.canChange === false
-  const phase = asked ?? (reader ? 'analysis' : 'fieldwork')
+  // Spec 027: a survey has nothing else yet.
+  const phase =
+    asked ?? (study.data?.type === 'survey' ? 'preparation' : reader ? 'analysis' : 'fieldwork')
   const source = useGetStudySource(studyId)
   const rename = useRenameStudy()
   const remove = useDeleteStudy()
@@ -349,7 +355,17 @@ function StudyPage() {
           ) : null}
         </section>
         <TabsContent value="preparation">
-          {s.type !== 'interviews' ? (
+          {s.type === 'survey' ? (
+            source.isPending ? (
+              <Skeleton className="h-40 w-full" />
+            ) : reader && readable ? (
+              <ReaderQuestionnaire studyId={studyId} />
+            ) : canAct ? (
+              <QuestionnaireTab studyId={studyId} studyName={s.name} />
+            ) : (
+              <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see and change its preparation.`}</p>
+            )
+          ) : s.type !== 'interviews' ? (
             <p className="text-muted-foreground text-base">{t`Preparation for this type of study is coming in a later version.`}</p>
           ) : source.isPending ? (
             <Skeleton className="h-40 w-full" />

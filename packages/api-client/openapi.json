@@ -1359,6 +1359,919 @@
           "version"
         ]
       },
+      "QuestionnaireContentInput": {
+        "type": "object",
+        "properties": {
+          "framing": {
+            "type": "object",
+            "properties": {
+              "objective": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "hypotheses": {
+                "maxItems": 15,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                }
+              },
+              "audience": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "recruitment": {
+                "type": "string",
+                "enum": [
+                  "targeted",
+                  "wide-then-filter"
+                ]
+              },
+              "administration": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "targetResponses": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "targetReason": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "fr"
+                ]
+              },
+              "consent": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "thanks": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "shuffle": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "objective",
+              "hypotheses",
+              "audience",
+              "recruitment",
+              "administration",
+              "targetResponses",
+              "targetReason",
+              "language",
+              "consent",
+              "thanks",
+              "shuffle"
+            ]
+          },
+          "sections": {
+            "minItems": 1,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "introduction",
+                    "profiling",
+                    "theme",
+                    "closing"
+                  ]
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 600
+                          },
+                          "measure": {
+                            "type": "string",
+                            "enum": [
+                              "factual",
+                              "subjective"
+                            ]
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "subTheme": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "contact": {
+                            "type": "boolean"
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "const": "likert"
+                          },
+                          "points": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "const": 5
+                              },
+                              {
+                                "type": "number",
+                                "const": 7
+                              }
+                            ]
+                          },
+                          "lowLabel": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "highLabel": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "measure",
+                          "required",
+                          "subTheme",
+                          "contact",
+                          "id",
+                          "kind",
+                          "points",
+                          "lowLabel",
+                          "highLabel"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 600
+                          },
+                          "measure": {
+                            "type": "string",
+                            "enum": [
+                              "factual",
+                              "subjective"
+                            ]
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "subTheme": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "contact": {
+                            "type": "boolean"
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "single-choice",
+                              "multiple-choice"
+                            ]
+                          },
+                          "options": {
+                            "minItems": 2,
+                            "maxItems": 20,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 600
+                            }
+                          },
+                          "ordered": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "measure",
+                          "required",
+                          "subTheme",
+                          "contact",
+                          "id",
+                          "kind",
+                          "options",
+                          "ordered"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 600
+                          },
+                          "measure": {
+                            "type": "string",
+                            "enum": [
+                              "factual",
+                              "subjective"
+                            ]
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "subTheme": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "contact": {
+                            "type": "boolean"
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "const": "open"
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "measure",
+                          "required",
+                          "subTheme",
+                          "contact",
+                          "id",
+                          "kind"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "title",
+                "id",
+                "items"
+              ]
+            }
+          }
+        },
+        "required": [
+          "framing",
+          "sections"
+        ]
+      },
+      "QuestionnaireInput": {
+        "type": "object",
+        "properties": {
+          "studyId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "content": {
+            "$ref": "#/components/schemas/QuestionnaireContentInput"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "assistant",
+              "person",
+              "drive"
+            ]
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "double",
+                      "negation",
+                      "leading",
+                      "absolute",
+                      "too-long",
+                      "factual-on-likert",
+                      "identifying"
+                    ]
+                  }
+                }
+              },
+              "whole": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "legends-differ",
+                    "closed-series",
+                    "no-profiling",
+                    "too-many-open"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "items",
+              "whole"
+            ]
+          },
+          "estimatedMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "readiness": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "review",
+                    "pre-test"
+                  ]
+                },
+                "people": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "by": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "changedSince": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "kind",
+                "people",
+                "by",
+                "at",
+                "changedSince"
+              ]
+            }
+          },
+          "randomisation": {
+            "type": "object",
+            "properties": {
+              "optionsShuffled": {
+                "type": "boolean"
+              },
+              "itemsShuffled": {
+                "type": "boolean"
+              },
+              "themesFixed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "optionsShuffled",
+              "itemsShuffled",
+              "themesFixed"
+            ]
+          }
+        },
+        "required": [
+          "studyId",
+          "content",
+          "origin",
+          "updatedBy",
+          "updatedAt",
+          "version",
+          "checks",
+          "estimatedMinutes",
+          "readiness",
+          "randomisation"
+        ]
+      },
+      "SaveQuestionnaireInput": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "object",
+            "properties": {
+              "framing": {
+                "type": "object",
+                "properties": {
+                  "objective": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "hypotheses": {
+                    "maxItems": 15,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "audience": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "recruitment": {
+                    "type": "string",
+                    "enum": [
+                      "targeted",
+                      "wide-then-filter"
+                    ]
+                  },
+                  "administration": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "targetResponses": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "targetReason": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "fr"
+                    ]
+                  },
+                  "consent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "thanks": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "shuffle": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "objective",
+                  "hypotheses",
+                  "audience",
+                  "recruitment",
+                  "administration",
+                  "targetResponses",
+                  "targetReason",
+                  "language",
+                  "consent",
+                  "thanks",
+                  "shuffle"
+                ]
+              },
+              "sections": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "introduction",
+                        "profiling",
+                        "theme",
+                        "closing"
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "const": "likert"
+                              },
+                              "points": {
+                                "anyOf": [
+                                  {
+                                    "type": "number",
+                                    "const": 5
+                                  },
+                                  {
+                                    "type": "number",
+                                    "const": 7
+                                  }
+                                ]
+                              },
+                              "lowLabel": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "highLabel": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind",
+                              "points",
+                              "lowLabel",
+                              "highLabel"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "single-choice",
+                                  "multiple-choice"
+                                ]
+                              },
+                              "options": {
+                                "minItems": 2,
+                                "maxItems": 20,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 600
+                                }
+                              },
+                              "ordered": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind",
+                              "options",
+                              "ordered"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "const": "open"
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "title",
+                    "items"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "framing",
+              "sections"
+            ]
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "content",
+          "version"
+        ]
+      },
+      "MarkReadinessInput": {
+        "type": "object",
+        "properties": {
+          "people": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "people"
+        ]
+      },
+      "QuestionnaireDesignCostInput": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "const": "USD"
+          },
+          "total": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "currency",
+          "total"
+        ]
+      },
       "AssistantPageInput": {
         "type": "object",
         "properties": {
@@ -1422,7 +2335,12 @@
                     "team",
                     "reuse",
                     "goal",
-                    "place"
+                    "place",
+                    "objectiveThemes",
+                    "administration",
+                    "profiling",
+                    "thematicItems",
+                    "formatOrder"
                   ]
                 },
                 "weight": {
@@ -1509,7 +2427,8 @@
               "type": "string",
               "enum": [
                 "guide",
-                "best-practices"
+                "best-practices",
+                "questionnaire"
               ]
             }
           },
@@ -1779,6 +2698,381 @@
           "replacesGuide": {
             "type": "boolean"
           },
+          "type": {
+            "type": "string",
+            "const": "survey"
+          },
+          "questionnaire": {
+            "type": "object",
+            "properties": {
+              "framing": {
+                "type": "object",
+                "properties": {
+                  "objective": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "hypotheses": {
+                    "maxItems": 15,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "audience": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "recruitment": {
+                    "type": "string",
+                    "enum": [
+                      "targeted",
+                      "wide-then-filter"
+                    ]
+                  },
+                  "administration": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "targetResponses": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "targetReason": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "fr"
+                    ]
+                  },
+                  "consent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "thanks": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "shuffle": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "objective",
+                  "hypotheses",
+                  "audience",
+                  "recruitment",
+                  "administration",
+                  "targetResponses",
+                  "targetReason",
+                  "language",
+                  "consent",
+                  "thanks",
+                  "shuffle"
+                ]
+              },
+              "sections": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "introduction",
+                        "profiling",
+                        "theme",
+                        "closing"
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "const": "likert"
+                              },
+                              "points": {
+                                "anyOf": [
+                                  {
+                                    "type": "number",
+                                    "const": 5
+                                  },
+                                  {
+                                    "type": "number",
+                                    "const": 7
+                                  }
+                                ]
+                              },
+                              "lowLabel": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "highLabel": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind",
+                              "points",
+                              "lowLabel",
+                              "highLabel"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "single-choice",
+                                  "multiple-choice"
+                                ]
+                              },
+                              "options": {
+                                "minItems": 2,
+                                "maxItems": 20,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 600
+                                }
+                              },
+                              "ordered": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind",
+                              "options",
+                              "ordered"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "const": "open"
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "title",
+                    "items"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "framing",
+              "sections"
+            ]
+          },
+          "replacesQuestionnaire": {
+            "type": "boolean"
+          },
+          "itemChecks": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string"
+                    },
+                    "flags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "double",
+                          "negation",
+                          "leading",
+                          "absolute",
+                          "too-long",
+                          "factual-on-likert",
+                          "identifying"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "flags"
+                  ]
+                }
+              },
+              "whole": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "legends-differ",
+                    "closed-series",
+                    "no-profiling",
+                    "too-many-open"
+                  ]
+                }
+              },
+              "estimatedMinutes": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "items",
+              "whole",
+              "estimatedMinutes"
+            ]
+          },
           "progress": {
             "$ref": "#/components/schemas/GuideProgressInput"
           },
@@ -1839,6 +3133,9 @@
               "report_study_progress",
               "load_skill",
               "check_guide_questions",
+              "propose_questionnaire",
+              "report_questionnaire_progress",
+              "check_questionnaire_items",
               "attach_study",
               "detach_study",
               "update_study_goal",
@@ -5460,14 +6757,17 @@
               "PROPOSAL_DECIDED",
               "NOTHING_TO_CONTINUE",
               "PLANNED_INTERVIEW_NOT_FOUND",
+              "QUESTIONNAIRE_NOT_FOUND",
               "SCHEDULE_FULL",
               "NOT_AN_INTERVIEW_STUDY",
+              "NOT_A_SURVEY_STUDY",
               "DRIVE_WRITE_REQUIRED",
               "ALREADY_PUBLISHED",
               "NO_SOURCE_FOLDER",
               "DRIVE_CHANGES_PENDING",
               "DRIVE_CHANGED_MEANWHILE",
               "DRIVE_CANNOT_EDIT",
+              "FORMS_DISABLED",
               "PUBLICATION_NOT_FOUND",
               "SESSION_NOT_FOUND",
               "SESSION_DECIDED",
@@ -9306,7 +10606,8 @@
             "enum": [
               "guide",
               "best-practices",
-              "schedule"
+              "schedule",
+              "questionnaire"
             ]
           },
           "fileName": {
@@ -9418,6 +10719,35 @@
               }
             ]
           },
+          "form": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "linkedSheetLink": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "acceptingResponses": {
+                    "type": "boolean"
+                  },
+                  "collectsIdentity": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "linkedSheetLink",
+                  "acceptingResponses",
+                  "collectsIdentity"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "access": {
             "anyOf": [
               {
@@ -9459,6 +10789,7 @@
           "updatedBy",
           "updatedAt",
           "lastCheckedAt",
+          "form",
           "access"
         ]
       },
@@ -9512,14 +10843,15 @@
         "properties": {
           "kinds": {
             "minItems": 1,
-            "maxItems": 3,
+            "maxItems": 4,
             "type": "array",
             "items": {
               "type": "string",
               "enum": [
                 "guide",
                 "best-practices",
-                "schedule"
+                "schedule",
+                "questionnaire"
               ]
             }
           },
@@ -10470,6 +11802,14 @@
             "default": "",
             "type": "string",
             "maxLength": 10000
+          },
+          "type": {
+            "default": "interviews",
+            "type": "string",
+            "enum": [
+              "interviews",
+              "survey"
+            ]
           }
         },
         "required": [
@@ -14235,6 +15575,940 @@
         ],
         "additionalProperties": false
       },
+      "QuestionnaireContent": {
+        "type": "object",
+        "properties": {
+          "framing": {
+            "type": "object",
+            "properties": {
+              "objective": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "hypotheses": {
+                "maxItems": 15,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                }
+              },
+              "audience": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "recruitment": {
+                "type": "string",
+                "enum": [
+                  "targeted",
+                  "wide-then-filter"
+                ]
+              },
+              "administration": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "targetResponses": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "targetReason": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "fr"
+                ]
+              },
+              "consent": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "thanks": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "shuffle": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "objective",
+              "hypotheses",
+              "audience",
+              "recruitment",
+              "administration",
+              "targetResponses",
+              "targetReason",
+              "language",
+              "consent",
+              "thanks",
+              "shuffle"
+            ],
+            "additionalProperties": false
+          },
+          "sections": {
+            "minItems": 1,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "introduction",
+                    "profiling",
+                    "theme",
+                    "closing"
+                  ]
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 600
+                          },
+                          "measure": {
+                            "type": "string",
+                            "enum": [
+                              "factual",
+                              "subjective"
+                            ]
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "subTheme": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "contact": {
+                            "type": "boolean"
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "const": "likert"
+                          },
+                          "points": {
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "const": 5
+                              },
+                              {
+                                "type": "number",
+                                "const": 7
+                              }
+                            ]
+                          },
+                          "lowLabel": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "highLabel": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "measure",
+                          "required",
+                          "subTheme",
+                          "contact",
+                          "id",
+                          "kind",
+                          "points",
+                          "lowLabel",
+                          "highLabel"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 600
+                          },
+                          "measure": {
+                            "type": "string",
+                            "enum": [
+                              "factual",
+                              "subjective"
+                            ]
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "subTheme": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "contact": {
+                            "type": "boolean"
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "single-choice",
+                              "multiple-choice"
+                            ]
+                          },
+                          "options": {
+                            "minItems": 2,
+                            "maxItems": 20,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 600
+                            }
+                          },
+                          "ordered": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "measure",
+                          "required",
+                          "subTheme",
+                          "contact",
+                          "id",
+                          "kind",
+                          "options",
+                          "ordered"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 600
+                          },
+                          "measure": {
+                            "type": "string",
+                            "enum": [
+                              "factual",
+                              "subjective"
+                            ]
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "subTheme": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "contact": {
+                            "type": "boolean"
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "const": "open"
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "measure",
+                          "required",
+                          "subTheme",
+                          "contact",
+                          "id",
+                          "kind"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "title",
+                "id",
+                "items"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "framing",
+          "sections"
+        ],
+        "additionalProperties": false
+      },
+      "Questionnaire": {
+        "type": "object",
+        "properties": {
+          "studyId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "content": {
+            "$ref": "#/components/schemas/QuestionnaireContent"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "assistant",
+              "person",
+              "drive"
+            ]
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "double",
+                      "negation",
+                      "leading",
+                      "absolute",
+                      "too-long",
+                      "factual-on-likert",
+                      "identifying"
+                    ]
+                  }
+                }
+              },
+              "whole": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "legends-differ",
+                    "closed-series",
+                    "no-profiling",
+                    "too-many-open"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "items",
+              "whole"
+            ],
+            "additionalProperties": false
+          },
+          "estimatedMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "readiness": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "review",
+                    "pre-test"
+                  ]
+                },
+                "people": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "by": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "changedSince": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "kind",
+                "people",
+                "by",
+                "at",
+                "changedSince"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "randomisation": {
+            "type": "object",
+            "properties": {
+              "optionsShuffled": {
+                "type": "boolean"
+              },
+              "itemsShuffled": {
+                "type": "boolean"
+              },
+              "themesFixed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "optionsShuffled",
+              "itemsShuffled",
+              "themesFixed"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "studyId",
+          "content",
+          "origin",
+          "updatedBy",
+          "updatedAt",
+          "version",
+          "checks",
+          "estimatedMinutes",
+          "readiness",
+          "randomisation"
+        ],
+        "additionalProperties": false
+      },
+      "SaveQuestionnaire": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "object",
+            "properties": {
+              "framing": {
+                "type": "object",
+                "properties": {
+                  "objective": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "hypotheses": {
+                    "maxItems": 15,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "audience": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "recruitment": {
+                    "type": "string",
+                    "enum": [
+                      "targeted",
+                      "wide-then-filter"
+                    ]
+                  },
+                  "administration": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "targetResponses": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "targetReason": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "fr"
+                    ]
+                  },
+                  "consent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "thanks": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "shuffle": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "objective",
+                  "hypotheses",
+                  "audience",
+                  "recruitment",
+                  "administration",
+                  "targetResponses",
+                  "targetReason",
+                  "language",
+                  "consent",
+                  "thanks",
+                  "shuffle"
+                ],
+                "additionalProperties": false
+              },
+              "sections": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "introduction",
+                        "profiling",
+                        "theme",
+                        "closing"
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "const": "likert"
+                              },
+                              "points": {
+                                "anyOf": [
+                                  {
+                                    "type": "number",
+                                    "const": 5
+                                  },
+                                  {
+                                    "type": "number",
+                                    "const": 7
+                                  }
+                                ]
+                              },
+                              "lowLabel": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "highLabel": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind",
+                              "points",
+                              "lowLabel",
+                              "highLabel"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "single-choice",
+                                  "multiple-choice"
+                                ]
+                              },
+                              "options": {
+                                "minItems": 2,
+                                "maxItems": 20,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 600
+                                }
+                              },
+                              "ordered": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind",
+                              "options",
+                              "ordered"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "const": "open"
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "title",
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "framing",
+              "sections"
+            ],
+            "additionalProperties": false
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "content",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "MarkReadiness": {
+        "type": "object",
+        "properties": {
+          "people": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "people"
+        ],
+        "additionalProperties": false
+      },
+      "QuestionnaireDesignCost": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "const": "USD"
+          },
+          "total": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "currency",
+          "total"
+        ],
+        "additionalProperties": false
+      },
       "AssistantPage": {
         "type": "object",
         "properties": {
@@ -14299,7 +16573,12 @@
                     "team",
                     "reuse",
                     "goal",
-                    "place"
+                    "place",
+                    "objectiveThemes",
+                    "administration",
+                    "profiling",
+                    "thematicItems",
+                    "formatOrder"
                   ]
                 },
                 "weight": {
@@ -14388,7 +16667,8 @@
               "type": "string",
               "enum": [
                 "guide",
-                "best-practices"
+                "best-practices",
+                "questionnaire"
               ]
             }
           },
@@ -14664,6 +16944,389 @@
           "replacesGuide": {
             "type": "boolean"
           },
+          "type": {
+            "type": "string",
+            "const": "survey"
+          },
+          "questionnaire": {
+            "type": "object",
+            "properties": {
+              "framing": {
+                "type": "object",
+                "properties": {
+                  "objective": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "hypotheses": {
+                    "maxItems": 15,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "audience": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "recruitment": {
+                    "type": "string",
+                    "enum": [
+                      "targeted",
+                      "wide-then-filter"
+                    ]
+                  },
+                  "administration": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "targetResponses": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "targetReason": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "fr"
+                    ]
+                  },
+                  "consent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "thanks": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "shuffle": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "objective",
+                  "hypotheses",
+                  "audience",
+                  "recruitment",
+                  "administration",
+                  "targetResponses",
+                  "targetReason",
+                  "language",
+                  "consent",
+                  "thanks",
+                  "shuffle"
+                ],
+                "additionalProperties": false
+              },
+              "sections": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "introduction",
+                        "profiling",
+                        "theme",
+                        "closing"
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "const": "likert"
+                              },
+                              "points": {
+                                "anyOf": [
+                                  {
+                                    "type": "number",
+                                    "const": 5
+                                  },
+                                  {
+                                    "type": "number",
+                                    "const": 7
+                                  }
+                                ]
+                              },
+                              "lowLabel": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "highLabel": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind",
+                              "points",
+                              "lowLabel",
+                              "highLabel"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "single-choice",
+                                  "multiple-choice"
+                                ]
+                              },
+                              "options": {
+                                "minItems": 2,
+                                "maxItems": 20,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 600
+                                }
+                              },
+                              "ordered": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind",
+                              "options",
+                              "ordered"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 600
+                              },
+                              "measure": {
+                                "type": "string",
+                                "enum": [
+                                  "factual",
+                                  "subjective"
+                                ]
+                              },
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "subTheme": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 120
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "contact": {
+                                "type": "boolean"
+                              },
+                              "kind": {
+                                "type": "string",
+                                "const": "open"
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "measure",
+                              "required",
+                              "subTheme",
+                              "contact",
+                              "kind"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "title",
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "framing",
+              "sections"
+            ],
+            "additionalProperties": false
+          },
+          "replacesQuestionnaire": {
+            "type": "boolean"
+          },
+          "itemChecks": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string"
+                    },
+                    "flags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "double",
+                          "negation",
+                          "leading",
+                          "absolute",
+                          "too-long",
+                          "factual-on-likert",
+                          "identifying"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "flags"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "whole": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "legends-differ",
+                    "closed-series",
+                    "no-profiling",
+                    "too-many-open"
+                  ]
+                }
+              },
+              "estimatedMinutes": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "items",
+              "whole",
+              "estimatedMinutes"
+            ],
+            "additionalProperties": false
+          },
           "progress": {
             "$ref": "#/components/schemas/GuideProgress"
           },
@@ -14726,6 +17389,9 @@
               "report_study_progress",
               "load_skill",
               "check_guide_questions",
+              "propose_questionnaire",
+              "report_questionnaire_progress",
+              "check_questionnaire_items",
               "attach_study",
               "detach_study",
               "update_study_goal",
@@ -18456,14 +21122,17 @@
               "PROPOSAL_DECIDED",
               "NOTHING_TO_CONTINUE",
               "PLANNED_INTERVIEW_NOT_FOUND",
+              "QUESTIONNAIRE_NOT_FOUND",
               "SCHEDULE_FULL",
               "NOT_AN_INTERVIEW_STUDY",
+              "NOT_A_SURVEY_STUDY",
               "DRIVE_WRITE_REQUIRED",
               "ALREADY_PUBLISHED",
               "NO_SOURCE_FOLDER",
               "DRIVE_CHANGES_PENDING",
               "DRIVE_CHANGED_MEANWHILE",
               "DRIVE_CANNOT_EDIT",
+              "FORMS_DISABLED",
               "PUBLICATION_NOT_FOUND",
               "SESSION_NOT_FOUND",
               "SESSION_DECIDED",
@@ -22418,7 +25087,8 @@
             "enum": [
               "guide",
               "best-practices",
-              "schedule"
+              "schedule",
+              "questionnaire"
             ]
           },
           "fileName": {
@@ -22531,6 +25201,36 @@
               }
             ]
           },
+          "form": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "linkedSheetLink": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "acceptingResponses": {
+                    "type": "boolean"
+                  },
+                  "collectsIdentity": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "linkedSheetLink",
+                  "acceptingResponses",
+                  "collectsIdentity"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "access": {
             "anyOf": [
               {
@@ -22573,6 +25273,7 @@
           "updatedBy",
           "updatedAt",
           "lastCheckedAt",
+          "form",
           "access"
         ],
         "additionalProperties": false
@@ -22628,14 +25329,15 @@
         "properties": {
           "kinds": {
             "minItems": 1,
-            "maxItems": 3,
+            "maxItems": 4,
             "type": "array",
             "items": {
               "type": "string",
               "enum": [
                 "guide",
                 "best-practices",
-                "schedule"
+                "schedule",
+                "questionnaire"
               ]
             }
           },
@@ -23626,11 +26328,20 @@
             "default": "",
             "type": "string",
             "maxLength": 10000
+          },
+          "type": {
+            "default": "interviews",
+            "type": "string",
+            "enum": [
+              "interviews",
+              "survey"
+            ]
           }
         },
         "required": [
           "name",
-          "goal"
+          "goal",
+          "type"
         ],
         "additionalProperties": false
       },
@@ -27280,6 +29991,167 @@
         }
       }
     },
+    "/api/studies/{studyId}/questionnaire": {
+      "get": {
+        "operationId": "getQuestionnaire",
+        "tags": [
+          "preparation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Questionnaire"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveQuestionnaire",
+        "tags": [
+          "preparation"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveQuestionnaireInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionAck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/questionnaire/readiness/{kind}": {
+      "put": {
+        "operationId": "markQuestionnaireReadiness",
+        "tags": [
+          "preparation"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkReadinessInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "review",
+                "pre-test"
+              ]
+            },
+            "in": "path",
+            "name": "kind",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "unmarkQuestionnaireReadiness",
+        "tags": [
+          "preparation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "review",
+                "pre-test"
+              ]
+            },
+            "in": "path",
+            "name": "kind",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
     "/api/studies/{studyId}/planned-interviews": {
       "get": {
         "operationId": "listPlannedInterviews",
@@ -28254,6 +31126,38 @@
                     "id"
                   ],
                   "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/questionnaire/design-cost": {
+      "get": {
+        "operationId": "getQuestionnaireDesignCost",
+        "tags": [
+          "assistant"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionnaireDesignCost"
                 }
               }
             }

@@ -19,6 +19,14 @@ msgstr " · en français"
 msgid " · with what is still to decide"
 msgstr " · avec ce qui reste à décider"
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid ": done"
+msgstr " : fait"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid ": to do"
+msgstr " : à faire"
+
 #. placeholder {0}: v.minutes
 #: src/features/preparation/drive-review.tsx
 msgid "({0} min)"
@@ -251,6 +259,11 @@ msgstr "{0} faits n'ont pas été acceptés : ils ont changé entre-temps, ou le
 msgid "{0} facts, {1} calls to the AI: about {cost} with your AI provider."
 msgstr "{0} faits, {1} appels à l'IA : environ {cost} avec votre fournisseur d'IA."
 
+#. placeholder {0}: v.grids.length
+#: src/features/preparation/drive-review.tsx
+msgid "{0} grids"
+msgstr "{0} grilles"
+
 #. placeholder {0}: i18n._(KINDS[kind])
 #: src/features/preparation/drive-publishing.tsx
 msgid "{0} in Drive"
@@ -463,6 +476,10 @@ msgstr "{excluded} exclus"
 msgid "{flaggedCount} questions to review"
 msgstr "{flaggedCount} questions à revoir"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "{flaggedItemCount} items to review"
+msgstr "{flaggedItemCount} items à revoir"
+
 #: src/features/research/study-list.tsx
 msgid "{hidden, plural, one {The counts leave out # study whose folder access is not confirmed; the AI cost of the project includes it. Opening the study checks it.} other {The counts leave out # studies whose folder access is not confirmed; the AI cost of the project includes them. Opening a study checks it.}}"
 msgstr "{hidden, plural, one {Les décomptes laissent de côté # étude dont l'accès au dossier n'est pas confirmé ; le coût IA du projet l'inclut. Ouvrir l'étude le vérifie.} other {Les décomptes laissent de côté # études dont l'accès au dossier n'est pas confirmé ; le coût IA du projet les inclut. Ouvrir une étude le vérifie.}}"
@@ -515,6 +532,10 @@ msgstr "{published} publiées dans Drive"
 #: src/features/assistant/proposal-card.tsx
 msgid "{sectionCount} sections · {questions} main questions · {minutes} min"
 msgstr "{sectionCount} sections · {questions} questions principales · {minutes} min"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "{sectionsOf} sections · {itemCountOf} items · about {estimated} min"
+msgstr "{sectionsOf} sections · {itemCountOf} items · environ {estimated} min"
 
 #: src/features/synthesis/debrief-tab.tsx
 msgid "{toDecide} insights and recommendations not validated yet; each slide holding one says \"to validate\"."
@@ -578,6 +599,13 @@ msgstr "+{0} à valider"
 msgid "1 · Preparation"
 msgstr "1 · Préparation"
 
+#. placeholder {0}: item.lowLabel
+#. placeholder {1}: item.points
+#. placeholder {2}: item.highLabel
+#: src/features/preparation/questionnaire-view.tsx
+msgid "1 {0} to {1} {2}"
+msgstr "1 {0} à {1} {2}"
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "2 · Fieldwork"
 msgstr "2 · Passation"
@@ -602,11 +630,16 @@ msgstr "6 · Analyse"
 msgid "A better wording (optional)"
 msgstr "Une meilleure formulation (facultatif)"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "A choice needs 2 to 20 options."
+msgstr "Un choix demande de 2 à 20 options."
+
 #: src/features/workspace/errors.ts
 msgid "A correction is at most 200 characters."
 msgstr "Une correction fait au plus 200 caractères."
 
 #: src/features/preparation/preparation-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 msgid "a deleted account"
 msgstr "un compte supprimé"
 
@@ -617,6 +650,14 @@ msgstr "Un brouillon des points clés est déjà en cours."
 #: src/features/synthesis/takeaways.tsx
 msgid "A draft sends the validated insights and recommendations (no fact, no name) to your AI provider."
 msgstr "Un brouillon envoie les insights et recommandations validés (aucun fait, aucun nom) à votre fournisseur d'IA."
+
+#: src/features/preparation/labels.ts
+msgid "A fact"
+msgstr "Un fait"
+
+#: src/features/preparation/labels.ts
+msgid "a fact asked on a scale: prefer a choice"
+msgstr "un fait demandé sur une échelle : préférez un choix"
 
 #: src/features/workspace/errors.ts
 msgid "A fact needs at least one verbatim."
@@ -646,6 +687,14 @@ msgstr "Une hypothèse dépasse 600 caractères."
 msgid "A lexicon correction is changed in the lexicon, on its term."
 msgstr "Une correction du lexique se modifie dans le lexique, sur son terme."
 
+#: src/features/preparation/labels.ts
+msgid "a negation"
+msgstr "une négation"
+
+#: src/features/preparation/labels.ts
+msgid "A perception"
+msgstr "Une perception"
+
 #: src/features/research/create-project-dialog.tsx
 msgid "A project holds one research question and belongs to a team."
 msgstr "Un projet porte une question de recherche et appartient à une équipe."
@@ -670,6 +719,10 @@ msgstr "Une remarque faite par une personne peut seulement être retirée."
 msgid "A role or a team"
 msgstr "Un rôle ou une équipe"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "A scale needs its two end labels."
+msgstr "Une échelle a besoin de ses deux libellés d’extrémité."
+
 #: src/features/analysis/fact-dialog.tsx
 msgid "A short, neutral statement of what the interviewee says, without any name. Write it in one language: the other is translated."
 msgstr "Un énoncé court et neutre de ce que dit l'interviewé, sans aucun nom. Écrivez-le dans une langue : l'autre est traduite."
@@ -681,6 +734,10 @@ msgstr "Une reformulation simple repose uniquement sur ce qu'a dit la personne i
 #: src/features/research/study-list.tsx
 msgid "A study is one way of collecting evidence for the project's research question."
 msgstr "Une étude est une façon de recueillir des preuves pour la question de recherche du projet."
+
+#: src/features/research/create-team-study-dialog.tsx
+msgid "A study of this team, in no project for now. You can link it to a project later."
+msgstr "Une étude de cette équipe, sans projet pour l’instant. Vous pourrez la rattacher à un projet plus tard."
 
 #: src/features/fieldwork/labels.ts
 msgid "a summary, not a transcript (by the app)"
@@ -716,6 +773,7 @@ msgid "About this study"
 msgstr "À propos de cette étude"
 
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "About you"
 msgstr "Votre profil"
 
@@ -877,6 +935,10 @@ msgstr "Actif"
 msgid "Add"
 msgstr "Ajouter"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Add a closing section"
+msgstr "Ajouter une section de clôture"
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Add a correction"
 msgstr "Ajouter une correction"
@@ -890,6 +952,7 @@ msgid "Add a question"
 msgstr "Ajouter une question"
 
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "Add a theme section"
 msgstr "Ajouter une thématique"
 
@@ -901,9 +964,17 @@ msgstr "Ajouter un verbatim"
 msgid "Add a verbatim from this turn"
 msgstr "Ajouter un verbatim de ce tour de parole"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Add an item"
+msgstr "Ajouter un item"
+
 #: src/features/analysis/interview-facts.tsx
 msgid "Add and write a fact"
 msgstr "Ajouter et écrire un fait"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Add at least one item to a theme section."
+msgstr "Ajoutez au moins un item à une section thématique."
 
 #: src/features/ai/labels.ts
 msgid "Add credit or raise the quota in the provider's console, then try again."
@@ -912,6 +983,10 @@ msgstr "Ajoutez du crédit ou augmentez le quota dans la console du fournisseur,
 #: src/routes/_authenticated/teams.tsx
 msgid "Add team"
 msgstr "Ajouter l'équipe"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Add the contact item"
+msgstr "Ajouter l’item de contact"
 
 #: src/features/analysis/fact-dialog.tsx
 msgid "Add the fact"
@@ -960,6 +1035,16 @@ msgstr "Ajouté dans le Drive"
 #: src/features/workspace/member-labels.ts
 msgid "Admin"
 msgstr "Admin"
+
+#: src/features/preparation/questionnaire-editor.tsx
+#: src/features/preparation/questionnaire-markdown.ts
+#: src/features/preparation/questionnaire-view.tsx
+msgid "Administration"
+msgstr "Administration"
+
+#: src/features/preparation/labels.ts
+msgid "Administration and consent"
+msgstr "Administration et consentement"
 
 #: src/features/synthesis/insight-panel.tsx
 msgid "Against"
@@ -1127,6 +1212,18 @@ msgstr "Tout est validé"
 msgid "Allow editing in Drive"
 msgstr "Autoriser la modification dans Drive"
 
+#: src/features/preparation/labels.ts
+msgid "Allows a distribution and a median, read as ordered and not as a measure."
+msgstr "Permet une distribution et une médiane, à lire comme un ordre et non comme une mesure."
+
+#: src/features/preparation/labels.ts
+msgid "Allows a reading by theme, with a person's validation."
+msgstr "Permet une lecture par thème, validée par une personne."
+
+#: src/features/preparation/labels.ts
+msgid "Allows counts, shares and crossing with the profiling items."
+msgstr "Permet des effectifs, des parts et le croisement avec les items de profilage."
+
 #: src/features/fieldwork/labels.ts
 msgid "Already set"
 msgstr "Déjà renseignée"
@@ -1177,6 +1274,10 @@ msgstr "Lire aussi les insights encore à décider"
 msgid "Also use what is still to decide"
 msgstr "Utiliser aussi ce qui est encore à décider"
 
+#: src/features/preparation/labels.ts
+msgid "an absolute word"
+msgstr "un mot absolu"
+
 #: src/features/workspace/errors.ts
 msgid "An analysis is already running on this study. Wait for its end."
 msgstr "Une analyse est déjà en cours sur cette étude. Attendez qu'elle se termine."
@@ -1184,10 +1285,6 @@ msgstr "Une analyse est déjà en cours sur cette étude. Attendez qu'elle se te
 #: src/features/workspace/errors.ts
 msgid "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 msgstr "Un insight a besoin d'au moins un fait accepté en soutien : acceptez d'abord ses faits à valider."
-
-#: src/features/research/create-team-study-dialog.tsx
-msgid "An interview study of this team, in no project for now. You can link it to a project later."
-msgstr "Une étude par entretiens de cette équipe, sans projet pour l’instant. Vous pourrez la rattacher à un projet plus tard."
 
 #: src/features/quality/interview-view.tsx
 msgid "An interviewee"
@@ -1201,6 +1298,10 @@ msgstr "Un intervieweur"
 #: src/features/workspace/errors.ts
 msgid "An inventory is already running for this study."
 msgstr "Un inventaire est déjà en cours pour cette étude."
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "An option has more than 600 characters."
+msgstr "Une option dépasse 600 caractères."
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Analyse the interviews"
@@ -1376,6 +1477,10 @@ msgstr "Demandez au propriétaire du compte ou du projet de vous donner accès a
 msgid "asks for a solution"
 msgstr "demande une solution"
 
+#: src/features/preparation/labels.ts
+msgid "asks for directly identifying data"
+msgstr "demande une donnée directement identifiante"
+
 #: src/features/assistant/assistant-button.tsx
 #: src/features/assistant/panel.tsx
 #: src/routes/_authenticated.tsx
@@ -1385,6 +1490,10 @@ msgstr "Assistant"
 #: src/features/fieldwork/analysis.tsx
 msgid "At most {cost} with your AI provider: the AI is asked only when the app's rules do not find everything."
 msgstr "Au plus {cost} avec votre fournisseur IA : l'IA n'est sollicitée que lorsque les règles de l'app ne trouvent pas tout."
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "At most 15 hypotheses of 600 characters."
+msgstr "15 hypothèses de 600 caractères au maximum."
 
 #: src/features/preparation/guide-editor.tsx
 msgid "At most 15 hypotheses."
@@ -1397,6 +1506,10 @@ msgstr "60 questions principales au plus."
 #: src/features/preparation/guide-editor.tsx
 msgid "At most 8 follow-ups per question."
 msgstr "8 relances au plus par question."
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "At most 80 items."
+msgstr "80 items au maximum."
 
 #: src/features/assistant/proposal-card.tsx
 msgid "At most about ${estimatedCost}, on your AI provider."
@@ -1496,6 +1609,14 @@ msgstr "Retour aux études de l’équipe"
 msgid "batch {0} of {1}"
 msgstr "lot {0} sur {1}"
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Before sending"
+msgstr "Avant l’envoi"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Before sending: an objective, themes, then items. The questionnaire is published as a form in the study's Drive folder, closed to responses until Fieldwork. Edits made in the form come back here for review."
+msgstr "Avant l’envoi : un objectif, des thématiques, puis des items. Le questionnaire est publié sous forme de formulaire dans le dossier Drive de l’étude, fermé aux réponses jusqu’à la passation. Les modifications faites dans le formulaire reviennent ici pour être relues."
+
 #: src/features/preparation/preparation-tab.tsx
 msgid "Before the interviews: design the interview guide from the research goal, read the best practices, then plan the interviews. Each one can be published to the study's Drive folder: edits made there come back here for review."
 msgstr "Avant les entretiens : construire le guide d’entretien à partir de l’objectif de recherche, relire les bonnes pratiques, puis planifier les entretiens. Chacun peut être publié dans le dossier Drive de l’étude : les modifications faites là-bas reviennent ici pour être revues."
@@ -1578,6 +1699,7 @@ msgstr "Je ne sais pas : {excerpt}"
 #: src/features/fieldwork/session-dialog.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 #: src/features/preparation/schedule.tsx
 #: src/features/quality/requalify-dialog.tsx
 #: src/features/quality/review-dialog.tsx
@@ -1692,6 +1814,10 @@ msgstr "Vérifiez que vous avez copié la clé entière, ou créez-en une nouvel
 #: src/features/ai/labels.ts
 msgid "Check the project ID in the Google Cloud console."
 msgstr "Vérifiez l'ID du projet dans la console Google Cloud."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Checked {n} items"
+msgstr "{n} items vérifiés"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Checked {total} questions: {count} to review"
@@ -1883,6 +2009,14 @@ msgstr "Fermer ce message"
 msgid "closed (yes or no)"
 msgstr "fermée (oui ou non)"
 
+#: src/features/preparation/drive-publishing.tsx
+msgid "Closed to responses until Fieldwork."
+msgstr "Fermé aux réponses jusqu’à la passation."
+
+#: src/features/preparation/labels.ts
+msgid "Closing"
+msgstr "Clôture"
+
 #: src/features/workspace/app-sidebar.tsx
 msgid "Collapse the sidebar"
 msgstr "Replier le volet"
@@ -1951,6 +2085,32 @@ msgstr "Connecté en tant que {account} depuis le {since}. Lecture seule."
 msgid "Connected sources"
 msgstr "Sources connectées"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Consecutive scales sharing a legend are then published as one grid, with its rows in a random order. A grid is less comfortable on a phone: without it, each scale stays on its own, in a fixed order."
+msgstr "Les échelles consécutives de même légende sont alors publiées en une seule grille, aux lignes dans un ordre aléatoire. Une grille est moins confortable sur téléphone : sans elle, chaque échelle reste à part, dans un ordre fixe."
+
+#: src/features/preparation/questionnaire-markdown.ts
+#: src/features/preparation/questionnaire-view.tsx
+msgid "Consent"
+msgstr "Consentement"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Consent and thanks written"
+msgstr "Consentement et remerciement rédigés"
+
+#: src/features/preparation/drive-review.tsx
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Consent text"
+msgstr "Texte de consentement"
+
+#: src/features/preparation/questionnaire-view.tsx
+msgid "contact item, never imported"
+msgstr "item de contact, jamais importé"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Contact item: optional, never imported by the app. Deleting the addresses in the form and its spreadsheet is up to your team."
+msgstr "Item de contact : facultatif, jamais importé par l’application. Supprimer les adresses du formulaire et de sa feuille revient à votre équipe."
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "Context"
 msgstr "Contexte"
@@ -1965,6 +2125,7 @@ msgid "Continue with Google"
 msgstr "Continuer avec Google"
 
 #: src/features/preparation/preparation-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 msgid "Continue with the assistant"
 msgstr "Poursuivre avec l’assistant"
 
@@ -2016,6 +2177,10 @@ msgstr "Coût de l'analyse"
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Cost of the cleanings"
 msgstr "Coût des nettoyages"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Cost of the design: {designCost}"
+msgstr "Coût de la conception : {designCost}"
 
 #: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/enrichment-tab.tsx
@@ -2117,8 +2282,8 @@ msgid "Create a project"
 msgstr "Créer un projet"
 
 #: src/features/assistant/proposal-card.tsx
-msgid "Create an interview study"
-msgstr "Créer une étude par entretiens"
+msgid "Create a study"
+msgstr "Créer une étude"
 
 #: src/features/research/create-project-dialog.tsx
 msgid "Create project"
@@ -2314,6 +2479,7 @@ msgid "Description"
 msgstr "Description"
 
 #: src/features/preparation/preparation-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 msgid "Design with the assistant"
 msgstr "Construire avec l’assistant"
 
@@ -2403,6 +2569,7 @@ msgstr "Télécharger (CSV)"
 
 #: src/features/preparation/best-practices.tsx
 #: src/features/preparation/preparation-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 msgid "Download (Markdown)"
 msgstr "Télécharger (Markdown)"
 
@@ -2444,6 +2611,7 @@ msgstr "Chaque transcription du dossier est un entretien. Rattachez-la à l'entr
 
 #: src/features/analysis/fact-card.tsx
 #: src/features/preparation/preparation-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 msgid "Edit"
 msgstr "Modifier"
 
@@ -2463,6 +2631,10 @@ msgstr "Modifier l’entretien"
 #: src/features/preparation/guide-editor.tsx
 msgid "Edit the interview guide"
 msgstr "Modifier le guide d’entretien"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Edit the questionnaire"
+msgstr "Modifier le questionnaire"
 
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
@@ -2518,6 +2690,10 @@ msgstr "L'enrichissement pour ce type d'étude arrivera dans une prochaine versi
 msgid "Enter a name."
 msgstr "Saisissez un nom."
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Enter a whole number, or leave it empty."
+msgstr "Saisissez un nombre entier, ou laissez vide."
+
 #: src/features/assistant/panel.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -2530,6 +2706,10 @@ msgstr "Entrée pour enregistrer, Échap pour annuler"
 #: src/features/preparation/schedule.tsx
 msgid "Enter who you will interview."
 msgstr "Indiquez qui vous allez interviewer."
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Estimated time to answer: about {minutes} min"
+msgstr "Temps de réponse estimé : environ {minutes} min"
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Every correction is decided. One step left: validate the clean version, the one Analysis will read."
@@ -2604,6 +2784,7 @@ msgid "Every recording is with its transcript."
 msgstr "Chaque enregistrement est avec sa transcription."
 
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "Every section needs a title."
 msgstr "Chaque section doit avoir un titre."
 
@@ -2775,6 +2956,10 @@ msgstr "Fichiers nommés dans Drive"
 #: src/features/fieldwork/proposals.tsx
 msgid "Files renamed in Drive"
 msgstr "Fichiers renommés dans Drive"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Fill in this item, or remove it."
+msgstr "Remplissez cet item, ou retirez-le."
 
 #: src/features/preparation/drive-review.tsx
 msgid "Final text"
@@ -2990,6 +3175,14 @@ msgstr "Format"
 msgid "Format and logistics"
 msgstr "Format et logistique"
 
+#: src/features/preparation/labels.ts
+msgid "Format and order"
+msgstr "Format et ordre"
+
+#: src/features/workspace/errors.ts
+msgid "Forms cannot be created yet: whoever deploys this application must enable the form service in its Google project."
+msgstr "Impossible de créer des formulaires pour l’instant : la personne qui déploie cette application doit activer le service de formulaires dans son projet Google."
+
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Found"
 msgstr "Trouvé"
@@ -3004,6 +3197,8 @@ msgstr "Trouvés dans cette étude, partagés avec l'équipe"
 
 #: src/features/preparation/guide-editor.tsx
 #: src/features/preparation/guide-markdown.ts
+#: src/features/preparation/questionnaire-editor.tsx
+#: src/features/preparation/questionnaire-markdown.ts
 msgid "Framing"
 msgstr "Cadrage"
 
@@ -3164,6 +3359,10 @@ msgstr "Google vous demandera d’autoriser goodresearch à modifier les fichier
 msgid "GPT models with an API key from your OpenAI account."
 msgstr "Modèles GPT avec une clé d'API de votre compte OpenAI."
 
+#: src/features/preparation/drive-review.tsx
+msgid "Grids of the form"
+msgstr "Grilles du formulaire"
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/ingestion/source-panel.tsx
 msgid "Group"
@@ -3185,9 +3384,17 @@ msgstr "thématiques du guide"
 msgid "Help me design the interview guide for this study."
 msgstr "Aide-moi à construire le guide d’entretien de cette étude."
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Help me design the questionnaire for this study."
+msgstr "Aide-moi à concevoir le questionnaire de cette étude."
+
 #: src/features/preparation/preparation-tab.tsx
 msgid "Help me improve the interview guide of this study."
 msgstr "Aide-moi à améliorer le guide d’entretien de cette étude."
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Help me improve the questionnaire of this study."
+msgstr "Aide-moi à améliorer le questionnaire de cette étude."
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Hidden by another correction here"
@@ -3248,6 +3455,10 @@ msgstr "Comment la part de parole de l'intervieweur est comptée"
 msgid "How the interviews were conducted"
 msgstr "Comment les entretiens se sont déroulés"
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "How to build a questionnaire: objective, items, order, consent, biases, and thinking ahead to the analysis."
+msgstr "Comment construire un questionnaire : objectif, items, ordre, consentement, biais, et anticipation de l’analyse."
+
 #: src/features/enrichment/cleaning-table.tsx
 msgid "How to clean"
 msgstr "Comment nettoyer"
@@ -3265,16 +3476,27 @@ msgstr "Comment nous avons mené la recherche"
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
 #: src/features/preparation/labels.ts
+#: src/features/preparation/questionnaire-markdown.ts
+#: src/features/preparation/questionnaire-view.tsx
 msgid "Hypotheses"
 msgstr "Hypothèses"
 
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "Hypotheses (one per line)"
 msgstr "Hypothèses (une par ligne)"
 
 #: src/features/preparation/labels.ts
 msgid "hypothetical"
 msgstr "hypothétique"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "If you use the contact item, deleting the addresses in the form and its spreadsheet is up to your team."
+msgstr "Si vous utilisez l’item de contact, supprimer les adresses du formulaire et de sa feuille revient à votre équipe."
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "If you wish to receive the results, leave your address here. It is used only to send them, then deleted."
+msgstr "Si vous souhaitez recevoir les résultats, laissez votre adresse ici. Elle sert uniquement à les envoyer, puis elle est supprimée."
 
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
@@ -3549,6 +3771,7 @@ msgstr "Intervieweurs"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/quality-tab.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/project-journey.tsx
 #: src/features/research/study-card.tsx
 #: src/features/research/study-list.tsx
@@ -3676,6 +3899,19 @@ msgstr "Il a été retiré ou a expiré ; certaines organisations demandent de s
 msgid "It will no longer be in any project and stays on the team's Studies page, with its interviews and facts. Insights already written keep citing its facts, marked as outside the project."
 msgstr "Elle ne sera plus dans aucun projet et reste sur la page Études de l’équipe, avec ses entretiens et ses faits. Les insights déjà écrits continuent de citer ses faits, marqués comme hors projet."
 
+#: src/features/preparation/drive-review.tsx
+msgid "Item"
+msgstr "Item"
+
+#. placeholder {0}: ii + 1
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Item {0}"
+msgstr "Item {0}"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Item check"
+msgstr "Vérification des items"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Its facts feed this project too, without any AI cost. Decisions on them apply in every project it is in."
 msgstr "Ses faits alimentent aussi ce projet, sans coût d’IA. Les décisions sur ces faits s’appliquent dans tous ses projets."
@@ -3761,6 +3997,7 @@ msgstr "Points clés rédigés"
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 #: src/features/quality/remarks-list.tsx
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/new-recommendation-dialog.tsx
@@ -3768,6 +4005,14 @@ msgstr "Points clés rédigés"
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "Kind"
 msgstr "Type"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Label of the highest point"
+msgstr "Libellé du point le plus haut"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Label of the lowest point"
+msgstr "Libellé du point le plus bas"
 
 #: src/features/fieldwork/labels.ts
 #: src/features/workspace/language-switch.tsx
@@ -3886,6 +4131,10 @@ msgstr "Le lexique en chiffres"
 msgid "Lexicon only"
 msgstr "Lexique seul"
 
+#: src/features/preparation/labels.ts
+msgid "Likert scale"
+msgstr "Échelle de Likert"
+
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Link"
 msgstr "Lier"
@@ -3963,6 +4212,14 @@ msgstr "Chantiers structurants"
 #: src/features/quality/requalify-dialog.tsx
 msgid "Make it a remark"
 msgstr "En faire une remarque"
+
+#: src/features/preparation/labels.ts
+msgid "Many open questions: they are harder to interpret."
+msgstr "Beaucoup de questions ouvertes : elles sont plus difficiles à interpréter."
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Marked by {who} {when}"
+msgstr "Marqué par {who} {when}"
 
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "Matrix"
@@ -4076,9 +4333,23 @@ msgstr "Modifié"
 msgid "More studies exist: search by name to find them."
 msgstr "D’autres études existent : cherchez par nom pour les trouver."
 
+#: src/features/preparation/labels.ts
+msgid "More than 10 closed items in a row: an open question would break the series."
+msgstr "Plus de 10 items fermés à la suite : une question ouverte casserait la série."
+
 #: src/features/assistant/folder-changes-card.tsx
 msgid "Move"
 msgstr "Déplacer"
+
+#. placeholder {0}: ii + 1
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Move item {0} down"
+msgstr "Descendre l’item {0}"
+
+#. placeholder {0}: ii + 1
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Move item {0} up"
+msgstr "Monter l’item {0}"
 
 #. placeholder {0}: qi + 1
 #: src/features/preparation/guide-editor.tsx
@@ -4091,10 +4362,12 @@ msgid "Move question {0} up"
 msgstr "Monter la question {0}"
 
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "Move section down"
 msgstr "Descendre la section"
 
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "Move section up"
 msgstr "Monter la section"
 
@@ -4117,6 +4390,10 @@ msgstr "Passer en soutien"
 #: src/features/synthesis/recommendation-matrix.tsx
 msgid "Moved: {where}"
 msgstr "Déplacée : {where}"
+
+#: src/features/preparation/labels.ts
+msgid "Multiple choice"
+msgstr "Choix multiple"
 
 #: src/routes/_authenticated/index.tsx
 msgid "My teams"
@@ -4230,6 +4507,7 @@ msgid "New study"
 msgstr "Nouvelle étude"
 
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "New theme"
 msgstr "Nouvelle thématique"
 
@@ -4390,11 +4668,19 @@ msgstr "Aucun entretien planifié"
 msgid "no planned interview matches"
 msgstr "aucun entretien prévu ne correspond"
 
+#: src/features/preparation/labels.ts
+msgid "No profiling item to check the target audience."
+msgstr "Aucun item de profilage pour vérifier le public cible."
+
 #: src/features/assistant/proposal-card.tsx
 #: src/features/research/attach-study-dialog.tsx
 #: src/routes/_authenticated/team-studies/$teamId.tsx
 msgid "No project"
 msgstr "Aucun projet"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "No questionnaire yet."
+msgstr "Pas encore de questionnaire."
 
 #: src/features/analysis/analysis-tab.tsx
 msgid "No reading yet"
@@ -4420,6 +4706,10 @@ msgstr "Aucune remarque ici."
 #: src/features/synthesis/deck-slide.tsx
 msgid "No research goal written (project page)."
 msgstr "Enjeu non renseigné (page du projet)."
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "No results spreadsheet yet. To have one for your team, open the form, go to Responses, and choose \"Link to Sheets\". The app does not need it."
+msgstr "Pas encore de feuille de résultats. Pour en avoir une pour votre équipe, ouvrez le formulaire, allez dans Réponses et choisissez « Associer à Sheets ». L’application n’en a pas besoin."
 
 #: src/features/quality/quality-tab.tsx
 msgid "No review yet"
@@ -4659,6 +4949,16 @@ msgstr "Bilan"
 msgid "Numbers: the recommendations table."
 msgstr "Numéros : tableau des recommandations."
 
+#: src/features/preparation/questionnaire-editor.tsx
+#: src/features/preparation/questionnaire-markdown.ts
+#: src/features/preparation/questionnaire-view.tsx
+msgid "Objective"
+msgstr "Objectif"
+
+#: src/features/preparation/labels.ts
+msgid "Objective and themes"
+msgstr "Objectif et thématiques"
+
 #: src/features/preparation/drive-review.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
@@ -4707,6 +5007,10 @@ msgstr "Seuls les admins peuvent faire cela."
 #: src/features/workspace/errors.ts
 msgid "Only interview studies have a guide, a schedule and interviews."
 msgstr "Seules les études par entretiens ont un guide, un planning et des entretiens."
+
+#: src/features/workspace/errors.ts
+msgid "Only survey studies have a questionnaire."
+msgstr "Seules les études par questionnaire ont un questionnaire."
 
 #: src/features/workspace/read-only.tsx
 msgid "Only team {team} can change this page: contact it to suggest a change."
@@ -4779,6 +5083,10 @@ msgstr "Ouvrir dans le Drive : {0}"
 msgid "Open in Google Slides"
 msgstr "Ouvrir dans Google Slides"
 
+#: src/features/preparation/labels.ts
+msgid "Open question"
+msgstr "Question ouverte"
+
 #. placeholder {0}: n + 1
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Open slide {0}"
@@ -4810,6 +5118,10 @@ msgstr "Ouvrir le menu"
 msgid "Open the project"
 msgstr "Ouvrir le projet"
 
+#: src/features/preparation/drive-publishing.tsx
+msgid "Open the results spreadsheet"
+msgstr "Ouvrir la feuille de résultats"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Open the study"
 msgstr "Ouvrir l'étude"
@@ -4827,6 +5139,10 @@ msgstr "Ouvrir la page de l'API Vertex AI de ce projet"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Open the video: {0}"
 msgstr "Ouvrir la vidéo : {0}"
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "Open to responses: someone opened it by hand."
+msgstr "Ouvert aux réponses : quelqu’un l’a ouvert à la main."
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Opened the folder"
@@ -4852,6 +5168,14 @@ msgstr "Opinion ou suggestion"
 #: src/features/quality/review-dialog.tsx
 msgid "Opinions already given stay as they are."
 msgstr "Les avis déjà donnés restent tels quels."
+
+#: src/features/preparation/questionnaire-view.tsx
+msgid "optional"
+msgstr "facultatif"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Options (one per line)"
+msgstr "Options (une par ligne)"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Order changed in Drive"
@@ -4983,6 +5307,7 @@ msgid "Passed"
 msgstr "Réussie"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 msgid "People"
 msgstr "Personnes"
 
@@ -5049,6 +5374,10 @@ msgstr "Entretiens planifiés dont la transcription n'est pas encore dans le dos
 msgid "Planned only ({0})"
 msgstr "Planifiés seuls ({0})"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Points"
+msgstr "Points"
+
 #: src/features/analysis/fact-dialog.tsx
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx
@@ -5065,6 +5394,14 @@ msgstr "Positif"
 #: src/features/preparation/labels.ts
 msgid "Postponed"
 msgstr "Reporté"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Pre-tested with {count} people, marked by {who} {when}"
+msgstr "Prétesté auprès de {count} personnes, marqué par {who} {when}"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Pre-tested with a few naive participants, using the form's preview"
+msgstr "Prétesté auprès de quelques participants naïfs, avec l’aperçu du formulaire"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Preparation"
@@ -5121,6 +5458,14 @@ msgstr "Priorité {0}"
 #: src/features/enrichment/labels.ts
 msgid "Product"
 msgstr "Produit"
+
+#: src/features/preparation/labels.ts
+msgid "Profiling"
+msgstr "Profilage"
+
+#: src/features/preparation/labels.ts
+msgid "Profiling items"
+msgstr "Items de profilage"
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
@@ -5221,6 +5566,10 @@ msgstr "Publié"
 msgid "Published {0} by {1}"
 msgstr "Publiée {0} par {1}"
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Published and in sync"
+msgstr "Publié et à jour"
+
 #. placeholder {0}: data.folder.name
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Published clean transcripts go to the folder “{0}” of the study folder."
@@ -5280,6 +5629,37 @@ msgstr "Vérification des questions"
 msgid "Question, objectives, hypotheses"
 msgstr "Question, objectifs, hypothèses"
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "questionnaire"
+msgstr "questionnaire"
+
+#: src/features/assistant/proposal-card.tsx
+#: src/features/preparation/drive-publishing.tsx
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Questionnaire"
+msgstr "Questionnaire"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "questionnaire changed since"
+msgstr "questionnaire modifié depuis"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Questionnaire design"
+msgstr "Conception du questionnaire"
+
+#: src/features/assistant/panel.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Questionnaire design progress"
+msgstr "Avancement de la conception du questionnaire"
+
+#: src/features/assistant/panel.tsx
+msgid "Questionnaire finished · {study}"
+msgstr "Questionnaire terminé · {study}"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "questionnaire-best-practices.md"
+msgstr "bonnes-pratiques-questionnaire.md"
+
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/recommendation-matrix.tsx
 msgid "Quick wins"
@@ -5330,6 +5710,10 @@ msgstr "Lire les bonnes pratiques"
 msgid "Read the whole guide"
 msgstr "Lire le guide complet"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Read the whole questionnaire"
+msgstr "Lire tout le questionnaire"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Reading in progress"
 msgstr "Lecture en cours"
@@ -5377,6 +5761,16 @@ msgstr "Enregistrements"
 msgid "Recordings matched by the app, and the ones no other interview uses."
 msgstr "Les enregistrements rattachés par l'app, et ceux qu'aucun autre entretien n'utilise."
 
+#: src/features/preparation/questionnaire-editor.tsx
+#: src/features/preparation/questionnaire-markdown.ts
+#: src/features/preparation/questionnaire-view.tsx
+msgid "Recruitment"
+msgstr "Recrutement"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Recruitment and target number written"
+msgstr "Recrutement et nombre visé rédigés"
+
 #: src/features/quality/labels.ts
 msgid "Reformulation with opinion"
 msgstr "Reformulation avec opinion"
@@ -5393,6 +5787,10 @@ msgstr "Rafraîchir"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Refreshing…"
 msgstr "Actualisation…"
+
+#: src/features/preparation/drive-review.tsx
+msgid "refusing no longer ends the form"
+msgstr "refuser ne met plus fin au formulaire"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Region"
@@ -5465,6 +5863,11 @@ msgstr "Remarques"
 msgid "Remove"
 msgstr "Retirer"
 
+#. placeholder {0}: ii + 1
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Remove item {0}"
+msgstr "Retirer l’item {0}"
+
 #: src/features/preparation/guide-editor.tsx
 msgid "Remove or fill in the empty questions."
 msgstr "Supprimez ou complétez les questions vides."
@@ -5480,6 +5883,7 @@ msgid "Remove question {0}"
 msgstr "Supprimer la question {0}"
 
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "Remove section"
 msgstr "Supprimer la section"
 
@@ -5570,6 +5974,18 @@ msgstr "Remplacer la version Google Slides"
 #: src/features/assistant/proposal-card.tsx
 msgid "Replaces the current guide of the study."
 msgstr "Remplace le guide actuel de l’étude."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Replaces the current questionnaire of the study."
+msgstr "Remplace le questionnaire actuel de l’étude."
+
+#: src/features/preparation/questionnaire-view.tsx
+msgid "required"
+msgstr "obligatoire"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Required"
+msgstr "Obligatoire"
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "Research debrief"
@@ -5673,6 +6089,10 @@ msgctxt "interview quality"
 msgid "Reviewed"
 msgstr "Relu"
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Reviewed by another person"
+msgstr "Relu par une autre personne"
+
 #: src/features/quality/labels.ts
 msgid "Reviewing"
 msgstr "En relecture"
@@ -5745,6 +6165,10 @@ msgstr "Enregistrer la modification"
 #: src/features/preparation/guide-editor.tsx
 msgid "Save the guide"
 msgstr "Enregistrer le guide"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Save the questionnaire"
+msgstr "Enregistrer le questionnaire"
 
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -5825,6 +6249,7 @@ msgstr "Section"
 
 #. placeholder {0}: si + 1
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "Section {0}"
 msgstr "Section {0}"
 
@@ -5857,6 +6282,10 @@ msgstr "Voir la restitution"
 msgid "See the guide"
 msgstr "Voir le guide"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "See the questionnaire"
+msgstr "Voir le questionnaire"
+
 #: src/features/analysis/interview-facts.tsx
 msgid "Select the words of the verbatim in the turn (3 to 120 words), then add it."
 msgstr "Sélectionnez les mots du verbatim dans le tour de parole (3 à 120 mots), puis ajoutez-le."
@@ -5872,6 +6301,14 @@ msgstr "Envoyer mes choix"
 #: src/features/fieldwork/analysis.tsx
 msgid "Send the beginning of the transcript to your AI provider?"
 msgstr "Envoyer le début de la transcription à votre fournisseur IA ?"
+
+#: src/features/preparation/labels.ts
+msgid "Sent to people matching the target"
+msgstr "Envoyé aux personnes correspondant à la cible"
+
+#: src/features/preparation/labels.ts
+msgid "Sent widely, then filtered"
+msgstr "Envoyé largement, puis filtré"
 
 #: src/features/analysis/interview-facts.tsx
 msgid "Set aside"
@@ -5935,6 +6372,10 @@ msgstr "Afficher toutes les occurrences ({total})"
 msgid "Show more"
 msgstr "Afficher plus"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Shuffle the scales of each theme"
+msgstr "Mélanger les échelles de chaque thématique"
+
 #: src/routes/sign-in.tsx
 msgid "Sign in with {provider}"
 msgstr "Se connecter avec {provider}"
@@ -5961,6 +6402,10 @@ msgstr "Reformulation simple"
 #: src/features/quality/remarks-list.tsx
 msgid "Simple reformulations"
 msgstr "Reformulations simples"
+
+#: src/features/preparation/labels.ts
+msgid "Single choice"
+msgstr "Choix unique"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Skill"
@@ -6001,6 +6446,10 @@ msgstr "certains appels sans prix"
 #: src/features/workspace/errors.ts
 msgid "Some fields are not valid."
 msgstr "Certains champs ne sont pas valides."
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Some fields need attention: see above."
+msgstr "Certains champs demandent votre attention : voir ci-dessus."
 
 #: src/features/fieldwork/proposals.tsx
 msgid "Some files could not be renamed in Drive: use “Rename in Drive” to try again."
@@ -6120,6 +6569,14 @@ msgstr "Arrêt en cours…"
 msgid "Strengths and existing levers"
 msgstr "Points forts et leviers existants"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Strongly agree"
+msgstr "Tout à fait d’accord"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Strongly disagree"
+msgstr "Pas du tout d’accord"
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "studies"
 msgstr "études"
@@ -6181,6 +6638,10 @@ msgstr "Phases de l'étude"
 msgid "Study settings"
 msgstr "Paramètres de l'étude"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Sub-theme (optional)"
+msgstr "Sous-thématique (facultatif)"
+
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Success measure"
@@ -6223,6 +6684,8 @@ msgstr "Résumé, pas une transcription"
 msgid "Supports"
 msgstr "Soutient"
 
+#: src/features/assistant/proposal-card.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
 #: src/routes/_authenticated/studies/$studyId.tsx
@@ -6270,6 +6733,22 @@ msgstr "Retiré de l'analyse : relancez la recherche de ses faits quand vous vou
 #: src/features/enrichment/labels.ts
 msgid "Taken out of the reading: find its terms again when you wish."
 msgstr "Retiré de la lecture : trouvez ses termes quand vous voulez."
+
+#: src/features/preparation/questionnaire-editor.tsx
+#: src/features/preparation/questionnaire-markdown.ts
+#: src/features/preparation/questionnaire-view.tsx
+msgid "Target audience"
+msgstr "Public cible"
+
+#: src/features/preparation/labels.ts
+msgid "Target audience and recruitment"
+msgstr "Public cible et recrutement"
+
+#: src/features/preparation/questionnaire-editor.tsx
+#: src/features/preparation/questionnaire-markdown.ts
+#: src/features/preparation/questionnaire-view.tsx
+msgid "Target number of responses"
+msgstr "Nombre de réponses visé"
 
 #: src/features/assistant/labels.ts
 #: src/features/assistant/proposal-card.tsx
@@ -6385,9 +6864,20 @@ msgstr "Texte modifié"
 msgid "Thank you"
 msgstr "Merci"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Thank you for taking part."
+msgstr "Merci d’avoir participé."
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "Thank you!"
 msgstr "Merci !"
+
+#: src/features/preparation/drive-review.tsx
+#: src/features/preparation/questionnaire-editor.tsx
+#: src/features/preparation/questionnaire-markdown.ts
+#: src/features/preparation/questionnaire-view.tsx
+msgid "Thanks"
+msgstr "Remerciement"
 
 #: src/features/ai/labels.ts
 msgid "The account has no credit or quota left."
@@ -6490,6 +6980,10 @@ msgstr "Les contrôles de l'app ont écarté {0} verbatims (absents du texte, ou
 msgid "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
 msgstr "L’assistant vous pose quelques questions, montre son avancement et propose le guide complet ; rien n’est enregistré avant que vous l’appliquiez."
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "The assistant asks you a few questions, shows its progress and proposes the whole questionnaire; nothing is saved until you apply it."
+msgstr "L’assistant vous pose quelques questions, montre son avancement et propose le questionnaire complet ; rien n’est enregistré tant que vous ne l’appliquez pas."
+
 #: src/features/workspace/errors.ts
 msgid "The assistant has nothing to continue here."
 msgstr "L’assistant n’a rien à poursuivre ici."
@@ -6509,6 +7003,10 @@ msgstr "La vérification n'a pas fonctionné pour une raison inattendue."
 #: src/features/enrichment/labels.ts
 msgid "The cleaning was interrupted: clean the transcripts again."
 msgstr "Le nettoyage a été interrompu : nettoyez à nouveau les transcriptions."
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "The consent text cannot be empty."
+msgstr "Le texte de consentement ne peut pas être vide."
 
 #: src/features/synthesis/takeaways.tsx
 msgid "The cost could not be estimated: the draft can still be asked for."
@@ -6618,6 +7116,10 @@ msgstr "L'inventaire a échoué ({reason})."
 msgid "The inventory is removed from goodresearch. Nothing changes in Drive."
 msgstr "L'inventaire est retiré de goodresearch. Rien ne change dans Drive."
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "The items stay in a fixed order."
+msgstr "Les items restent dans un ordre fixe."
+
 #: src/features/ai/labels.ts
 msgid "The key or the Google access was refused."
 msgstr "La clé ou l'accès Google a été refusé."
@@ -6668,6 +7170,14 @@ msgstr "Les noms que l’app connaît (les personnes des entretiens, le planning
 msgid "The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending. No transcript is sent in full."
 msgstr "Les noms que l'application connaît (les personnes des entretiens, le planning et votre équipe) sont remplacés avant l'envoi. Aucune transcription n'est envoyée en entier."
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "The options of choices are shuffled."
+msgstr "Les options des choix sont mélangées."
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "The order of the themes stays fixed: the form cannot shuffle it."
+msgstr "L’ordre des thématiques reste fixe : le formulaire ne peut pas le mélanger."
+
 #: src/routes/_authenticated/sources.tsx
 msgid "The permission is revoked at Google. You will need to connect again to see or refresh study folders."
 msgstr "L'autorisation est révoquée chez Google. Il faudra vous reconnecter pour voir ou rafraîchir les dossiers des études."
@@ -6712,6 +7222,10 @@ msgstr "Le fournisseur n'a pas répondu."
 msgid "The provider is limiting requests right now."
 msgstr "Le fournisseur limite les requêtes en ce moment."
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "The questionnaire holds the framing (objective, target audience, recruitment, consent) and the items, grouped by theme. Each item says what it measures and what analysis it allows."
+msgstr "Le questionnaire contient le cadrage (objectif, public cible, recrutement, consentement) et les items, regroupés par thématique. Chaque item dit ce qu’il mesure et quelle analyse il permet."
+
 #: src/features/enrichment/labels.ts
 msgid "The reading was interrupted: find the terms again."
 msgstr "La lecture a été interrompue : relancez la recherche des termes."
@@ -6727,6 +7241,14 @@ msgstr "La relecture a été interrompue : relisez à nouveau les entretiens."
 #: src/features/synthesis/labels.ts
 msgid "The run was interrupted: find insights again."
 msgstr "Le passage a été interrompu : relancez la recherche d'insights."
+
+#: src/features/preparation/labels.ts
+msgid "The scales do not all share one legend."
+msgstr "Les échelles n’ont pas toutes la même légende."
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "The scales of a theme are shuffled within their grid."
+msgstr "Les échelles d’une thématique sont mélangées dans leur grille."
 
 #: src/features/workspace/errors.ts
 msgid "The schedule is full: at most 300 interviews per study."
@@ -6756,6 +7278,10 @@ msgstr "L’étude, son inventaire et ses entretiens sont supprimés de goodrese
 msgid "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
 msgstr "L'étude, son inventaire et ses entretiens sont supprimés de goodresearch. Rien ne change dans Drive."
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "The thanks cannot be empty."
+msgstr "Le remerciement ne peut pas être vide."
+
 #: src/features/quality/labels.ts
 msgid "The transcript gives nearly every word to the interviewer, so it probably does not tell the voices apart (one microphone, or labels inside the text). Figures and remarks would be wrong."
 msgstr "La transcription attribue presque tous les mots à l'intervieweur : elle ne sépare sans doute pas les voix (un seul micro, ou des noms dans le texte). Les chiffres et les remarques seraient faux."
@@ -6782,6 +7308,10 @@ msgid "The workspace needs at least one active admin."
 msgstr "L'espace de travail doit garder au moins un admin actif."
 
 #: src/features/preparation/labels.ts
+msgid "Thematic items"
+msgstr "Items thématiques"
+
+#: src/features/preparation/labels.ts
 msgid "Thematic questions"
 msgstr "Questions thématiques"
 
@@ -6798,12 +7328,21 @@ msgid "Theme"
 msgstr "Thématique"
 
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "Theme 1"
 msgstr "Thématique 1"
+
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "These checks advise: they block nothing."
+msgstr "Ces vérifications conseillent : elles ne bloquent rien."
 
 #: src/features/assistant/proposal-card.tsx
 msgid "These files are created in the study folder. Nothing is written before you apply."
 msgstr "Ces fichiers sont créés dans le dossier de l’étude. Rien n’est écrit avant que vous appliquiez."
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "These options have an order: never shuffle them"
+msgstr "Ces options ont un ordre : ne jamais les mélanger"
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "These words are in the turn more than once: add a word before or after them."
@@ -6876,6 +7415,10 @@ msgstr "Ce fichier n’existe plus, ou vous ne pouvez pas l’ouvrir."
 #: src/features/workspace/errors.ts
 msgid "This folder does not exist or your Google account cannot open it."
 msgstr "Ce dossier n'existe pas ou votre compte Google ne peut pas l'ouvrir."
+
+#: src/features/preparation/drive-publishing.tsx
+msgid "This form collects the respondents' email addresses. Turn this off in the form's settings: the questionnaire promises anonymity, and it will not open while this stays on."
+msgstr "Ce formulaire collecte les adresses e-mail des répondants. Désactivez cela dans les paramètres du formulaire : le questionnaire promet l’anonymat, et il ne s’ouvrira pas tant que ce réglage reste actif."
 
 #: src/features/ai/labels.ts
 msgid "This Google Cloud project does not exist or your account cannot open it."
@@ -7060,6 +7603,10 @@ msgid "This study feeds {others}: decisions on its facts apply in all of them."
 msgstr "Cette étude alimente {others} : les décisions sur ses faits s’appliquent dans tous."
 
 #: src/features/workspace/errors.ts
+msgid "This study has no questionnaire yet."
+msgstr "Cette étude n’a pas encore de questionnaire."
+
+#: src/features/workspace/errors.ts
 msgid "This study is already in this project."
 msgstr "Cette étude est déjà dans ce projet."
 
@@ -7105,6 +7652,7 @@ msgstr "Cette transcription est trop longue pour être lue (plus de 400 000 cara
 
 #: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/guide-editor.tsx
+#: src/features/preparation/questionnaire-editor.tsx
 msgid "Title"
 msgstr "Titre"
 
@@ -7182,6 +7730,10 @@ msgstr "Pour trouver les termes, l'application lit d'abord elle-même les transc
 msgid "To find who took part and when, the beginning of each transcript (about 4,000 characters) is sent to your AI provider, with your own connection. This text may contain names of people."
 msgstr "Pour trouver qui a participé et quand, le début de chaque transcription (environ 4 000 caractères) est envoyé à votre fournisseur IA, avec votre propre connexion. Ce texte peut contenir des noms de personnes."
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "To finish"
+msgstr "Pour finir"
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "To reconsider"
 msgstr "À reconsidérer"
@@ -7190,9 +7742,18 @@ msgstr "À reconsidérer"
 msgid "To review again"
 msgstr "À relire"
 
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "To review on the whole"
+msgstr "À revoir sur l’ensemble"
+
 #: src/features/quality/review-dialog.tsx
 msgid "To review them, the text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
 msgstr "Pour les relire, le texte de chaque transcription est envoyé à votre fournisseur IA, avec votre propre connexion, par parties d'environ 60 tours de parole."
+
+#. placeholder {0}: flagged .map((code) => { const label = ITEM_FLAGS[code] return label ? i18n._(label) : code }) .join(', ')
+#: src/features/preparation/questionnaire-view.tsx
+msgid "To review: {0}"
+msgstr "À revoir : {0}"
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "to validate"
@@ -7274,6 +7835,14 @@ msgid "Turns of the transcript"
 msgstr "Tours de la transcription"
 
 #: src/features/preparation/labels.ts
+msgid "two ideas in one item"
+msgstr "deux idées dans un item"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Two options are identical."
+msgstr "Deux options sont identiques."
+
+#: src/features/preparation/labels.ts
 msgid "two questions in one"
 msgstr "deux questions en une"
 
@@ -7281,6 +7850,8 @@ msgstr "deux questions en une"
 msgid "Two to four sentences a stakeholder reads first."
 msgstr "Deux à quatre phrases qu'une partie prenante lit en premier."
 
+#: src/features/assistant/proposal-card.tsx
+#: src/features/research/create-team-study-dialog.tsx
 #: src/features/research/study-list.tsx
 msgid "Type"
 msgstr "Type"
@@ -7308,6 +7879,7 @@ msgstr "Indisponible dans le Drive"
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/fieldwork/analysis.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 #: src/features/quality/quality-tab.tsx
 #: src/features/quality/review-dialog.tsx
 #: src/features/research/cost-breakdown.tsx
@@ -7457,13 +8029,22 @@ msgstr "Verbatims sans fait ({0})"
 msgid "Version {0} · changes from Drive accepted by {who} {when}"
 msgstr "Version {0} · modifications du Drive acceptées par {who} {when}"
 
+#. placeholder {0}: q.version + 1
+#: src/features/preparation/questionnaire-tab.tsx
+msgid "Version {0} · changes from the form accepted by {who} {when}"
+msgstr "Version {0} · modifications du formulaire acceptées par {who} {when}"
+
 #. placeholder {0}: g.version + 1
+#. placeholder {0}: q.version + 1
 #: src/features/preparation/preparation-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 msgid "Version {0} · edited by hand by {who} {when}"
 msgstr "Version {0} · modifiée à la main par {who} {when}"
 
 #. placeholder {0}: g.version + 1
+#. placeholder {0}: q.version + 1
 #: src/features/preparation/preparation-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 msgid "Version {0} · written with the assistant, applied by {who} {when}"
 msgstr "Version {0} · rédigée avec l’assistant, appliquée par {who} {when}"
 
@@ -7508,6 +8089,10 @@ msgstr "Questions introductives"
 msgid "was:"
 msgstr "était :"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "We are studying [objective]. This questionnaire takes about [length] minutes: [format]. Your answers are anonymous and are only used for this research. There is no right or wrong answer. Taking part is your free choice. [Announce any sensitive theme here: health, lived experience, personal habits.]"
+msgstr "Nous étudions [objectif]. Ce questionnaire prend environ [durée] minutes : [format]. Vos réponses sont anonymes et servent uniquement à cette recherche. Il n’y a ni bonne ni mauvaise réponse. Votre participation est libre. [Annoncez ici tout thème sensible : santé, vécu, habitudes personnelles.]"
+
 #: src/routes/_authenticated/welcome.tsx
 msgid "Welcome to goodresearch"
 msgstr "Bienvenue dans goodresearch"
@@ -7520,6 +8105,10 @@ msgstr "Ce qui freine"
 #: src/features/quality/remark-card.tsx
 msgid "What it adds: {0}"
 msgstr "Ce qu'elle ajoute : {0}"
+
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "What it measures"
+msgstr "Ce qu’il mesure"
 
 #: src/features/assistant/labels.ts
 msgid "What it must learn"
@@ -7607,6 +8196,10 @@ msgstr "Qui interviewer, quand et par qui. Partagé avec les personnes qui peuve
 msgid "Why exclude it? (optional)"
 msgstr "Pourquoi l'exclure ? (facultatif)"
 
+#: src/features/preparation/questionnaire-editor.tsx
+msgid "Why this number"
+msgstr "Pourquoi ce nombre"
+
 #: src/features/quality/requalify-dialog.tsx
 msgid "Why: what does it add?"
 msgstr "Pourquoi : qu'ajoute-t-elle ?"
@@ -7679,6 +8272,7 @@ msgid "Write a fact"
 msgstr "Écrire un fait"
 
 #: src/features/preparation/preparation-tab.tsx
+#: src/features/preparation/questionnaire-tab.tsx
 msgid "Write it myself"
 msgstr "L’écrire moi-même"
 

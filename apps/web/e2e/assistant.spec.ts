@@ -88,7 +88,7 @@ test.describe('spec 005 — assistant panel', () => {
     await expect(panel.getByRole('button', { name: 'Stop' })).toHaveCount(0)
     await field.fill('propose the study')
     await page.keyboard.press('Enter')
-    const study = panel.getByRole('region', { name: 'Create an interview study' })
+    const study = panel.getByRole('region', { name: 'Create a study' })
     await study.getByRole('button', { name: 'Dismiss' }).click()
     await expect(study.getByRole('status')).toContainText('Dismissed')
     await expect(page.getByRole('main').getByText('Interviews with new users')).toHaveCount(0)
@@ -96,7 +96,7 @@ test.describe('spec 005 — assistant panel', () => {
     // The assistant opens pages as if the person navigated; the panel stays open.
     await field.fill('propose the study')
     await page.keyboard.press('Enter')
-    const accepted = panel.getByRole('region', { name: 'Create an interview study' }).last()
+    const accepted = panel.getByRole('region', { name: 'Create a study' }).last()
     await accepted.getByRole('button', { name: 'Apply' }).click()
     await expect(accepted.getByRole('status')).toContainText('Applied')
     // The study opens and the assistant goes on (spec 021).

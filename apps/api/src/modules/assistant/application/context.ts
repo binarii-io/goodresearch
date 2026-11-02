@@ -1,4 +1,9 @@
-import { type NextStep, nextStep } from '../domain/next-step.ts'
+import {
+  type NextStep,
+  nextStep,
+  type SurveyNextStep,
+  surveyNextStep,
+} from '../domain/next-step.ts'
 import type { Actor, PageRef, ResearchReads } from './ports.ts'
 import { SKILL_NAMES, SKILLS, type SkillName } from './skills.ts'
 
@@ -16,6 +21,17 @@ const NEXT_STEPS: Record<NextStep, string> = {
   fieldwork: 'run the interviews in the Fieldwork tab',
 }
 
+/** Spec 027. */
+const SURVEY_NEXT_STEPS: Record<SurveyNextStep, string> = {
+  'write-questionnaire': 'write its questionnaire',
+  'add-folder': 'add the folder that will hold its form',
+  'publish-questionnaire': 'publish its questionnaire as a form in its folder',
+  readiness:
+    'have it reviewed by another person and pre-tested with a few naive participants, then mark these checks on the Preparation tab; this advises and blocks nothing',
+  'fieldwork-later':
+    'nothing more in the app for now: opening the form and reading its responses come in a later version',
+}
+
 /** The app's own words for its tabs (bilingual glossary): the model would translate them itself. */
 const TAB_NAMES = {
   en: 'Name the study tabs as the app does: Preparation, Fieldwork, Lexicon, Enrichment, Quality, Analysis.',
@@ -24,7 +40,7 @@ const TAB_NAMES = {
 
 const LANGUAGES = { en: 'English', fr: 'French' } as const
 
-const INSTRUCTIONS = `You are the goodresearch assistant. You help people run user research: frame research questions, write research goals, plan studies (interviews first), and prepare their work.
+const INSTRUCTIONS = `You are the goodresearch assistant. You help people run user research: frame research questions, write research goals, plan studies (interviews or questionnaires), and prepare their work.
 - Be concise and concrete. Use short paragraphs and lists. Never invent facts about the person's projects: use only the context below.
 - You can propose changes with your tools. A tool call does not change anything: the person sees a card and decides. Never claim a change was made unless a tool result says "Applied".
 - When the person dismissed a proposal, do not propose it again unchanged.
@@ -41,7 +57,7 @@ const INSTRUCTIONS = `You are the goodresearch assistant. You help people run us
 /** Said when the answer follows an applied card rather than a message (spec 018, 021, 022). */
 const CONTINUATIONS = {
   project:
-    'The person just applied your project proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the project is ready and ask whether they want to prepare a first interview study. If an existing study of the team looks related, mention it and offer to reuse it with attach_study as well. Do not repeat the framing.',
+    'The person just applied your project proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the project is ready and ask whether they want to prepare a first study. If an existing study of the team looks related, mention it and offer to reuse it with attach_study as well. Do not repeat the framing.',
   study:
     'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready, then call offer_choices with the next steps: adding the folder that holds its interviews if they exist already, and preparing its interview guide. Start neither, and call no other tool. Do not repeat the framing.',
   folder:
@@ -58,6 +74,12 @@ const CONTINUATIONS = {
     'The person just applied your interview guide and it is saved: nobody wrote a new message. In one or two sentences, say so. Then call offer_choices with what comes next according to the next step in the context, first of all publishing the guide and the best practices to the study folder when that is possible, or adding the folder when there is none. Start nothing, and call no other tool.',
   published:
     'The person just applied your publication proposal and the documents are in the study folder, linked on your card: nobody wrote a new message. In one or two sentences, say so. Then call offer_choices with what comes next according to the next step in the context. Start nothing, and call no other tool.',
+  surveyStudy:
+    'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready, then call offer_choices with the next steps: designing its questionnaire, and adding the folder that will hold its form. Never mention interviews or an interview guide: this is a survey study. Start neither, and call no other tool. Do not repeat the framing.',
+  surveyFolder:
+    'The person just applied your folder proposal and the study is open: nobody wrote a new message. In one sentence, say the folder is attached: it will hold the form of the questionnaire. Then call offer_choices with what comes next according to the next step in the context. Never mention interviews, transcripts or recordings: this is a survey study. Start nothing, and call no other tool.',
+  questionnaire:
+    'The person just applied your questionnaire and it is saved: nobody wrote a new message. In one or two sentences, say so. Then call offer_choices with what comes next according to the next step in the context. Start nothing, and call no other tool.',
   connected:
     'The person just connected their file source and is back on this study: nobody wrote a new message. Call again the tool that led to the connection card: attach_folder with the link of the conversation and the Study id (ask for the link if there is none), publish_preparation with the same documents, or propose_folder_changes with the same lines.',
 } as const
@@ -66,6 +88,9 @@ export type Continuation = keyof typeof CONTINUATIONS
 
 /** The interview study of the page, for the guide tools (spec 006). */
 export type GuideStudy = { id: string; name: string; guideVersion: number | null }
+
+/** The survey study of the page, for the questionnaire tools (spec 027). */
+export type SurveyStudy = { id: string; name: string; version: number | null }
 
 const STATUS_LABELS: Record<string, string> = {
   'to-contact': 'to contact',
@@ -123,8 +148,14 @@ export const buildContext = async (
   language: 'en' | 'fr',
   loadedSkills: readonly string[] = [],
   continuation: Continuation | null = null,
-): Promise<{ system: string; guideStudy: GuideStudy | null; readOnly: boolean }> => {
+): Promise<{
+  system: string
+  guideStudy: GuideStudy | null
+  surveyStudy: SurveyStudy | null
+  readOnly: boolean
+}> => {
   let guideStudy: GuideStudy | null = null
+  let surveyStudy: SurveyStudy | null = null
   let readOnly = false
   const lines: string[] = []
   const teams = await research.teamsOf(actor.id)
@@ -185,9 +216,11 @@ export const buildContext = async (
         `Study: ${study.name} (${study.type}), Study id: ${study.id}`,
         `Tabs (study phases): preparation, fieldwork, enrichment, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
         `Source folder: ${
-          folder
-            ? `${folder.name} (inventory ${folder.status}: ${folder.byKind.transcript} transcripts, ${folder.byKind.media} recordings, ${folder.byKind.other} other files)`
-            : '(none, or no access)'
+          folder && study.type === 'survey'
+            ? folder.name
+            : folder
+              ? `${folder.name} (inventory ${folder.status}: ${folder.byKind.transcript} transcripts, ${folder.byKind.media} recordings, ${folder.byKind.other} other files)`
+              : '(none, or no access)'
         }`,
         `Research goal of the study, read by its AI steps: ${study.goal || '(empty)'}`,
         // Spec 019: a study can feed several projects, or none.
@@ -207,6 +240,28 @@ export const buildContext = async (
             ]
           : ["This study is in no project: it stays on its team's Studies page."]),
       )
+      const questionnaire =
+        study.type === 'survey' ? await research.questionnaire(actor.id, study.id) : null
+      if (questionnaire) {
+        surveyStudy = { id: study.id, name: study.name, version: questionnaire.version }
+        const has = questionnaire.content !== null
+        const published = has && folder ? await research.publishedKinds(actor, study.id) : []
+        lines.push(
+          has
+            ? `Questionnaire of this study (version ${questionnaire.version}): ${JSON.stringify(questionnaire.content)}`
+            : 'Questionnaire of this study: none yet.',
+          `Next step of this study: ${
+            SURVEY_NEXT_STEPS[
+              surveyNextStep({
+                hasQuestionnaire: has,
+                hasFolder: folder !== null,
+                published,
+                checksDone: questionnaire.checksDone,
+              })
+            ]
+          }.`,
+        )
+      }
       const preparation = await research.preparation(actor.id, study.id)
       if (preparation) {
         guideStudy = {
@@ -268,7 +323,8 @@ export const buildContext = async (
       !continuation &&
       !readOnly &&
       !loadedSkills.includes(name) &&
-      (name !== 'interview-guide-design' || guideStudy !== null),
+      (name !== 'interview-guide-design' || guideStudy !== null) &&
+      (name !== 'questionnaire-design' || surveyStudy !== null),
   )
   if (available.length)
     skills.push(
@@ -283,9 +339,23 @@ export const buildContext = async (
       'The interview guide tools (check_guide_questions, report_guide_progress, propose_interview_guide) are only available on the page of an interview study: open it with open_study to go on with the guide.',
     )
 
+  if (loaded.includes('questionnaire-design') && !surveyStudy)
+    skills.push(
+      'The questionnaire tools (check_questionnaire_items, report_questionnaire_progress, propose_questionnaire) are only available on the page of a survey study: open it with open_study to go on.',
+    )
+
+  // Spec 027: the same card leads elsewhere on a survey study.
+  const said: Continuation | null =
+    surveyStudy && continuation === 'study'
+      ? 'surveyStudy'
+      : surveyStudy && continuation === 'folder'
+        ? 'surveyFolder'
+        : continuation
+
   return {
-    system: `${INSTRUCTIONS}${continuation ? `\n- ${CONTINUATIONS[continuation]}` : ''}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language. ${TAB_NAMES[language]}\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
+    system: `${INSTRUCTIONS}${said ? `\n- ${CONTINUATIONS[said]}` : ''}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language. ${TAB_NAMES[language]}\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
     guideStudy,
+    surveyStudy,
     readOnly,
   }
 }

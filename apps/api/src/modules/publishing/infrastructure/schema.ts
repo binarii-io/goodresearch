@@ -1,4 +1,13 @@
-import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core'
 
 // Foreign keys to other modules (studies, accounts) live in migration SQL only (docs/standards.md §6).
 
@@ -31,6 +40,11 @@ export const publishingDocuments = pgTable(
     publishedAt: timestamp('published_at', { withTimezone: true }).notNull(),
     updatedBy: text('updated_by'),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+    /** Spec 027, forms only: app ids to ids at the source; what the last check read. */
+    itemMap: jsonb('item_map'),
+    linkedSheetLink: text('linked_sheet_link'),
+    acceptingResponses: boolean('accepting_responses'),
+    collectsIdentity: boolean('collects_identity'),
   },
   (t) => [uniqueIndex('publishing_documents_study_kind_idx').on(t.studyId, t.kind)],
 )

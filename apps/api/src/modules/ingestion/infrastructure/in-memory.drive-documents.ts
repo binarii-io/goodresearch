@@ -9,6 +9,12 @@ import {
   type TableModel,
   type TableRead,
 } from '../domain/drive-documents.ts'
+import type {
+  FormOperation,
+  FormRead,
+  FormReadBlock,
+  FormWriteBlock,
+} from '../domain/form-model.ts'
 
 type StoredFile = {
   id: string
@@ -22,6 +28,7 @@ type StoredFile = {
   doc?: DocModel
   table?: TableRead
   slides?: PresentationSlide[]
+  form?: Omit<FormRead, 'revision'>
 }
 
 /**
@@ -120,6 +127,87 @@ export class InMemoryDriveDocuments implements DriveDocuments {
     const { file, account } = this.#editable(refreshToken, fileId)
     if (String(file.revision) !== revision) throw new DriveRevisionMismatch()
     this.#change(file, account, { doc: structuredClone(doc) })
+  }
+
+  #formIds = 0
+
+  #applyForm(blocks: readonly FormReadBlock[], operations: readonly FormOperation[]) {
+    const next = [...blocks]
+    const nextId = () => `form-id-${++this.#formIds}`
+    const read = (block: FormWriteBlock, formItemId: string): FormReadBlock => {
+      const asked =
+        block.kind === 'section' || block.kind === 'text' || block.kind === 'unsupported'
+      if (block.kind === 'grid')
+        return {
+          ...block,
+          formItemId,
+          questionId: null,
+          rows: block.rows.map((r) => ({ title: r.title, questionId: r.questionId ?? nextId() })),
+        }
+      return { ...block, formItemId, questionId: asked ? null : (block.questionId ?? nextId()) }
+    }
+    for (const op of operations) {
+      if (op.type === 'create') next.splice(op.index, 0, read(op.block, nextId()))
+      else if (op.type === 'update') next[op.index] = read(op.block, op.formItemId)
+      else if (op.type === 'delete') next.splice(op.index, 1)
+      else {
+        const [moved] = next.splice(op.from, 1)
+        if (moved) next.splice(op.to, 0, moved)
+      }
+    }
+    return next
+  }
+
+  async createForm(
+    refreshToken: string,
+    folderId: string,
+    name: string,
+    _title: string,
+    operations: readonly FormOperation[],
+  ) {
+    return this.#create(refreshToken, folderId, name, {
+      form: {
+        blocks: this.#applyForm([], operations),
+        linkedSheetLink: null,
+        acceptingResponses: false,
+        collectsIdentity: false,
+      },
+    })
+  }
+
+  async readForm(refreshToken: string, fileId: string): Promise<FormRead> {
+    const opened = this.#open(refreshToken, fileId)
+    if (!opened?.file.form) throw new DriveCannotEdit()
+    return { ...structuredClone(opened.file.form), revision: String(opened.file.revision) }
+  }
+
+  async updateForm(
+    refreshToken: string,
+    fileId: string,
+    operations: readonly FormOperation[],
+    revision: string,
+  ) {
+    const { file, account } = this.#editable(refreshToken, fileId)
+    if (!file.form) throw new DriveCannotEdit()
+    if (String(file.revision) !== revision) throw new DriveRevisionMismatch()
+    this.#change(file, account, {
+      form: {
+        ...file.form,
+        collectsIdentity: false,
+        blocks: this.#applyForm(file.form.blocks, operations),
+      },
+    })
+  }
+
+  /** Someone edits the form at the source. */
+  editForm(
+    fileId: string,
+    by: string,
+    change: (form: Omit<FormRead, 'revision'>) => Omit<FormRead, 'revision'>,
+  ): void {
+    const file = this.files.get(fileId)
+    if (!file?.form) throw new Error(`no form ${fileId}`)
+    this.#change(file, by, { form: change(structuredClone(file.form)) })
   }
 
   async createPresentation(

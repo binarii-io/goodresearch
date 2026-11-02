@@ -1,3 +1,4 @@
+import type { ItemFlag, QuestionnaireDraft, QuestionnaireFlag } from '@goodresearch/contracts'
 import type {
   AiFailure,
   ChatMessage,
@@ -9,6 +10,7 @@ import type { GuidePoint, GuidePointState } from '../domain/guide-progress.ts'
 import type { FramingPoint } from '../domain/project-framing.ts'
 import type { ProposalKind, ProposalState } from '../domain/proposal.ts'
 import type { QuestionIssue } from '../domain/question-checks.ts'
+import type { QuestionnairePoint } from '../domain/questionnaire-progress.ts'
 import type { StudyFramingPoint } from '../domain/study-framing.ts'
 
 export type { AiFailure, ChatMessage, StreamPart, ToolSpec }
@@ -52,7 +54,7 @@ export type ProposalPreview = {
   readonly folderName?: string
   readonly folderOwner?: string
   readonly opensOn?: 'preparation' | 'fieldwork'
-  readonly documents?: ('guide' | 'best-practices')[]
+  readonly documents?: PublishableKind[]
   readonly access?: 'read' | 'write'
   readonly interviewLines?: Omit<InterviewCardLine, 'version'>[]
   readonly interviews?: number
@@ -86,12 +88,16 @@ export type ProposalPreview = {
     studies: number
     studiesWithoutProject: number
   }
+  readonly type?: 'survey'
+  readonly questionnaire?: QuestionnaireDraft
+  readonly replacesQuestionnaire?: boolean
+  readonly itemChecks?: ItemChecks
   readonly guide?: GuideDraft
   readonly replacesGuide?: boolean
   readonly progress?: {
     percent: number
     items: {
-      key: GuidePoint | FramingPoint | StudyFramingPoint
+      key: GuidePoint | FramingPoint | StudyFramingPoint | QuestionnairePoint
       weight: number
       status: GuidePointState
     }[]
@@ -169,6 +175,8 @@ export type StoredProposal = {
 
 export interface AssistantStore {
   listConversations(accountId: string): Promise<Conversation[]>
+  /** Spec 027: the answers given on a study's page in conversations that loaded a skill. */
+  answersWithSkill(studyId: string, skill: string): Promise<string[]>
   /** Only the owner's conversation (privacy, FR-008). */
   getConversation(accountId: string, conversationId: string): Promise<Conversation | null>
   createConversation(conversation: Conversation): Promise<void>
@@ -364,8 +372,8 @@ export interface ResearchReads {
   checkPublication(c: {
     actor: Actor
     studyId: string
-    kinds: readonly ('guide' | 'best-practices')[]
-  }): Promise<{ ok: true; kinds: ('guide' | 'best-practices')[] } | { ok: false; error: string }>
+    kinds: readonly PublishableKind[]
+  }): Promise<{ ok: true; kinds: PublishableKind[] } | { ok: false; error: string }>
   /** Spec 023: the documents of the study already published. */
   publishedKinds(actor: Actor, studyId: string): Promise<string[]>
   /** The person's file source is connected and allows this access. */
@@ -378,6 +386,18 @@ export interface ResearchReads {
   listProjects(accountId: string): Promise<{ id: string; name: string; team: { name: string } }[]>
   /** `null` without access to the study (folder included) or for another type than interviews. */
   preparation(accountId: string, studyId: string): Promise<StudyPreparation | null>
+  /** Spec 027: `null` without the right to change the study, or for another type than survey. */
+  questionnaire(
+    accountId: string,
+    studyId: string,
+  ): Promise<{
+    version: number | null
+    content: QuestionnaireDraft | null
+    /** The human checks marked and still valid (US6). */
+    checksDone: boolean
+  } | null>
+  /** The app's writing rules, as the tab shows them (spec 027 FR-007). */
+  checkQuestionnaire(draft: QuestionnaireDraft): ItemChecks
 }
 
 /** The research commands a proposal runs, with the person's permissions and validation. */
@@ -406,6 +426,7 @@ export interface ResearchActions {
     projectId: string
     name: string
     goal?: string
+    type?: 'survey'
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
   /** Spec 025: runs the lines kept of a card on interviews. */
   applyInterviewCard(c: {
@@ -434,7 +455,7 @@ export interface ResearchActions {
   publishPreparation(c: {
     actor: Actor
     studyId: string
-    kinds: readonly ('guide' | 'best-practices')[]
+    kinds: readonly PublishableKind[]
     language: 'en' | 'fr'
   }): Promise<{ ok: true } | { ok: false; error: string }>
   /** Spec 022: never replaces a folder. */
@@ -449,6 +470,7 @@ export interface ResearchActions {
     teamId: string
     name: string
     goal: string
+    type?: 'survey'
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
   deleteProject(c: {
     actor: Actor
@@ -477,6 +499,13 @@ export interface ResearchActions {
     name: string
     version: number
   }): Promise<{ ok: true } | { ok: false; error: string }>
+  /** `version: null` when the study had no questionnaire when it was proposed. */
+  saveQuestionnaire(c: {
+    actor: Actor
+    studyId: string
+    questionnaire: QuestionnaireDraft
+    version: number | null
+  }): Promise<{ ok: true } | { ok: false; error: string }>
   /** `version: null` when the study had no guide when it was proposed. */
   saveGuide(c: {
     actor: Actor
@@ -484,6 +513,14 @@ export interface ResearchActions {
     guide: GuideDraft
     version: number | null
   }): Promise<{ ok: true } | { ok: false; error: string }>
+}
+
+export type PublishableKind = 'guide' | 'best-practices' | 'questionnaire'
+
+export type ItemChecks = {
+  items: { text: string; flags: ItemFlag[] }[]
+  whole: QuestionnaireFlag[]
+  estimatedMinutes: number
 }
 
 export type AssistantDeps = {
@@ -496,6 +533,8 @@ export type AssistantDeps = {
     accountId: string,
     messageIds: readonly string[],
   ) => Promise<Map<string, number | null>>
+  /** Whoever spent them (spec 027 FR-012). */
+  readonly studyCosts: (refs: readonly string[]) => Promise<Map<string, number | null>>
   readonly clock: { now(): Date }
   readonly newId: () => string
   readonly log: { warn(object: object, message: string): void }

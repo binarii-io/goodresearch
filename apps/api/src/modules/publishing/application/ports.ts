@@ -1,4 +1,11 @@
 import type { Result } from '@goodresearch/shared'
+import type {
+  FormItemMap,
+  FormOperation,
+  FormReadBlock,
+  QuestionnaireContent,
+  QuestionnaireInput,
+} from '../domain/form.ts'
 import type { GuideContent, GuideInput } from '../domain/guide.ts'
 import type { DocModel, Language, TableModel, TableRead } from '../domain/model.ts'
 import type { PlannedRow } from '../domain/schedule.ts'
@@ -6,7 +13,15 @@ import type { ChangeKind, FileState } from '../domain/three-way.ts'
 
 export type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
 
-export type PublicationKind = 'guide' | 'best-practices' | 'schedule'
+export type PublicationKind = 'guide' | 'best-practices' | 'schedule' | 'questionnaire'
+
+export type FormRead = {
+  readonly blocks: readonly FormReadBlock[]
+  readonly revision: string
+  readonly linkedSheetLink: string | null
+  readonly acceptingResponses: boolean
+  readonly collectsIdentity: boolean
+}
 
 export type FileMeta = {
   readonly id: string
@@ -20,7 +35,11 @@ export type FileMeta = {
   readonly webViewLink: string
 }
 
-type FileError = 'DRIVE_NOT_CONNECTED' | 'DRIVE_CANNOT_EDIT' | 'DRIVE_CHANGED_MEANWHILE'
+type FileError =
+  | 'DRIVE_NOT_CONNECTED'
+  | 'DRIVE_CANNOT_EDIT'
+  | 'DRIVE_CHANGED_MEANWHILE'
+  | 'FORMS_DISABLED'
 
 /** The study folder's files with the acting person's own access (ingestion module). */
 export type StudyFiles = {
@@ -40,6 +59,17 @@ export type StudyFiles = {
     table: Pick<TableModel, 'columns' | 'timeZone'>,
   ): Promise<Result<TableRead, FileError>>
   rewriteTable(fileId: string, table: TableModel): Promise<Result<void, FileError>>
+  createForm(
+    name: string,
+    title: string,
+    operations: readonly FormOperation[],
+  ): Promise<Result<{ id: string; webViewLink: string }, FileError>>
+  readForm(fileId: string): Promise<Result<FormRead, FileError>>
+  updateForm(
+    fileId: string,
+    operations: readonly FormOperation[],
+    revision: string,
+  ): Promise<Result<void, FileError>>
   metadata(fileId: string): Promise<Result<FileMeta | null, FileError>>
 }
 
@@ -66,6 +96,10 @@ export type PreparationReads = {
     accountId: string,
     studyId: string,
   ): Promise<Result<{ content: GuideContent; version: number } | null, string>>
+  questionnaire(
+    accountId: string,
+    studyId: string,
+  ): Promise<Result<{ content: QuestionnaireContent; version: number } | null, string>>
   schedule(
     accountId: string,
     studyId: string,
@@ -78,6 +112,12 @@ export type PreparationActions = {
     actor: Actor
     studyId: string
     content: GuideInput
+    version: number
+  }): Promise<{ ok: true } | { ok: false; error: string }>
+  saveQuestionnaire(c: {
+    actor: Actor
+    studyId: string
+    content: QuestionnaireInput
     version: number
   }): Promise<{ ok: true } | { ok: false; error: string }>
   addPlanned(c: {
@@ -129,6 +169,11 @@ export type StoredPublication = {
   readonly publishedAt: Date
   readonly updatedBy: string | null
   readonly updatedAt: Date
+  /** Spec 027, forms only: identities at the source, and what the last read found. */
+  readonly itemMap: FormItemMap | null
+  readonly linkedSheetLink: string | null
+  readonly acceptingResponses: boolean | null
+  readonly collectsIdentity: boolean | null
 }
 
 export type StoredChange = {

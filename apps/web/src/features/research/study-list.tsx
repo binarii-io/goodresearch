@@ -138,13 +138,14 @@ function CreateStudyDialog({ projectId }: { projectId: string }) {
   const [name, setName] = useState('')
   const [touched, setTouched] = useState(false)
   const ids = { name: useId(), nameError: useId(), type: useId() }
+  const [studyType, setStudyType] = useState<'interviews' | 'survey'>('interviews')
   const missing = touched && name.trim().length === 0
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setTouched(true)
     if (name.trim().length === 0) return
-    const { id } = await createStudy.mutateAsync({ projectId, data: { name, type: 'interviews' } })
+    const { id } = await createStudy.mutateAsync({ projectId, data: { name, type: studyType } })
     await queryClient.invalidateQueries({ queryKey: getListStudiesQueryKey(projectId) })
     setOpen(false)
     await navigate({
@@ -156,7 +157,7 @@ function CreateStudyDialog({ projectId }: { projectId: string }) {
 
   const types = [
     { value: 'interviews', label: t`Interviews`, available: true },
-    { value: 'survey', label: t`Survey`, available: false },
+    { value: 'survey', label: t`Survey`, available: true },
     { value: 'usability-test', label: t`Usability test`, available: false },
   ]
 
@@ -191,7 +192,10 @@ function CreateStudyDialog({ projectId }: { projectId: string }) {
           </div>
           <fieldset className="grid gap-2">
             <legend className="text-sm font-medium">{t`Type`}</legend>
-            <RadioGroup defaultValue="interviews">
+            <RadioGroup
+              value={studyType}
+              onValueChange={(value) => setStudyType(value as typeof studyType)}
+            >
               {types.map((type) => (
                 <div key={type.value} className="flex items-center gap-2">
                   <RadioGroupItem

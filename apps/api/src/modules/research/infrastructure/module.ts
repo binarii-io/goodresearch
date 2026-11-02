@@ -4,6 +4,7 @@ import { makeCreateProject } from '../application/commands/create-project.ts'
 import { makeDeleteProject } from '../application/commands/delete-project.ts'
 import { makeMoveProjectToTeam } from '../application/commands/move-project-to-team.ts'
 import { makePreparationCommands } from '../application/commands/preparation-commands.ts'
+import { makeQuestionnaireCommands } from '../application/commands/questionnaire-commands.ts'
 import { makeRenameProject } from '../application/commands/rename-project.ts'
 import { makeStudyCommands } from '../application/commands/study-commands.ts'
 import { makeUpdateProjectGoal } from '../application/commands/update-project-goal.ts'
@@ -15,6 +16,10 @@ import type {
 } from '../application/ports.ts'
 import { makePreparationQueries } from '../application/queries/preparation-queries.ts'
 import { makeProjectQueries, type TeamNames } from '../application/queries/project-queries.ts'
+import {
+  checkDraft,
+  makeQuestionnaireQueries,
+} from '../application/queries/questionnaire-queries.ts'
 import { makeStudyQueries, type SourceSummaries } from '../application/queries/study-queries.ts'
 import type { ResearchHandlers } from './http.routes.ts'
 import {
@@ -22,6 +27,7 @@ import {
   drizzlePlannedInterviewRepository,
 } from './preparation.drizzle-repository.ts'
 import { drizzleProjectRepository } from './project.drizzle-repository.ts'
+import { drizzleQuestionnaireRepository } from './questionnaire.drizzle-repository.ts'
 import { drizzleStudyRepository } from './study.drizzle-repository.ts'
 
 export const createResearchModule = (deps: {
@@ -60,6 +66,7 @@ export const createResearchModule = (deps: {
     canRead: (accountId, studyId) => deps.ingestion().gate.canRead(accountId, studyId),
   }
   const preparationQueries = makePreparationQueries({ db: deps.db, teams: deps.teams, gate })
+  const questionnaireQueries = makeQuestionnaireQueries({ db: deps.db, teams: deps.teams, gate })
   const handlers: ResearchHandlers = {
     createProject: makeCreateProject(commandDeps),
     deleteProject: makeDeleteProject({
@@ -86,6 +93,13 @@ export const createResearchModule = (deps: {
       plannedChanged: (actor, planned) => deps.ingestion().plannedChanged(actor, planned),
     }),
     preparationQueries,
+    questionnaires: makeQuestionnaireCommands({
+      ...commandDeps,
+      studies: drizzleStudyRepository(deps.db),
+      questionnaires: drizzleQuestionnaireRepository(deps.db),
+      gate,
+    }),
+    questionnaireQueries,
   }
   return {
     handlers,
@@ -98,5 +112,7 @@ export const createResearchModule = (deps: {
     teamOfProject: queries.teamOfProject,
     studyOfPlanned: preparationQueries.studyOfPlanned,
     preparationForAssistant: preparationQueries.preparationForAssistant,
+    questionnaireForAssistant: questionnaireQueries.questionnaireForAssistant,
+    checkQuestionnaire: checkDraft,
   }
 }

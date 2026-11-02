@@ -16,6 +16,7 @@ A journey is defined and delivered on its own: one journey, one pull request, on
 | 6 | [Publish the preparation](06-publish-preparation.md) | Built by [spec 023](../../specs/023-agent-publish-preparation/spec.md) |
 | 7 | [Work in the study's folder](07-study-folder-work.md) | Built by [spec 024](../../specs/024-agent-drive-folder/spec.md) |
 | 8 | [Interviews](08-interviews.md) | Built by [spec 025](../../specs/025-agent-interviews/spec.md) |
+| 9 | [Questionnaire](09-questionnaire.md) | Built by [spec 027](../../specs/027-survey-preparation/spec.md) |
 
 ## How a journey is written
 

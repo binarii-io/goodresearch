@@ -68,9 +68,9 @@ goodresearch reads the attached folders (for now, only file metadata). It writes
 
 ### Publishing the study preparation to Drive (optional)
 
-People can publish an interview study's guide and best practices (Google Docs) and its interview schedule (Google Sheets) to the study's folder, edit them there, and review the changes back in goodresearch (spec 007): accepted changes go into the app, conflicts are settled by a person, and a file with unreviewed changes is never rewritten silently.
+People can publish an interview study's guide and best practices (Google Docs), its interview schedule (Google Sheets) and a survey study's questionnaire (Google Forms) to the study's folder, edit them there, and review the changes back in goodresearch (spec 007): accepted changes go into the app, conflicts are settled by a person, and a file with unreviewed changes is never rewritten silently.
 
-1. In the same Google Cloud project, also enable the **Google Docs API** and the **Google Sheets API**.
+1. In the same Google Cloud project, also enable the **Google Docs API**, the **Google Sheets API** and the **Google Forms API** (without it, only publishing a questionnaire fails, with a message saying so).
 2. On the OAuth consent screen, add the scope `https://www.googleapis.com/auth/drive` (edit the files the person can edit). It is *restricted* like `drive.readonly`, so the verification needs do not change.
 3. People are asked for this consent the first time they publish or update; until then their Drive stays read-only. Whoever can edit a published file in Drive can update it from goodresearch, whoever published it.
 

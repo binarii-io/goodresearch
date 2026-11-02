@@ -257,6 +257,22 @@ export {
   StartQualityRun,
 } from './quality.ts'
 export {
+  ItemFlag,
+  MarkReadiness,
+  QUESTIONNAIRE_LIMITS,
+  Questionnaire,
+  QuestionnaireContent,
+  QuestionnaireContentInput,
+  QuestionnaireDesignCost,
+  QuestionnaireDraft,
+  QuestionnaireFlag,
+  QuestionnaireSectionKind,
+  ReadinessKind,
+  ReadinessMark,
+  ReadinessParams,
+  SaveQuestionnaire,
+} from './questionnaire.ts'
+export {
   CreateRecommendation,
   DecideRecommendation,
   DraftTakeaways,

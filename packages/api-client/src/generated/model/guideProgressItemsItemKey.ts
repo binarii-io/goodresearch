@@ -23,4 +23,9 @@ export const GuideProgressItemsItemKey = {
   reuse: 'reuse',
   goal: 'goal',
   place: 'place',
+  objectiveThemes: 'objectiveThemes',
+  administration: 'administration',
+  profiling: 'profiling',
+  thematicItems: 'thematicItems',
+  formatOrder: 'formatOrder',
 } as const;
