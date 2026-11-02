@@ -1,3 +1,4 @@
+import { maskBilingual } from '@goodresearch/shared'
 import type { PublishedDeck } from '../domain/debrief.ts'
 import { buildDeck, type DeckInput, fingerprintOf } from '../domain/deck.ts'
 import { kindShown, priority } from '../domain/recommendations.ts'
@@ -79,7 +80,10 @@ const readDeck = async (
       ),
     ),
   ]
-  const verbatims = (await deps.sources.verbatims(supporting)).filter((v) => openIds.has(v.studyId))
+  // Spec 026: a reader's deck holds no quote, as the names in them could not be masked for sure.
+  const verbatims = !project.canChange
+    ? []
+    : (await deps.sources.verbatims(supporting)).filter((v) => openIds.has(v.studyId))
   return {
     project,
     open: [...openIds].sort(),
@@ -90,7 +94,8 @@ const readDeck = async (
     recommendations,
     verbatims,
     takeaways: await deps.store.getTakeaways(projectId),
-    names: await projectNames(deps, accountId, openIds),
+    // A reader gets the deck's text whatever their access to the folders: every study's names.
+    names: await projectNames(deps, accountId, project.canChange ? openIds : project.studyIds),
   }
 }
 
@@ -106,6 +111,11 @@ const deckOf = (data: DeckData, options: DeckOptions) => {
     const f = data.facts.get(factId)
     return !!f && (decided(f.status) || (options.withProposed && f.status === 'proposed'))
   }
+  // Spec 026: a reader's deck: known names masked in its free text, and no unsaved draft.
+  const reader = !data.project.canChange
+  const mask = <T extends { readonly en: string; readonly fr: string } | null>(text: T): T =>
+    reader ? maskBilingual(text, data.names) : text
+  const draft = !reader && takeaways?.draft.state === 'ready' ? takeaways.draft.text : null
   const input: DeckInput = {
     language: options.language,
     withProposed: options.withProposed,
@@ -117,13 +127,10 @@ const deckOf = (data: DeckData, options: DeckOptions) => {
     },
     studies: data.studies,
     takeaways:
-      takeaways &&
-      (takeaways.text.en ||
-        takeaways.text.fr ||
-        (takeaways.draft.state === 'ready' && takeaways.draft.text))
+      takeaways && (takeaways.text.en || takeaways.text.fr || draft)
         ? {
-            text: takeaways.text,
-            draft: takeaways.draft.state === 'ready' ? takeaways.draft.text : null,
+            text: mask(takeaways.text),
+            draft,
             toValidate: toValidate(takeaways.savedOver, [...raw, ...recommendations]),
           }
         : null,
@@ -143,16 +150,16 @@ const deckOf = (data: DeckData, options: DeckOptions) => {
             key: line.themeKey,
             title: line.themeTitle ? themeTitle(line.themeTitle) : null,
           },
-          statement: i.statement,
-          description: i.description,
+          statement: mask(i.statement),
+          description: mask(i.description),
           level: line.level,
           polarity: line.polarity,
           support: line.support,
           counter: line.counter,
           panel: line.panel,
           facts: line.facts,
-          counterEvidence: i.counterEvidence,
-          minorityView: i.minorityView,
+          counterEvidence: mask(i.counterEvidence),
+          minorityView: mask(i.minorityView),
           verbatims: data.verbatims
             .filter((v) => ids.has(v.factId))
             .map((v) => ({ participant: v.participant, text: v.text })),
@@ -180,13 +187,14 @@ const deckOf = (data: DeckData, options: DeckOptions) => {
       .map(({ r, evidence }) => ({
         id: r.id,
         status: r.status,
-        action: r.action,
-        successMeasure: r.successMeasure,
+        action: mask(r.action),
+        successMeasure: mask(r.successMeasure),
         kind: kindShown(r, lines).kind,
         impact: r.impact,
         effort: r.effort,
         priority: priority(r.impact, r.effort),
-        owner: r.owner,
+        // Spec 026 FR-017: the owner is free text, often a name; it stays with the team.
+        owner: data.project.canChange ? r.owner : null,
         evidence,
       })),
   }
@@ -197,6 +205,7 @@ const deckOf = (data: DeckData, options: DeckOptions) => {
     studies: data.studies,
     /** An AI draft of the key takeaways not used yet: shown with what is still to decide. */
     takeawaysDraft:
+      !reader &&
       takeaways?.draft.state === 'ready' &&
       !!takeaways.draft.text &&
       (takeaways.draft.text.en !== takeaways.text.en ||

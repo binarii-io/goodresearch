@@ -5419,6 +5419,7 @@
             "enum": [
               "UNAUTHENTICATED",
               "FORBIDDEN",
+              "READ_ONLY",
               "VALIDATION",
               "PROJECT_NOT_FOUND",
               "TEAM_NOT_FOUND",
@@ -6107,6 +6108,11 @@
           "interviewTitle": {
             "type": "string"
           },
+          "interviewNumber": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "statement": {
             "$ref": "#/components/schemas/StatementInput"
           },
@@ -6467,6 +6473,11 @@
                 },
                 "title": {
                   "type": "string"
+                },
+                "number": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 }
               },
               "required": [
@@ -6474,6 +6485,9 @@
                 "title"
               ]
             }
+          },
+          "verbatimsHidden": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -6483,7 +6497,8 @@
           "pageSize",
           "themes",
           "participants",
-          "interviews"
+          "interviews",
+          "verbatimsHidden"
         ]
       },
       "CreateFactInput": {
@@ -9612,6 +9627,29 @@
           "name"
         ]
       },
+      "TeamDirectoryEntryInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "projects": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "projects"
+        ]
+      },
       "MeInput": {
         "type": "object",
         "properties": {
@@ -9959,6 +9997,9 @@
           "team": {
             "$ref": "#/components/schemas/TeamRefInput"
           },
+          "canChange": {
+            "type": "boolean"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
@@ -9969,6 +10010,7 @@
           "id",
           "name",
           "team",
+          "canChange",
           "updatedAt"
         ]
       },
@@ -9988,6 +10030,9 @@
           },
           "team": {
             "$ref": "#/components/schemas/TeamRefInput"
+          },
+          "canChange": {
+            "type": "boolean"
           },
           "canDelete": {
             "type": "boolean"
@@ -10013,6 +10058,7 @@
           "name",
           "goal",
           "team",
+          "canChange",
           "canDelete",
           "createdAt",
           "updatedAt",
@@ -10159,6 +10205,9 @@
               ]
             }
           },
+          "canChange": {
+            "type": "boolean"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
@@ -10172,6 +10221,7 @@
           "hasFolder",
           "folderName",
           "alsoIn",
+          "canChange",
           "updatedAt"
         ]
       },
@@ -10244,6 +10294,9 @@
               "clean-only"
             ]
           },
+          "canChange": {
+            "type": "boolean"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -10269,6 +10322,7 @@
           "goal",
           "anonymised",
           "textAnalysed",
+          "canChange",
           "createdAt",
           "updatedAt",
           "version"
@@ -10325,6 +10379,9 @@
           "canAttach": {
             "type": "boolean"
           },
+          "canChange": {
+            "type": "boolean"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
@@ -10339,6 +10396,7 @@
           "hasFolder",
           "folderName",
           "canAttach",
+          "canChange",
           "updatedAt"
         ]
       },
@@ -18357,6 +18415,7 @@
             "enum": [
               "UNAUTHENTICATED",
               "FORBIDDEN",
+              "READ_ONLY",
               "VALIDATION",
               "PROJECT_NOT_FOUND",
               "TEAM_NOT_FOUND",
@@ -19061,6 +19120,11 @@
           "interviewTitle": {
             "type": "string"
           },
+          "interviewNumber": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "statement": {
             "$ref": "#/components/schemas/Statement"
           },
@@ -19429,6 +19493,11 @@
                 },
                 "title": {
                   "type": "string"
+                },
+                "number": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 }
               },
               "required": [
@@ -19437,6 +19506,9 @@
               ],
               "additionalProperties": false
             }
+          },
+          "verbatimsHidden": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -19446,7 +19518,8 @@
           "pageSize",
           "themes",
           "participants",
-          "interviews"
+          "interviews",
+          "verbatimsHidden"
         ],
         "additionalProperties": false
       },
@@ -22679,6 +22752,30 @@
         ],
         "additionalProperties": false
       },
+      "TeamDirectoryEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "projects": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "projects"
+        ],
+        "additionalProperties": false
+      },
       "Me": {
         "type": "object",
         "properties": {
@@ -23038,6 +23135,9 @@
           "team": {
             "$ref": "#/components/schemas/TeamRef"
           },
+          "canChange": {
+            "type": "boolean"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
@@ -23048,6 +23148,7 @@
           "id",
           "name",
           "team",
+          "canChange",
           "updatedAt"
         ],
         "additionalProperties": false
@@ -23068,6 +23169,9 @@
           },
           "team": {
             "$ref": "#/components/schemas/TeamRef"
+          },
+          "canChange": {
+            "type": "boolean"
           },
           "canDelete": {
             "type": "boolean"
@@ -23093,6 +23197,7 @@
           "name",
           "goal",
           "team",
+          "canChange",
           "canDelete",
           "createdAt",
           "updatedAt",
@@ -23247,6 +23352,9 @@
               "additionalProperties": false
             }
           },
+          "canChange": {
+            "type": "boolean"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
@@ -23260,6 +23368,7 @@
           "hasFolder",
           "folderName",
           "alsoIn",
+          "canChange",
           "updatedAt"
         ],
         "additionalProperties": false
@@ -23335,6 +23444,9 @@
               "clean-only"
             ]
           },
+          "canChange": {
+            "type": "boolean"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -23360,6 +23472,7 @@
           "goal",
           "anonymised",
           "textAnalysed",
+          "canChange",
           "createdAt",
           "updatedAt",
           "version"
@@ -23418,6 +23531,9 @@
           "canAttach": {
             "type": "boolean"
           },
+          "canChange": {
+            "type": "boolean"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time",
@@ -23432,6 +23548,7 @@
           "hasFolder",
           "folderName",
           "canAttach",
+          "canChange",
           "updatedAt"
         ],
         "additionalProperties": false
@@ -26068,6 +26185,29 @@
         }
       }
     },
+    "/api/teams/directory": {
+      "get": {
+        "operationId": "listTeamDirectory",
+        "tags": [
+          "teams"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TeamDirectoryEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/teams/{teamId}/name": {
       "put": {
         "operationId": "renameTeam",
@@ -26394,6 +26534,28 @@
             },
             "in": "query",
             "name": "team",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "mine",
+                "all"
+              ]
+            },
+            "in": "query",
+            "name": "teams",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "in": "query",
+            "name": "limit",
             "required": false
           }
         ],

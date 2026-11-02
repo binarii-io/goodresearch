@@ -51,6 +51,7 @@ import { toast } from 'sonner'
 import { Choice } from '../analysis/choice.tsx'
 import { errorCode, errorMessage } from '../workspace/errors.ts'
 import { useFormatRelative } from '../workspace/format.ts'
+import { useCanChange } from '../workspace/read-only.tsx'
 import { DeckSlideView } from './deck-slide.tsx'
 
 /** Goes to Google's consent for editing, then back to this tab (spec 007 FR-002). */
@@ -64,6 +65,7 @@ const askWriteConsent = (projectId: string) => {
 /** Spec 015: the project's debrief deck, built from its data each time it is opened. */
 export function DebriefTab({ projectId }: { projectId: string }) {
   const { t, i18n } = useLingui()
+  const canChange = useCanChange()
   const formatRelative = useFormatRelative()
   const queryClient = useQueryClient()
   const proposedId = useId()
@@ -166,13 +168,14 @@ export function DebriefTab({ projectId }: { projectId: string }) {
             <DownloadIcon aria-hidden />
             {t`Print or save as PDF`}
           </Button>
-          {published && !data.otherAccess ? (
+          {canChange && published && !data.otherAccess ? (
             <Button size="sm" disabled={update.isPending} onClick={() => void runUpdate(false)}>
               {update.isPending ? <LoaderCircleIcon aria-hidden className="animate-spin" /> : null}
               {t`Update in Google Slides`}
             </Button>
           ) : null}
           <Button
+            hidden={!canChange}
             size="sm"
             variant={published ? 'outline' : 'default'}
             disabled={data.folders.length === 0}
@@ -198,7 +201,9 @@ export function DebriefTab({ projectId }: { projectId: string }) {
         </div>
       ) : null}
 
-      {data.folders.length === 0 ? (
+      {!canChange ? (
+        <p className="text-muted-foreground text-sm">{t`Quotes stay with the team: this deck holds none of them.`}</p>
+      ) : data.folders.length === 0 ? (
         <p className="text-muted-foreground text-sm">{t`Publishing needs a study of the project with a Drive folder you can open.`}</p>
       ) : null}
 
@@ -213,7 +218,7 @@ export function DebriefTab({ projectId }: { projectId: string }) {
             <ExternalLinkIcon aria-hidden className="size-4" />
             {t`Open in Google Slides`}
           </a>
-          {data.otherAccess ? (
+          {!canChange ? null : data.otherAccess ? (
             <span className="text-muted-foreground text-xs">{t`Published from studies you cannot all open (or more of them): only someone with the same access can update it.`}</span>
           ) : (
             <Badge variant="outline">
@@ -297,14 +302,16 @@ export function DebriefTab({ projectId }: { projectId: string }) {
       {presenting !== null ? (
         <Presenter slides={data.slides} start={presenting} onClose={() => setPresenting(null)} />
       ) : null}
-      <PublishDialog
-        projectId={projectId}
-        data={data}
-        withProposed={withProposed}
-        open={publishing}
-        onOpenChange={setPublishing}
-        onDone={refresh}
-      />
+      {canChange ? (
+        <PublishDialog
+          projectId={projectId}
+          data={data}
+          withProposed={withProposed}
+          open={publishing}
+          onOpenChange={setPublishing}
+          onDone={refresh}
+        />
+      ) : null}
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogContent>
           <AlertDialogHeader>

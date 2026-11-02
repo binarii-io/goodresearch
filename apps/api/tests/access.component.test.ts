@@ -32,7 +32,7 @@ describe('team-based access (US3)', () => {
     await world?.close()
   })
 
-  it('SC-004: listings and direct links return exactly the allowed projects', async () => {
+  it("SC-004: listings return the person's projects; any member opens the others (spec 026)", async () => {
     const [none, one, several] = [
       await world.session('none@research.example.com'),
       await world.session('one@research.example.com'),
@@ -64,8 +64,9 @@ describe('team-based access (US3)', () => {
         new Set(allowed.map((k) => projects[k as keyof typeof projects])),
       )
       for (const [key, id] of Object.entries(projects)) {
-        const status = (await call(who, 'GET', `/api/projects/${id}`)).statusCode
-        expect(status).toBe(allowed.includes(key) ? 200 : 404)
+        const project = await call(who, 'GET', `/api/projects/${id}`)
+        expect(project.statusCode).toBe(200)
+        expect(project.json()).toMatchObject({ canChange: allowed.includes(key) })
       }
     }
   })

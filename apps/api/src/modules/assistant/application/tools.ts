@@ -369,6 +369,15 @@ export const GUIDE_TOOLS: readonly ToolSpec[] = [
   },
 ]
 
+/**
+ * Spec 026 FR-020: what stays on another team's page: no action, so no card and no framing. Creating
+ * is for a page of the person's own teams. New tools stay out by default.
+ */
+export const READ_ONLY_TOOLS: readonly string[] = ['open_project', 'open_study', 'offer_choices']
+
+export const offeredOnReadOnlyPage = <T extends { name: string }>(tools: readonly T[]) =>
+  tools.filter((t) => READ_ONLY_TOOLS.includes(t.name))
+
 /** What the writing rules flag in each question; empty lists are kept out. */
 export const checksOf = (questions: readonly string[]) =>
   questions.map((question) => ({ question, issues: checkQuestion(question) }))
@@ -837,7 +846,7 @@ export const prepareProposal = async (
     case 'open_project': {
       const input = INPUTS.open_project.safeParse(call.input)
       if (!input.success) return null
-      const project = await research.getProject(actor.id, input.data.projectId)
+      const project = await research.readProject(actor.id, input.data.projectId)
       if (!project) return null
       return {
         kind: 'open_project',
@@ -850,7 +859,7 @@ export const prepareProposal = async (
     case 'open_study': {
       const input = INPUTS.open_study.safeParse(call.input)
       if (!input.success) return null
-      const study = await research.getStudy(actor.id, input.data.studyId)
+      const study = await research.readStudy(actor.id, input.data.studyId)
       if (!study) return null
       return {
         kind: 'open_study',

@@ -38,7 +38,7 @@ const iso = (d: Date | null) => d?.toISOString() ?? null
 
 export const makeSourceQueries = (deps: IngestionDeps) => ({
   studySource: async (actor: Actor, studyId: string): Promise<StudySourceView | null> => {
-    const access = await resolveStudyAccess(deps, actor.id, studyId)
+    const access = await resolveStudyAccess(deps, actor.id, studyId, 'read')
     if (access.kind === 'not-found') return null
     const driveConfigured = deps.drive !== null
     if (access.kind !== 'full') {
@@ -51,6 +51,9 @@ export const makeSourceQueries = (deps: IngestionDeps) => ({
     }
     const source = access.source
     if (!source) return { access: 'full', driveConfigured, folderOwner: null, source: null }
+    // Spec 026: a reader with access has no one to ask, and never gets the inventory.
+    const team = await deps.studies.getStudyAccess(actor.id, studyId)
+    if (!team) return { access: 'full', driveConfigured, folderOwner: null, source: null }
     const inv = source.inventory
     const interrupted = inv.status === 'running' && !isActiveRun(inv, deps.clock.now())
     return {
@@ -137,4 +140,7 @@ export type SourceQueries = ReturnType<typeof makeSourceQueries>
 export const makeStudyActionGate = (deps: IngestionDeps) => ({
   canAct: async (accountId: string, studyId: string): Promise<boolean> =>
     (await resolveStudyAccess(deps, accountId, studyId)).kind === 'full',
+  /** Spec 026: may this person read what the study holds (every member, after the folder)? */
+  canRead: async (accountId: string, studyId: string): Promise<boolean> =>
+    (await resolveStudyAccess(deps, accountId, studyId, 'read')).kind === 'full',
 })

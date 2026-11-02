@@ -11,6 +11,7 @@ export type ProblemCode = typeof ProblemCode[keyof typeof ProblemCode];
 export const ProblemCode = {
   UNAUTHENTICATED: 'UNAUTHENTICATED',
   FORBIDDEN: 'FORBIDDEN',
+  READ_ONLY: 'READ_ONLY',
   VALIDATION: 'VALIDATION',
   PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
   TEAM_NOT_FOUND: 'TEAM_NOT_FOUND',

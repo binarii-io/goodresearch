@@ -6,6 +6,7 @@ import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { plural } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { Link } from '@tanstack/react-router'
+import { useCanChange } from '../workspace/read-only.tsx'
 
 /** Read again on each visit: decisions are made on the other screens (spec 017 US1). */
 export const useProjectOverview = (projectId: string) =>
@@ -18,6 +19,7 @@ export const useProjectCosts = (projectId: string) =>
 /** Spec 017 US1: where the research stands, and the next step. */
 export function ProjectJourney({ projectId }: { projectId: string }) {
   const { t, i18n } = useLingui()
+  const canChange = useCanChange()
   const overview = useProjectOverview(projectId)
 
   if (overview.isPending) return <Skeleton className="h-32 w-full" />
@@ -60,7 +62,8 @@ export function ProjectJourney({ projectId }: { projectId: string }) {
     <nav aria-label={t`Progress of the research`}>
       <JourneySteps>
         {steps.map((step, index) => {
-          const isNext = step.key === nextStep
+          // Spec 026: readers see where it stands; what to do next is the team's.
+          const isNext = canChange && step.key === nextStep
           const shared = { number: index + 1, next: isNext ? t`Next step` : undefined }
           if (step.key === 'debrief')
             return (
@@ -84,7 +87,9 @@ export function ProjectJourney({ projectId }: { projectId: string }) {
                       : t`Key takeaways to write`
                 }
                 // The takeaways are written on Recommendations; the Debrief tab reads them.
-                render={tabLink(step.state === 'done' ? 'debrief' : 'recommendations')}
+                render={tabLink(
+                  step.state === 'done' || !canChange ? 'debrief' : 'recommendations',
+                )}
               />
             )
           if (step.key === 'interviews') {
@@ -118,7 +123,7 @@ export function ProjectJourney({ projectId }: { projectId: string }) {
                         step.toDecide > 0 ? t`${toValidate} to validate` : t`All validated`,
                       ].join(' · ')
                 }
-                render={studyLink('fieldwork')}
+                render={studyLink(canChange ? 'fieldwork' : 'analysis')}
               />
             )
           }

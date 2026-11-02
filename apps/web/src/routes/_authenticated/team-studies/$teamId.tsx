@@ -4,6 +4,7 @@ import {
   useGetTeamStudiesCosts,
   useGetTeamStudiesOverview,
   useListProjects,
+  useListTeamDirectory,
   useListTeamStudies,
 } from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
@@ -39,6 +40,10 @@ function TeamStudiesPage() {
   const { t, i18n } = useLingui()
   const { teamId } = Route.useParams()
   const me = useMe()
+  // Spec 026: any member reads a team's studies; its members and admins add to them.
+  const directory = useListTeamDirectory()
+  const teams = directory.data ?? me.teams
+  const ownTeam = me.role === 'admin' || me.teams.some((team) => team.id === teamId)
   const [q, setQ] = useState('')
   const search = useId()
   const term = useDeferredValue(q.trim())
@@ -52,11 +57,11 @@ function TeamStudiesPage() {
     <div className="grid gap-4">
       <PageTitle
         title={t`Studies of the team`}
-        actions={studies.isSuccess ? <CreateTeamStudyDialog teamId={teamId} /> : null}
+        actions={studies.isSuccess && ownTeam ? <CreateTeamStudyDialog teamId={teamId} /> : null}
       />
-      {me.teams.length > 1 ? (
+      {teams.length > 1 ? (
         <nav aria-label={t`Teams`} className="flex flex-wrap gap-2">
-          {me.teams.map((team) => (
+          {teams.map((team) => (
             <Button
               key={team.id}
               size="sm"
@@ -79,7 +84,7 @@ function TeamStudiesPage() {
         <Input id={search} value={q} maxLength={120} onChange={(e) => setQ(e.target.value)} />
       </div>
       {errorCode(studies.error) === 'TEAM_NOT_FOUND' ? (
-        <p role="alert">{t`This team does not exist, or you are not in it.`}</p>
+        <p role="alert">{t`This team does not exist.`}</p>
       ) : studies.isError ? (
         <p role="alert" className="text-destructive">
           {errorMessage(i18n, studies.error)}
@@ -93,7 +98,7 @@ function TeamStudiesPage() {
               key={study.id}
               study={study}
               search={{ from: 'team' }}
-              closed={!study.canAttach}
+              closed={study.hasFolder && study.folderName === null}
               counts={overview.data?.studies.find((o) => o.id === study.id)?.counts}
               cost={costs.data?.studies.find((c) => c.id === study.id)?.cost}
               actions={

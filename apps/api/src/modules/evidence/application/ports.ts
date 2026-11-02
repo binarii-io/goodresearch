@@ -31,8 +31,24 @@ export type SourceSession = {
   readonly interviewDate: string | null
 }
 
+export type ReaderStudy =
+  | { readonly relation: 'team' }
+  | {
+      readonly relation: 'reader'
+      readonly type: string
+      readonly anonymised: boolean
+      readonly folderOpen: boolean
+      /** The validated interviews, in the order of their dates. */
+      readonly interviewIds: readonly string[]
+      /** Every name the app knows for the study, read when needed: masked, never shown. */
+      readonly names: () => Promise<readonly string[]>
+      readonly themes: readonly { id: string; title: string }[]
+    }
+
 /** What Evidence reads from the other modules, through `compose.ts` (research R1). */
 export type AnalysisSources = {
+  /** Spec 026: how this person reads a study: as its team, as a reader, or not at all. */
+  readerStudy(accountId: string, studyId: string): Promise<ReaderStudy | null>
   studyAccess(accountId: string, studyId: string): Promise<StudyAccess | null>
   /** The validated interviews, with the person's own folder access; null without it. */
   sessions(accountId: string, studyId: string): Promise<readonly SourceSession[] | null>

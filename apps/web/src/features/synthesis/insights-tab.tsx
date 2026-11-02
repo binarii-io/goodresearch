@@ -29,6 +29,7 @@ import { toast } from 'sonner'
 import { Choice } from '../analysis/choice.tsx'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
+import { useCanChange } from '../workspace/read-only.tsx'
 import { FactsPanel } from './facts-panel.tsx'
 import { InsightCardView } from './insight-card.tsx'
 import { InsightPanel, useRefreshInsights } from './insight-panel.tsx'
@@ -42,6 +43,7 @@ const running = (data: InsightsOverview | undefined) => !!data?.run && !data.run
 /** Spec 013 FR-001: the project's insights, by theme, with the run, the costs and the facts. */
 export function InsightsTab({ projectId }: { projectId: string }) {
   const { t, i18n } = useLingui()
+  const canChange = useCanChange()
   const money = useMoney()
   const refresh = useRefreshInsights(projectId)
   const [theme, setTheme] = useState(ALL)
@@ -104,23 +106,27 @@ export function InsightsTab({ projectId }: { projectId: string }) {
               ? t`Facts (${data.facts} accepted, ${data.factsToDecide} to validate)`
               : t`Facts (${data.facts})`}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={data.facts === 0}
-            onClick={() => setCreating(true)}
-          >
-            <PlusIcon aria-hidden />
-            {t`New insight`}
-          </Button>
-          <Button
-            size="sm"
-            disabled={live || data.facts + data.factsToDecide === 0}
-            onClick={() => setFinding(true)}
-          >
-            <SparklesIcon aria-hidden />
-            {t`Find insights`}
-          </Button>
+          {canChange ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={data.facts === 0}
+                onClick={() => setCreating(true)}
+              >
+                <PlusIcon aria-hidden />
+                {t`New insight`}
+              </Button>
+              <Button
+                size="sm"
+                disabled={live || data.facts + data.factsToDecide === 0}
+                onClick={() => setFinding(true)}
+              >
+                <SparklesIcon aria-hidden />
+                {t`Find insights`}
+              </Button>
+            </>
+          ) : null}
         </div>
       </div>
 
@@ -144,6 +150,7 @@ export function InsightsTab({ projectId }: { projectId: string }) {
                   : t`Finding insights: call ${run.callsDone} of ${run.calls || '…'}`}
               </span>
               <Button
+                hidden={!canChange}
                 size="xs"
                 variant="outline"
                 disabled={run.stopping || stop.isPending}
@@ -253,7 +260,7 @@ export function InsightsTab({ projectId }: { projectId: string }) {
                 </ul>
               </section>
             ))}
-            {toDecide.length > 0 ? (
+            {canChange && toDecide.length > 0 ? (
               <div className="flex justify-end">
                 <Button
                   variant="outline"
@@ -287,18 +294,22 @@ export function InsightsTab({ projectId }: { projectId: string }) {
         <p className="text-muted-foreground text-sm">{t`No insight matches these filters.`}</p>
       ) : null}
 
-      <InsightRunDialog
-        projectId={projectId}
-        open={finding}
-        onOpenChange={setFinding}
-        hasInsights={total > 0}
-      />
-      <NewInsightDialog
-        projectId={projectId}
-        open={creating}
-        onOpenChange={setCreating}
-        themes={data.themes}
-      />
+      {canChange ? (
+        <>
+          <InsightRunDialog
+            projectId={projectId}
+            open={finding}
+            onOpenChange={setFinding}
+            hasInsights={total > 0}
+          />
+          <NewInsightDialog
+            projectId={projectId}
+            open={creating}
+            onOpenChange={setCreating}
+            themes={data.themes}
+          />
+        </>
+      ) : null}
       <Sheet open={factsOpen} onOpenChange={setFactsOpen}>
         <SheetContent closeLabel={t`Close`} className="w-full overflow-y-auto p-4 sm:max-w-lg">
           <SheetHeader className="p-0">

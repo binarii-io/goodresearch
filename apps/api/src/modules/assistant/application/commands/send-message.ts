@@ -40,6 +40,7 @@ import {
   checksOf,
   folderWorkRefusal,
   GUIDE_TOOLS,
+  offeredOnReadOnlyPage,
   prepareAnalysis,
   prepareDeletion,
   prepareFolder,
@@ -785,7 +786,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       const loadedSkills = proposals
         .filter((p) => p.kind === 'load_skill' && p.state === 'applied')
         .map((p) => String(p.values.name))
-      const { system, guideStudy } = await buildContext(
+      const { system, guideStudy, readOnly } = await buildContext(
         deps.research,
         c.actor,
         c.page,
@@ -795,7 +796,11 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       )
       const run = runFor(guideStudy)
       // A continuing answer follows a card just applied: it offers the next step, no new card.
-      const offered = [...TOOLS, ...(guideStudy && person ? GUIDE_TOOLS : [])].filter(
+      const offered = (
+        readOnly
+          ? offeredOnReadOnlyPage(TOOLS)
+          : [...TOOLS, ...(guideStudy && person ? GUIDE_TOOLS : [])]
+      ).filter(
         (t) =>
           person ||
           (!NOT_CONTINUING.includes(t.name) &&

@@ -195,6 +195,7 @@ export const fakeSources = (input: {
   }
   const allowed = input.access ?? (() => true)
   const sources: AnalysisSources = {
+    readerStudy: async (accountId) => (allowed(accountId) ? { relation: 'team' } : null),
     studyAccess: async (accountId) =>
       allowed(accountId)
         ? {

@@ -81,7 +81,12 @@ export const registerResearchRoutes = (
         response: { 200: z.array(ProjectSummary) },
       },
     },
-    async (request) => h.queries.listProjects(request.account.id, { team: request.query.team }),
+    async (request) =>
+      h.queries.listProjects(request.account.id, {
+        team: request.query.team,
+        teams: request.query.teams,
+        limit: request.query.limit,
+      }),
   )
 
   api.post(
@@ -136,7 +141,7 @@ export const registerResearchRoutes = (
       },
     },
     async (request, res) =>
-      (await h.queries.getProject(request.account.id, request.params.projectId)) ??
+      (await h.queries.readProject(request.account.id, request.params.projectId)) ??
       sendError(res, 'PROJECT_NOT_FOUND'),
   )
 
@@ -227,7 +232,7 @@ export const registerResearchRoutes = (
       },
     },
     async (request, res) =>
-      (await h.studyQueries.listStudies(request.account.id, request.params.projectId)) ??
+      (await h.studyQueries.readStudies(request.account.id, request.params.projectId)) ??
       sendError(res, 'PROJECT_NOT_FOUND'),
   )
 
@@ -267,7 +272,7 @@ export const registerResearchRoutes = (
       },
     },
     async (request, res) =>
-      (await h.studyQueries.getStudy(request.account.id, request.params.studyId)) ??
+      (await h.studyQueries.readStudy(request.account.id, request.params.studyId)) ??
       sendError(res, 'STUDY_NOT_FOUND'),
   )
 
@@ -317,7 +322,7 @@ export const registerResearchRoutes = (
       },
     },
     async (request, res) =>
-      (await h.studyQueries.listTeamStudies(
+      (await h.studyQueries.readTeamStudies(
         request.account.id,
         request.params.teamId,
         request.query,

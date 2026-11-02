@@ -4,6 +4,10 @@ import { Id, Language } from './common.ts'
 export const Role = z.enum(['admin', 'member'])
 
 export const TeamRef = z.object({ id: Id, name: z.string() }).meta({ id: 'TeamRef' })
+/** Spec 026: every team, for any active member to find its work. */
+export const TeamDirectoryEntry = z
+  .object({ id: Id, name: z.string(), projects: z.number().int() })
+  .meta({ id: 'TeamDirectoryEntry' })
 
 export const Me = z
   .object({

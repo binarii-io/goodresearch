@@ -108,9 +108,16 @@ export const makeAnalysedText = (
     ])
   }
 
+  /** Spec 026: the same names for a team, to mask what a reader gets; the caller checked access. */
+  const teamPersonNames = async (teamId: string): Promise<string[]> =>
+    personTerms(await deps.store.teamTerms(teamId)).flatMap((t) => [
+      t.form,
+      ...t.variants.map((v) => v.spelling),
+    ])
+
   /** A lexicon reading or a cleaning of the study is running (spec 012 FR-012). */
   const enrichmentLive = async (studyId: string) =>
     (await lexicon.liveRun(studyId)) || (await cleaningLive(studyId))
 
-  return { analysedText, importTranscripts, personNames, enrichmentLive }
+  return { analysedText, importTranscripts, personNames, teamPersonNames, enrichmentLive }
 }

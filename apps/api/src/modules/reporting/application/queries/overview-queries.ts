@@ -97,7 +97,7 @@ export const makeOverviewQueries = ({ sources }: ReportingDeps) => ({
       Promise.all(open.map((s) => sources.studyCounts(s.id))),
       sources.insightCounts(projectId),
       sources.recommendationCounts(projectId),
-      sources.takeaways(projectId),
+      sources.takeawaysShown(accountId, projectId),
     ])
     const facts = parts.map((p) => counted(p.facts))
     const countsOf = new Map(open.map((s, n) => [s.id, { part: parts[n], facts: facts[n] }]))

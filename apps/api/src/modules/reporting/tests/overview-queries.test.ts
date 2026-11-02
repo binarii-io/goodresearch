@@ -44,6 +44,7 @@ const setup = (
     insightCounts: async () => [],
     recommendationCounts: async () => [],
     takeaways: async () => null,
+    takeawaysShown: async () => null,
     projectCostRefs: async () => ({ insights: [], recommendations: [], takeaways: [] }),
     costs: async (asked) => new Map(asked.map((r) => [r, r in prices ? (prices[r] ?? null) : 0])),
     ...options.over,
@@ -171,7 +172,7 @@ describe('project overview (spec 017)', () => {
 
   it('marks the debrief done once key takeaways are written', async () => {
     const takeaways = { text: { en: 'Done', fr: '' }, translation: 'done' as const }
-    const o = await read(setup({ over: { takeaways: async () => takeaways } }))
+    const o = await read(setup({ over: { takeawaysShown: async () => takeaways } }))
     expect(o.takeaways).toEqual(takeaways)
     expect(o.steps[4]).toMatchObject({ key: 'debrief', state: 'done' })
   })

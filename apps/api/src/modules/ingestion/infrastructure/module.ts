@@ -154,6 +154,22 @@ export const createIngestionModule = (deps: {
     /** The files of a study's folder with one person's own access (spec 007). */
     studyFiles,
     sourceSummaries: ingestion.store.folderSummaries,
+    /** Spec 026: the study owning an interview. */
+    studyOfSession: async (id: string) => (await ingestion.store.getSession(id))?.studyId ?? null,
+    /**
+     * Spec 026: a study's validated interviews by date, and the names held on them, for a reader's
+     * view of the facts. The caller has checked the access, and masks the names.
+     */
+    readerInterviews: async (studyId: string) => {
+      const sessions = await ingestion.store.listSessions(studyId)
+      return {
+        ids: sessions
+          .filter((s) => s.state === 'validated')
+          .sort((a, b) => (a.interviewDate ?? '').localeCompare(b.interviewDate ?? ''))
+          .map((s) => s.id),
+        names: sessions.flatMap((s) => s.roster.map((r) => r.name)),
+      }
+    },
     /** Spec 017: a study's interviews for the project's Overview. */
     studyOverview: makeStudyOverview(ingestion),
     studyCostRefs: makeStudyCostRefs(ingestion),

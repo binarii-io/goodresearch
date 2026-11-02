@@ -27,5 +27,9 @@ export const createPublishingModule = (deps: {
     commands: makePublicationCommands(publishing),
     queries: makePublicationQueries(publishing),
   }
-  return { handlers }
+  return {
+    handlers,
+    /** Spec 026: the study owning a publication. */
+    studyOfPublication: async (id: string) => (await publishing.store.get(id))?.studyId ?? null,
+  }
 }

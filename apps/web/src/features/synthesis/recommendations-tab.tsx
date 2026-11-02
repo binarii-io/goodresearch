@@ -23,6 +23,7 @@ import { toast } from 'sonner'
 import { Choice } from '../analysis/choice.tsx'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
+import { useCanChange } from '../workspace/read-only.tsx'
 import { INSIGHT_FAILURES, INSIGHT_STATUSES, RATINGS, REC_KINDS } from './labels.ts'
 import { NewRecommendationDialog } from './new-recommendation-dialog.tsx'
 import { RecommendationCardView } from './recommendation-card.tsx'
@@ -42,6 +43,7 @@ export function RecommendationsTab({ projectId }: { projectId: string }) {
   const refresh = useRefreshRecommendations(projectId)
   const [status, setStatus] = useState(ALL)
   const [kind, setKind] = useState(ALL)
+  const canChange = useCanChange()
   const [priority, setPriority] = useState(ALL)
   const [finding, setFinding] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -111,19 +113,23 @@ export function RecommendationsTab({ projectId }: { projectId: string }) {
               </SegmentedItem>
             </Segmented>
           ) : null}
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={data.insights === 0}
-            onClick={() => setCreating(true)}
-          >
-            <PlusIcon aria-hidden />
-            {t`New recommendation`}
-          </Button>
-          <Button size="sm" disabled={live || readable === 0} onClick={() => setFinding(true)}>
-            <SparklesIcon aria-hidden />
-            {t`Find recommendations`}
-          </Button>
+          {canChange ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={data.insights === 0}
+                onClick={() => setCreating(true)}
+              >
+                <PlusIcon aria-hidden />
+                {t`New recommendation`}
+              </Button>
+              <Button size="sm" disabled={live || readable === 0} onClick={() => setFinding(true)}>
+                <SparklesIcon aria-hidden />
+                {t`Find recommendations`}
+              </Button>
+            </>
+          ) : null}
         </div>
       </div>
 
@@ -143,6 +149,7 @@ export function RecommendationsTab({ projectId }: { projectId: string }) {
               <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
               <span>{run.stopping ? t`Stopping…` : t`Finding recommendations…`}</span>
               <Button
+                hidden={!canChange}
                 size="xs"
                 variant="outline"
                 disabled={run.stopping || stop.isPending}
@@ -235,7 +242,7 @@ export function RecommendationsTab({ projectId }: { projectId: string }) {
                   </li>
                 ))}
               </ul>
-              {toDecide.length > 0 ? (
+              {canChange && toDecide.length > 0 ? (
                 <div className="flex justify-end">
                   <Button
                     variant="outline"
@@ -280,8 +287,16 @@ export function RecommendationsTab({ projectId }: { projectId: string }) {
         <p className="text-muted-foreground text-sm">{t`No recommendation matches these filters.`}</p>
       ) : null}
 
-      <RecommendationRunDialog projectId={projectId} open={finding} onOpenChange={setFinding} />
-      <NewRecommendationDialog projectId={projectId} open={creating} onOpenChange={setCreating} />
+      {canChange ? (
+        <>
+          <RecommendationRunDialog projectId={projectId} open={finding} onOpenChange={setFinding} />
+          <NewRecommendationDialog
+            projectId={projectId}
+            open={creating}
+            onOpenChange={setCreating}
+          />
+        </>
+      ) : null}
     </div>
   )
 }

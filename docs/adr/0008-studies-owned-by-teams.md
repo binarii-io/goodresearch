@@ -33,3 +33,7 @@ A study can have no project: its team's Studies page lists it. Deleting a projec
 - Moving a project moves its studies in the same transaction, and is refused if one of them is shared. This is the one command that changes more than one aggregate, as a study's team must stay equal to its projects'.
 - A study's cost appears in each project that uses it, so project totals must not be added together.
 - Sharing between teams would need its own access rules.
+
+## Mise à jour — spec 026
+
+Reading is no longer limited to the team: see [ADR-0009](0009-read-for-all-change-for-the-team.md). Changes still follow the study's team, then its folder.

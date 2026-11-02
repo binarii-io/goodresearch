@@ -464,8 +464,8 @@ msgid "{flaggedCount} questions to review"
 msgstr "{flaggedCount} questions to review"
 
 #: src/features/research/study-list.tsx
-msgid "{hidden, plural, one {The counts leave out # study whose folder you cannot open; the AI cost of the project includes it.} other {The counts leave out # studies whose folder you cannot open; the AI cost of the project includes them.}}"
-msgstr "{hidden, plural, one {The counts leave out # study whose folder you cannot open; the AI cost of the project includes it.} other {The counts leave out # studies whose folder you cannot open; the AI cost of the project includes them.}}"
+msgid "{hidden, plural, one {The counts leave out # study whose folder access is not confirmed; the AI cost of the project includes it. Opening the study checks it.} other {The counts leave out # studies whose folder access is not confirmed; the AI cost of the project includes them. Opening a study checks it.}}"
+msgstr "{hidden, plural, one {The counts leave out # study whose folder access is not confirmed; the AI cost of the project includes it. Opening the study checks it.} other {The counts leave out # studies whose folder access is not confirmed; the AI cost of the project includes them. Opening a study checks it.}}"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "{interviewCount} interviews to analyse"
@@ -1107,6 +1107,10 @@ msgstr "All sources"
 #: src/features/synthesis/facts-panel.tsx
 msgid "All studies"
 msgstr "All studies"
+
+#: src/routes/_authenticated/index.tsx
+msgid "All teams"
+msgstr "All teams"
 
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx
@@ -2920,6 +2924,10 @@ msgid "Folder"
 msgstr "Folder"
 
 #: src/features/research/study-card.tsx
+msgid "Folder access not confirmed"
+msgstr "Folder access not confirmed"
+
+#: src/features/research/study-card.tsx
 msgid "Folder attached"
 msgstr "Folder attached"
 
@@ -3424,6 +3432,13 @@ msgstr "Insights validated"
 msgid "Interview"
 msgstr "Interview"
 
+#. placeholder {0}: fact.interviewNumber
+#. placeholder {0}: i.number
+#: src/features/analysis/fact-card.tsx
+#: src/features/analysis/facts-list.tsx
+msgid "Interview {0}"
+msgstr "Interview {0}"
+
 #: src/features/assistant/proposal-card.tsx
 #: src/features/preparation/drive-publishing.tsx
 msgid "Interview best practices"
@@ -3538,6 +3553,7 @@ msgstr "Interviewers"
 #: src/features/research/study-card.tsx
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Interviews"
 msgstr "Interviews"
 
@@ -4102,6 +4118,10 @@ msgstr "Move to support"
 msgid "Moved: {where}"
 msgstr "Moved: {where}"
 
+#: src/routes/_authenticated/index.tsx
+msgid "My teams"
+msgstr "My teams"
+
 #: src/features/assistant/proposal-card.tsx
 #: src/features/enrichment/labels.ts
 #: src/features/ingestion/source-panel.tsx
@@ -4243,10 +4263,6 @@ msgstr "No accepted fact to read."
 msgid "No accepted fact yet. Facts are found and accepted in the Analysis phase of each study of the project."
 msgstr "No accepted fact yet. Facts are found and accepted in the Analysis phase of each study of the project."
 
-#: src/routes/_authenticated/index.tsx
-msgid "No access yet"
-msgstr "No access yet"
-
 #: src/features/fieldwork/analysis.tsx
 msgid "No AI provider is set up: only the app's rules will run, at no cost."
 msgstr "No AI provider is set up: only the app's rules will run, at no cost."
@@ -4321,6 +4337,10 @@ msgstr "No insight yet. Insights are found and validated in the Insights tab of 
 #: src/features/synthesis/deck-slide.tsx
 msgid "No interview guide for this study."
 msgstr "No interview guide for this study."
+
+#: src/features/preparation/preparation-tab.tsx
+msgid "No interview guide yet."
+msgstr "No interview guide yet."
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "No interview matches these filters."
@@ -4623,6 +4643,7 @@ msgstr "Nothing to decide. Find terms to read new interviews, or see the accepte
 
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
+#: src/features/workspace/read-only.tsx
 msgid "Nothing yet"
 msgstr "Nothing yet"
 
@@ -4687,6 +4708,14 @@ msgstr "Only admins can do this."
 msgid "Only interview studies have a guide, a schedule and interviews."
 msgstr "Only interview studies have a guide, a schedule and interviews."
 
+#: src/features/workspace/read-only.tsx
+msgid "Only team {team} can change this page: contact it to suggest a change."
+msgstr "Only team {team} can change this page: contact it to suggest a change."
+
+#: src/features/workspace/errors.ts
+msgid "Only team {team} can change this."
+msgstr "Only team {team} can change this."
+
 #: src/features/workspace/errors.ts
 msgid "Only terms of the same language can be merged."
 msgstr "Only terms of the same language can be merged."
@@ -4694,6 +4723,10 @@ msgstr "Only terms of the same language can be merged."
 #: src/features/fieldwork/proposals.tsx
 msgid "Only the names change: no file is moved, copied or deleted."
 msgstr "Only the names change: no file is moved, copied or deleted."
+
+#: src/features/workspace/errors.ts
+msgid "Only the team that owns this can change it."
+msgstr "Only the team that owns this can change it."
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Only turns with corrections"
@@ -5252,6 +5285,10 @@ msgstr "Question, objectives, hypotheses"
 msgid "Quick wins"
 msgstr "Quick wins"
 
+#: src/features/synthesis/debrief-tab.tsx
+msgid "Quotes stay with the team: this deck holds none of them."
+msgstr "Quotes stay with the team: this deck holds none of them."
+
 #. placeholder {0}: remark.recommendation
 #: src/features/quality/remark-card.tsx
 msgid "Rather: « {0} »"
@@ -5280,6 +5317,10 @@ msgstr "Read an extract of: {file}"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Read on"
 msgstr "Read on"
+
+#: src/features/workspace/read-only.tsx
+msgid "Read only"
+msgstr "Read only"
 
 #: src/features/preparation/best-practices.tsx
 msgid "Read the best practices"
@@ -5800,6 +5841,10 @@ msgstr "See in the insights"
 msgid "See in the interview"
 msgstr "See in the interview"
 
+#: src/features/synthesis/facts-panel.tsx
+msgid "See in the study"
+msgstr "See in the study"
+
 #: src/features/quality/remark-card.tsx
 msgid "See in the transcript"
 msgstr "See in the transcript"
@@ -5885,6 +5930,10 @@ msgstr "Show every interview"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Show every occurrence ({total})"
 msgstr "Show every occurrence ({total})"
+
+#: src/routes/_authenticated/index.tsx
+msgid "Show more"
+msgstr "Show more"
 
 #: src/routes/sign-in.tsx
 msgid "Sign in with {provider}"
@@ -6082,6 +6131,11 @@ msgstr "studies"
 msgid "Studies"
 msgstr "Studies"
 
+#. placeholder {0}: x.name
+#: src/routes/_authenticated/index.tsx
+msgid "Studies of {0}"
+msgstr "Studies of {0}"
+
 #: src/routes/_authenticated/team-studies/$teamId.tsx
 #: src/routes/_authenticated/teams.tsx
 msgid "Studies of the team"
@@ -6171,6 +6225,7 @@ msgstr "Supports"
 
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Survey"
 msgstr "Survey"
 
@@ -6248,6 +6303,10 @@ msgstr "Team renamed"
 #: src/routes/_authenticated/teams.tsx
 msgid "Teams"
 msgstr "Teams"
+
+#: src/routes/_authenticated/index.tsx
+msgid "Teams shown"
+msgstr "Teams shown"
 
 #: src/features/enrichment/labels.ts
 #: src/features/enrichment/lexicon-table.tsx
@@ -6928,6 +6987,10 @@ msgstr "This item is not in the study's folder."
 msgid "This page does not exist or you do not have access to it."
 msgstr "This page does not exist or you do not have access to it."
 
+#: src/features/workspace/read-only.tsx
+msgid "This part is reserved to team {team}: it holds the names of the people interviewed."
+msgstr "This part is reserved to team {team}: it holds the names of the people interviewed."
+
 #: src/features/workspace/errors.ts
 msgid "This person does not exist."
 msgstr "This person does not exist."
@@ -7009,8 +7072,8 @@ msgid "This team does not exist or you do not have access to it."
 msgstr "This team does not exist or you do not have access to it."
 
 #: src/routes/_authenticated/team-studies/$teamId.tsx
-msgid "This team does not exist, or you are not in it."
-msgstr "This team does not exist, or you are not in it."
+msgid "This team does not exist."
+msgstr "This team does not exist."
 
 #: src/routes/_authenticated/teams.tsx
 msgid "This team still has {projects}. Move them to another team first."
@@ -7282,6 +7345,7 @@ msgstr "Updated in Drive"
 
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx
+#: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Usability test"
 msgstr "Usability test"
 
@@ -7374,6 +7438,10 @@ msgstr "verbatim, {toneLabel}:"
 #: src/features/analysis/fact-dialog.tsx
 msgid "Verbatims"
 msgstr "Verbatims"
+
+#: src/features/analysis/facts-list.tsx
+msgid "Verbatims are hidden: this study is not anonymised, so they could hold names that stay with its team."
+msgstr "Verbatims are hidden: this study is not anonymised, so they could hold names that stay with its team."
 
 #: src/features/analysis/interview-facts.tsx
 msgid "Verbatims without a fact"
@@ -7638,13 +7706,13 @@ msgstr "Write what the team should do and choose the insights it rests on. It is
 msgid "Written:"
 msgstr "Written:"
 
+#: src/routes/_authenticated/index.tsx
+msgid "You are not in a team yet: you can read every team's work. To change it, ask an admin to add you to a team."
+msgstr "You are not in a team yet: you can read every team's work. To change it, ask an admin to add you to a team."
+
 #: src/routes/_authenticated/teams.tsx
 msgid "You are not in any team yet."
 msgstr "You are not in any team yet."
-
-#: src/routes/_authenticated/index.tsx
-msgid "You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects."
-msgstr "You are signed in, but you are not in any team yet. Ask an admin to add you to a team to see its projects."
 
 #: src/features/workspace/errors.ts
 msgid "You can view this file in Drive but not edit it."

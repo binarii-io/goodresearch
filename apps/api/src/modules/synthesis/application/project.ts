@@ -1,9 +1,11 @@
-import { err, ok, type Result } from '@goodresearch/shared'
+import { err, maskBilingual, ok, type Result } from '@goodresearch/shared'
 import { themeOf } from '../domain/fact-lines.ts'
 import { OTHER, type ProjectTheme } from '../domain/insights.ts'
 import type { ProjectStudy, SourceFact, SynthesisDeps } from './ports.ts'
 
 export type ProjectError = 'PROJECT_NOT_FOUND'
+
+type Bilingual = { readonly en: string; readonly fr: string }
 
 export type ProjectView = {
   readonly teamId: string
@@ -11,6 +13,8 @@ export type ProjectView = {
   readonly goal: string
   /** Spec 015: the name of the project's team. */
   readonly team?: string | null | undefined
+  /** Spec 026: false for a reader outside the team. */
+  readonly canChange: boolean
   readonly studies: readonly ProjectStudy[]
   readonly studyIds: ReadonlySet<string>
 }
@@ -49,6 +53,21 @@ export const projectThemes = async (
   return [...found.values(), OTHER]
 }
 
+/**
+ * Spec 026: what a statement looks like to this person: as it is for the team; for a reader, with
+ * the names the app knows over the studies they can open masked.
+ */
+export const readerMask = async (
+  deps: SynthesisDeps,
+  accountId: string,
+  project: ProjectView,
+): Promise<<T extends Bilingual | null>(text: T) => T> => {
+  if (project.canChange) return (text) => text
+  // Every study, open or not: this text reaches the reader whatever their access to the folders.
+  const names = await projectNames(deps, accountId, project.studyIds)
+  return <T extends Bilingual | null>(text: T): T => maskBilingual(text, names)
+}
+
 /** The names the app knows over the project's studies: never sent, never in a statement. */
 export const projectNames = async (
   deps: SynthesisDeps,
@@ -56,7 +75,7 @@ export const projectNames = async (
   studyIds: Iterable<string>,
 ): Promise<string[]> => {
   const names = new Set<string>()
-  for (const id of studyIds)
-    for (const n of await deps.sources.knownNames(accountId, id)) names.add(n)
+  const lists = await Promise.all([...studyIds].map((id) => deps.sources.knownNames(accountId, id)))
+  for (const list of lists) for (const n of list) names.add(n)
   return [...names]
 }

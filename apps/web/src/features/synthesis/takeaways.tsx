@@ -30,6 +30,7 @@ import { useEffect, useId, useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { errorMessage } from '../workspace/errors.ts'
+import { ChangeableText, useCanChange } from '../workspace/read-only.tsx'
 import { useBilingual } from './insight-card.tsx'
 import { useRefreshRecommendations } from './recommendation-panel.tsx'
 
@@ -57,6 +58,7 @@ export function Takeaways({
   const lang = i18n.locale.startsWith('fr') ? 'fr' : 'en'
   const refresh = useRefreshRecommendations(projectId)
   const save = useSaveTakeaways()
+  const canChange = useCanChange()
   const draft = useDraftTakeaways()
   const retry = useRetryTakeawaysTranslation()
   const fail = (failure: unknown) => toast.error(errorMessage(i18n, failure))
@@ -90,6 +92,40 @@ export function Takeaways({
     if (asking) estimate.mutate({ projectId, data: { withProposed } })
   }, [asking, withProposed, projectId, estimate.mutate])
   const e = asking ? estimate.data : undefined
+  if (!canChange)
+    return (
+      <section
+        aria-labelledby="takeaways-heading"
+        className="grid gap-3 rounded-lg border bg-card p-4"
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 id="takeaways-heading" className="font-semibold text-lg">
+            {t`Key takeaways`}
+          </h2>
+          {k.toValidate > 0 ? (
+            <Badge variant="outline">
+              <TriangleAlertIcon aria-hidden />
+              {t`Rests on ${k.toValidate} items to validate`}
+            </Badge>
+          ) : null}
+          {k.outOfDate ? (
+            <Badge variant="outline">
+              <TriangleAlertIcon aria-hidden />
+              {t`May be out of date`}
+            </Badge>
+          ) : null}
+        </div>
+        <div className="text-base leading-relaxed">
+          <ChangeableText
+            label={t`Key takeaways`}
+            value={bilingual(k.text, k.translation).text}
+            savedMessage=""
+            editHint=""
+            onSave={async () => undefined}
+          />
+        </div>
+      </section>
+    )
   return (
     <section
       aria-labelledby="takeaways-heading"

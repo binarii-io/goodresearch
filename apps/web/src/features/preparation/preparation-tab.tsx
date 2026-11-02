@@ -21,6 +21,31 @@ import { guideToMarkdown } from './guide-markdown.ts'
 import { GuideView, questionCount } from './guide-view.tsx'
 import { InterviewSchedule } from './schedule.tsx'
 
+/** Spec 026: outside the team, only the guide: the schedule holds names. */
+export function ReaderPreparation({ studyId }: { studyId: string }) {
+  const { t, i18n } = useLingui()
+  const guide = useGetInterviewGuide(studyId)
+  const g = guide.data
+  return (
+    <section aria-labelledby="guide-heading" className="grid gap-3">
+      <SectionTitle id="guide-heading" count={g ? questionCount(g.content) : undefined}>
+        {t`Interview guide`}
+      </SectionTitle>
+      {guide.isPending ? (
+        <Skeleton className="h-32 w-full" />
+      ) : guide.isError ? (
+        <p role="alert" className="text-destructive text-sm">
+          {errorMessage(i18n, guide.error)}
+        </p>
+      ) : g ? (
+        <GuideView guide={g.content} />
+      ) : (
+        <p className="text-muted-foreground">{t`No interview guide yet.`}</p>
+      )}
+    </section>
+  )
+}
+
 /**
  * The Preparation tab of an interview study (spec 006): the interview guide (with the assistant or
  * by hand), the best practices, the interview schedule. Shown only to people who can act on it.

@@ -17,7 +17,7 @@ import {
 import { outOfDate, toValidate } from '../../domain/takeaways.ts'
 import { type InsightLine, insightsNow } from '../insights-now.ts'
 import type { SynthesisDeps } from '../ports.ts'
-import { projectOf } from '../project.ts'
+import { projectOf, readerMask } from '../project.ts'
 import { basisOf, blankTakeaways } from '../takeaways-basis.ts'
 
 type Filters = {
@@ -31,7 +31,12 @@ const band = (p: number) => (p >= 4 ? 'high' : p >= 2 ? 'medium' : 'low')
 
 /** Read models of the Recommendations tab: queries only, computed values derived (FR-006). */
 export const makeRecommendationQueries = (deps: SynthesisDeps) => {
-  const cardOf = (r: Recommendation, insights: ReadonlyMap<string, InsightLine>) => {
+  const cardOf = (
+    r: Recommendation,
+    insights: ReadonlyMap<string, InsightLine>,
+    canChange: boolean,
+    mask: <T extends { readonly en: string; readonly fr: string } | null>(text: T) => T,
+  ) => {
     const k = kindShown(r, insights)
     // Counted links only: a suggested insight counts once a person accepts it (FR-005).
     const states = r.links
@@ -40,14 +45,15 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
     return {
       id: r.id,
       version: r.version,
-      action: r.action,
+      action: mask(r.action),
       kind: r.kind,
       kindShown: k.kind,
       downgraded: k.downgraded,
       impact: r.impact,
       effort: r.effort,
       priority: priority(r.impact, r.effort),
-      owner: r.owner,
+      // Spec 026 FR-017: the owner is free text, often a name; it stays with the team.
+      owner: canChange ? r.owner : null,
       status: r.status,
       origin: r.origin,
       translation: r.translation,
@@ -58,9 +64,12 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
     }
   }
 
-  const runView = async (run: RecommendationRun | null) => {
+  const runView = async (run: RecommendationRun | null, reader: boolean) => {
     if (!run) return null
-    const names = await deps.store.accountNames([run.startedBy])
+    // Spec 026: who ran it stays with the team.
+    const names = reader
+      ? new Map<string, string>()
+      : await deps.store.accountNames([run.startedBy])
     const live = isRunLive(run, deps.clock.now())
     return {
       id: run.id,
@@ -84,7 +93,8 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
     // Each read once per request (it is polled while a run or a draft is live).
     const rawInsights = await deps.store.insightsOf(projectId)
     const insights = await insightsNow(deps, project.value, projectId, rawInsights)
-    const cards = recommendations.map((r) => cardOf(r, insights))
+    const mask = await readerMask(deps, accountId, project.value)
+    const cards = recommendations.map((r) => cardOf(r, insights, project.value.canChange, mask))
     const refs = [
       ...runs.flatMap(recommendationRunRefs),
       takeawaysRef(projectId),
@@ -113,7 +123,7 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
       },
       insights: all.filter((i) => i.status === 'validated' || i.status === 'edited').length,
       insightsToDecide: all.filter((i) => i.status === 'proposed').length,
-      run: await runView(runs[0] ?? null),
+      run: await runView(runs[0] ?? null, !project.value.canChange),
       lastRunCost: last
         ? sumKnownCosts(recommendationRunRefs(last).map((r) => costs.get(r)))
         : null,
@@ -123,11 +133,14 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
         ? !(await deps.store.hasConsent(accountId, projectId, provider))
         : true,
       takeaways: {
-        text: takeaways.text,
+        text: mask(takeaways.text),
         translation: takeaways.translation,
         version: takeaways.version,
         savedBy: takeaways.savedBy
-          ? { id: takeaways.savedBy, name: who.get(takeaways.savedBy) ?? null }
+          ? {
+              id: takeaways.savedBy,
+              name: project.value.canChange ? (who.get(takeaways.savedBy) ?? null) : null,
+            }
           : null,
         savedAt: takeaways.savedAt?.toISOString() ?? null,
         outOfDate: outOfDate(
@@ -139,11 +152,14 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
         toValidate: toValidate(takeaways.savedOver, [...rawInsights, ...recommendations]),
         // FR-012: what the drafts cost, shown in their own block.
         cost: costs.get(takeawaysRef(projectId)) ?? null,
-        draft: {
-          text: takeaways.draft.text,
-          state: takeaways.draft.state,
-          withProposed: takeaways.draft.withProposed,
-        },
+        // Spec 026: a draft is the team's until saved.
+        draft: project.value.canChange
+          ? {
+              text: takeaways.draft.text,
+              state: takeaways.draft.state,
+              withProposed: takeaways.draft.withProposed,
+            }
+          : { text: null, state: 'none' as const, withProposed: false },
       },
     })
   }
@@ -155,20 +171,21 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
     const r = await deps.store.getRecommendation(id)
     if (!r || r.projectId !== projectId) return err('RECOMMENDATION_NOT_FOUND' as const)
     const insights = await insightsNow(deps, project.value, projectId)
-    const card = cardOf(r, insights)
+    const mask = await readerMask(deps, accountId, project.value)
+    const card = cardOf(r, insights, project.value.canChange, mask)
     return ok({
       id: r.id,
       version: r.version,
-      action: r.action,
-      rationale: r.rationale,
-      successMeasure: r.successMeasure,
+      action: mask(r.action),
+      rationale: mask(r.rationale),
+      successMeasure: mask(r.successMeasure),
       kind: r.kind,
       kindShown: card.kindShown,
       downgraded: card.downgraded,
       impact: r.impact,
       effort: r.effort,
       priority: card.priority,
-      owner: r.owner,
+      owner: card.owner,
       status: r.status,
       origin: r.origin,
       translation: r.translation,
@@ -179,7 +196,7 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
           state: l.state,
           origin: l.origin,
           insight: linkStateOf(l, i),
-          statement: i?.statement ?? null,
+          statement: mask(i?.statement ?? null),
           theme: i ? { key: i.themeKey, title: i.themeTitle } : null,
           level: i?.level ?? null,
           polarity: i?.polarity ?? null,
@@ -202,9 +219,11 @@ export const makeRecommendationQueries = (deps: SynthesisDeps) => {
   ) => {
     const project = await projectOf(deps, accountId, projectId)
     if (!project.ok) return project
-    const insights = [...(await insightsNow(deps, project.value, projectId)).values()].filter(
-      (i) => i.status !== 'rejected',
-    )
+    const mask = await readerMask(deps, accountId, project.value)
+    const insights = [...(await insightsNow(deps, project.value, projectId)).values()]
+      .filter((i) => i.status !== 'rejected')
+      // Spec 026: a reader searches what they see, or a search would reveal a masked name.
+      .map((i) => ({ ...i, statement: mask(i.statement) }))
     const used = new Map<string, number>()
     for (const r of await deps.store.recommendationsOf(projectId))
       if (r.status !== 'rejected')

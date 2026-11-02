@@ -24,6 +24,7 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   TEAM_NOT_FOUND: msg`This team does not exist or you do not have access to it.`,
   MEMBER_NOT_FOUND: msg`This person does not exist.`,
   FORBIDDEN: msg`Only admins can do this.`,
+  READ_ONLY: msg`Only the team that owns this can change it.`,
   STUDY_NOT_FOUND: msg`This study does not exist or you do not have access to it.`,
   FOLDER_ACCESS_REQUIRED: msg`You need access to this study's Drive folder to do this.`,
   NOT_A_DRIVE_FOLDER_LINK: msg`This is not the link of a Google Drive folder.`,
@@ -123,8 +124,18 @@ export const messageForCode = (i18n: I18n, code: string | undefined): string =>
   i18n._((code ? MESSAGES[code] : undefined) ?? msg`Something went wrong. Please try again.`)
 
 /** One translated sentence for any error (never technical details). */
-export const errorMessage = (i18n: I18n, error: unknown): string =>
-  messageForCode(i18n, error instanceof ApiError ? error.code : undefined)
+export const errorMessage = (i18n: I18n, error: unknown): string => {
+  if (error instanceof ApiError && error.code === 'READ_ONLY') {
+    // Spec 026 FR-008: the refusal names the team to contact.
+    const named = error.problem?.detail?.team
+    const team =
+      named && typeof named === 'object' && 'name' in named && typeof named.name === 'string'
+        ? named.name
+        : null
+    if (team) return i18n._(msg`Only team ${team} can change this.`)
+  }
+  return messageForCode(i18n, error instanceof ApiError ? error.code : undefined)
+}
 
 export const errorCode = (error: unknown): string | undefined =>
   error instanceof ApiError ? error.code : undefined

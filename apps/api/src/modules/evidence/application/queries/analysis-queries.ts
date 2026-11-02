@@ -8,8 +8,9 @@ import {
   withFactsStops,
 } from '../../domain/analysis-run.ts'
 import type { Fact } from '../../domain/facts.ts'
+import { maskReaderFact, readerFact, readerInterviewNumbers } from '../../domain/reader-facts.ts'
 import { type InterviewNow, interviewsNow, studyOf } from '../interviews.ts'
-import type { EvidenceDeps, StoredVerbatim } from '../ports.ts'
+import type { EvidenceDeps, ReaderStudy, StoredVerbatim } from '../ports.ts'
 
 const PAGE_SIZE = 50
 
@@ -65,6 +66,7 @@ export const makeAnalysisQueries = (deps: EvidenceDeps) => {
       id: f.id,
       sessionId: f.sessionId,
       interviewTitle: i.session.title,
+      interviewNumber: undefined as number | undefined,
       statement: f.statement,
       translation: f.translation,
       polarity: f.polarity,
@@ -230,19 +232,79 @@ export const makeAnalysisQueries = (deps: EvidenceDeps) => {
     })
   }
 
-  /** FR-018: every fact of the study, filtered, 50 a page. */
-  const factsPage = async (
-    accountId: string,
+  type FactsFilter = {
+    status?: 'to-decide' | 'accepted' | 'rejected' | 'all' | undefined
+    theme?: string | undefined
+    polarity?: 'positive' | 'negative' | 'neutral' | undefined
+    participant?: string | undefined
+    sessionId?: string | undefined
+    page: number
+  }
+
+  /** Spec 026: the facts outside the team, read from what is stored and holding no name. */
+  const readerFactsPage = async (
     studyId: string,
-    filter: {
-      status?: 'to-decide' | 'accepted' | 'rejected' | 'all' | undefined
-      theme?: string | undefined
-      polarity?: 'positive' | 'negative' | 'neutral' | undefined
-      participant?: string | undefined
-      sessionId?: string | undefined
-      page: number
-    },
+    study: Extract<ReaderStudy, { relation: 'reader' }>,
+    filter: FactsFilter,
   ) => {
+    if (study.type !== 'interviews') return err('NOT_AN_INTERVIEW_STUDY' as const)
+    if (!study.folderOpen) return err('FOLDER_ACCESS_REQUIRED' as const)
+    const validated = new Set(study.interviewIds)
+    const interviews = readerInterviewNumbers(study.interviewIds)
+    const facts = (await deps.store.factsOfStudy(studyId)).filter((f) => validated.has(f.sessionId))
+    // All of them: the participants' filter and list need their codes. Only the page is masked.
+    const stored = study.anonymised
+      ? await deps.store.verbatimsByIds([...new Set(facts.flatMap((f) => f.verbatimIds))])
+      : []
+    const verbatims = new Map(stored.map((v) => [v.id, v]))
+    const all = facts.map((f) =>
+      readerFact(f, { interviews, anonymised: study.anonymised, verbatims }),
+    )
+    // Outside the team, what is decided comes first: the team has not finished with the rest.
+    const status = filter.status ?? 'accepted'
+    const shown = all.filter(
+      (f) =>
+        (status === 'all'
+          ? f.status !== 'rejected'
+          : (status === 'to-decide' && f.status === 'proposed') ||
+            (status === 'accepted' && (f.status === 'accepted' || f.status === 'edited'))) &&
+        (filter.theme === undefined ||
+          (filter.theme === 'other' ? f.theme === null : f.theme?.id === filter.theme)) &&
+        (filter.polarity === undefined || f.polarity === filter.polarity) &&
+        (filter.participant === undefined || f.participants.includes(filter.participant)) &&
+        (filter.sessionId === undefined || f.sessionId === filter.sessionId),
+    )
+    const start = (filter.page - 1) * PAGE_SIZE
+    const page = shown.slice(start, start + PAGE_SIZE)
+    const names = await study.names()
+    return ok({
+      facts: page.map((f) => ({
+        ...maskReaderFact(f, names),
+        interviewTitle: '',
+        interviewNumber: f.interviewNumber as number | undefined,
+      })),
+      total: shown.length,
+      page: filter.page,
+      pageSize: PAGE_SIZE,
+      themes: study.themes.map((t) => ({ id: t.id, title: t.title })),
+      participants: [...new Set(all.flatMap((f) => f.participants))].map((p) => ({
+        code: p,
+        label: p,
+      })),
+      interviews: study.interviewIds.map((id, index) => ({
+        sessionId: id,
+        title: '',
+        number: (index + 1) as number | undefined,
+      })),
+      verbatimsHidden: !study.anonymised,
+    })
+  }
+
+  /** FR-018: every fact of the study, filtered, 50 a page. */
+  const factsPage = async (accountId: string, studyId: string, filter: FactsFilter) => {
+    const relation = await deps.sources.readerStudy(accountId, studyId)
+    if (!relation) return err('STUDY_NOT_FOUND' as const)
+    if (relation.relation === 'reader') return readerFactsPage(studyId, relation, filter)
     const study = await studyOf(deps, accountId, studyId)
     if (!study.ok) return study
     const { access, sessions } = study.value
@@ -278,7 +340,12 @@ export const makeAnalysisQueries = (deps: EvidenceDeps) => {
         code: p,
         label: p,
       })),
-      interviews: sessions.map((s) => ({ sessionId: s.id, title: s.title })),
+      interviews: sessions.map((s) => ({
+        sessionId: s.id,
+        title: s.title,
+        number: undefined as number | undefined,
+      })),
+      verbatimsHidden: false,
     })
   }
 

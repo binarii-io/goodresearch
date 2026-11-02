@@ -55,6 +55,8 @@ export type ReportingSources = {
   recommendationCounts(projectId: string): Promise<readonly StatusCount[]>
   /** Null until written. */
   takeaways(projectId: string): Promise<ProjectTakeaways | null>
+  /** Spec 026: as this person may read them, known names masked for a reader. */
+  takeawaysShown(accountId: string, projectId: string): Promise<ProjectTakeaways | null>
   projectCostRefs(projectId: string): Promise<ProjectCostRefs>
   /** Each ref's cost, null without a known price. */
   costs(refs: readonly string[]): Promise<ReadonlyMap<string, number | null>>

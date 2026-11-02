@@ -132,6 +132,7 @@ export class InMemoryResearch {
 
   readonly gate: StudyActionGate = {
     canAct: async (accountId, studyId) => !this.folderAccessDenied.has(`${accountId}:${studyId}`),
+    canRead: async (accountId, studyId) => !this.folderAccessDenied.has(`${accountId}:${studyId}`),
   }
 
   /** Projects with a synthesis run in progress (spec 019). */

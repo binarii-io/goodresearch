@@ -9,7 +9,8 @@ export const makeDebriefQueries = (deps: SynthesisDeps) => {
     const project = await projectOf(deps, accountId, projectId)
     if (!project.ok) return project
     const language = await deps.sources.language(accountId)
-    const published = await deps.store.getPublishedDeck(projectId)
+    // Spec 026 FR-017: the published copy holds quotes and who published it: not for a reader.
+    const published = project.value.canChange ? await deps.store.getPublishedDeck(projectId) : null
     // The deck shown, and the deck as it would be published now (its own language and option),
     // from one read (review of PR #15).
     const same =

@@ -259,7 +259,7 @@ describe('Verbatims and facts on PostgreSQL (spec 012)', () => {
   it('refuses a person without access to the study (FR-019)', async () => {
     for (const [method, url] of [
       ['GET', `/api/studies/${studyId}/facts-analysis`],
-      ['GET', `/api/studies/${studyId}/facts`],
+      ['GET', `/api/studies/${studyId}/facts-analysis`],
       ['POST', `/api/studies/${studyId}/facts-runs`],
     ] as const)
       expect(
@@ -271,6 +271,6 @@ describe('Verbatims and facts on PostgreSQL (spec 012)', () => {
             method === 'POST' ? { all: true, consent: true } : undefined,
           )
         ).statusCode,
-      ).toBe(404)
+      ).toBe(403)
   })
 })

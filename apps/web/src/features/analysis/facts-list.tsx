@@ -13,6 +13,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { errorMessage } from '../workspace/errors.ts'
+import { useCanChange } from '../workspace/read-only.tsx'
 import { Choice } from './choice.tsx'
 import { FactCard } from './fact-card.tsx'
 import { FactDialog } from './fact-dialog.tsx'
@@ -27,11 +28,12 @@ export function FactsList({
   onOpen,
 }: {
   studyId: string
-  onOpen: (sessionId: string, segmentId: string) => void
+  onOpen?: (sessionId: string, segmentId: string) => void
 }) {
   const { t, i18n } = useLingui()
+  const canChange = useCanChange()
   const queryClient = useQueryClient()
-  const [status, setStatus] = useState<Status>('all')
+  const [status, setStatus] = useState<Status>(canChange ? 'all' : 'accepted')
   const [theme, setTheme] = useState(ALL)
   const [polarity, setPolarity] = useState(ALL)
   const [participant, setParticipant] = useState(ALL)
@@ -66,7 +68,7 @@ export function FactsList({
             { value: 'all', label: t`All` },
             { value: 'to-decide', label: t`To decide` },
             { value: 'accepted', label: t`Accepted` },
-            { value: 'rejected', label: t`Rejected` },
+            ...(canChange ? [{ value: 'rejected', label: t`Rejected` }] : []),
           ]}
         />
         <Choice
@@ -110,10 +112,13 @@ export function FactsList({
           className="w-56"
           options={[
             { value: ALL, label: t`All interviews` },
-            ...(data?.interviews ?? []).map((i) => ({ value: i.sessionId, label: i.title })),
+            ...(data?.interviews ?? []).map((i) => ({
+              value: i.sessionId,
+              label: i.number ? t`Interview ${i.number}` : i.title,
+            })),
           ]}
         />
-        {toDecide.length > 0 ? (
+        {canChange && toDecide.length > 0 ? (
           <Button
             className="ml-auto"
             variant="outline"
@@ -142,6 +147,9 @@ export function FactsList({
           </Button>
         ) : null}
       </div>
+      {data?.verbatimsHidden ? (
+        <p className="text-muted-foreground text-sm">{t`Verbatims are hidden: this study is not anonymised, so they could hold names that stay with its team.`}</p>
+      ) : null}
       {!data ? (
         <Skeleton className="h-40 w-full" />
       ) : data.facts.length === 0 ? (
@@ -154,7 +162,9 @@ export function FactsList({
                 studyId={studyId}
                 fact={f}
                 showInterview
-                onVerbatim={(segmentId) => onOpen(f.sessionId, segmentId)}
+                {...(onOpen
+                  ? { onVerbatim: (segmentId: string) => onOpen(f.sessionId, segmentId) }
+                  : {})}
                 onEdit={() => setEditing(f)}
               />
             </li>

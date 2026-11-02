@@ -10,10 +10,10 @@ import {
 } from './fixtures.ts'
 
 test.describe('US3 — access through teams', () => {
-  test('a colleague waits for access, gets a team, then loses it', async ({ browser }) => {
+  test('a colleague reads without a team, gets a team, then loses it', async ({ browser }) => {
     const email = member('sam')
     const sam = await signedInPage(browser, email)
-    await expect(sam.getByRole('heading', { name: 'No access yet' })).toBeVisible()
+    await expect(sam.getByText(/You are not in a team yet/)).toBeVisible()
     await expectAccessible(sam)
 
     const admin = await signedInPage(browser, ADMIN)
@@ -39,12 +39,12 @@ test.describe('US3 — access through teams', () => {
     await expectAccessible(admin)
 
     await sam.reload()
-    await expect(sam.getByRole('heading', { level: 1, name: 'Projects' })).toBeVisible()
+    await expect(sam.getByText(/You are not in a team yet/)).toHaveCount(0)
 
     await admin.getByRole('checkbox', { name: `Access ${runId}` }).click()
     await expect(admin.getByText(`Access to Access ${runId} removed`).first()).toBeVisible()
     await sam.reload()
-    await expect(sam.getByRole('heading', { name: 'No access yet' })).toBeVisible()
+    await expect(sam.getByText(/You are not in a team yet/)).toBeVisible()
   })
 
   test('deactivation signs the person out; deletion erases name and email', async ({ browser }) => {

@@ -38,6 +38,24 @@ export const makePreparationQueries = (deps: {
       : err('FOLDER_ACCESS_REQUIRED')
   }
 
+  const readable = async (
+    accountId: string,
+    studyId: string,
+  ): Promise<Result<{ type: string; reader: boolean }, Denied>> => {
+    const [row] = await db
+      .select({ teamId: researchStudies.teamId, type: researchStudies.type })
+      .from(researchStudies)
+      .where(eq(researchStudies.id, studyId))
+    const access = await deps.teams.getAccessContext(accountId)
+    if (!row || !access) return err('STUDY_NOT_FOUND')
+    return (await deps.gate.canRead(accountId, studyId))
+      ? ok({
+          type: row.type,
+          reader: access.role !== 'admin' && !access.teamIds.includes(row.teamId),
+        })
+      : err('FOLDER_ACCESS_REQUIRED')
+  }
+
   const guideOf = async (studyId: string): Promise<InterviewGuide | null> => {
     const [row] = await db
       .select({ guide: researchInterviewGuides, updatedByName: auth_users.name })
@@ -80,14 +98,39 @@ export const makePreparationQueries = (deps: {
   }
 
   return {
+    /** Spec 026: the names of the schedule, to mask in what a reader gets; never shown. */
+    scheduleNames: async (studyId: string) =>
+      (await scheduleOf(studyId)).map((p) => ({
+        interviewee: p.interviewee,
+        interviewers: p.interviewers,
+      })),
+
+    /** Spec 026: the theme sections of a guide, for a reader whose access was checked. */
+    themesOf: async (studyId: string): Promise<{ id: string; title: string }[]> =>
+      ((await guideOf(studyId))?.content.sections ?? [])
+        .filter((s) => s.kind === 'theme')
+        .map((s) => ({ id: s.id, title: s.title })),
+
+    /** Spec 026: the study owning a planned interview. */
+    studyOfPlanned: async (id: string): Promise<string | null> => {
+      const [row] = await db
+        .select({ studyId: researchPlannedInterviews.studyId })
+        .from(researchPlannedInterviews)
+        .where(eq(researchPlannedInterviews.id, id))
+      return row?.studyId ?? null
+    },
+
     getGuide: async (
       accountId: string,
       studyId: string,
     ): Promise<Result<InterviewGuide | null, Denied>> => {
-      const access = await allowed(accountId, studyId)
+      // Spec 026: the guide holds no name; every active member reads it, after the folder barrier.
+      const access = await readable(accountId, studyId)
       if (!access.ok) return access
       if (access.value.type !== 'interviews') return err('NOT_AN_INTERVIEW_STUDY')
-      return ok(await guideOf(studyId))
+      const guide = await guideOf(studyId)
+      // Who wrote it stays with the team.
+      return ok(guide && access.value.reader ? { ...guide, updatedBy: null } : guide)
     },
 
     /** Sorted by date and time, undated last (US5). */

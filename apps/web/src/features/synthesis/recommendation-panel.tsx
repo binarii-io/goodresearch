@@ -16,7 +16,6 @@ import {
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
 import { CheckIcon, PlusIcon, SparklesIcon, XIcon } from '@goodresearch/ui/components/icons'
-import { InlineEdit } from '@goodresearch/ui/components/inline-edit'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
 import { useLingui } from '@lingui/react/macro'
@@ -26,6 +25,7 @@ import { Fragment, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Choice } from '../analysis/choice.tsx'
 import { errorMessage } from '../workspace/errors.ts'
+import { ChangeableText, useCanChange } from '../workspace/read-only.tsx'
 import { useBilingual } from './insight-card.tsx'
 import { InsightsPicker } from './insights-picker.tsx'
 import { CONFIDENCES, LINKED_INSIGHTS, RATINGS, REC_KINDS } from './labels.ts'
@@ -59,6 +59,7 @@ export function RecommendationPanel({
   recommendationId: string
 }) {
   const { t, i18n } = useLingui()
+  const canChange = useCanChange()
   const bilingual = useBilingual()
   const lang = i18n.locale.startsWith('fr') ? 'fr' : 'en'
   const refresh = useRefreshRecommendations(projectId)
@@ -137,7 +138,7 @@ export function RecommendationPanel({
                   <span className="text-muted-foreground text-xs">{t`Translating…`}</span>
                 ) : null}
               </div>
-              <fieldset className="flex gap-1">
+              <fieldset hidden={!canChange} className="flex gap-1">
                 <legend className="sr-only">{t`Decision`}</legend>
                 <Button
                   size="sm"
@@ -182,7 +183,7 @@ export function RecommendationPanel({
               </fieldset>
             </div>
             <div className="font-semibold text-lg leading-snug">
-              <InlineEdit
+              <ChangeableText
                 label={t`Action`}
                 value={bilingual(r.action, r.translation).text}
                 maxLength={200}
@@ -192,7 +193,7 @@ export function RecommendationPanel({
               />
             </div>
           </header>
-          {r.translation === 'not-translated' ? (
+          {canChange && r.translation === 'not-translated' ? (
             <p className="text-sm">
               {t`Not translated into the other language.`}{' '}
               <Button
@@ -219,7 +220,7 @@ export function RecommendationPanel({
             <StatTile label={t`Impact`} value={i18n._(RATINGS[r.impact])} />
             <StatTile label={t`Effort`} value={i18n._(RATINGS[r.effort])} />
           </StatTiles>
-          <div className="flex flex-wrap items-end gap-3">
+          <div hidden={!canChange} className="flex flex-wrap items-end gap-3">
             <Choice
               label={t`Kind`}
               value={r.kind}
@@ -258,7 +259,7 @@ export function RecommendationPanel({
                 className="grid gap-1 rounded-md bg-muted/50 p-3"
               >
                 <h4 className="eyebrow">{label}</h4>
-                <InlineEdit
+                <ChangeableText
                   label={label}
                   value={bilingual(r[field], r.translation).text}
                   multiline
@@ -270,9 +271,13 @@ export function RecommendationPanel({
                 />
               </section>
             ))}
-            <section aria-label={t`Owner`} className="grid gap-1 rounded-md bg-muted/50 p-3">
+            <section
+              hidden={!canChange}
+              aria-label={t`Owner`}
+              className="grid gap-1 rounded-md bg-muted/50 p-3"
+            >
               <h4 className="eyebrow">{t`Owner`}</h4>
-              <InlineEdit
+              <ChangeableText
                 label={t`Owner`}
                 value={r.owner ?? ''}
                 maxLength={100}
@@ -290,6 +295,7 @@ export function RecommendationPanel({
             >
               <span>{t`Insights changed (${changed}): some insights changed or were rejected since this recommendation was decided.`}</span>
               <Button
+                hidden={!canChange}
                 size="xs"
                 variant="outline"
                 disabled={busy}
@@ -312,7 +318,12 @@ export function RecommendationPanel({
               <h3 id={`rec-insights-${r.id}`} className="font-medium">
                 {t`Insights`}
               </h3>
-              <Button size="sm" variant="outline" onClick={() => setAdding(!adding)}>
+              <Button
+                hidden={!canChange}
+                size="sm"
+                variant="outline"
+                onClick={() => setAdding(!adding)}
+              >
                 <PlusIcon aria-hidden />
                 {adding ? t`Hide the insights` : t`Link insights`}
               </Button>
@@ -373,7 +384,7 @@ export function RecommendationPanel({
                       >
                         {t`See in the insights`}
                       </Link>
-                      <div className="flex gap-1">
+                      <div hidden={!canChange} className="flex gap-1">
                         {l.state === 'suggested' ? (
                           <Button
                             size="xs"

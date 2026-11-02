@@ -202,6 +202,7 @@ export const fakeSources = (input: {
             goal: input.goal ?? 'How teams find data',
             name: 'Finding data',
             team: 'Research',
+            canChange: true,
           }
         : null,
     studies: async () => state.studies,

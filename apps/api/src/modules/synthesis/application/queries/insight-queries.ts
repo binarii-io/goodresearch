@@ -10,7 +10,7 @@ import {
 import type { FactNow, Insight } from '../../domain/insights.ts'
 import { evidenceChanged, linkState } from '../../domain/links.ts'
 import type { SourceFact, SynthesisDeps } from '../ports.ts'
-import { projectOf, projectThemes } from '../project.ts'
+import { projectOf, projectThemes, readerMask } from '../project.ts'
 
 export const FACTS_PAGE = 25
 
@@ -109,7 +109,11 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
     const themes = await projectThemes(deps, accountId, studies, own)
     for (const i of insights)
       if (!themes.some((t) => t.key === i.theme.key)) themes.splice(themes.length - 1, 0, i.theme)
-    const cards = insights.map((i) => cardOf(i, byId, studyIds, panel, panelIfAccepted))
+    const mask = await readerMask(deps, accountId, project.value)
+    const cards = insights.map((i) => ({
+      ...cardOf(i, byId, studyIds, panel, panelIfAccepted),
+      statement: mask(i.statement),
+    }))
     const order = new Map(themes.map((t, n) => [t.key, n]))
     const shown = cards
       .filter(
@@ -147,7 +151,11 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
               run.failure ??
               (run.finishedAt === null && !isRunLive(run, deps.clock.now()) ? 'INTERRUPTED' : null),
             stopping: run.stopRequested && isRunLive(run, deps.clock.now()),
-            startedBy: { id: run.startedBy, name: names.get(run.startedBy) ?? null },
+            // Spec 026: who ran it stays with the team.
+            startedBy: {
+              id: run.startedBy,
+              name: project.value.canChange ? (names.get(run.startedBy) ?? null) : null,
+            },
             // A run whose worker stopped beating is over, as the next start will record it.
             finished: run.finishedAt !== null || !isRunLive(run, deps.clock.now()),
           }
@@ -168,15 +176,18 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
     const { studyIds, studies } = project.value
     const { own, byId } = await factsNow(studyIds, [insight])
     const open = new Set(studies.filter((s) => s.access).map((s) => s.id))
-    const names = insight.decidedBy ? await deps.store.accountNames([insight.decidedBy]) : new Map()
+    const reader = project.value.canChange === false
+    const names =
+      insight.decidedBy && !reader ? await deps.store.accountNames([insight.decidedBy]) : new Map()
+    const mask = await readerMask(deps, accountId, project.value)
     return ok({
       id: insight.id,
       version: insight.version,
       theme: insight.theme,
-      statement: insight.statement,
-      description: insight.description,
-      counterEvidence: insight.counterEvidence,
-      minorityView: insight.minorityView,
+      statement: mask(insight.statement),
+      description: mask(insight.description),
+      counterEvidence: mask(insight.counterEvidence),
+      minorityView: mask(insight.minorityView),
       status: insight.status,
       origin: insight.origin,
       translation: insight.translation,
@@ -202,7 +213,7 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
           sessionId: visible ? fact.sessionId : null,
           participant: visible ? (fact.participants[0] ?? null) : null,
           version: visible ? fact.version : null,
-          statement: visible ? fact.statement : null,
+          statement: visible ? mask(fact.statement) : null,
           polarity: visible ? fact.polarity : null,
         }
       }),
@@ -230,6 +241,7 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
     if (!project.ok) return project
     const open = project.value.studies.filter((s) => s.access)
     const names = new Map(open.map((s) => [s.id, s.name]))
+    const mask = await readerMask(deps, accountId, project.value)
     const all = await deps.sources.facts(open.map((s) => s.id))
     const insights = (await deps.store.insightsOf(projectId)).filter((i) => i.status !== 'rejected')
     const cited = new Map<string, number>()
@@ -240,7 +252,8 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
     const q = query.q ? fold(query.q) : null
     const matching = all.filter(
       (f) =>
-        (!q || fold(f.statement[language]).includes(q)) &&
+        // Spec 026: a reader searches what they see, or a search would reveal a masked name.
+        (!q || fold(mask(f.statement)[language]).includes(q)) &&
         (!query.polarity || f.polarity === query.polarity) &&
         (!query.theme || themeOf(f.theme).key === query.theme) &&
         (!query.study || f.studyId === query.study) &&
@@ -257,7 +270,7 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
         studyName: names.get(f.studyId) ?? '',
         sessionId: f.sessionId,
         participant: f.participants[0] ?? null,
-        statement: f.statement,
+        statement: mask(f.statement),
         status: f.status === 'proposed' ? ('to-decide' as const) : ('accepted' as const),
         polarity: f.polarity,
         theme: themeOf(f.theme),

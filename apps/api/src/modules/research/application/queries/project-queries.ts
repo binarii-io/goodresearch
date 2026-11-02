@@ -1,12 +1,15 @@
 import type { ProjectDetail, ProjectSummary } from '@goodresearch/contracts'
 import { and, count, desc, eq, inArray, type SQL } from 'drizzle-orm'
 import type { Db } from '#platform/db.ts'
+import { canDeleteProject, relationTo } from '../../domain/relation.ts'
 import { researchProjects } from '../../infrastructure/schema.ts'
 import type { AccessContext, TeamDirectory } from '../ports.ts'
 
 export type TeamNames = (teamIds: readonly string[]) => Promise<ReadonlyMap<string, string>>
 
 /** Read side of projects: SQL straight to DTOs, restricted to what the account can access. */
+const ALL_TEAMS_PAGE = 50
+
 export const makeProjectQueries = (deps: {
   db: Db
   teams: TeamDirectory
@@ -22,16 +25,40 @@ export const makeProjectQueries = (deps: {
       : 'none'
   }
 
-  const scope = async (accountId: string) => scopeOf(await deps.teams.getAccessContext(accountId))
+  const detail = async (accountId: string, projectId: string): Promise<ProjectDetail | null> => {
+    const access = await deps.teams.getAccessContext(accountId)
+    if (!access) return null
+    const [row] = await db.select().from(researchProjects).where(eq(researchProjects.id, projectId))
+    if (!row) return null
+    const names = await deps.teamNames([row.teamId])
+    return {
+      id: row.id,
+      name: row.name,
+      goal: row.goal,
+      team: { id: row.teamId, name: names.get(row.teamId) ?? '' },
+      canChange: relationTo(access, row.teamId) === 'team',
+      canDelete: canDeleteProject(access, accountId, row),
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+      version: row.version,
+    }
+  }
 
   return {
     listProjects: async (
       accountId: string,
-      filter: { team?: string | undefined },
+      filter: {
+        team?: string | undefined
+        teams?: 'mine' | 'all' | undefined
+        limit?: number | undefined
+      },
     ): Promise<ProjectSummary[]> => {
-      const visible = await scope(accountId)
+      const access = await deps.teams.getAccessContext(accountId)
+      if (!access) return []
+      // Spec 026: every active member can list every team's projects.
+      const visible = filter.teams === 'all' ? undefined : scopeOf(access)
       if (visible === 'none') return []
-      const rows = await db
+      const query = db
         .select({
           id: researchProjects.id,
           name: researchProjects.name,
@@ -41,35 +68,40 @@ export const makeProjectQueries = (deps: {
         .from(researchProjects)
         .where(and(visible, filter.team ? eq(researchProjects.teamId, filter.team) : undefined))
         .orderBy(desc(researchProjects.updatedAt))
+        .$dynamic()
+      // Every team's projects can be many: only what the screen shows (FR-022).
+      const rows = await (filter.teams === 'all'
+        ? query.limit(filter.limit ?? ALL_TEAMS_PAGE)
+        : query)
       const names = await deps.teamNames([...new Set(rows.map((r) => r.teamId))])
       return rows.map((r) => ({
         id: r.id,
         name: r.name,
         team: { id: r.teamId, name: names.get(r.teamId) ?? '' },
+        canChange: relationTo(access, r.teamId) === 'team',
         updatedAt: r.updatedAt.toISOString(),
       }))
     },
 
+    /** The project for what changes it or needs its team: team and admins only. */
     getProject: async (accountId: string, projectId: string): Promise<ProjectDetail | null> => {
-      const access = await deps.teams.getAccessContext(accountId)
-      const visible = scopeOf(access)
-      if (visible === 'none') return null
+      const project = await detail(accountId, projectId)
+      return project?.canChange ? project : null
+    },
+
+    /** Spec 026: the project for reading, open to every active member. */
+    readProject: (accountId: string, projectId: string): Promise<ProjectDetail | null> =>
+      detail(accountId, projectId),
+
+    /** Spec 026: the team owning a project, and its name; null when there is none. */
+    teamOfProject: async (projectId: string): Promise<{ id: string; name: string } | null> => {
       const [row] = await db
-        .select()
+        .select({ teamId: researchProjects.teamId })
         .from(researchProjects)
-        .where(and(eq(researchProjects.id, projectId), visible))
+        .where(eq(researchProjects.id, projectId))
       if (!row) return null
       const names = await deps.teamNames([row.teamId])
-      return {
-        id: row.id,
-        name: row.name,
-        goal: row.goal,
-        team: { id: row.teamId, name: names.get(row.teamId) ?? '' },
-        canDelete: access?.role === 'admin' || row.createdBy === accountId,
-        createdAt: row.createdAt.toISOString(),
-        updatedAt: row.updatedAt.toISOString(),
-        version: row.version,
-      }
+      return { id: row.teamId, name: names.get(row.teamId) ?? '' }
     },
 
     countProjectsByTeams: async (

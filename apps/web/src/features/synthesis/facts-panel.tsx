@@ -10,6 +10,7 @@ import { Link } from '@tanstack/react-router'
 import { type ReactNode, useId, useState } from 'react'
 import { Choice } from '../analysis/choice.tsx'
 import { POLARITIES } from '../analysis/labels.ts'
+import { useCanChange } from '../workspace/read-only.tsx'
 import { useBilingual } from './insight-card.tsx'
 
 const ALL = 'all'
@@ -24,14 +25,24 @@ export function FactSource({
   projectId: string
 }) {
   const { t } = useLingui()
+  // Spec 026: interviews stay with the team; a reader goes to the study's facts.
+  const canChange = useCanChange()
   return (
     <Link
       to="/studies/$studyId"
       params={{ studyId: fact.studyId }}
-      search={{ phase: 'analysis', interview: fact.sessionId, from: projectId }}
+      search={
+        canChange
+          ? { phase: 'analysis', interview: fact.sessionId, from: projectId }
+          : { phase: 'analysis', from: projectId }
+      }
       className="text-xs underline underline-offset-2"
     >
-      {fact.participant ? t`See ${fact.participant} in the interview` : t`See in the interview`}
+      {!canChange
+        ? t`See in the study`
+        : fact.participant
+          ? t`See ${fact.participant} in the interview`
+          : t`See in the interview`}
     </Link>
   )
 }

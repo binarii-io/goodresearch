@@ -72,15 +72,15 @@ describe('projects API', () => {
     expect(filtered.json<{ name: string }[]>().map((p) => p.name)).toEqual(['Pricing'])
   })
 
-  it('shows members only the projects of their teams, and hides the others as not found', async () => {
+  it('lists members the projects of their teams, and opens the others read only (spec 026)', async () => {
     const list = await call(alex, 'GET', '/api/projects')
     expect(list.json<{ name: string }[]>().map((p) => p.name)).toEqual(['Search', 'Onboarding'])
     const pricing = (await call(admin, 'GET', `/api/projects?team=${teamB}`)).json<
       { id: string }[]
     >()[0]
-    const hidden = await call(alex, 'GET', `/api/projects/${pricing?.id}`)
-    expect(hidden.statusCode).toBe(404)
-    expect(hidden.json()).toMatchObject({ code: 'PROJECT_NOT_FOUND' })
+    const read = await call(alex, 'GET', `/api/projects/${pricing?.id}`)
+    expect(read.statusCode).toBe(200)
+    expect(read.json()).toMatchObject({ canChange: false })
   })
 
   it('refuses a stale edit with VERSION_CONFLICT', async () => {
@@ -109,6 +109,7 @@ describe('projects API', () => {
       version: 0,
     })
     expect(moved.statusCode).toBe(200)
-    expect((await call(alex, 'GET', `/api/projects/${id}`)).statusCode).toBe(404)
+    const after = await call(alex, 'GET', `/api/projects/${id}`)
+    expect(after.json()).toMatchObject({ canChange: false })
   })
 })

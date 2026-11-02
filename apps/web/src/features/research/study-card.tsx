@@ -74,7 +74,14 @@ export function StudyCard({
         </div>
         {note}
         {counts ? <StudyChips counts={counts} /> : null}
-        {closed ? null : (
+        {closed ? (
+          study.hasFolder ? (
+            <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
+              <FolderOpenIcon aria-hidden className="size-3.5" />
+              {t`Folder access not confirmed`}
+            </p>
+          ) : null
+        ) : (
           <p className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-sm">
             <span className="inline-flex items-center gap-1.5">
               <FolderOpenIcon aria-hidden className="size-3.5" />

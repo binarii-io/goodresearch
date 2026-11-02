@@ -79,6 +79,16 @@ export const makeMemberQueries = (deps: { db: Db; projectCounts: ProjectCountsBy
       }))
     },
 
+    /** Spec 026: every team's id and name, for any active member to find its work. */
+    teamDirectory: async (): Promise<{ id: string; name: string; projects: number }[]> => {
+      const teams = await db
+        .select({ id: workspaceTeams.id, name: workspaceTeams.name })
+        .from(workspaceTeams)
+        .orderBy(asc(workspaceTeams.nameKey))
+      const counts = await deps.projectCounts(teams.map((t) => t.id))
+      return teams.map((t) => ({ ...t, projects: counts.get(t.id) ?? 0 }))
+    },
+
     /** Admins: every team; members: their teams (FR-023). */
     listTeams: async (viewer: { id: string; role: 'admin' | 'member' }): Promise<TeamDetail[]> => {
       const own =

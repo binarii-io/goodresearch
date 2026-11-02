@@ -112,6 +112,23 @@ export function SourcePanel({
   )
 }
 
+/** Spec 026 FR-013: why a reader sees only a study's name, type and team, with what to do. */
+export function ReaderSourceNotice({ studyId }: { studyId: string }) {
+  const { t } = useLingui()
+  const view = useGetStudySource(studyId)
+  if (!view.data) return null
+  if (view.data.access === 'drive-not-connected') return <ConnectDrive studyId={studyId} attached />
+  if (view.data.access === 'drive-unavailable')
+    return (
+      <p role="status" className="text-muted-foreground">
+        {t`Google Drive did not answer, so access to this study's folder could not be checked. Try again in a moment.`}
+      </p>
+    )
+  if (view.data.access === 'no-folder-access')
+    return <NoFolderAccess studyId={studyId} owner={view.data.folderOwner} isAdmin={false} />
+  return null
+}
+
 function ConnectDrive({ studyId, attached }: { studyId: string; attached: boolean }) {
   const { t } = useLingui()
   return (

@@ -88,7 +88,7 @@ describe('studies API (spec 002 US1)', () => {
     expect((await call(alex, 'GET', `/api/studies/${id}`)).statusCode).toBe(404)
   })
 
-  it('SC-006: outsiders get not found everywhere', async () => {
+  it('SC-006: outsiders read, and every change is refused (spec 026)', async () => {
     const { id } = (
       await call(alex, 'POST', `/api/projects/${projectId}/studies`, {
         name: 'Secret',
@@ -96,15 +96,18 @@ describe('studies API (spec 002 US1)', () => {
       })
     ).json<{ id: string }>()
     for (const [method, url, payload] of [
-      ['GET', `/api/projects/${projectId}/studies`, undefined],
       ['POST', `/api/projects/${projectId}/studies`, { name: 'X', type: 'interviews' }],
-      ['GET', `/api/studies/${id}`, undefined],
       ['PUT', `/api/studies/${id}/name`, { name: 'X', version: 0 }],
       ['DELETE', `/api/studies/${id}`, undefined],
-      ['GET', `/api/studies/${id}/source`, undefined],
       ['PUT', `/api/studies/${id}/source`, { link: 'folder-interviews' }],
     ] as const) {
-      expect((await call(outsider, method, url, payload)).statusCode).toBe(404)
+      expect((await call(outsider, method, url, payload)).statusCode).toBe(403)
     }
+    for (const url of [
+      `/api/projects/${projectId}/studies`,
+      `/api/studies/${id}`,
+      `/api/studies/${id}/source`,
+    ])
+      expect((await call(outsider, 'GET', url)).statusCode).toBe(200)
   })
 })

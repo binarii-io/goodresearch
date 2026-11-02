@@ -252,7 +252,7 @@ describe('Interview quality on PostgreSQL (spec 016)', () => {
       `/api/studies/${studyId}/quality/reformulations`,
       `/api/studies/${studyId}/quality/interviews/${ids['q-conducted']}`,
     ]
-    for (const url of urls) expect((await call(outsider, 'GET', url)).statusCode).toBe(404)
+    for (const url of urls) expect((await call(outsider, 'GET', url)).statusCode).toBe(403)
     const [remark] = await remarks()
     expect(
       (
@@ -266,7 +266,7 @@ describe('Interview quality on PostgreSQL (spec 016)', () => {
           },
         )
       ).statusCode,
-    ).toBe(404)
+    ).toBe(403)
   })
 
   it('holds a cleaning while a review runs, and says why', async () => {

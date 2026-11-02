@@ -10,6 +10,7 @@ import {
   MemberTeamParams,
   RenameTeam,
   TeamDetail,
+  TeamDirectoryEntry,
   TeamParams,
   UpdateLanguage,
   VersionAck,
@@ -75,6 +76,19 @@ export const registerWorkspaceRoutes = (
       schema: { operationId: 'listTeams', tags: ['teams'], response: { 200: z.array(TeamDetail) } },
     },
     async (request) => h.queries.listTeams(request.account),
+  )
+
+  api.get(
+    '/api/teams/directory',
+    {
+      ...secured,
+      schema: {
+        operationId: 'listTeamDirectory',
+        tags: ['teams'],
+        response: { 200: z.array(TeamDirectoryEntry) },
+      },
+    },
+    async () => h.queries.teamDirectory(),
   )
 
   api.post(

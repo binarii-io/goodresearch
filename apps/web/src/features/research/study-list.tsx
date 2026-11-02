@@ -23,6 +23,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { type FormEvent, useId, useState } from 'react'
 import { errorMessage } from '../workspace/errors.ts'
+import { useCanChange } from '../workspace/read-only.tsx'
 import { AttachStudyDialog } from './attach-study-dialog.tsx'
 import { CostBreakdown } from './cost-breakdown.tsx'
 import { DetachStudyDialog } from './detach-study-dialog.tsx'
@@ -32,6 +33,7 @@ import { StudyCard } from './study-card.tsx'
 /** Studies of a project, on the project overview (spec 002 FR-004). */
 export function StudyList({ projectId, teamId }: { projectId: string; teamId: string }) {
   const { t } = useLingui()
+  const canChange = useCanChange()
   const studies = useListStudies(projectId)
   const overview = useProjectOverview(projectId)
   const projectCosts = useProjectCosts(projectId)
@@ -71,8 +73,12 @@ export function StudyList({ projectId, teamId }: { projectId: string; teamId: st
               </Button>
             </span>
           ) : null}
-          <AttachStudyDialog projectId={projectId} teamId={teamId} />
-          <CreateStudyDialog projectId={projectId} />
+          {canChange ? (
+            <>
+              <AttachStudyDialog projectId={projectId} teamId={teamId} />
+              <CreateStudyDialog projectId={projectId} />
+            </>
+          ) : null}
         </div>
       </div>
       {studies.data?.some((s) => s.alsoIn.length > 0) ? (
@@ -81,9 +87,9 @@ export function StudyList({ projectId, teamId }: { projectId: string; teamId: st
       {hidden > 0 ? (
         <p className="text-muted-foreground text-sm">
           {plural(hidden, {
-            one: 'The counts leave out # study whose folder you cannot open; the AI cost of the project includes it.',
+            one: 'The counts leave out # study whose folder access is not confirmed; the AI cost of the project includes it. Opening the study checks it.',
             other:
-              'The counts leave out # studies whose folder you cannot open; the AI cost of the project includes them.',
+              'The counts leave out # studies whose folder access is not confirmed; the AI cost of the project includes them. Opening a study checks it.',
           })}
         </p>
       ) : null}
@@ -109,7 +115,9 @@ export function StudyList({ projectId, teamId }: { projectId: string; teamId: st
                     </p>
                   ) : null
                 }
-                actions={<DetachStudyDialog projectId={projectId} study={study} />}
+                actions={
+                  canChange ? <DetachStudyDialog projectId={projectId} study={study} /> : null
+                }
               />
             )
           })}

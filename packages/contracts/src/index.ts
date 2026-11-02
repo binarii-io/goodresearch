@@ -356,6 +356,7 @@ export {
   RenameTeam,
   Role,
   TeamDetail,
+  TeamDirectoryEntry,
   TeamName,
   TeamParams,
   TeamRef,

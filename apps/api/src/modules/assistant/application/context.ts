@@ -107,6 +107,9 @@ export const reusableStudies = async (
   return `Studies of the person's teams${own ? ' other than this project' : ''}, that attach_study can reuse${lists.some((l) => l.cut) ? ' (the most recent only: ask the person whether a related one exists)' : ''}: ${items.join('; ') || 'none'}`
 }
 
+const readOnlyRule = (team: string) =>
+  `If the person asks for a change, an analysis or something new here, propose nothing: say that team ${team} decides, that they can contact it, and that they can create their own work from a page of their team.`
+
 /**
  * The instructions and page context sent with each message (spec 005 US2, research R3). Built
  * here, with the person's own permissions: nothing from a page they cannot open, no file names.
@@ -120,8 +123,9 @@ export const buildContext = async (
   language: 'en' | 'fr',
   loadedSkills: readonly string[] = [],
   continuation: Continuation | null = null,
-): Promise<{ system: string; guideStudy: GuideStudy | null }> => {
+): Promise<{ system: string; guideStudy: GuideStudy | null; readOnly: boolean }> => {
   let guideStudy: GuideStudy | null = null
+  let readOnly = false
   const lines: string[] = []
   const teams = await research.teamsOf(actor.id)
   lines.push(
@@ -154,7 +158,22 @@ export const buildContext = async (
         }`,
         `Studies: ${studies.map((s) => `${s.name} (${s.type}, Study id: ${s.id})`).join('; ') || 'none'}`,
       )
-    } else lines.push('The person is on a page they cannot open, or that does not exist.')
+    } else {
+      // Spec 026 FR-019 to FR-021: another team's page is read, never changed.
+      const read = await research.readProject(actor.id, page.id)
+      if (read) {
+        readOnly = true
+        const studies = (await research.readStudies(actor.id, read.id)) ?? []
+        lines.push(
+          'The person is on a project page of another team: they can read it, not change it.',
+          `Project: ${read.name}`,
+          `Project id: ${read.id}`,
+          `Research goal: ${read.goal || '(empty)'}`,
+          `Studies: ${studies.map((s) => `${s.name} (${s.type}, Study id: ${s.id})`).join('; ') || 'none'}`,
+          readOnlyRule(read.team.name),
+        )
+      } else lines.push('The person is on a page they cannot open, or that does not exist.')
+    }
   } else if (page.kind === 'study' && page.id) {
     const study = await research.getStudy(actor.id, page.id)
     if (study) {
@@ -219,7 +238,20 @@ export const buildContext = async (
         })
         lines.push(`Next step of this study: ${NEXT_STEPS[step]}.`)
       }
-    } else lines.push('The person is on a page they cannot open, or that does not exist.')
+    } else {
+      // Spec 026: no folder, schedule, interview or next step: they stay with the team.
+      const read = await research.readStudy(actor.id, page.id)
+      if (read) {
+        readOnly = true
+        lines.push(
+          'The person is on a study page of another team: they can read it, not change it.',
+          `Study: ${read.name} (${read.type}), Study id: ${read.id}`,
+          `Research goal of the study: ${read.goal || '(empty, or no access to its folder)'}`,
+          'Its folder, schedule, interviews and transcripts are reserved to its team: you have none of them.',
+          readOnlyRule(read.team.name),
+        )
+      } else lines.push('The person is on a page they cannot open, or that does not exist.')
+    }
   } else lines.push(`The person is on the "${page.kind}" page.`)
 
   // Spec 021: only once a study is being framed, not on every message.
@@ -228,11 +260,13 @@ export const buildContext = async (
 
   const skills: string[] = []
   // A continuing answer only offers the next step: no method to follow.
-  const loaded = continuation ? [] : SKILL_NAMES.filter((name) => loadedSkills.includes(name))
+  const loaded =
+    continuation || readOnly ? [] : SKILL_NAMES.filter((name) => loadedSkills.includes(name))
   // The guide design only makes sense on an interview study; framing a project, on every page.
   const available = SKILL_NAMES.filter(
     (name) =>
       !continuation &&
+      !readOnly &&
       !loadedSkills.includes(name) &&
       (name !== 'interview-guide-design' || guideStudy !== null),
   )
@@ -252,5 +286,6 @@ export const buildContext = async (
   return {
     system: `${INSTRUCTIONS}${continuation ? `\n- ${CONTINUATIONS[continuation]}` : ''}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language. ${TAB_NAMES[language]}\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
     guideStudy,
+    readOnly,
   }
 }

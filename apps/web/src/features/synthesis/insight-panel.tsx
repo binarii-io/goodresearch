@@ -16,7 +16,6 @@ import {
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
 import { CheckIcon, PlusIcon, SparklesIcon, XIcon } from '@goodresearch/ui/components/icons'
-import { InlineEdit } from '@goodresearch/ui/components/inline-edit'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
 import { useLingui } from '@lingui/react/macro'
@@ -26,6 +25,7 @@ import { toast } from 'sonner'
 import { Choice } from '../analysis/choice.tsx'
 import { POLARITIES } from '../analysis/labels.ts'
 import { errorMessage } from '../workspace/errors.ts'
+import { ChangeableText, useCanChange } from '../workspace/read-only.tsx'
 import { FactSource, FactsPanel } from './facts-panel.tsx'
 import { ConfidenceBadge, PolarityBadge, useBilingual } from './insight-card.tsx'
 import { CONFIDENCE_LEVELS, LINKED_FACTS } from './labels.ts'
@@ -64,6 +64,7 @@ function Links({
   busy: boolean
 }) {
   const { t, i18n } = useLingui()
+  const canChange = useCanChange()
   const bilingual = useBilingual()
   const shown = insight.links.filter((l) => l.state !== 'unlinked')
   const groups = new Map<string, InsightLink[]>()
@@ -113,7 +114,7 @@ function Links({
                   ) : (
                     <span />
                   )}
-                  <div className="flex gap-1">
+                  <div hidden={!canChange} className="flex gap-1">
                     {l.state === 'suggested' ? (
                       <Button
                         size="xs"
@@ -187,6 +188,7 @@ export function InsightPanel({
   themes: readonly { key: string; title: string | null }[]
 }) {
   const { t, i18n } = useLingui()
+  const canChange = useCanChange()
   const bilingual = useBilingual()
   const fr = i18n.locale.startsWith('fr')
   const refresh = useRefreshInsights(projectId)
@@ -270,7 +272,7 @@ export function InsightPanel({
                 ) : null}
               </div>
               {/* The decision stays in view: the choice made is highlighted. */}
-              <fieldset className="flex gap-1">
+              <fieldset hidden={!canChange} className="flex gap-1">
                 <legend className="sr-only">{t`Decision`}</legend>
                 <Button
                   size="sm"
@@ -301,7 +303,7 @@ export function InsightPanel({
               </fieldset>
             </div>
             <div className="font-semibold text-lg leading-snug">
-              <InlineEdit
+              <ChangeableText
                 label={t`Statement`}
                 value={bilingual(i.statement, i.translation).text}
                 maxLength={200}
@@ -310,17 +312,21 @@ export function InsightPanel({
                 onSave={(v) => save(i, { statement: v })}
               />
             </div>
-            <Choice
-              label={t`Theme`}
-              value={i.theme.key}
-              className="w-72"
-              onChange={(key) => {
-                if (key !== i.theme.key) void save(i, { themeKey: key }).catch(() => undefined)
-              }}
-              options={themes.map((x) => ({ value: x.key, label: x.title ?? t`Other` }))}
-            />
+            {canChange ? (
+              <Choice
+                label={t`Theme`}
+                value={i.theme.key}
+                className="w-72"
+                onChange={(key) => {
+                  if (key !== i.theme.key) void save(i, { themeKey: key }).catch(() => undefined)
+                }}
+                options={themes.map((x) => ({ value: x.key, label: x.title ?? t`Other` }))}
+              />
+            ) : (
+              <p className="text-muted-foreground text-sm">{i.theme.title ?? t`Other`}</p>
+            )}
           </header>
-          {i.translation === 'not-translated' ? (
+          {canChange && i.translation === 'not-translated' ? (
             <p className="text-sm">
               {t`Not translated into the other language.`}{' '}
               <Button
@@ -395,7 +401,7 @@ export function InsightPanel({
                 className="grid gap-1 rounded-md bg-muted/50 p-3"
               >
                 <h4 className="eyebrow">{label}</h4>
-                <InlineEdit
+                <ChangeableText
                   label={label}
                   value={bilingual(i[field], i.translation).text}
                   multiline
@@ -415,6 +421,7 @@ export function InsightPanel({
             >
               <span>{t`Evidence changed (${changed}): some facts changed or left since this insight was decided.`}</span>
               <Button
+                hidden={!canChange}
                 size="xs"
                 variant="outline"
                 disabled={busy}
@@ -437,7 +444,12 @@ export function InsightPanel({
               <h3 id={`facts-${i.id}`} className="font-medium">
                 {t`Facts`}
               </h3>
-              <Button size="sm" variant="outline" onClick={() => setAdding(!adding)}>
+              <Button
+                hidden={!canChange}
+                size="sm"
+                variant="outline"
+                onClick={() => setAdding(!adding)}
+              >
                 <PlusIcon aria-hidden />
                 {adding ? t`Hide the facts` : t`Link facts`}
               </Button>

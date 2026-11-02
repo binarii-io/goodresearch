@@ -202,6 +202,10 @@ export const fakeResearch = () => {
         ? [{ id: 's1', name: study.name, type: 'interviews', folderName: 'Interviews Q4' }]
         : null,
     getStudy: async (accountId, id) => (accountId === 'ada' && id === 's1' ? study : null),
+    readProject: async (accountId, id) => (accountId === 'ada' && id === 'p1' ? project : null),
+    readStudies: async () => null,
+    readStudy: async (accountId, id) =>
+      accountId === 'ada' && id === 's1' ? { ...study, team: { id: 't1', name: 'Growth' } } : null,
     teamsOf: async (accountId) => (accountId === 'ada' ? [{ id: 't1', name: 'Growth' }] : []),
     listProjects: async (accountId) =>
       accountId === 'ada' ? [{ id: 'p1', name: 'Onboarding', team: { name: 'Growth' } }] : [],

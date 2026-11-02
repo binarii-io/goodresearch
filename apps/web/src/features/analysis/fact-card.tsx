@@ -5,6 +5,7 @@ import { CheckIcon, PencilIcon, SparklesIcon, XIcon } from '@goodresearch/ui/com
 import { useLingui } from '@lingui/react/macro'
 import { toast } from 'sonner'
 import { errorMessage } from '../workspace/errors.ts'
+import { useCanChange } from '../workspace/read-only.tsx'
 import { useRefreshFacts } from './fact-dialog.tsx'
 import { FACT_STATUSES, POLARITIES, TONE_FILLS } from './labels.ts'
 
@@ -46,11 +47,16 @@ export function FactCard({
   showInterview?: boolean
 }) {
   const { t, i18n } = useLingui()
+  const canChange = useCanChange()
   const statementOf = useStatement()
   const refresh = useRefreshFacts(studyId, fact.sessionId)
   const decide = useDecideFact()
   const translate = useTranslateFact()
   const { text, note } = statementOf(fact)
+  // Spec 026 FR-016: outside the team, an interview is a number, never a name.
+  const interview = fact.interviewNumber
+    ? t`Interview ${fact.interviewNumber}`
+    : fact.interviewTitle
   const accepted = fact.status === 'accepted' || fact.status === 'edited'
   const rejected = fact.status === 'rejected'
   const act = (decision: 'accept' | 'reject') =>
@@ -81,8 +87,8 @@ export function FactCard({
           </Badge>
         ))}
         {showInterview ? (
-          <span className="truncate text-muted-foreground text-xs" title={fact.interviewTitle}>
-            {fact.interviewTitle}
+          <span className="truncate text-muted-foreground text-xs" title={interview}>
+            {interview}
           </span>
         ) : null}
       </div>
@@ -101,7 +107,7 @@ export function FactCard({
       {note ? (
         <p className="flex items-center gap-2 text-muted-foreground text-xs">
           {note}
-          {fact.translation === 'not-translated' ? (
+          {canChange && fact.translation === 'not-translated' ? (
             <Button
               variant="ghost"
               size="xs"
@@ -139,7 +145,7 @@ export function FactCard({
         ))}
       </ul>
       {/* The decision stays in view: the choice made is highlighted, the other one stays at hand. */}
-      <div className="flex flex-wrap items-center gap-1">
+      <div hidden={!canChange} className="flex flex-wrap items-center gap-1">
         <fieldset className="flex gap-1">
           <legend className="sr-only">{t`Decision`}</legend>
           <Button

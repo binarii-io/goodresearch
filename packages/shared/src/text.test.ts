@@ -5,6 +5,7 @@ import {
   fromPlaceholders,
   holdsName,
   isAcronym,
+  maskBilingual,
   nameKey,
   quoteFound,
   sharedWords,
@@ -80,6 +81,18 @@ describe('placeholders', () => {
   it('tells where each placeholder went', () => {
     const { cuts } = withPlaceholders('Hi Sam, bye', ['Sam Example'])
     expect(cuts).toEqual([{ start: 3, end: 6, placeholder: '[Person 1]' }])
+  })
+})
+
+describe('maskBilingual', () => {
+  it('masks both languages and keeps the other fields', () => {
+    const shown = maskBilingual({ en: 'Sam Example left', fr: 'Sam Example part', id: 1 }, [
+      'Sam Example',
+    ])
+    expect(shown).toEqual({ en: '[Person 1] left', fr: '[Person 1] part', id: 1 })
+  })
+  it('leaves an absent text absent', () => {
+    expect(maskBilingual(null, ['Sam'])).toBeNull()
   })
 })
 

@@ -12,6 +12,16 @@ export type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
 
 /** Who may see a study at all (its project's team): implemented by the research module. */
 export type StudyDirectory = {
+  /** Spec 026: every active member; the relation says whether they are of the team. */
+  getStudyReadAccess(
+    accountId: string,
+    studyId: string,
+  ): Promise<{
+    role: 'admin' | 'member'
+    type: string
+    teamId: string
+    anonymised: boolean
+  } | null>
   getStudyAccess(
     accountId: string,
     studyId: string,

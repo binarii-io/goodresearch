@@ -53,9 +53,11 @@ export const createResearchModule = (deps: {
     teams: deps.teams,
     teamNames: deps.teamNames,
     sourceSummaries: (accountId, ids) => deps.ingestion().sourceSummaries(accountId, ids),
+    folderOpen: (accountId, studyId) => deps.ingestion().gate.canRead(accountId, studyId),
   })
   const gate: StudyActionGate = {
     canAct: (accountId, studyId) => deps.ingestion().gate.canAct(accountId, studyId),
+    canRead: (accountId, studyId) => deps.ingestion().gate.canRead(accountId, studyId),
   }
   const preparationQueries = makePreparationQueries({ db: deps.db, teams: deps.teams, gate })
   const handlers: ResearchHandlers = {
@@ -91,6 +93,10 @@ export const createResearchModule = (deps: {
     countProjectsByTeams: queries.countProjectsByTeams,
     countStudiesByTeam: studyQueries.countStudiesByTeam,
     getStudyAccess: studyQueries.getStudyAccess,
+    getStudyReadAccess: studyQueries.getStudyReadAccess,
+    teamOfStudy: studyQueries.teamOfStudy,
+    teamOfProject: queries.teamOfProject,
+    studyOfPlanned: preparationQueries.studyOfPlanned,
     preparationForAssistant: preparationQueries.preparationForAssistant,
   }
 }

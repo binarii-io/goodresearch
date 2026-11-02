@@ -4,6 +4,7 @@ import { z } from 'zod'
 export const ERROR_CODES = [
   'UNAUTHENTICATED',
   'FORBIDDEN',
+  'READ_ONLY',
   'VALIDATION',
   'PROJECT_NOT_FOUND',
   'TEAM_NOT_FOUND',
@@ -126,6 +127,7 @@ export type ErrorCode = (typeof ERROR_CODES)[number]
 export const HTTP_STATUS: Readonly<Record<ErrorCode, number>> = {
   UNAUTHENTICATED: 401,
   FORBIDDEN: 403,
+  READ_ONLY: 403,
   VALIDATION: 422,
   PROJECT_NOT_FOUND: 404,
   TEAM_NOT_FOUND: 404,

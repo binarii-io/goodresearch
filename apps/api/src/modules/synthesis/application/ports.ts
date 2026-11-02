@@ -25,7 +25,14 @@ export type SynthesisSources = {
   project(
     accountId: string,
     projectId: string,
-  ): Promise<{ teamId: string; goal: string; name: string; team?: string | null } | null>
+  ): Promise<{
+    teamId: string
+    goal: string
+    name: string
+    team?: string | null
+    /** Spec 026: false for a reader outside the team; required, so that no source forgets it. */
+    canChange: boolean
+  } | null>
   studies(accountId: string, projectId: string): Promise<readonly ProjectStudy[]>
   /** The theme sections of a study's guide. */
   themes(accountId: string, studyId: string): Promise<readonly { id: string; title: string }[]>

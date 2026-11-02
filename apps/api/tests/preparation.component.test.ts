@@ -110,10 +110,10 @@ describe('study preparation (spec 006)', () => {
     expect(invalid.statusCode).toBe(422)
   })
 
-  it('hides the preparation outside the team', async () => {
-    expect((await call(bob, 'GET', `/api/studies/${studyId}/guide`)).statusCode).toBe(404)
+  it('opens the guide and keeps the schedule with the team (spec 026)', async () => {
+    expect((await call(bob, 'GET', `/api/studies/${studyId}/guide`)).statusCode).toBe(200)
     expect((await call(bob, 'GET', `/api/studies/${studyId}/planned-interviews`)).statusCode).toBe(
-      404,
+      403,
     )
   })
 
@@ -144,7 +144,7 @@ describe('study preparation (spec 006)', () => {
       })
     expect((await put(0)).json()).toEqual({ version: 1 })
     expect((await put(0)).statusCode).toBe(409)
-    expect((await call(bob, 'DELETE', `/api/planned-interviews/${first}`)).statusCode).toBe(404)
+    expect((await call(bob, 'DELETE', `/api/planned-interviews/${first}`)).statusCode).toBe(403)
     expect((await call(ada, 'DELETE', `/api/planned-interviews/${first}`)).statusCode).toBe(204)
     expect((await add({ interviewee: '' })).statusCode).toBe(422)
   })

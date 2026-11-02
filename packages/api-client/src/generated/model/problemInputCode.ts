@@ -11,6 +11,7 @@ export type ProblemInputCode = typeof ProblemInputCode[keyof typeof ProblemInput
 export const ProblemInputCode = {
   UNAUTHENTICATED: 'UNAUTHENTICATED',
   FORBIDDEN: 'FORBIDDEN',
+  READ_ONLY: 'READ_ONLY',
   VALIDATION: 'VALIDATION',
   PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
   TEAM_NOT_FOUND: 'TEAM_NOT_FOUND',

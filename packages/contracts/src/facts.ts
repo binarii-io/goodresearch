@@ -149,6 +149,8 @@ export const Fact = z
     id: Id,
     sessionId: Id,
     interviewTitle: z.string(),
+    /** Spec 026: outside the team, the interview by its number; its title is empty. */
+    interviewNumber: z.number().int().optional(),
     statement: Statement,
     translation: Translation,
     polarity: Polarity,
@@ -217,7 +219,11 @@ export const FactsPage = z
     pageSize: z.number().int(),
     themes: z.array(Theme),
     participants: z.array(z.object({ code: z.string(), label: z.string() })),
-    interviews: z.array(z.object({ sessionId: Id, title: z.string() })),
+    interviews: z.array(
+      z.object({ sessionId: Id, title: z.string(), number: z.number().int().optional() }),
+    ),
+    /** Spec 026: outside the team, verbatims come only on an anonymised study. */
+    verbatimsHidden: z.boolean(),
   })
   .meta({ id: 'FactsPage' })
 

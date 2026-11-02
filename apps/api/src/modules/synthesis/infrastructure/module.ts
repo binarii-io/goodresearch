@@ -51,6 +51,8 @@ export const createSynthesisModule = (deps: {
   clock: Clock
   /** The other modules, as Synthesis reads them (research R1). */
   sources: SynthesisSources
+  /** Spec 026: what queries read instead, open to every active member. */
+  readSources: Pick<SynthesisSources, 'project' | 'studies' | 'interviews' | 'knownNames'>
   ai: InsightsAi
   enqueue: (queue: string, data: object, options?: { singletonKey?: string }) => Promise<boolean>
   log?: { warn(object: object, message: string): void }
@@ -69,6 +71,11 @@ export const createSynthesisModule = (deps: {
     enqueueTakeaways: (job) => deps.enqueue(QUEUES.takeaways, job, { singletonKey: job.projectId }),
     log: deps.log ?? console,
   }
+  // Queries read through the open gates; commands keep the team's.
+  const reading: SynthesisDeps = {
+    ...synthesis,
+    sources: { ...synthesis.sources, ...deps.readSources },
+  }
   const runs = makeInsightRunCommands(synthesis)
   const insights = makeInsightCommands(synthesis)
   const recommendationRuns = makeRecommendationRunCommands(synthesis)
@@ -78,14 +85,14 @@ export const createSynthesisModule = (deps: {
   const handlers: SynthesisHandlers = {
     runs,
     insights,
-    queries: makeInsightQueries(synthesis),
+    queries: makeInsightQueries(reading),
     recommendationRuns,
     recommendations,
     takeaways,
-    recommendationQueries: makeRecommendationQueries(synthesis),
+    recommendationQueries: makeRecommendationQueries(reading),
     debrief,
-    debriefQueries: makeDebriefQueries(synthesis),
-    takeawaysQueries: makeTakeawaysQueries(synthesis),
+    debriefQueries: makeDebriefQueries(reading),
+    takeawaysQueries: makeTakeawaysQueries(reading),
   }
   const parsed = <T>(schema: z.ZodType<T>, data: unknown, what: string): T | null => {
     // Job payloads cross a process boundary: validate them (AGENTS.md).

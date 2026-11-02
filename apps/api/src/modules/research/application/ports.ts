@@ -39,4 +39,6 @@ export type ProjectRunGate = {
  */
 export type StudyActionGate = {
   canAct(accountId: string, studyId: string): Promise<boolean>
+  /** Spec 026: every active member, after the folder. */
+  canRead(accountId: string, studyId: string): Promise<boolean>
 }

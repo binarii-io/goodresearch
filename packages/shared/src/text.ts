@@ -199,3 +199,14 @@ export const holdsName = (text: string, names: readonly string[]): boolean => {
     return nameKeys.length > 0 && nameKeys.some((k) => k.length >= 3 && keys.has(k))
   })
 }
+
+/** Spec 026: both languages of a text with these names replaced; nothing for an absent text. */
+export const maskBilingual = <T extends { readonly en: string; readonly fr: string } | null>(
+  text: T,
+  names: readonly string[],
+): T =>
+  (text && {
+    ...text,
+    en: withPlaceholders(text.en, names).text,
+    fr: withPlaceholders(text.fr, names).text,
+  }) as T

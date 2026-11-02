@@ -28,6 +28,7 @@ import type {
   Created,
   RenameTeamInput,
   TeamDetail,
+  TeamDirectoryEntry,
   VersionAck
 } from '../../model';
 
@@ -232,7 +233,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getCreateTeamMutationOptions(options), queryClient);
     }
-    export const getRenameTeamUrl = (teamId: string,) => {
+    export const getListTeamDirectoryUrl = () => {
+
+
+
+
+  return `/api/teams/directory`
+}
+
+export const listTeamDirectory = async ( options?: Parameters<typeof apiFetch>[1]): Promise<TeamDirectoryEntry[]> => {
+
+  return apiFetch<TeamDirectoryEntry[]>(getListTeamDirectoryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTeamDirectoryQueryKey = () => {
+    return [
+    `/api/teams/directory`
+    ] as const;
+    }
+
+
+export const getListTeamDirectoryQueryOptions = <TData = Awaited<ReturnType<typeof listTeamDirectory>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamDirectory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTeamDirectoryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTeamDirectory>>> = ({ signal }) => listTeamDirectory({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTeamDirectory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListTeamDirectoryQueryResult = NonNullable<Awaited<ReturnType<typeof listTeamDirectory>>>
+export type ListTeamDirectoryQueryError = unknown
+
+
+export function useListTeamDirectory<TData = Awaited<ReturnType<typeof listTeamDirectory>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamDirectory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTeamDirectory>>,
+          TError,
+          Awaited<ReturnType<typeof listTeamDirectory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTeamDirectory<TData = Awaited<ReturnType<typeof listTeamDirectory>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamDirectory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTeamDirectory>>,
+          TError,
+          Awaited<ReturnType<typeof listTeamDirectory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTeamDirectory<TData = Awaited<ReturnType<typeof listTeamDirectory>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamDirectory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListTeamDirectory<TData = Awaited<ReturnType<typeof listTeamDirectory>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTeamDirectory>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListTeamDirectoryQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getRenameTeamUrl = (teamId: string,) => {
 
 
 

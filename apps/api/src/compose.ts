@@ -1,5 +1,5 @@
 import type { AppConfig } from '@goodresearch/config'
-import { type Clock, systemClock } from '@goodresearch/shared'
+import { type Clock, maskBilingual, systemClock } from '@goodresearch/shared'
 import type { FastifyInstance } from 'fastify'
 import { createAiGatewayModule, registerAiRoutes } from './modules/ai-gateway/index.ts'
 import {
@@ -17,6 +17,7 @@ import {
   createIngestionModule,
   interviewsStep,
   registerIngestionRoutes,
+  splitNames,
 } from './modules/ingestion/index.ts'
 import {
   createInterviewQualityModule,
@@ -45,6 +46,7 @@ import { registerAuthRoutes } from './platform/auth/routes.ts'
 import { createSessionGuard } from './platform/auth/session-guard.ts'
 import type { Db } from './platform/db.ts'
 import { buildApp } from './platform/http/app.ts'
+import { createAccessGuard, type OwnedKind } from './platform/http/change-guard.ts'
 import type { JobQueue } from './platform/jobs.ts'
 import { loggerOptions } from './platform/logger.ts'
 
@@ -116,7 +118,10 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     db: infra.db,
     clock,
     config,
-    studies: { getStudyAccess: research.getStudyAccess },
+    studies: {
+      getStudyAccess: research.getStudyAccess,
+      getStudyReadAccess: research.getStudyReadAccess,
+    },
     schedule: {
       // Fieldwork is shown only to people who can act on the study: same gate as the schedule.
       list: async (accountId, studyId) => {
@@ -245,6 +250,33 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       },
       enrichmentLive: (studyId) => transcripts.enrichmentLive(studyId),
       qualityLive: (studyId) => bound(quality).qualityLive(studyId),
+      // Spec 026: outside the team, facts come from what is stored, with every name to mask.
+      readerStudy: async (accountId, studyId) => {
+        const access = await research.getStudyReadAccess(accountId, studyId)
+        if (!access) return null
+        if (access.relation === 'team') return { relation: 'team' }
+        const closed = {
+          relation: 'reader' as const,
+          type: access.type,
+          anonymised: access.anonymised,
+          folderOpen: false,
+          interviewIds: [],
+          names: async () => [],
+          themes: [],
+        }
+        if (!(await ingestion.gate.canRead(accountId, studyId))) return closed
+        const [interviews, themes] = await Promise.all([
+          ingestion.readerInterviews(studyId),
+          r.preparationQueries.themesOf(studyId),
+        ])
+        return {
+          ...closed,
+          folderOpen: true,
+          interviewIds: interviews.ids,
+          names: () => readerKnownNames(studyId),
+          themes,
+        }
+      },
     },
     ai: createFactsAi({
       gateway: () => bound(ai).gateway,
@@ -294,10 +326,86 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
   })
   const evidenceReads = evidence.reads
+  /** Spec 026: every name the app knows for a study, without a person's gate: to mask only. */
+  const readerKnownNames = async (studyId: string): Promise<string[]> => {
+    const team = await research.teamOfStudy(studyId)
+    const [interviews, schedule, members, terms] = await Promise.all([
+      ingestion.readerInterviews(studyId),
+      r.preparationQueries.scheduleNames(studyId),
+      team ? workspace.membersOfTeam(team.id) : [],
+      team ? transcripts.teamPersonNames(team.id) : [],
+    ])
+    return [
+      ...new Set([
+        ...interviews.names,
+        ...schedule.flatMap((p) => [p.interviewee, ...splitNames(p.interviewers)]),
+        ...members.map((m) => m.name),
+        ...terms,
+      ]),
+    ].filter((n) => n.trim().length > 0)
+  }
+  const teamKnownNames = async (accountId: string, studyId: string) => [
+    ...(await enrichment.knownNames(accountId, studyId)),
+    ...(await transcripts.personNames(accountId, studyId)),
+  ]
+  const teamInterviews = async (accountId: string, studyId: string) => {
+    const interviews = (await enrichment.enrichmentSessions(accountId, studyId))?.sessions
+    const dates = (interviews ?? [])
+      .flatMap((s) => (s.interviewDate ? [s.interviewDate.slice(0, 10)] : []))
+      .sort()
+    return {
+      count: interviews?.length ?? 0,
+      first: dates[0] ?? null,
+      last: dates.at(-1) ?? null,
+    }
+  }
   // Spec 013: the project's insights read the accepted facts of its studies through Evidence.
   const synthesis = createSynthesisModule({
     db: infra.db,
     clock,
+    // Spec 026: what the queries read, for every active member. A reader gets no name.
+    readSources: {
+      project: async (accountId, projectId) => {
+        const project = await r.queries.readProject(accountId, projectId)
+        return project
+          ? {
+              teamId: project.team.id,
+              goal: project.goal,
+              name: project.name,
+              team: project.team.name || null,
+              canChange: project.canChange,
+            }
+          : null
+      },
+      // Spec 026 FR-012: a reader's facts rest on their access now, not on one recorded long ago.
+      studies: async (accountId, projectId) =>
+        Promise.all(
+          ((await r.studyQueries.readStudies(accountId, projectId)) ?? []).map(async (s) => ({
+            id: s.id,
+            name: s.name,
+            access:
+              s.canChange || !s.hasFolder
+                ? studyIsOpen(s)
+                : await ingestion.gate.canRead(accountId, s.id),
+            type: s.type,
+            hasFolder: s.hasFolder,
+          })),
+        ),
+      interviews: async (accountId, studyId) => {
+        if (await research.getStudyAccess(accountId, studyId))
+          return teamInterviews(accountId, studyId)
+        return {
+          count: (await ingestion.readerInterviews(studyId)).ids.length,
+          first: null,
+          last: null,
+        }
+      },
+      // The caller only reads this to mask: no name reaches a reader by it.
+      knownNames: async (accountId, studyId) =>
+        (await research.getStudyAccess(accountId, studyId))
+          ? teamKnownNames(accountId, studyId)
+          : readerKnownNames(studyId),
+    },
     sources: {
       project: async (accountId, projectId) => {
         const project = await r.queries.getProject(accountId, projectId)
@@ -307,6 +415,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
               goal: project.goal,
               name: project.name,
               team: project.team.name || null,
+              canChange: true,
             }
           : null
       },
@@ -325,24 +434,11 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       },
       facts: (studyIds) => evidenceReads.projectFacts(studyIds),
       factsByIds: (ids) => evidenceReads.factsByIds(ids),
-      knownNames: async (accountId, studyId) => [
-        ...(await enrichment.knownNames(accountId, studyId)),
-        ...(await transcripts.personNames(accountId, studyId)),
-      ],
+      knownNames: teamKnownNames,
       language: async (accountId) =>
         (await workspace.handlers.getMe(accountId))?.language === 'fr' ? 'fr' : 'en',
       // Spec 015: what the debrief deck says of a study, its verbatims and its Slides file.
-      interviews: async (accountId, studyId) => {
-        const interviews = (await enrichment.enrichmentSessions(accountId, studyId))?.sessions
-        const dates = (interviews ?? [])
-          .flatMap((s) => (s.interviewDate ? [s.interviewDate.slice(0, 10)] : []))
-          .sort()
-        return {
-          count: interviews?.length ?? 0,
-          first: dates[0] ?? null,
-          last: dates.at(-1) ?? null,
-        }
-      },
+      interviews: teamInterviews,
       guide: async (accountId, studyId) => {
         const guide = await r.preparationQueries.getGuide(accountId, studyId)
         const sections = guide.ok && guide.value ? guide.value.content.sections : []
@@ -477,6 +573,9 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       getProject: (accountId, id) => r.queries.getProject(accountId, id),
       listStudies: (accountId, id) => r.studyQueries.listStudies(accountId, id),
       getStudy: (accountId, id) => r.studyQueries.getStudy(accountId, id),
+      readProject: (accountId, id) => r.queries.readProject(accountId, id),
+      readStudies: (accountId, id) => r.studyQueries.readStudies(accountId, id),
+      readStudy: (accountId, id) => r.studyQueries.readStudy(accountId, id),
       teamsOf: async (accountId) => (await workspace.handlers.getMe(accountId))?.teams ?? [],
       attachableStudies: async (accountId, teamId, projectId) =>
         (
@@ -614,12 +713,12 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         })),
       hasPublishedDeck: synthesis.overviewReads.hasPublishedDeck,
       teamStudies: async (accountId, teamId, filter) =>
-        (await r.studyQueries.listTeamStudies(accountId, teamId, filter))?.studies.map((s) => ({
+        (await r.studyQueries.readTeamStudies(accountId, teamId, filter))?.studies.map((s) => ({
           id: s.id,
-          access: s.canAttach,
+          access: studyIsOpen(s),
         })) ?? null,
       studies: async (accountId, projectId) =>
-        (await r.studyQueries.listStudies(accountId, projectId))?.map((s) => ({
+        (await r.studyQueries.readStudies(accountId, projectId))?.map((s) => ({
           id: s.id,
           access: studyIsOpen(s),
         })) ?? null,
@@ -653,12 +752,40 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       insightCounts: synthesis.overviewReads.insightCounts,
       recommendationCounts: synthesis.overviewReads.recommendationCounts,
       takeaways: synthesis.overviewReads.takeaways,
+      takeawaysShown: async (accountId, projectId) => {
+        const takeaways = await synthesis.overviewReads.takeaways(projectId)
+        const project = await r.queries.readProject(accountId, projectId)
+        if (!takeaways || !project || project.canChange) return takeaways
+        const studies = (await r.studyQueries.readStudies(accountId, projectId)) ?? []
+        // Every study: the takeaways reach a reader whatever their access to the folders.
+        const lists = await Promise.all(studies.map((study) => readerKnownNames(study.id)))
+        return { ...takeaways, text: maskBilingual(takeaways.text, lists.flat()) }
+      },
       projectCostRefs: synthesis.overviewReads.costRefs,
       costs: (refs) => ai.studyCosts(refs),
     },
   })
 
+  /** Spec 026: the team owning what a route names, for the access guard. */
+  const ownerOf = async (kind: OwnedKind, id: string) => {
+    if (kind === 'project') return research.teamOfProject(id)
+    if (kind === 'team') {
+      const team = (await workspace.teamNames([id])).get(id)
+      return team === undefined ? null : { id, name: team }
+    }
+    const studyId =
+      kind === 'study'
+        ? id
+        : kind === 'session'
+          ? await ingestion.studyOfSession(id)
+          : kind === 'publication'
+            ? await publishing.studyOfPublication(id)
+            : await research.studyOfPlanned(id)
+    return studyId ? research.teamOfStudy(studyId) : null
+  }
+
   return {
+    ownerOf,
     clock,
     workspace,
     research,
@@ -701,13 +828,23 @@ export const composeApp = async (
     gate: workspace.authGate,
     ...(options.rateLimit === undefined ? {} : { rateLimit: options.rateLimit }),
   })
-  const guard = createSessionGuard({ auth, db: infra.db, clock })
+  const guard = createAccessGuard({
+    session: createSessionGuard({ auth, db: infra.db, clock }),
+    access: workspace.getAccessContext,
+    owner: modules.ownerOf,
+  })
 
   const app = await buildApp({
     logger: options.logger === false ? false : loggerOptions(config),
     trustProxy: config.trustedProxies,
     isReady: infra.isReady,
     register: (instance: FastifyInstance) => {
+      // Spec 026: refused before the input is validated, so that a refusal never depends on it.
+      instance.addHook('onRoute', (route) => {
+        if (route.preHandler !== guard) return
+        route.preValidation = guard
+        delete route.preHandler
+      })
       registerAuthRoutes(instance, { auth, appUrl: config.appUrl, providers: config.providers })
       registerWorkspaceRoutes(instance, { guard, handlers: workspace.handlers })
       registerResearchRoutes(instance, { guard, handlers: research.handlers })

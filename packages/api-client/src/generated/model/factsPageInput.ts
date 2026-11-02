@@ -29,4 +29,5 @@ export interface FactsPageInput {
   themes: ThemeInput[];
   participants: FactsPageInputParticipantsItem[];
   interviews: FactsPageInputInterviewsItem[];
+  verbatimsHidden: boolean;
 }

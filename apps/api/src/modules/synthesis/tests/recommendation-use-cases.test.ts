@@ -6,6 +6,8 @@ import { makeRecommendationCommands } from '../application/commands/recommendati
 import { makeRecommendationRunCommands } from '../application/commands/recommendation-run-commands.ts'
 import { makeTakeawaysCommands } from '../application/commands/takeaways-commands.ts'
 import type { RecommendationRequest, TakeawaysRequest } from '../application/ports.ts'
+import { makeDebriefQueries } from '../application/queries/debrief-queries.ts'
+import { makeInsightQueries } from '../application/queries/insight-queries.ts'
 import { makeRecommendationQueries } from '../application/queries/recommendation-queries.ts'
 import { fakeInsightsAi, fakeSources, makeDeps, sourceFact } from './fakes/in-memory-synthesis.ts'
 
@@ -160,6 +162,67 @@ describe('Decide the recommendations (US2)', () => {
     if (!r) throw new Error('a recommendation')
     return { s, r }
   }
+
+  it('hides the owner from a reader outside the team (spec 026 FR-017)', async () => {
+    const { s, r } = await first()
+    const edited = await s.commands.edit('a1', 'pr', r.id, { version: r.version, owner: 'Sam' })
+    expect(edited.ok).toBe(true)
+    const reading = {
+      ...s.deps,
+      sources: {
+        ...s.deps.sources,
+        project: async (accountId: string, projectId: string) => {
+          const project = await s.deps.sources.project(accountId, projectId)
+          return project && { ...project, canChange: false }
+        },
+      },
+    }
+    const queries = makeRecommendationQueries(reading)
+    const view = await queries.overview('a1', 'pr')
+    if (!view.ok) throw new Error(view.error)
+    expect(view.value.recommendations[0]?.owner).toBeNull()
+    const detail = await queries.detail('a1', 'pr', r.id)
+    if (!detail.ok) throw new Error(detail.error)
+    expect(detail.value.owner).toBeNull()
+  })
+
+  it('keeps every name away from a reader outside the team (spec 026)', async () => {
+    const { s, r } = await first()
+    await s.commands.edit('a1', 'pr', r.id, { version: r.version, owner: 'Sam Example' })
+    const reading = {
+      ...s.deps,
+      sources: {
+        ...s.deps.sources,
+        project: async (accountId: string, projectId: string) => {
+          const project = await s.deps.sources.project(accountId, projectId)
+          return project && { ...project, canChange: false }
+        },
+        // Without access to the folder: the text must be masked all the same.
+        studies: async () => [{ ...study, access: false }],
+      },
+    }
+    const names = /Sam Example|Alice Person/
+    s.deps.store.accountNames = async (ids) => new Map(ids.map((id) => [id, 'Alice Person']))
+    // Names written in free text: the team's words, masked for a reader.
+    for (const i of s.memory.insights.values())
+      s.memory.insights.set(i.id, {
+        ...i,
+        statement: { en: 'Sam Example waits', fr: 'Sam Example attend' },
+        description: { en: 'Sam Example waits', fr: 'Sam Example attend' },
+      })
+    const recommendations = await makeRecommendationQueries(reading).overview('a1', 'pr')
+    expect(JSON.stringify(recommendations)).not.toMatch(names)
+    const insights = await makeInsightQueries(reading).overview('a1', 'pr')
+    expect(JSON.stringify(insights)).not.toMatch(names)
+    const [insight] = s.memory.insights.values()
+    const detail = await makeInsightQueries(reading).detail('a1', 'pr', insight?.id ?? '')
+    expect(JSON.stringify(detail)).not.toMatch(names)
+    expect(JSON.stringify(detail)).toContain('[Person')
+    const deck = await makeDebriefQueries(reading).get('a1', 'pr', { withProposed: true })
+    if (!deck.ok) throw new Error(deck.error)
+    expect(JSON.stringify(deck.value)).not.toMatch(names)
+    expect(deck.value.published).toBeNull()
+  })
 
   it('edits in place, sets the owner, and keeps the place in the list', async () => {
     const { s, r } = await first()

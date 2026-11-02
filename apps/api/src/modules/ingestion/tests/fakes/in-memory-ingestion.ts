@@ -445,6 +445,15 @@ export class InMemoryIngestion {
     this.deps = {
       store: this.store,
       studies: {
+        getStudyReadAccess: async (accountId, studyId) =>
+          this.studies.get(studyId)?.includes(accountId)
+            ? {
+                role: accountId === 'admin' ? 'admin' : 'member',
+                type: this.studyTypes.get(studyId) ?? 'interviews',
+                teamId: 'team',
+                anonymised: this.anonymised.has(studyId),
+              }
+            : null,
         getStudyAccess: async (accountId, studyId) =>
           this.studies.get(studyId)?.includes(accountId)
             ? {

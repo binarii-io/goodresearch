@@ -100,8 +100,8 @@ describe('the project Overview on PostgreSQL', () => {
     expect(freshness.json()).toEqual({ outOfDate: false })
   })
 
-  it('answers not found to someone without access, on all three', async () => {
+  it('opens all three to any member outside the team (spec 026)', async () => {
     for (const path of ['overview', 'overview/costs', 'takeaways/freshness'])
-      expect((await get(outsider, `/api/projects/${projectId}/${path}`)).statusCode).toBe(404)
+      expect((await get(outsider, `/api/projects/${projectId}/${path}`)).statusCode).toBe(200)
   })
 })

@@ -221,6 +221,32 @@ export interface ResearchReads {
     projects: readonly { id: string; name: string }[]
     goal: string
   } | null>
+  /** Spec 026: for reading, open to every active member; the three above stay with the team. */
+  readProject(
+    accountId: string,
+    projectId: string,
+  ): Promise<{
+    id: string
+    name: string
+    goal: string
+    team: { id: string; name: string }
+    version: number
+  } | null>
+  readStudies(
+    accountId: string,
+    projectId: string,
+  ): Promise<{ id: string; name: string; type: string; folderName: string | null }[] | null>
+  readStudy(
+    accountId: string,
+    studyId: string,
+  ): Promise<{
+    id: string
+    name: string
+    type: string
+    goal: string
+    projects: readonly { id: string; name: string }[]
+    team: { id: string; name: string }
+  } | null>
   teamsOf(accountId: string): Promise<{ id: string; name: string }[]>
   /** Spec 019: the team's studies, except those in this project; names and projects only. */
   attachableStudies(

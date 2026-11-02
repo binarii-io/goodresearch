@@ -29,11 +29,22 @@ export const resolveStudyAccess = async (
   deps: IngestionDeps,
   accountId: string,
   studyId: string,
+  // Spec 026: reads open to every member go through `read`; anything else stays with the team.
+  gate: 'team' | 'read' = 'team',
 ): Promise<StudyAccess> => {
-  const visible = await deps.studies.getStudyAccess(accountId, studyId)
+  const visible =
+    gate === 'read'
+      ? await deps.studies.getStudyReadAccess(accountId, studyId)
+      : await deps.studies.getStudyAccess(accountId, studyId)
   if (!visible) return { kind: 'not-found' }
   const source = await deps.store.getSource(studyId)
-  const full = { kind: 'full' as const, ...visible }
+  const full = {
+    kind: 'full' as const,
+    role: visible.role,
+    type: visible.type,
+    teamId: visible.teamId,
+    anonymised: visible.anonymised,
+  }
   if (!source) return { ...full, source: null }
 
   const refreshToken = deps.drive

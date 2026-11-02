@@ -6,7 +6,14 @@ export const ProjectName = z.string().trim().min(1).max(120)
 export const ProjectGoal = z.string().max(10_000)
 
 export const ProjectSummary = z
-  .object({ id: Id, name: z.string(), team: TeamRef, updatedAt: Timestamp })
+  .object({
+    id: Id,
+    name: z.string(),
+    team: TeamRef,
+    /** Spec 026: its team or an admin; the others read it. */
+    canChange: z.boolean(),
+    updatedAt: Timestamp,
+  })
   .meta({ id: 'ProjectSummary' })
 export type ProjectSummary = z.infer<typeof ProjectSummary>
 
@@ -16,7 +23,9 @@ export const ProjectDetail = z
     name: z.string(),
     goal: z.string(),
     team: TeamRef,
-    /** Spec 020: an admin, or its creator. */
+    /** Spec 026: its team or an admin; the others read it. */
+    canChange: z.boolean(),
+    /** Spec 020, 026: an admin, or its creator while in its team. */
     canDelete: z.boolean(),
     createdAt: Timestamp,
     updatedAt: Timestamp,
@@ -26,7 +35,13 @@ export const ProjectDetail = z
 export type ProjectDetail = z.infer<typeof ProjectDetail>
 
 // Query strings and params stay anonymous: @fastify/swagger cannot resolve named refs there.
-export const ListProjectsQuery = z.object({ team: Id.optional() })
+export const ListProjectsQuery = z.object({
+  team: Id.optional(),
+  /** Spec 026: `mine` (default) or every team's. */
+  teams: z.enum(['mine', 'all']).optional(),
+  /** With `all`: how many, most recent first; 50 by default. */
+  limit: z.coerce.number().int().min(1).max(1_000).optional(),
+})
 /** Spec 020: the project's name, typed by the person to confirm a deletion. */
 export const ConfirmWithName = z
   .object({ name: z.string().max(200) })
@@ -56,6 +71,8 @@ export const StudySummary = z
     folderName: z.string().nullable(),
     /** Spec 019: the other projects it feeds. */
     alsoIn: z.array(z.object({ id: Id, name: z.string() })),
+    /** Spec 026: its team or an admin; the others read it. */
+    canChange: z.boolean(),
     updatedAt: Timestamp,
   })
   .meta({ id: 'StudySummary' })
@@ -78,6 +95,8 @@ export const StudyDetail = z
     anonymised: z.boolean(),
     /** Spec 012: the text Analysis reads. */
     textAnalysed: TextAnalysed,
+    /** Spec 026: its team or an admin; the others read it. */
+    canChange: z.boolean(),
     createdAt: Timestamp,
     updatedAt: Timestamp,
     version: Version,
@@ -97,6 +116,8 @@ export const TeamStudy = z
     folderName: z.string().nullable(),
     /** Whether this person can open it, so attach it. */
     canAttach: z.boolean(),
+    /** Spec 026: its team or an admin; the others read it. */
+    canChange: z.boolean(),
     updatedAt: Timestamp,
   })
   .meta({ id: 'TeamStudy' })

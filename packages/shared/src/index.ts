@@ -30,6 +30,7 @@ export {
   isAcronym,
   isTranscriptEnd,
   languageOf,
+  maskBilingual,
   nameKey,
   normaliseQuote,
   PLACEHOLDER,
