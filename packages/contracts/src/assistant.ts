@@ -36,6 +36,11 @@ export const ProposalKind = z.enum([
   'connect_source',
   'offer_choices',
   'publish_preparation',
+  'browse_folder',
+  'read_file',
+  'propose_folder_changes',
+  'folder_consent',
+  'find_files',
 ])
 
 /** What the app's writing rules flag in a question (spec 006). */
@@ -101,6 +106,21 @@ export const ProposalPreview = z
     /** Spec 023: the documents a publication creates, and what a connection card asks for. */
     documents: z.array(z.enum(['guide', 'best-practices'])).optional(),
     access: z.enum(['read', 'write']).optional(),
+    /** Spec 024: the file read; the provider a consent is about; a batch of changes. */
+    fileName: z.string().optional(),
+    provider: z.string().optional(),
+    lines: z
+      .array(
+        z.object({
+          index: z.number().int(),
+          kind: z.enum(['new-folder', 'rename', 'move']),
+          before: z.string(),
+          after: z.string(),
+          dependsOn: z.number().int().nullable(),
+          outcome: z.string().optional(),
+        }),
+      )
+      .optional(),
     /** Spec 022: a list of choices. */
     question: z.string().optional(),
     choices: z.array(z.string()).optional(),
@@ -185,6 +205,11 @@ export const SendAssistantMessage = z
   .meta({ id: 'SendAssistantMessage' })
 
 /** Asks for the answer that follows an applied project, without a message (spec 018 US3). */
+/** Spec 024: the lines of a batch left out, by their index. */
+export const ApplyFolderChanges = z
+  .object({ excluded: z.array(z.number().int().min(0).max(199)).max(200) })
+  .meta({ id: 'ApplyFolderChanges' })
+
 export const ContinueAssistantConversation = z
   .object({
     page: AssistantPage,

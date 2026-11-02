@@ -15,6 +15,30 @@ import type {
 import { makeConversationQueries } from '../../application/queries/conversation-queries.ts'
 import type { ChatMessage, ModelRequestLike } from './types.ts'
 
+const newFolderWork = () => ({
+  consents: new Set<string>(),
+  available: { ok: true } as Awaited<ReturnType<ResearchReads['folderWorkAvailable']>>,
+  provider: 'anthropic' as string | null,
+  browse: {
+    ok: true,
+    items: [{ id: 'f1', name: 'Interview Sam.txt', isFolder: false }],
+    cut: false,
+  } as Awaited<ReturnType<ResearchReads['browseFolder']>>,
+  read: { ok: true, name: 'Interview Sam.txt', text: 'Hello', more: false } as Awaited<
+    ReturnType<ResearchReads['readFile']>
+  >,
+  check: {
+    ok: true,
+    lines: [
+      { index: 0, kind: 'new-folder', before: 'Study', after: 'Study / To sort', dependsOn: null },
+      { index: 1, kind: 'move', before: 'Week / A', after: 'To sort / A', dependsOn: 0 },
+    ],
+  } as Awaited<ReturnType<ResearchReads['checkFolderChanges']>>,
+  outcomes: ['done', 'skipped'],
+})
+
+let folderWork = newFolderWork()
+
 export const inMemoryAssistantStore = () => {
   const conversations = new Map<string, Conversation>()
   const messages: StoredMessage[] = []
@@ -37,6 +61,11 @@ export const inMemoryAssistantStore = () => {
     },
     deleteConversation: async (id) => {
       conversations.delete(id)
+    },
+    hasFolderConsent: async (accountId, studyId, provider) =>
+      folderWork.consents.has(`${accountId}:${studyId}:${provider}`),
+    saveFolderConsent: async (accountId, studyId, provider) => {
+      folderWork.consents.add(`${accountId}:${studyId}:${provider}`)
     },
     deleteConversationsOf: async (accountId) => {
       for (const c of [...conversations.values()])
@@ -151,6 +180,12 @@ export const fakeResearch = () => {
     sourceConnected: async (_accountId, access) =>
       folder.connected && (access === 'read' || folder.canEdit),
     checkPublication: async () => publication.check,
+    aiProvider: async () => folderWork.provider,
+    folderWorkAvailable: async () => folderWork.available,
+    browseFolder: async () => folderWork.browse,
+    findFiles: async () => folderWork.browse,
+    readFile: async () => folderWork.read,
+    checkFolderChanges: async () => folderWork.check,
     publishedKinds: async () => publication.published,
     canActOnStudy: async () => true,
     projectRunning: async () => running.value,
@@ -176,6 +211,8 @@ export const fakeResearch = () => {
     },
     attachFolder: async (c) => result('attachFolder', c, {}),
     publishPreparation: async (c) => result('publishPreparation', c, {}),
+    applyFolderChanges: async (c) =>
+      result('applyFolderChanges', c, { outcomes: folderWork.outcomes }),
     createTeamStudy: async (c) => result('createTeamStudy', c, { id: 's-new' }),
     renameStudy: async (c) => result('renameStudy', c, {}),
     attachStudy: async (c) => result('attachStudy', c, {}),
@@ -196,6 +233,7 @@ export const fakeResearch = () => {
     },
     folder,
     publication,
+    folderWork,
     throwOnDelete: () => {
       deleteThrows = true
     },
@@ -254,6 +292,7 @@ export const scriptedGateway = () => {
 }
 
 export const assistantWorld = () => {
+  folderWork = newFolderWork()
   const clock = fixedClock(new Date('2026-10-24T10:00:00Z'))
   const memory = inMemoryAssistantStore()
   const research = fakeResearch()

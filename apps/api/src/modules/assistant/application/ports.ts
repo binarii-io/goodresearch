@@ -54,6 +54,16 @@ export type ProposalPreview = {
   readonly opensOn?: 'preparation' | 'fieldwork'
   readonly documents?: ('guide' | 'best-practices')[]
   readonly access?: 'read' | 'write'
+  readonly fileName?: string
+  readonly provider?: string
+  readonly lines?: {
+    index: number
+    kind: 'new-folder' | 'rename' | 'move'
+    before: string
+    after: string
+    dependsOn: number | null
+    outcome?: string
+  }[]
   readonly question?: string
   readonly choices?: string[]
   readonly multiple?: boolean
@@ -106,6 +116,14 @@ export type GuideDraft = {
 }
 
 /** What the assistant may know of a study's preparation; never names from the schedule. */
+export type FileSearchKind = 'transcript' | 'recording' | 'document' | 'folder'
+
+/** One line of a batch of changes in a study's folder, as the model sends it (spec 024). */
+export type FolderLineInput =
+  | { kind: 'new-folder'; key: string; name: string; parent: string }
+  | { kind: 'rename'; fileId: string; name: string }
+  | { kind: 'move'; fileId: string; to: string }
+
 export type StudyPreparation = {
   readonly guide: { readonly version: number; readonly content: GuideDraft } | null
   readonly schedule: Readonly<Partial<Record<string, number>>>
@@ -140,6 +158,9 @@ export interface AssistantStore {
   ): Promise<void>
   deleteConversation(conversationId: string): Promise<void>
   deleteConversationsOf(accountId: string): Promise<void>
+  /** Spec 024: the person's consent to send this study's files to this provider. */
+  hasFolderConsent(accountId: string, studyId: string, provider: string): Promise<boolean>
+  saveFolderConsent(accountId: string, studyId: string, provider: string, at: Date): Promise<void>
   listMessages(conversationId: string): Promise<StoredMessage[]>
   saveMessage(message: StoredMessage): Promise<void>
   listProposals(conversationId: string): Promise<StoredProposal[]>
@@ -210,6 +231,46 @@ export interface ResearchReads {
   }): Promise<
     { ok: true; folderName: string; folderOwner: string | null } | { ok: false; error: string }
   >
+  /** Spec 024: the AI provider this person's calls go to, null without one. */
+  aiProvider(accountId: string): Promise<string | null>
+  /** Spec 024: whether the assistant can work in this study's folder at all. */
+  folderWorkAvailable(
+    actor: Actor,
+    studyId: string,
+  ): Promise<{ ok: true } | { ok: false; error: string }>
+  /** Spec 024: one folder of the study, with the person's own access. */
+  browseFolder(
+    actor: Actor,
+    studyId: string,
+    folderId?: string,
+  ): Promise<
+    | { ok: true; items: readonly Record<string, unknown>[]; cut: boolean }
+    | { ok: false; error: string }
+  >
+  /** Spec 024: what matches a name or a kind in the study's folder. */
+  findFiles(
+    actor: Actor,
+    studyId: string,
+    search: { query?: string | undefined; kind?: FileSearchKind | undefined },
+  ): Promise<
+    | { ok: true; items: readonly Record<string, unknown>[]; cut: boolean }
+    | { ok: false; error: string }
+  >
+  /** Spec 024: one extract of a file of the study's folder. */
+  readFile(
+    actor: Actor,
+    studyId: string,
+    fileId: string,
+    part?: number,
+  ): Promise<{ ok: true; name: string; text: string; more: boolean } | { ok: false; error: string }>
+  /** Spec 024: what a batch would do; nothing changes. */
+  checkFolderChanges(
+    actor: Actor,
+    studyId: string,
+    lines: readonly FolderLineInput[],
+  ): Promise<
+    { ok: true; lines: NonNullable<ProposalPreview['lines']> } | { ok: false; error: string }
+  >
   /** Spec 023: what publishing would create, with the person's own access. */
   checkPublication(c: {
     actor: Actor
@@ -257,6 +318,13 @@ export interface ResearchActions {
     name: string
     goal?: string
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
+  /** Spec 024: runs the lines kept; each gives its outcome. */
+  applyFolderChanges(c: {
+    actor: Actor
+    studyId: string
+    lines: readonly FolderLineInput[]
+    excluded: readonly number[]
+  }): Promise<{ ok: true; outcomes: string[] } | { ok: false; error: string }>
   /** Spec 023: creates the documents in the study's folder. */
   publishPreparation(c: {
     actor: Actor

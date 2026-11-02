@@ -1307,6 +1307,7 @@ msgstr "Clé d'API"
 msgid "app's rules only"
 msgstr "règles de l'app seulement"
 
+#: src/features/assistant/folder-changes-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Applied"
 msgstr "Appliquée"
@@ -1315,6 +1316,7 @@ msgstr "Appliquée"
 msgid "Applied to the clean versions"
 msgstr "Appliquées aux versions propres"
 
+#: src/features/assistant/folder-changes-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Apply"
 msgstr "Appliquer"
@@ -1630,6 +1632,11 @@ msgstr "Modifié dans l’app et dans le Drive"
 msgid "Changed since"
 msgstr "Modifié depuis"
 
+#: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Changes in the folder"
+msgstr "Modifications dans le dossier"
+
 #: src/features/workspace/errors.ts
 msgid "Changes made in Drive are waiting for review."
 msgstr "Des modifications faites dans le Drive attendent une revue."
@@ -1686,9 +1693,17 @@ msgstr "Choisir une équipe"
 msgid "Choose a team."
 msgstr "Choisissez une équipe."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Choose an AI provider first."
+msgstr "Choisissez d’abord un fournisseur d’IA."
+
 #: src/features/ai/labels.ts
 msgid "Choose another region, or ask the person who deployed goodresearch which model is used."
 msgstr "Choisissez une autre région, ou demandez à la personne qui a déployé goodresearch quel modèle est utilisé."
+
+#: src/features/workspace/errors.ts
+msgid "Choose the lines to apply on the card."
+msgstr "Choisissez les lignes à appliquer sur la carte."
 
 #: src/routes/_authenticated/ai-provider.tsx
 #: src/routes/setup.ai-provider.tsx
@@ -2309,12 +2324,14 @@ msgstr "Déconnecter"
 msgid "Disconnect Google Drive?"
 msgstr "Déconnecter Google Drive ?"
 
+#: src/features/assistant/folder-changes-card.tsx
 #: src/features/assistant/proposal-card.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Dismiss"
 msgstr "Ignorer"
 
+#: src/features/assistant/folder-changes-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Dismissed"
 msgstr "Ignorée"
@@ -2328,6 +2345,7 @@ msgid "Document text"
 msgstr "Texte du document"
 
 #: src/features/analysis/labels.ts
+#: src/features/assistant/folder-changes-card.tsx
 #: src/features/preparation/labels.ts
 msgid "Done"
 msgstr "Réalisé"
@@ -3757,9 +3775,17 @@ msgstr "Phrases orientées"
 msgid "Leave the presentation"
 msgstr "Quitter la présentation"
 
+#: src/features/assistant/folder-changes-card.tsx
+msgid "Left out"
+msgstr "Écartée"
+
 #: src/features/workspace/errors.ts
 msgid "Let goodresearch edit your Drive files first."
 msgstr "Autorisez d’abord goodresearch à modifier vos fichiers Drive."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Let the assistant see the folder"
+msgstr "Laisser l’assistant voir le dossier"
 
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/enrichment/labels.ts
@@ -3812,6 +3838,10 @@ msgstr "Liste"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Loading every occurrence…"
 msgstr "Chargement de toutes les occurrences…"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Looked in the folder"
+msgstr "A regardé dans le dossier"
 
 #: src/features/assistant/panel.tsx
 msgid "Looking at: project {name}"
@@ -3966,6 +3996,10 @@ msgstr "Modifié"
 msgid "More studies exist: search by name to find them."
 msgstr "D’autres études existent : cherchez par nom pour les trouver."
 
+#: src/features/assistant/folder-changes-card.tsx
+msgid "Move"
+msgstr "Déplacer"
+
 #. placeholder {0}: qi + 1
 #: src/features/preparation/guide-editor.tsx
 msgid "Move question {0} down"
@@ -4074,6 +4108,10 @@ msgstr "Nouvelle conversation"
 #: src/features/analysis/interview-facts.tsx
 msgid "New fact"
 msgstr "Nouveau fait"
+
+#: src/features/assistant/folder-changes-card.tsx
+msgid "New folder"
+msgstr "Nouveau dossier"
 
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
@@ -4378,6 +4416,7 @@ msgstr "Aucun"
 msgid "Not analysed"
 msgstr "Non analysé"
 
+#: src/features/assistant/folder-changes-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Not applied"
 msgstr "Non appliquée"
@@ -4461,6 +4500,10 @@ msgstr "Utilisé par aucune recommandation"
 #: src/features/preparation/schedule.tsx
 msgid "Notes"
 msgstr "Notes"
+
+#: src/features/assistant/folder-changes-card.tsx
+msgid "Nothing changes in Drive before you apply, and nothing is ever deleted."
+msgstr "Rien ne change dans Drive avant que vous appliquiez, et rien n’est jamais supprimé."
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Nothing changes in Drive. Its files are then listed in Fieldwork."
@@ -4654,6 +4697,10 @@ msgstr "Ouvrir la page de l'API Vertex AI de ce projet"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Open the video: {0}"
 msgstr "Ouvrir la vidéo : {0}"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Opened the folder"
+msgstr "A ouvert le dossier"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Opened the project"
@@ -5125,6 +5172,14 @@ msgstr "Réactiver"
 msgid "Read"
 msgstr "Lu"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Read a file"
+msgstr "A lu un fichier"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Read an extract of: {file}"
+msgstr "A lu un extrait de : {file}"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Read on"
 msgstr "Lu le"
@@ -5301,6 +5356,10 @@ msgstr "Supprimé dans le Drive"
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Removing the provider deletes it from goodresearch. To also withdraw goodresearch's access at Google, use your Google account permissions."
 msgstr "Retirer le fournisseur le supprime de goodresearch. Pour retirer aussi l'accès de goodresearch chez Google, passez par les autorisations de votre compte Google."
+
+#: src/features/assistant/folder-changes-card.tsx
+msgid "Rename"
+msgstr "Renommer"
 
 #. placeholder {0}: f.current
 #: src/features/fieldwork/proposals.tsx
@@ -5613,6 +5672,10 @@ msgstr "Chercher par nom"
 #: src/routes/_authenticated/members/index.tsx
 msgid "Search by name or email"
 msgstr "Rechercher par nom ou e-mail"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Searched the folder"
+msgstr "A cherché dans le dossier"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Section"
@@ -6423,6 +6486,10 @@ msgstr "Ce nom ne correspond pas à celui du projet."
 msgid "The names and titles proposed for the interviews use a pseudonym (P01, P02…) instead of the interviewee's name. Before the beginning of a transcript goes to the AI, the names the app knows (schedule, people of the interview, team) are replaced; names it does not know stay in the text. Replacing every name inside the transcripts comes with the cleaning phase."
 msgstr "Les noms et titres proposés pour les entretiens utilisent un pseudonyme (P01, P02…) à la place du nom de la personne interviewée. Avant que le début d'une transcription parte vers l'IA, les noms connus de l'app (planning, personnes de l'entretien, équipe) sont remplacés ; les noms qu'elle ne connaît pas restent dans le texte. Le remplacement de tous les noms dans les transcriptions arrive avec la phase de nettoyage."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "The names of the files of this study, and extracts of their content when it reads them, are sent to {provider}. They often hold the names of the people interviewed. Nothing changes in Drive without your confirmation."
+msgstr "Les noms des fichiers de cette étude, et des extraits de leur contenu quand il les lit, sont envoyés à {provider}. Ils contiennent souvent les noms des personnes interviewées. Rien ne change dans Drive sans votre confirmation."
+
 #: src/features/analysis/find-facts.tsx
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/quality/review-dialog.tsx
@@ -6630,6 +6697,10 @@ msgstr "Ce fait a été refusé ou n'est plus dans le projet."
 msgid "This file is a summary, not a transcript: the app excluded it. Reopen it if it is an interview."
 msgstr "Ce fichier est un résumé, pas une transcription : l'app l'a exclu. Rouvrez-le si c'est un entretien."
 
+#: src/features/assistant/folder-changes-card.tsx
+msgid "This file no longer exists, or you cannot open it."
+msgstr "Ce fichier n’existe plus, ou vous ne pouvez pas l’ouvrir."
+
 #: src/features/workspace/errors.ts
 msgid "This folder does not exist or your Google account cannot open it."
 msgstr "Ce dossier n'existe pas ou votre compte Google ne peut pas l'ouvrir."
@@ -6731,6 +6802,10 @@ msgstr "C'est bien ce terme"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "This is the term: {excerpt}"
 msgstr "C'est bien ce terme : {excerpt}"
+
+#: src/features/assistant/folder-changes-card.tsx
+msgid "This item is not in the study's folder."
+msgstr "Cet élément n’est pas dans le dossier de l’étude."
 
 #: src/features/workspace/not-found.tsx
 msgid "This page does not exist or you do not have access to it."

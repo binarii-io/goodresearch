@@ -395,6 +395,15 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     updateProjectGoal: async (c) => outcome(await r.updateProjectGoal(c)),
     renameProject: async (c) => outcome(await r.renameProject(c)),
     createStudy: async (c) => outcome(await r.studies.createStudy({ ...c, type: 'interviews' })),
+    applyFolderChanges: async (c) =>
+      outcome(
+        await bound(ingestion).handlers.folderWork.apply(
+          c.actor,
+          c.studyId,
+          c.lines,
+          new Set(c.excluded),
+        ),
+      ),
     publishPreparation: async (c) => {
       // What is left now: someone may have published one of them since the card was shown.
       const left = await publishing.handlers.queries.checkPublication(c)
@@ -464,6 +473,19 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       folderState: (actor, studyId) =>
         bound(ingestion).handlers.queries.folderState(actor, studyId),
       checkFolder: async (c) => outcome(await bound(ingestion).handlers.commands.checkFolder(c)),
+      aiProvider: (accountId) => ai.gateway.providerOf(accountId),
+      folderWorkAvailable: async (actor, studyId) => {
+        const done = await bound(ingestion).handlers.folderWork.available(actor, studyId)
+        return done.ok ? { ok: true as const } : done
+      },
+      browseFolder: async (actor, studyId, folderId) =>
+        outcome(await bound(ingestion).handlers.folderWork.browse(actor, studyId, folderId)),
+      findFiles: async (actor, studyId, search) =>
+        outcome(await bound(ingestion).handlers.folderWork.find(actor, studyId, search)),
+      readFile: async (actor, studyId, fileId, part) =>
+        outcome(await bound(ingestion).handlers.folderWork.read(actor, studyId, fileId, part)),
+      checkFolderChanges: async (actor, studyId, lines) =>
+        outcome(await bound(ingestion).handlers.folderWork.check(actor, studyId, lines)),
       checkPublication: async (c) => {
         const done = await publishing.handlers.queries.checkPublication(c)
         return done.ok

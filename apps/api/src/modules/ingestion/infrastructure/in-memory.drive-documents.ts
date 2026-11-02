@@ -39,13 +39,20 @@ export class InMemoryDriveDocuments implements DriveDocuments {
   readonly accountOf: (refreshToken: string) => string
   /** Told when the app renames a file (the simulated folder shows the new name). */
   readonly onRename: (fileId: string, name: string) => void
+  /** Told when the app moves a file or creates a folder (spec 024). */
+  readonly onMove: (fileId: string, to: string) => void
+  readonly onFolder: (id: string, name: string, parent: string) => void
 
   constructor(
     accountOf: (refreshToken: string) => string,
     onRename: (fileId: string, name: string) => void = () => {},
+    onMove: (fileId: string, to: string) => void = () => {},
+    onFolder: (id: string, name: string, parent: string) => void = () => {},
   ) {
     this.accountOf = accountOf
     this.onRename = onRename
+    this.onMove = onMove
+    this.onFolder = onFolder
   }
 
   /** A file of the folder that was not published by the app (a transcript, a recording). */
@@ -94,7 +101,9 @@ export class InMemoryDriveDocuments implements DriveDocuments {
   }
 
   async createFolder(refreshToken: string, parentId: string, name: string) {
-    return this.#create(refreshToken, parentId, name, {})
+    const created = this.#create(refreshToken, parentId, name, {})
+    this.onFolder(created.id, name, parentId)
+    return created
   }
 
   async createDocument(refreshToken: string, folderId: string, name: string, doc: DocModel) {
@@ -173,6 +182,12 @@ export class InMemoryDriveDocuments implements DriveDocuments {
       lastEditorName: file.lastEditor,
       webViewLink: `https://drive.example.test/file/${file.id}`,
     }
+  }
+
+  async moveFile(refreshToken: string, fileId: string, _from: readonly string[], to: string) {
+    const { file, account } = this.#editable(refreshToken, fileId)
+    Object.assign(file, { parents: [to], version: file.version + 1, lastEditor: account })
+    this.onMove(fileId, to)
   }
 
   async renameFile(refreshToken: string, fileId: string, name: string) {

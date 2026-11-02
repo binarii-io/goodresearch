@@ -196,10 +196,20 @@ export const createDevDrive = (appUrl: URL) => {
   }
 
   // The demo files can be renamed by the app (spec 009): the folder then shows the new name.
-  const documents = new InMemoryDriveDocuments(known, (id, name) => {
-    const item = items.get(id)
-    if (item) items.set(id, { ...item, name })
-  })
+  const documents = new InMemoryDriveDocuments(
+    known,
+    (id, name) => {
+      const item = items.get(id)
+      if (item) items.set(id, { ...item, name })
+    },
+    (id, to) => {
+      const item = items.get(id)
+      if (item) items.set(id, { ...item, parents: [to] })
+    },
+    (id, name, parent) => {
+      items.set(id, { id, name, mimeType: FOLDER_MIME, parents: [parent], ownerName: 'Drive user' })
+    },
+  )
   for (const item of items.values())
     if (item.mimeType !== FOLDER_MIME) documents.adopt(item.id, item.name, item.parents ?? [])
 

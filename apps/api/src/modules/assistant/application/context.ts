@@ -1,4 +1,4 @@
-import { type NextStep, nextStep, plannedCount } from '../domain/next-step.ts'
+import { type NextStep, nextStep } from '../domain/next-step.ts'
 import type { Actor, PageRef, ResearchReads } from './ports.ts'
 import { SKILL_NAMES, SKILLS, type SkillName } from './skills.ts'
 
@@ -9,7 +9,6 @@ const NEXT_STEPS: Record<NextStep, string> = {
   'write-guide': 'write its interview guide',
   'add-folder': 'add the folder holding its interviews',
   publish: 'publish its interview guide and the best practices to its folder',
-  'plan-interviews': 'plan the interviews',
   fieldwork: 'run the interviews in the Fieldwork tab',
 }
 
@@ -30,6 +29,7 @@ const INSTRUCTIONS = `You are the goodresearch assistant. You help people run us
 - Each message of the person starts with the page it was sent from. The context below describes the page the person is on now; when it differs from earlier messages, the person has moved.
 - When the person can choose among a few clear options, such as the next steps, offer them with offer_choices rather than a list in your text.
 - When the person asks what comes next, answer in your own words from the next step in the context, never from memory, and offer the steps with offer_choices.
+- You can work in a study's folder like a colleague: find_files to look for a file or a person, browse_folder to see all of it, read_file to read a file, propose_folder_changes for one card of renames, moves and new sub-folders. Everything changes only when the person applies the card. You cannot delete, trash or change sharing: say so, and offer a sub-folder named "To sort"; the person deletes in their own storage.
 - Skills hold instructions for specific tasks. When a task matches a skill listed below that is not loaded yet, call load_skill first and follow its instructions. When the person wants to create a research project, that is the skill project-framing. When they want to create a study, that is the skill study-framing.`
 
 /** Said when the answer follows an applied card rather than a message (spec 018, 021, 022). */
@@ -40,12 +40,16 @@ const CONTINUATIONS = {
     'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready, then call offer_choices with the next steps: adding the folder that holds its interviews if they exist already, and preparing its interview guide. Start neither, and call no other tool. Do not repeat the framing.',
   folder:
     'The person just applied your folder proposal and the study is open on the tab named in the context: nobody wrote a new message. From the source folder in the context, give the number of transcripts, recordings and other files; if its inventory is still running, say so and that the Fieldwork tab follows it. Then call offer_choices with what is left to prepare according to the context: writing the interview guide if there is none, planning the interviews if none is planned; if both are done, going to Fieldwork. Start nothing, and call no other tool.',
+  consented:
+    'The person just agreed to send the names and content of the files of this study to their AI provider: nobody wrote a new message. Go on with what they asked: call again the tool that led to the card.',
+  tidied:
+    'The person just applied your changes in the folder: nobody wrote a new message. Your call shows the outcome of each line. In one or two sentences, say what was done and what failed, then say what comes next. Call only offer_choices if useful.',
   guide:
     'The person just applied your interview guide and it is saved: nobody wrote a new message. In one or two sentences, say so. Then call offer_choices with what comes next according to the next step in the context, first of all publishing the guide and the best practices to the study folder when that is possible, or adding the folder when there is none. Start nothing, and call no other tool.',
   published:
     'The person just applied your publication proposal and the documents are in the study folder, linked on your card: nobody wrote a new message. In one or two sentences, say so. Then call offer_choices with what comes next according to the next step in the context. Start nothing, and call no other tool.',
   connected:
-    'The person just connected their file source and is back on this study: nobody wrote a new message. Call again the tool that led to the connection card: attach_folder with the link of the conversation and the Study id (ask for the link if there is none), or publish_preparation with the same documents.',
+    'The person just connected their file source and is back on this study: nobody wrote a new message. Call again the tool that led to the connection card: attach_folder with the link of the conversation and the Study id (ask for the link if there is none), publish_preparation with the same documents, or propose_folder_changes with the same lines.',
 } as const
 
 export type Continuation = keyof typeof CONTINUATIONS
@@ -196,7 +200,6 @@ export const buildContext = async (
           hasFolder: folder !== null,
           // Only read when it can change the answer.
           published: hasGuide && folder ? await research.publishedKinds(actor, study.id) : [],
-          planned: plannedCount(preparation.schedule),
         })
         lines.push(`Next step of this study: ${NEXT_STEPS[step]}.`)
       }

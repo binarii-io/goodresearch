@@ -10,7 +10,7 @@ import {
   type TableModel,
   type TableRead,
 } from '../domain/drive-documents.ts'
-import { DriveConnectionLost } from '../domain/drive-gateway.ts'
+import { DriveConnectionLost, type DriveItem } from '../domain/drive-gateway.ts'
 import { resolveStudyAccess } from './access.ts'
 import { readRefreshToken } from './connection.ts'
 import type { IngestionDeps } from './ports.ts'
@@ -53,6 +53,12 @@ export type StudyFiles = {
   ): Promise<Result<{ revision: string | null }, FileError>>
   metadata(fileId: string): Promise<Result<FileMeta | null, FileError>>
   renameFile(fileId: string, name: string): Promise<Result<FileMeta | null, FileError>>
+  /** Spec 024: reading and moving, for the assistant's work in the folder. */
+  item(id: string): Promise<Result<DriveItem | null, FileError>>
+  list(folderIds: readonly string[], max: number): Promise<Result<DriveItem[], FileError>>
+  readStart(item: DriveItem, maxChars: number): Promise<Result<string | null, FileError>>
+  moveFile(id: string, from: readonly string[], to: string): Promise<Result<void, FileError>>
+  createFolderIn(parent: string, name: string): Promise<Result<{ id: string }, FileError>>
   /** Spec 011: a folder inside the study folder, found again by its id while it is still there. */
   ensureFolder(name: string, knownId: string | null): Promise<Result<{ id: string }, FileError>>
   /** A document inside a folder of the study folder. */
@@ -101,6 +107,7 @@ export const makeStudyFiles =
       }
     }
     const folderId = study.source.folderId
+    const { gateway } = deps.drive
     return ok({
       folderId,
       createDocument: (name, doc) =>
@@ -117,6 +124,21 @@ export const makeStudyFiles =
         run(() => documents.rewritePresentation(token, fileId, slides, expected)),
       metadata: (fileId) => run(() => documents.metadata(token, fileId)),
       renameFile: (fileId, name) => run(() => documents.renameFile(token, fileId, name)),
+      item: (id) => run(() => gateway.getItem(token, id)),
+      list: (ids, max) =>
+        run(async () => {
+          const found: DriveItem[] = []
+          const root = await gateway.getItem(token, folderId)
+          for await (const page of gateway.listChildren(token, ids, root?.driveId)) {
+            found.push(...page)
+            if (found.length >= max) break
+          }
+          return found.slice(0, max)
+        }),
+      readStart: (item, maxChars) => run(() => gateway.readTextStart(token, item, maxChars)),
+      moveFile: (id, from, to) => run(() => documents.moveFile(token, id, from, to)),
+      createFolderIn: (parent, name) =>
+        run(async () => ({ id: (await documents.createFolder(token, parent, name)).id })),
       ensureFolder: (name, knownId) =>
         run(async () => {
           const known = knownId ? await documents.metadata(token, knownId) : null

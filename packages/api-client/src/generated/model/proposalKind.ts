@@ -30,4 +30,9 @@ export const ProposalKind = {
   connect_source: 'connect_source',
   offer_choices: 'offer_choices',
   publish_preparation: 'publish_preparation',
+  browse_folder: 'browse_folder',
+  read_file: 'read_file',
+  propose_folder_changes: 'propose_folder_changes',
+  folder_consent: 'folder_consent',
+  find_files: 'find_files',
 } as const;

@@ -24,6 +24,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApplyFolderChangesInput,
   ConfirmWithNameInput,
   ContinueAssistantConversationInput,
   ConversationDetail,
@@ -709,6 +710,88 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getConfirmDeleteProposalMutationOptions(options), queryClient);
+    }
+    export const getApplyFolderChangesProposalUrl = (proposalId: string,) => {
+
+
+
+
+  return `/api/assistant/proposals/${proposalId}/apply-folder-changes`
+}
+
+export const applyFolderChangesProposal = async (proposalId: string,
+    applyFolderChangesInput: ApplyFolderChangesInput, options?: Parameters<typeof apiFetch>[1]): Promise<Proposal> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<Proposal>(getApplyFolderChangesProposalUrl(proposalId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(applyFolderChangesInput)
+  }
+);}
+
+
+
+
+
+export const getApplyFolderChangesProposalMutationKey = () => ['applyFolderChangesProposal'] as const;
+
+export const getApplyFolderChangesProposalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyFolderChangesProposal>>, TError,ApplyFolderChangesProposalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof applyFolderChangesProposal>>, TError,ApplyFolderChangesProposalMutationVariables, TContext> => {
+
+const mutationKey = getApplyFolderChangesProposalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof applyFolderChangesProposal>>, ApplyFolderChangesProposalMutationVariables> = (props) => {
+          const {proposalId,data} = props ?? {};
+
+          return  applyFolderChangesProposal(proposalId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApplyFolderChangesProposalMutationResult = NonNullable<Awaited<ReturnType<typeof applyFolderChangesProposal>>>
+    export type ApplyFolderChangesProposalMutationBody = ApplyFolderChangesInput
+    export type ApplyFolderChangesProposalMutationError = unknown
+    export type ApplyFolderChangesProposalMutationVariables = {proposalId: string;data: ApplyFolderChangesInput}
+
+    export const useApplyFolderChangesProposal = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyFolderChangesProposal>>, TError,ApplyFolderChangesProposalMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof applyFolderChangesProposal>>,
+        TError,
+        ApplyFolderChangesProposalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApplyFolderChangesProposalMutationOptions(options), queryClient);
     }
     export const getApplyProposalUrl = (proposalId: string,) => {
 

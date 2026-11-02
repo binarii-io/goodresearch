@@ -8,6 +8,7 @@ import {
   framingCompleteness,
 } from '../../domain/project-framing.ts'
 import {
+  isActivity,
   isNavigation,
   isProposalKind,
   isRecordedAtOnce,
@@ -36,9 +37,11 @@ import type {
 import { SKILLS } from '../skills.ts'
 import {
   checksOf,
+  folderWorkRefusal,
   GUIDE_TOOLS,
   prepareDeletion,
   prepareFolder,
+  prepareFolderChanges,
   prepareProject,
   prepareProposal,
   preparePublication,
@@ -67,7 +70,20 @@ const checksText = (checks: ProposalPreview['checks'] = []): string =>
     )
     .join('\n') || 'Nothing to check.'
 
-type NewCard = 'create_project' | 'create_study' | 'attach_folder' | 'publish_preparation'
+type NewCard =
+  | 'create_project'
+  | 'create_study'
+  | 'attach_folder'
+  | 'publish_preparation'
+  | 'propose_folder_changes'
+
+const NOTHING_WRITTEN = {
+  en: 'I could not finish what you asked: nothing came of my attempt. You can try again, or tell me more.',
+  fr: 'Je n’ai pas réussi à aller au bout de votre demande : ma tentative n’a rien donné. Vous pouvez réessayer, ou me donner plus de précisions.',
+} as const
+
+const TOOL_FAILED =
+  'This tool failed for a technical reason of the app. Say so in a few words, and offer to try again.'
 
 const CHOICES_SHOWN = 'List shown to the person: their next message answers it.'
 
@@ -79,12 +95,26 @@ const CARD_SHOWN = 'Card shown to the person. Wait for their decision and add no
 /** What the answer goes on from, when it follows no message; the last answer's card says. */
 const continuationOf = (held: readonly StoredProposal[]): Continuation => {
   const has = (kind: ProposalKind) => held.some((p) => p.kind === kind && p.state === 'applied')
+  if (has('folder_consent')) return 'consented'
+  if (has('propose_folder_changes')) return 'tidied'
   if (has('attach_folder')) return 'folder'
   if (has('publish_preparation')) return 'published'
   if (has('propose_interview_guide')) return 'guide'
   if (has('create_study')) return 'study'
   return has('create_project') ? 'project' : 'connected'
 }
+
+/** Spec 024: extracts sent to the provider in one answer. */
+const MAX_READS = 5
+
+const FOLDER_CARDS = [
+  'attach_folder',
+  'publish_preparation',
+  'browse_folder',
+  'find_files',
+  'read_file',
+  'propose_folder_changes',
+]
 
 const NOT_CONTINUING = [
   'create_project',
@@ -99,6 +129,20 @@ const REPLACED = 'REPLACED'
 
 /** What the model is told about a tool call in the next turns (research R2). */
 const outcomeOf = (p: StoredProposal): string => {
+  if (p.kind === 'browse_folder' || p.kind === 'find_files' || p.kind === 'read_file')
+    return p.state === 'applied'
+      ? 'Done then. Its result is not kept: call it again if you need it.'
+      : (p.error ?? 'Not done.')
+  if (p.kind === 'folder_consent' && p.state === 'applied')
+    return 'The person agreed: call the same tool again.'
+  if (p.kind === 'folder_consent' && p.state === 'proposed')
+    return 'Not allowed yet: a card asks for the consent of the person.'
+  if (p.kind === 'folder_consent' && p.state === 'dismissed')
+    return 'The person refused: only counts are available, unless they ask again.'
+  if (p.kind === 'propose_folder_changes' && p.state === 'applied')
+    return `Applied by the person. Outcome of each line: ${(p.preview.lines ?? [])
+      .map((l) => `${l.after}: ${l.outcome ?? 'unknown'}`)
+      .join('; ')}. Do not repeat file names you did not need.`
   if (p.kind === 'connect_source' && p.state === 'applied')
     return 'The person connected their file source: call the same tool again.'
   if (p.kind === 'connect_source' && p.state === 'proposed')
@@ -131,15 +175,17 @@ const outcomeOf = (p: StoredProposal): string => {
 }
 
 /** Spec 022: a connection card comes from the call of a tool the model does have. */
-const toolOf = (p: StoredProposal): string =>
-  p.kind !== 'connect_source'
-    ? p.kind
-    : 'kinds' in p.values
-      ? 'publish_preparation'
-      : 'attach_folder'
+const toolOf = (p: StoredProposal): string => {
+  if (p.kind === 'folder_consent') return String(p.values.tool)
+  if (p.kind !== 'connect_source') return p.kind
+  if ('lines' in p.values) return 'propose_folder_changes'
+  return 'kinds' in p.values ? 'publish_preparation' : 'attach_folder'
+}
 
 /** The arguments of the original tool call, as the model sent them. */
 const callInput = (p: StoredProposal): Record<string, unknown> => {
+  // A consent card comes from the call that needed it.
+  if (p.kind === 'folder_consent') return (p.values.input ?? {}) as Record<string, unknown>
   // A framed project: what the model sent, without the goal the app composed from it (spec 018).
   if (p.kind === 'create_project' && 'question' in p.values) {
     const { goal: _composed, ...sent } = p.values
@@ -152,6 +198,7 @@ const callInput = (p: StoredProposal): Record<string, unknown> => {
     p.kind === 'propose_interview_guide' ||
     p.kind === 'attach_folder' ||
     p.kind === 'publish_preparation' ||
+    p.kind === 'propose_folder_changes' ||
     p.kind === 'connect_source' ||
     isStudyChange(p.kind)
       ? 'studyId'
@@ -237,7 +284,9 @@ export const makeSendMessage = (deps: AssistantDeps) => {
             p.kind === 'create_study' ||
             p.kind === 'attach_folder' ||
             p.kind === 'publish_preparation' ||
-            p.kind === 'propose_interview_guide') &&
+            p.kind === 'propose_interview_guide' ||
+            p.kind === 'propose_folder_changes' ||
+            p.kind === 'folder_consent') &&
           p.state === 'applied',
       ) ||
       // Spec 022: the address only says the consent went well; the connection proves it.
@@ -346,19 +395,21 @@ export const makeSendMessage = (deps: AssistantDeps) => {
     const proposeOne = async (kind: NewCard, input: unknown, callId: string): Promise<string> => {
       const proposals = await deps.store.listProposals(c.conversationId)
       const prepared =
-        kind === 'publish_preparation'
-          ? await preparePublication(deps.research, c.actor, input, c.language)
-          : kind === 'attach_folder'
-            ? await prepareFolder(deps.research, c.actor, input)
-            : kind === 'create_study'
-              ? await prepareStudy(deps.research, c.actor, input, currentStudyFraming(proposals))
-              : await prepareProject(
-                  deps.research,
-                  c.actor,
-                  input,
-                  currentFraming(proposals),
-                  c.language,
-                )
+        kind === 'propose_folder_changes'
+          ? await prepareFolderChanges(deps.research, c.actor, input)
+          : kind === 'publish_preparation'
+            ? await preparePublication(deps.research, c.actor, input, c.language)
+            : kind === 'attach_folder'
+              ? await prepareFolder(deps.research, c.actor, input)
+              : kind === 'create_study'
+                ? await prepareStudy(deps.research, c.actor, input, currentStudyFraming(proposals))
+                : await prepareProject(
+                    deps.research,
+                    c.actor,
+                    input,
+                    currentFraming(proposals),
+                    c.language,
+                  )
       if ('refused' in prepared) {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         await record(callId, kind, raw, null, prepared.refused)
@@ -367,11 +418,15 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       for (const open of proposals)
         if (
           (open.kind === kind ||
-            ((kind === 'attach_folder' || kind === 'publish_preparation') &&
+            ((kind === 'attach_folder' ||
+              kind === 'publish_preparation' ||
+              kind === 'propose_folder_changes') &&
               open.kind === 'connect_source')) &&
           open.state === 'proposed' &&
           // A card about a study only gives way to another card for the same study.
-          ((kind !== 'attach_folder' && kind !== 'publish_preparation') ||
+          ((kind !== 'attach_folder' &&
+            kind !== 'publish_preparation' &&
+            kind !== 'propose_folder_changes') ||
             open.targetId === prepared.targetId)
         )
           await deps.store.transitionProposal(open.id, 'proposed', {
@@ -429,6 +484,107 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         : CARD_SHOWN
     }
 
+    /**
+     * Spec 024: names and content reach the provider only after the person's consent for this
+     * study and this provider; until then, a card, and nothing is read. Null once allowed.
+     */
+    const askFolderConsent = async (
+      tool: string,
+      input: unknown,
+      callId: string,
+    ): Promise<string | null> => {
+      const studyId = (input as { studyId?: unknown } | null)?.studyId
+      const study =
+        typeof studyId === 'string' ? await deps.research.getStudy(c.actor.id, studyId) : null
+      if (!study) {
+        const reason = folderWorkRefusal('STUDY_NOT_FOUND')
+        await record(callId, tool as ProposalKind, {}, null, reason)
+        return reason
+      }
+      // Nobody is asked to agree to what cannot happen: anonymised study, no folder, no access.
+      const available = await deps.research.folderWorkAvailable(c.actor, study.id)
+      if (!available.ok) {
+        const reason = folderWorkRefusal(available.error)
+        await record(callId, tool as ProposalKind, {}, null, reason)
+        return reason
+      }
+      const provider = await deps.research.aiProvider(c.actor.id)
+      if (provider && (await deps.store.hasFolderConsent(c.actor.id, study.id, provider)))
+        return null
+      const proposal: StoredProposal = {
+        id: deps.newId(),
+        callId,
+        messageId: answer.id,
+        kind: 'folder_consent',
+        targetId: study.id,
+        targetVersion: null,
+        values: { tool, input: input as object },
+        preview: { studyId: study.id, studyName: study.name, provider: provider ?? '' },
+        state: 'proposed',
+        resultKind: null,
+        resultId: null,
+        error: null,
+        decidedAt: null,
+      }
+      await deps.store.saveProposal(proposal)
+      pending.push({ type: 'proposal', proposal: proposalView(proposal) })
+      return 'Not allowed yet: a card asks for the consent of the person, and the conversation goes on after. Add nothing.'
+    }
+
+    /** Spec 024: the whole tree comes in one call; opening it again would only loop. */
+    const treesGiven = new Set<string>()
+    const browse = async (input: unknown, callId: string): Promise<string> => {
+      const parsed = TOOL_INPUTS.browse_folder.safeParse(input)
+      if (!parsed.success) return 'Refused: send a studyId, and a folderId for a sub-folder.'
+      if (treesGiven.has(parsed.data.studyId))
+        return 'You already have the whole folder, sub-folders included, in this answer. Use it, and write your answer.'
+      const { studyId, folderId } = parsed.data
+      const found = await deps.research.browseFolder(c.actor, studyId, folderId)
+      if (!found.ok) {
+        const reason = folderWorkRefusal(found.error)
+        await record(callId, 'browse_folder', parsed.data, null, reason)
+        return reason
+      }
+      await record(callId, 'browse_folder', parsed.data, { studyId })
+      if (!folderId && !found.cut) treesGiven.add(studyId)
+      return JSON.stringify({ items: found.items, cut: found.cut })
+    }
+
+    const find = async (input: unknown, callId: string): Promise<string> => {
+      const parsed = TOOL_INPUTS.find_files.safeParse(input)
+      if (!parsed.success) return 'Refused: send a studyId, and a query or a kind.'
+      const { studyId, query, kind } = parsed.data
+      const found = await deps.research.findFiles(c.actor, studyId, { query, kind })
+      if (!found.ok) {
+        const reason = folderWorkRefusal(found.error)
+        await record(callId, 'find_files', parsed.data, null, reason)
+        return reason
+      }
+      await record(callId, 'find_files', parsed.data, { studyId })
+      return JSON.stringify({ items: found.items, cut: found.cut })
+    }
+
+    let reads = 0
+    const read = async (input: unknown, callId: string): Promise<string> => {
+      const parsed = TOOL_INPUTS.read_file.safeParse(input)
+      if (!parsed.success) return 'Refused: send a studyId and a fileId.'
+      reads++
+      if (reads > MAX_READS) {
+        const reason = `Refused: at most ${MAX_READS} reads per answer. Go on in the next answer.`
+        await record(callId, 'read_file', parsed.data, null, reason)
+        return reason
+      }
+      const { studyId, fileId, part } = parsed.data
+      const found = await deps.research.readFile(c.actor, studyId, fileId, part)
+      if (!found.ok) {
+        const reason = folderWorkRefusal(found.error)
+        await record(callId, 'read_file', parsed.data, null, reason)
+        return reason
+      }
+      await record(callId, 'read_file', parsed.data, { studyId, fileName: found.name })
+      return JSON.stringify({ text: found.text, more: found.more })
+    }
+
     /** The tools that run at once (spec 006, 018): skill, writing checks, progress, new project. */
     const runFor =
       (guideStudy: GuideStudy | null) =>
@@ -452,6 +608,19 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           const progress = framingCompleteness(parsed.data as Partial<Record<FramingPoint, string>>)
           await record(callId, 'report_project_progress', parsed.data, { progress })
           return `Recorded: ${progress.percent} % covered.`
+        }
+        if (
+          name === 'browse_folder' ||
+          name === 'find_files' ||
+          name === 'read_file' ||
+          name === 'propose_folder_changes'
+        ) {
+          const consent = await askFolderConsent(name, input, callId)
+          if (consent) return consent
+          if (name === 'propose_folder_changes') return proposeNew(name, input, callId)
+          if (name === 'browse_folder') return browse(input, callId)
+          if (name === 'find_files') return find(input, callId)
+          return read(input, callId)
         }
         if (name === 'offer_choices') {
           const parsed = TOOL_INPUTS.offer_choices.safeParse(input)
@@ -545,13 +714,22 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           person ||
           (!NOT_CONTINUING.includes(t.name) &&
             (continuation === 'connected' ||
-              (t.name !== 'attach_folder' && t.name !== 'publish_preparation'))),
+              continuation === 'consented' ||
+              !FOLDER_CARDS.includes(t.name))),
       )
       const tools: ToolSpec[] = offered.map((t) =>
         isRunDuringAnswer(t.name as ProposalKind)
           ? {
               ...t,
-              run: (input: unknown, call: { id: string }) => run(t.name, input, call.id),
+              run: async (input: unknown, call: { id: string }) => {
+                try {
+                  return await run(t.name, input, call.id)
+                } catch (error) {
+                  // Told to the model, which would otherwise guess; kept for whoever investigates.
+                  deps.log.warn({ err: error, tool: t.name }, 'assistant tool failed')
+                  return TOOL_FAILED
+                }
+              },
             }
           : t,
       )
@@ -616,6 +794,16 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       }
       await done
       yield* pending.splice(0)
+      // Spec 024: a model can end on a tool without a word; the person must not be left guessing.
+      if (!text.trim()) {
+        const shown = (await deps.store.listProposals(c.conversationId)).some(
+          (p) => p.messageId === answer.id && p.state !== 'invalid' && !isActivity(p.kind),
+        )
+        if (!shown) {
+          text = NOTHING_WRITTEN[c.language]
+          yield { type: 'text', delta: text }
+        }
+      }
       await finish('complete')
       yield { type: 'done', status: 'complete' }
     } catch (error) {

@@ -1,4 +1,4 @@
-import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, integer, jsonb, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core'
 
 // Foreign keys and checks live in migration SQL (docs/standards.md §6).
 
@@ -29,6 +29,18 @@ export const assistantMessages = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
   },
   (t) => [index('assistant_messages_conversation_idx').on(t.conversationId, t.createdAt)],
+)
+
+/** Spec 024: a person agreed to send this study's file names and content to this AI provider. */
+export const assistantFolderConsents = pgTable(
+  'assistant_folder_consents',
+  {
+    accountId: text('account_id').notNull(),
+    studyId: text('study_id').notNull(),
+    provider: text('provider').notNull(),
+    givenAt: timestamp('given_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.accountId, t.studyId, t.provider] })],
 )
 
 /** An action proposed by the assistant (spec 005 US3); applied only on the person's Apply. */

@@ -22,6 +22,7 @@ import { QUESTION_ISSUES } from '../preparation/labels.ts'
 import { DeletionSummary, forgetProject, NameToType } from '../research/delete-project-dialog.tsx'
 import { errorMessage, messageForCode } from '../workspace/errors.ts'
 import { Choices } from './choices.tsx'
+import { FolderChangesCard } from './folder-changes-card.tsx'
 import { useAssistant } from './state.tsx'
 
 const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
@@ -46,6 +47,18 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   connect_source: msg`Connect your Google Drive`,
   offer_choices: msg`Choices`,
   publish_preparation: msg`Publish to Drive`,
+  browse_folder: msg`Opened the folder`,
+  find_files: msg`Searched the folder`,
+  read_file: msg`Read a file`,
+  propose_folder_changes: msg`Changes in the folder`,
+  folder_consent: msg`Let the assistant see the folder`,
+}
+
+/** Product names, the same in every language. */
+const PROVIDERS: Record<string, string> = {
+  vertex: 'Vertex AI',
+  anthropic: 'Anthropic',
+  openai: 'OpenAI',
 }
 
 const DOCUMENTS: Record<string, MessageDescriptor> = {
@@ -85,7 +98,40 @@ export function ProposalCard({
   if (proposal.kind === 'check_guide_questions') return <ChecksLine proposal={proposal} />
   if (proposal.kind === 'delete_project') return <DeleteCard proposal={proposal} />
   if (proposal.kind === 'connect_source') return <ConnectCard proposal={proposal} />
+  if (proposal.kind === 'propose_folder_changes') return <FolderChangesCard proposal={proposal} />
+  if (
+    proposal.kind === 'browse_folder' ||
+    proposal.kind === 'find_files' ||
+    proposal.kind === 'read_file'
+  )
+    return <FolderLine proposal={proposal} />
   return <ChangeCard proposal={proposal} />
+}
+
+/**
+ * What the assistant did on its way to its answer: shown before it, as it happened. Cards come
+ * after: they are what the answer leads to.
+ */
+export const isActivity = (proposal: Proposal) =>
+  proposal.kind === 'load_skill' ||
+  proposal.kind === 'check_guide_questions' ||
+  proposal.kind === 'browse_folder' ||
+  proposal.kind === 'find_files' ||
+  proposal.kind === 'read_file'
+
+/** Spec 024: what the assistant looked at in the folder: a quiet line, nothing to decide. */
+function FolderLine({ proposal }: { proposal: Proposal }) {
+  const { t } = useLingui()
+  const file = proposal.preview.fileName ?? ''
+  return (
+    <p className="text-muted-foreground text-xs">
+      {proposal.kind === 'read_file'
+        ? t`Read an extract of: ${file}`
+        : proposal.kind === 'find_files'
+          ? t`Searched the folder`
+          : t`Looked in the folder`}
+    </p>
+  )
 }
 
 /** Spec 022: without a connection, only the person can give it, at Google. */
@@ -296,6 +342,7 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
 
   const guide = p.guide
   const others = (p.otherProjects ?? []).join(', ')
+  const provider = PROVIDERS[p.provider ?? ''] ?? p.provider ?? ''
   const rows: [string, string | undefined][] = [
     [t`Study`, guide ? undefined : p.studyName],
     [t`Project`, p.projectName ?? (proposal.kind === 'create_study' ? t`No project` : undefined)],
@@ -362,6 +409,13 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
           ))}
       </dl>
       {proposal.kind === 'publish_preparation' ? <PublishedDocuments proposal={proposal} /> : null}
+      {proposal.kind === 'folder_consent' ? (
+        <p className="text-muted-foreground text-xs">
+          {provider
+            ? t`The names of the files of this study, and extracts of their content when it reads them, are sent to ${provider}. They often hold the names of the people interviewed. Nothing changes in Drive without your confirmation.`
+            : t`Choose an AI provider first.`}
+        </p>
+      ) : null}
       {proposal.kind === 'attach_folder' ? (
         <p className="text-muted-foreground text-xs">{t`Nothing changes in Drive. Its files are then listed in Fieldwork.`}</p>
       ) : null}
@@ -412,6 +466,9 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
                       conversationId,
                     })
                   }
+                  // Spec 024: agreed; the assistant goes on with what was asked.
+                  if (proposal.kind === 'folder_consent' && created.kind === 'study')
+                    setAppliedCard({ page: { kind: 'study', id: created.id }, conversationId })
                   // Spec 023: the guide or the documents are there; the assistant says what is next.
                   if (
                     (proposal.kind === 'propose_interview_guide' ||

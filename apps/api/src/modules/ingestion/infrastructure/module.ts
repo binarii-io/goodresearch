@@ -6,6 +6,7 @@ import type { Db } from '#platform/db.ts'
 import type { JobHandler } from '#platform/jobs.ts'
 import { QUEUES } from '#platform/jobs.ts'
 import { makeAnalysisCommands } from '../application/commands/analysis-commands.ts'
+import { makeFolderWork } from '../application/commands/folder-work.ts'
 import { makePlannedSync } from '../application/commands/planned-sync.ts'
 import { makeRenameCommands } from '../application/commands/rename-commands.ts'
 import { makeRunInventory } from '../application/commands/run-inventory.ts'
@@ -104,10 +105,12 @@ export const createIngestionModule = (deps: {
   const runInventory = makeRunInventory(ingestion)
   const studyFiles = makeStudyFiles(ingestion, drive?.documents ?? null)
   const analysis = makeAnalysisCommands(ingestion)
+  const commands = makeSourceCommands(ingestion)
   const handlers: IngestionHandlers = {
+    folderWork: makeFolderWork(ingestion, studyFiles, commands.refreshInventory),
     analysis,
     rename: makeRenameCommands(ingestion, studyFiles),
-    commands: makeSourceCommands(ingestion),
+    commands,
     queries: makeSourceQueries(ingestion),
     sessions: makeSessionCommands(ingestion),
     sessionQueries: makeSessionQueries(ingestion),

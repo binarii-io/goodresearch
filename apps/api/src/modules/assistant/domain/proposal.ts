@@ -27,6 +27,11 @@ export const PROPOSAL_KINDS = [
   'connect_source',
   'offer_choices',
   'publish_preparation',
+  'browse_folder',
+  'read_file',
+  'propose_folder_changes',
+  'folder_consent',
+  'find_files',
 ] as const
 export type ProposalKind = (typeof PROPOSAL_KINDS)[number]
 
@@ -49,6 +54,10 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
   kind === 'create_study' ||
   kind === 'attach_folder' ||
   kind === 'publish_preparation' ||
+  kind === 'browse_folder' ||
+  kind === 'find_files' ||
+  kind === 'read_file' ||
+  kind === 'propose_folder_changes' ||
   isStudyChange(kind) ||
   kind === 'delete_project'
 
@@ -61,6 +70,14 @@ export const isRecordedAtOnce = (kind: ProposalKind): boolean =>
   kind === 'report_project_progress' ||
   kind === 'report_study_progress' ||
   kind === 'offer_choices'
+
+/** What the assistant does on its way to an answer: it says nothing by itself (spec 024). */
+export const isActivity = (kind: ProposalKind): boolean =>
+  kind === 'load_skill' ||
+  kind === 'check_guide_questions' ||
+  kind === 'browse_folder' ||
+  kind === 'find_files' ||
+  kind === 'read_file'
 
 export const isProposalKind = (name: string): name is ProposalKind =>
   (PROPOSAL_KINDS as readonly string[]).includes(name)

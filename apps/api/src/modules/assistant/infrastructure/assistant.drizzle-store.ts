@@ -8,7 +8,12 @@ import type {
   StoredProposal,
 } from '../application/ports.ts'
 import type { ProposalKind, ProposalState } from '../domain/proposal.ts'
-import { assistantConversations, assistantMessages, assistantProposals } from './schema.ts'
+import {
+  assistantConversations,
+  assistantFolderConsents,
+  assistantMessages,
+  assistantProposals,
+} from './schema.ts'
 
 type ProposalRow = typeof assistantProposals.$inferSelect
 type MessageRow = typeof assistantMessages.$inferSelect
@@ -73,6 +78,28 @@ export const createAssistantStore = (db: Db): AssistantStore => ({
 
   deleteConversationsOf: async (accountId) => {
     await db.delete(assistantConversations).where(eq(assistantConversations.accountId, accountId))
+    await db.delete(assistantFolderConsents).where(eq(assistantFolderConsents.accountId, accountId))
+  },
+
+  hasFolderConsent: async (accountId, studyId, provider) => {
+    const rows = await db
+      .select({ provider: assistantFolderConsents.provider })
+      .from(assistantFolderConsents)
+      .where(
+        and(
+          eq(assistantFolderConsents.accountId, accountId),
+          eq(assistantFolderConsents.studyId, studyId),
+          eq(assistantFolderConsents.provider, provider),
+        ),
+      )
+    return rows.length > 0
+  },
+
+  saveFolderConsent: async (accountId, studyId, provider, at) => {
+    await db
+      .insert(assistantFolderConsents)
+      .values({ accountId, studyId, provider, givenAt: at })
+      .onConflictDoNothing()
   },
 
   listMessages: async (conversationId) =>

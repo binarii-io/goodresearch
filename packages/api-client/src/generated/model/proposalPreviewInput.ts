@@ -10,6 +10,7 @@ import type { ProposalPreviewInputAccess } from './proposalPreviewInputAccess.ts
 import type { ProposalPreviewInputChecksItem } from './proposalPreviewInputChecksItem.ts';
 import type { ProposalPreviewInputDocumentsItem } from './proposalPreviewInputDocumentsItem.ts';
 import type { ProposalPreviewInputGuide } from './proposalPreviewInputGuide.ts';
+import type { ProposalPreviewInputLinesItem } from './proposalPreviewInputLinesItem.ts';
 import type { ProposalPreviewInputOpensOn } from './proposalPreviewInputOpensOn.ts';
 import type { ProposalPreviewInputPhase } from './proposalPreviewInputPhase.ts';
 
@@ -29,6 +30,9 @@ export interface ProposalPreviewInput {
   opensOn?: ProposalPreviewInputOpensOn;
   documents?: ProposalPreviewInputDocumentsItem[];
   access?: ProposalPreviewInputAccess;
+  fileName?: string;
+  provider?: string;
+  lines?: ProposalPreviewInputLinesItem[];
   question?: string;
   choices?: string[];
   multiple?: boolean;

@@ -71,7 +71,7 @@ describe('spec 022 US1 — attach a folder from the conversation', () => {
 
   it.each([
     ['no guide', { guide: null, schedule: { done: 1 } }, 'preparation'],
-    ['no planned interview', { guide: GUIDE, schedule: {} }, 'preparation'],
+    ['a guide, even with nothing planned', { guide: GUIDE, schedule: {} }, 'fieldwork'],
     [
       'a guide and a planned interview',
       { guide: GUIDE, schedule: { 'to-contact': 1 } },

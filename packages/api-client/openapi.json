@@ -1520,6 +1520,61 @@
               "write"
             ]
           },
+          "fileName": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "new-folder",
+                    "rename",
+                    "move"
+                  ]
+                },
+                "before": {
+                  "type": "string"
+                },
+                "after": {
+                  "type": "string"
+                },
+                "dependsOn": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "outcome": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "index",
+                "kind",
+                "before",
+                "after",
+                "dependsOn"
+              ]
+            }
+          },
           "question": {
             "type": "string"
           },
@@ -1718,7 +1773,12 @@
               "attach_folder",
               "connect_source",
               "offer_choices",
-              "publish_preparation"
+              "publish_preparation",
+              "browse_folder",
+              "read_file",
+              "propose_folder_changes",
+              "folder_consent",
+              "find_files"
             ]
           },
           "state": {
@@ -1949,6 +2009,23 @@
           "text",
           "page",
           "language"
+        ]
+      },
+      "ApplyFolderChangesInput": {
+        "type": "object",
+        "properties": {
+          "excluded": {
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 199
+            }
+          }
+        },
+        "required": [
+          "excluded"
         ]
       },
       "ContinueAssistantConversationInput": {
@@ -5233,6 +5310,7 @@
               "NAME_MISMATCH",
               "NAME_REQUIRED",
               "FOLDER_ALREADY_ATTACHED",
+              "FOLDER_CHANGES_REQUIRED",
               "TEAM_HAS_STUDIES",
               "DIFFERENT_TEAM",
               "ALREADY_LINKED",
@@ -14144,6 +14222,62 @@
               "write"
             ]
           },
+          "fileName": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "new-folder",
+                    "rename",
+                    "move"
+                  ]
+                },
+                "before": {
+                  "type": "string"
+                },
+                "after": {
+                  "type": "string"
+                },
+                "dependsOn": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "outcome": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "index",
+                "kind",
+                "before",
+                "after",
+                "dependsOn"
+              ],
+              "additionalProperties": false
+            }
+          },
           "question": {
             "type": "string"
           },
@@ -14348,7 +14482,12 @@
               "attach_folder",
               "connect_source",
               "offer_choices",
-              "publish_preparation"
+              "publish_preparation",
+              "browse_folder",
+              "read_file",
+              "propose_folder_changes",
+              "folder_consent",
+              "find_files"
             ]
           },
           "state": {
@@ -14586,6 +14725,24 @@
           "text",
           "page",
           "language"
+        ],
+        "additionalProperties": false
+      },
+      "ApplyFolderChanges": {
+        "type": "object",
+        "properties": {
+          "excluded": {
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 199
+            }
+          }
+        },
+        "required": [
+          "excluded"
         ],
         "additionalProperties": false
       },
@@ -17969,6 +18126,7 @@
               "NAME_MISMATCH",
               "NAME_REQUIRED",
               "FOLDER_ALREADY_ATTACHED",
+              "FOLDER_CHANGES_REQUIRED",
               "TEAM_HAS_STUDIES",
               "DIFFERENT_TEAM",
               "ALREADY_LINKED",
@@ -27870,6 +28028,47 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ConfirmWithNameInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "path",
+            "name": "proposalId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assistant/proposals/{proposalId}/apply-folder-changes": {
+      "post": {
+        "operationId": "applyFolderChangesProposal",
+        "tags": [
+          "assistant"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyFolderChangesInput"
               }
             }
           }

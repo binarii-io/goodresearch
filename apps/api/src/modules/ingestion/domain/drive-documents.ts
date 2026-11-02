@@ -149,4 +149,6 @@ export interface DriveDocuments {
    * the person cannot open it, DriveCannotEdit when they may not edit it.
    */
   renameFile(refreshToken: string, fileId: string, name: string): Promise<FileMeta | null>
+  /** Spec 024: changes the file's folder, nothing else; DriveCannotEdit when they may not. */
+  moveFile(refreshToken: string, fileId: string, from: readonly string[], to: string): Promise<void>
 }

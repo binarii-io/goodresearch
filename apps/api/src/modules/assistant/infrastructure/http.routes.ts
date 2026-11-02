@@ -1,4 +1,5 @@
 import {
+  ApplyFolderChanges,
   ConfirmWithName,
   ContinueAssistantConversation,
   ConversationDetail,
@@ -218,6 +219,30 @@ export const registerAssistantRoutes = (
           actor: request.account,
           proposalId: request.params.proposalId,
           name: request.body.name,
+        }),
+        (value) => res.send(value),
+      ),
+  )
+
+  api.post(
+    '/api/assistant/proposals/:proposalId/apply-folder-changes',
+    {
+      ...secured,
+      schema: {
+        operationId: 'applyFolderChangesProposal',
+        tags,
+        params: ProposalParams,
+        body: ApplyFolderChanges,
+        response: { 200: Proposal },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await proposals.applyFolderChanges({
+          actor: request.account,
+          proposalId: request.params.proposalId,
+          excluded: request.body.excluded,
         }),
         (value) => res.send(value),
       ),

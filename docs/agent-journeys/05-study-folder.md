@@ -46,7 +46,7 @@ flowchart TD
     V1 --> A
     V -->|"valid"| K["Card: study, folder's name and owner"]
     K -->|"Dismiss, or another link"| A
-    K -->|"Apply"| N["Same rules as the form. The inventory runs.<br/>Preparation opens while the guide or the schedule is missing,<br/>Fieldwork otherwise"]
+    K -->|"Apply"| N["Same rules as the form. The inventory runs.<br/>Preparation opens while the guide is missing,<br/>Fieldwork otherwise"]
     N --> W["Waits for its end, one minute at most"]
     W --> F["Assistant continues: counts by kind, no file name"]
     F --> L2["List of choices: what is left to prepare.<br/>Selecting sends the person's message"]
@@ -69,8 +69,8 @@ Each answer that goes on by itself makes one more AI call, recorded in the usage
 | A folder is never replaced through the assistant | App: refused when proposing, and on Apply |
 | The consent is the person's | App: only a link to Google; the model has no way to give it |
 | The assistant goes on only after a real consent | App: checked on the server, from the person's connection |
-| No file name reaches the model | App: the context holds counts by kind only |
-| Fieldwork never opens before the preparation is done | App: the tab is computed when the card is proposed: a guide, and at least one planned interview |
+| No file name reaches the model without consent | App: the context holds counts by kind only; [journey 7](07-study-folder-work.md) adds names and extracts, after a consent per study |
+| Fieldwork never opens before the guide exists | App: the tab is computed when the card is proposed. Planning interviews blocks nothing (spec 024) |
 | A list holds 2 to 6 different choices, and changes nothing | App: checked by the tool; selecting is a plain message |
 | The folder is offered at the right time, in sensible words | Instructions to the model: checked by the scenarios below |
 
@@ -94,5 +94,5 @@ By hand, with a real model and a real Drive, in English and French:
 | "Replace the folder" on a study with one | Refuses, points to Fieldwork |
 | Applies the study card | Preparation opens; choices: the folder and the guide |
 | Applies the folder card, no guide | Stays on Preparation; choices: the guide, the schedule |
-| Applies the folder card, guide and schedule done | Fieldwork opens |
+| Applies the folder card, with a guide | Fieldwork opens |
 | Ticks two choices | Both are sent; the assistant deals with them in turn |

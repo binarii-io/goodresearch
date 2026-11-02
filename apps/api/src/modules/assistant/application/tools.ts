@@ -1,7 +1,6 @@
 import { GuideDraft } from '@goodresearch/contracts'
 import { z } from 'zod'
 import { GUIDE_CHECKLIST, GUIDE_POINT_STATES } from '../domain/guide-progress.ts'
-import { plannedCount } from '../domain/next-step.ts'
 import { composeGoal, type Framing, openPoints } from '../domain/project-framing.ts'
 import type { ProposalKind } from '../domain/proposal.ts'
 import { checkQuestion } from '../domain/question-checks.ts'
@@ -68,6 +67,43 @@ const INPUTS = {
       .min(1)
       .max(2),
   }),
+  // Spec 024: there is no line to delete, trash or share, and no way to write one.
+  browse_folder: z.object({ studyId: Id, folderId: Id.optional() }),
+  find_files: z
+    .object({
+      studyId: Id,
+      query: z.string().trim().min(1).max(120).optional(),
+      kind: z.enum(['transcript', 'recording', 'document', 'folder']).optional(),
+    })
+    .refine((s) => s.query !== undefined || s.kind !== undefined),
+  read_file: z.object({
+    studyId: Id,
+    fileId: Id,
+    part: z.number().int().min(1).max(100).optional(),
+  }),
+  propose_folder_changes: z.object({
+    studyId: Id,
+    lines: z
+      .array(
+        z.discriminatedUnion('kind', [
+          z.object({
+            kind: z.literal('new-folder'),
+            key: z.string().min(1).max(100),
+            name: z.string().min(1).max(200),
+            parent: Id,
+          }),
+          z.object({
+            kind: z.literal('rename'),
+            fileId: Id,
+            name: z.string().min(1).max(200),
+          }),
+          z.object({ kind: z.literal('move'), fileId: Id, to: Id }),
+        ]),
+      )
+      .min(1)
+      .max(200),
+  }),
+  folder_consent: z.object({}),
   offer_choices: z.object({
     question: z.string().trim().min(1).max(300),
     choices: z
@@ -167,6 +203,30 @@ export const TOOLS: readonly ToolSpec[] = [
     description:
       "Propose to create a study's interview guide and interview best practices as documents in its folder (kinds: guide, best-practices). If the person has not allowed editing, the app shows a card for that and the conversation goes on after. The result says whether a card was shown or why it was refused.",
     inputSchema: INPUTS.publish_preparation,
+  },
+  {
+    name: 'browse_folder',
+    description:
+      "See everything in a study's folder at once, all sub-folders included: ids, names, paths, kinds, dates and sizes (a Study id from the context). One call is enough: pass a folderId only when the result says it was cut. The first time, a card asks the person's consent: then wait. The result is not kept for later messages: call it again in a later answer when you need it.",
+    inputSchema: INPUTS.browse_folder,
+  },
+  {
+    name: 'find_files',
+    description:
+      "Find items anywhere in a study's folder, by a part of their name (accents and capitals do not count), or by kind: transcript, recording, document or folder. Use it first when you look for a given person or file. Gives ids, names and paths, at most 50. The first time, a card asks the person's consent: then wait.",
+    inputSchema: INPUTS.find_files,
+  },
+  {
+    name: 'read_file',
+    description:
+      "Read one extract of a file of the study's folder, at most 8,000 characters, from a file id given by find_files or browse_folder; `part` gives the next extracts, at most 5 reads per answer. Video and audio cannot be read. The result is not kept in the conversation.",
+    inputSchema: INPUTS.read_file,
+  },
+  {
+    name: 'propose_folder_changes',
+    description:
+      'Propose a batch of changes in the study\'s folder, shown on one card: new sub-folders (key, name, parent: a folder id or an earlier key), renames, moves (to: a folder id or an earlier key). The person unticks lines and applies. You cannot delete, trash or change sharing: what is not useful goes into a sub-folder named "To sort". The result says whether a card was shown or why it was refused.',
+    inputSchema: INPUTS.propose_folder_changes,
   },
   {
     name: 'offer_choices',
@@ -345,11 +405,10 @@ export const prepareFolder = async (
   const checked = await research.checkFolder({ actor, studyId, link })
   const base = { targetId: studyId, targetVersion: null, values: { link } }
   if (checked.ok) {
-    // Fieldwork comes after the preparation: a guide, and at least one planned interview.
+    // Fieldwork comes after the guide; planning interviews blocks nothing (spec 024).
     const preparation = await research.preparation(actor.id, studyId)
-    const planned = plannedCount(preparation?.schedule ?? {})
     const opensOn: 'preparation' | 'fieldwork' =
-      preparation && (!preparation.guide || planned === 0) ? 'preparation' : 'fieldwork'
+      preparation && !preparation.guide ? 'preparation' : 'fieldwork'
     return {
       ...base,
       kind: 'attach_folder',
@@ -421,6 +480,55 @@ export const preparePublication = async (
   return {
     refused: PUBLICATION_REFUSALS[checked.error] ?? 'Refused: these documents cannot be published.',
   }
+}
+
+/** Spec 024: why the assistant cannot work in the folder, in words the model can pass on. */
+const FOLDER_WORK_REFUSALS: Record<string, string> = {
+  ...FOLDER_REFUSALS,
+  NO_SOURCE_FOLDER: 'Refused: this study has no folder. Offer to add it first.',
+  STUDY_ANONYMISED:
+    'Refused: this study is set to anonymise names, so its file names and content are not sent to you. Only counts are available.',
+  OUTSIDE_FOLDER:
+    "Refused: use only items of the study's folder, with ids from find_files or browse_folder.",
+  UNREADABLE: 'Refused: this file cannot be read here, such as a video or an audio file.',
+  FILE_GONE: 'Refused: this file no longer exists, or the person cannot open it. Look again.',
+  NAME_CLASH: 'Refused: two items would have the same name in the same folder. Change one.',
+  INVALID_CHANGES:
+    'Refused: check the lines: 1 to 200, names without a slash, keys declared before they are used and not used as files, destinations that are folders, and no folder moved inside itself.',
+  DRIVE_NOT_CONNECTED:
+    "Refused: the person's file source is not connected. They can connect it from the Fieldwork tab.",
+}
+
+export const folderWorkRefusal = (code: string): string =>
+  FOLDER_WORK_REFUSALS[code] ?? 'Refused: this cannot be done in the folder.'
+
+/** Spec 024: the card of a batch, its connection card, or the reason. */
+export const prepareFolderChanges = async (
+  research: ResearchReads,
+  actor: Actor,
+  rawInput: unknown,
+): Promise<{ refused: string } | PreparedProposal> => {
+  const input = INPUTS.propose_folder_changes.safeParse(rawInput)
+  if (!input.success)
+    return { refused: 'Refused: send a studyId and lines of kind new-folder, rename or move.' }
+  const { studyId, lines } = input.data
+  const study = await research.getStudy(actor.id, studyId)
+  if (!study) return { refused: folderWorkRefusal('STUDY_NOT_FOUND') }
+  const checked = await research.checkFolderChanges(actor, studyId, lines)
+  const base = { targetId: studyId, targetVersion: null, values: { lines } }
+  if (checked.ok)
+    return {
+      ...base,
+      kind: 'propose_folder_changes',
+      preview: { studyId, studyName: study.name, lines: checked.lines },
+    }
+  if (checked.error === 'DRIVE_WRITE_REQUIRED' || checked.error === 'DRIVE_NOT_CONNECTED')
+    return {
+      ...base,
+      kind: 'connect_source',
+      preview: { studyId, studyName: study.name, access: 'write' },
+    }
+  return { refused: folderWorkRefusal(checked.error) }
 }
 
 /** Spec 020: the card of a deletion, or the reason given back to the model. */

@@ -52,8 +52,9 @@ The next step follows this order:
 | No guide | Write the guide |
 | No folder | Add the folder |
 | Guide or best practices not published | Publish them |
-| No planned interview | Plan the interviews |
 | All done | Run the interviews in Fieldwork |
+
+Planning interviews is up to the person and blocks nothing (spec 024).
 
 ## Guarantees
 

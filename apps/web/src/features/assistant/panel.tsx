@@ -51,7 +51,7 @@ import { ConversationCostIndicator } from './cost.tsx'
 import { FRAMING_POINTS, STUDY_FRAMING_POINTS } from './labels.ts'
 import { Markdown } from './markdown.tsx'
 import { usePageRef } from './page-ref.ts'
-import { ProposalCard } from './proposal-card.tsx'
+import { isActivity, ProposalCard } from './proposal-card.tsx'
 import { read, useAssistant, write } from './state.tsx'
 import { continueAssistantConversation, sendAssistantMessage } from './stream.ts'
 
@@ -98,6 +98,19 @@ function LookingAt() {
   return <p className="truncate text-muted-foreground text-xs">{label}</p>
 }
 
+/** The tools used on the way to the answer, one quiet group above it (spec 024). */
+function Activity({ proposals }: { proposals: readonly Proposal[] }) {
+  const lines = proposals.filter(isActivity)
+  if (lines.length === 0) return null
+  return (
+    <div className="grid gap-1">
+      {lines.map((p) => (
+        <ProposalCard key={p.id} proposal={p} />
+      ))}
+    </div>
+  )
+}
+
 function Message({
   message,
   onReply,
@@ -114,14 +127,17 @@ function Message({
     )
   return (
     <div className="grid gap-3">
+      <Activity proposals={message.proposals} />
       {message.text ? <Markdown text={message.text} /> : null}
       {message.status === 'stopped' ? (
         <p className="text-muted-foreground text-xs">{t`Stopped`}</p>
       ) : null}
       {message.failure ? <Failure failure={message.failure} /> : null}
-      {message.proposals.map((p) => (
-        <ProposalCard key={p.id} proposal={p} onReply={onReply} />
-      ))}
+      {message.proposals
+        .filter((p) => !isActivity(p))
+        .map((p) => (
+          <ProposalCard key={p.id} proposal={p} onReply={onReply} />
+        ))}
     </div>
   )
 }
@@ -614,15 +630,18 @@ export function AssistantPanel() {
                   </div>
                 ) : null}
                 <div className="grid gap-3">
+                  <Activity proposals={live.proposals} />
                   {live.text ? (
                     <Markdown text={live.text} />
                   ) : (
                     <p className="text-muted-foreground">{t`Thinking…`}</p>
                   )}
                   {live.failure ? <Failure failure={live.failure} /> : null}
-                  {live.proposals.map((p) => (
-                    <ProposalCard key={p.id} proposal={p} />
-                  ))}
+                  {live.proposals
+                    .filter((p) => !isActivity(p))
+                    .map((p) => (
+                      <ProposalCard key={p.id} proposal={p} />
+                    ))}
                 </div>
               </>
             ) : null}

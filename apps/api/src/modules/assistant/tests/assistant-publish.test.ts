@@ -168,11 +168,6 @@ describe('spec 023 US3 — what comes next', () => {
     world.research.preparation.guide = { guide: { version: 1, content: {} }, schedule: {} } as never
     expect(await askNext()).toContain('publish its interview guide and the best practices')
     world.research.publication.published = ['guide', 'best-practices']
-    expect(await askNext()).toContain('plan the interviews')
-    world.research.preparation.guide = {
-      guide: { version: 1, content: {} },
-      schedule: { done: 1 },
-    } as never
     expect(await askNext()).toContain('run the interviews in the Fieldwork tab')
     world.research.folder.state = null
     expect(await askNext()).toContain('add the folder')

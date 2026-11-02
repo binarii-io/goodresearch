@@ -12,6 +12,7 @@ export {
   VertexCheckResult,
 } from './ai.ts'
 export {
+  ApplyFolderChanges,
   AssistantMessage,
   AssistantPage,
   AssistantStreamEvent,

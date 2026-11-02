@@ -261,6 +261,9 @@ export const createAiSdkRunner = (options: {
         ...promptOf(request),
         ...toolsOf(request),
         stopWhen: stepCountIs(MAX_STEPS),
+        // The last step must write: an answer that ends on a tool call says nothing to the person.
+        prepareStep: ({ stepNumber }) =>
+          stepNumber === MAX_STEPS - 1 ? { toolChoice: 'none' as const } : {},
         maxRetries: 0,
         // A long answer may stream for minutes: the limit applies to silences, not to the total.
         timeout: { firstChunkMs: timeoutMs, chunkMs: timeoutMs },

@@ -35,6 +35,29 @@ describe('fieldwork sessions (spec 008)', () => {
     return view.value
   }
 
+  it('spec 024: an interview keeps its decision when its file moved in the folder', async () => {
+    await refresh()
+    const before = (await fieldwork()).sessions.find(
+      (s) => s.transcript?.name === 'Interview Sam Example.txt',
+    )
+    if (!before) throw new Error('fixture')
+    const decided = await world.sessions.decide({
+      actor: alice,
+      sessionId: before.id,
+      decision: 'validate',
+      version: before.version,
+    })
+    expect(decided.ok).toBe(true)
+    world.drive.addFolder('sub', 'Week 1', 'folder-study')
+    const item = world.drive.items.get('t-sam')
+    if (item) world.drive.items.set('t-sam', { ...item, parents: ['sub'] })
+    await refresh()
+    expect((await fieldwork()).sessions.find((s) => s.id === before.id)).toMatchObject({
+      state: 'validated',
+      transcript: { name: 'Interview Sam Example.txt' },
+    })
+  })
+
   const refresh = async () => {
     await world.commands.refreshInventory({ actor: alice, studyId: 'study-1' })
     await world.runJobs()

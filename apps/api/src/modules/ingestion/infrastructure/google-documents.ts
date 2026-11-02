@@ -641,6 +641,21 @@ export const createGoogleDocuments = (options: {
       return adapter.metadata(token, fileId)
     },
 
+    moveFile: async (token, fileId, from, to) => {
+      const query = new URLSearchParams({
+        supportsAllDrives: 'true',
+        fields: 'id',
+        addParents: to,
+        removeParents: from.join(','),
+      })
+      const response = await call(token, `${DRIVE}/files/${encodeURIComponent(fileId)}?${query}`, {
+        method: 'PATCH',
+        json: {},
+      })
+      if (response.status === 403 || response.status === 404) throw new DriveCannotEdit()
+      await ok<{ id: string }>(response, 'drive files.update')
+    },
+
     metadata: async (token, fileId): Promise<FileMeta | null> => {
       const response = await call(
         token,
