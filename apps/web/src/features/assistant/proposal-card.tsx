@@ -1,4 +1,5 @@
 import {
+  getFieldwork,
   getStudySource,
   type Proposal,
   useApplyProposal,
@@ -23,6 +24,7 @@ import { DeletionSummary, forgetProject, NameToType } from '../research/delete-p
 import { errorMessage, messageForCode } from '../workspace/errors.ts'
 import { Choices } from './choices.tsx'
 import { FolderChangesCard } from './folder-changes-card.tsx'
+import { InterviewLinesCard } from './interview-lines-card.tsx'
 import { useAssistant } from './state.tsx'
 
 const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
@@ -49,6 +51,12 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   publish_preparation: msg`Publish to Drive`,
   browse_folder: msg`Opened the folder`,
   find_files: msg`Searched the folder`,
+  count_interviews: msg`Counted the interviews`,
+  list_interviews: msg`Looked at the interviews`,
+  propose_analysis: msg`Analyse the interviews`,
+  propose_accepting_suggestions: msg`Accept suggestions`,
+  propose_validating_interviews: msg`Validate interviews`,
+  propose_excluding_interviews: msg`Exclude interviews`,
   read_file: msg`Read a file`,
   propose_folder_changes: msg`Changes in the folder`,
   folder_consent: msg`Let the assistant see the folder`,
@@ -100,9 +108,17 @@ export function ProposalCard({
   if (proposal.kind === 'connect_source') return <ConnectCard proposal={proposal} />
   if (proposal.kind === 'propose_folder_changes') return <FolderChangesCard proposal={proposal} />
   if (
+    proposal.kind === 'propose_accepting_suggestions' ||
+    proposal.kind === 'propose_validating_interviews' ||
+    proposal.kind === 'propose_excluding_interviews'
+  )
+    return <InterviewLinesCard proposal={proposal} />
+  if (
     proposal.kind === 'browse_folder' ||
     proposal.kind === 'find_files' ||
-    proposal.kind === 'read_file'
+    proposal.kind === 'read_file' ||
+    proposal.kind === 'count_interviews' ||
+    proposal.kind === 'list_interviews'
   )
     return <FolderLine proposal={proposal} />
   return <ChangeCard proposal={proposal} />
@@ -117,7 +133,9 @@ export const isActivity = (proposal: Proposal) =>
   proposal.kind === 'check_guide_questions' ||
   proposal.kind === 'browse_folder' ||
   proposal.kind === 'find_files' ||
-  proposal.kind === 'read_file'
+  proposal.kind === 'read_file' ||
+  proposal.kind === 'count_interviews' ||
+  proposal.kind === 'list_interviews'
 
 /** Spec 024: what the assistant looked at in the folder: a quiet line, nothing to decide. */
 function FolderLine({ proposal }: { proposal: Proposal }) {
@@ -129,7 +147,11 @@ function FolderLine({ proposal }: { proposal: Proposal }) {
         ? t`Read an extract of: ${file}`
         : proposal.kind === 'find_files'
           ? t`Searched the folder`
-          : t`Looked in the folder`}
+          : proposal.kind === 'count_interviews'
+            ? t`Counted the interviews`
+            : proposal.kind === 'list_interviews'
+              ? t`Looked at the interviews`
+              : t`Looked in the folder`}
     </p>
   )
 }
@@ -218,6 +240,16 @@ function PublishedDocuments({ proposal }: { proposal: Proposal }) {
       )}
     </div>
   )
+}
+
+/** One minute at most: a longer analysis stays visible on the page. */
+const analysisOver = async (studyId: string) => {
+  const end = Date.now() + 60_000
+  while (Date.now() < end) {
+    const view = await getFieldwork(studyId).catch(() => null)
+    if (view && view.run?.state !== 'running') return
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+  }
 }
 
 /** One minute at most: a longer inventory stays visible on the page. */
@@ -343,6 +375,8 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
   const guide = p.guide
   const others = (p.otherProjects ?? []).join(', ')
   const provider = PROVIDERS[p.provider ?? ''] ?? p.provider ?? ''
+  const interviewCount = p.interviews ?? 0
+  const estimatedCost = (p.estimatedCost ?? 0).toFixed(2)
   const rows: [string, string | undefined][] = [
     [t`Study`, guide ? undefined : p.studyName],
     [t`Project`, p.projectName ?? (proposal.kind === 'create_study' ? t`No project` : undefined)],
@@ -409,6 +443,20 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
           ))}
       </dl>
       {proposal.kind === 'publish_preparation' ? <PublishedDocuments proposal={proposal} /> : null}
+      {proposal.kind === 'propose_analysis' ? (
+        <div className="grid gap-1">
+          <p>{t`${interviewCount} interviews to analyse`}</p>
+          <p className="text-muted-foreground text-xs">
+            {p.estimatedCost === null || p.estimatedCost === undefined
+              ? t`The cost could not be estimated.`
+              : t`At most about $${estimatedCost}, on your AI provider.`}
+          </p>
+          {p.consentNeeded ? (
+            <p className="text-muted-foreground text-xs">{t`The beginning of each transcript is sent to your AI provider. Applying agrees to it for this study.`}</p>
+          ) : null}
+          <p className="text-muted-foreground text-xs">{t`It finds who was interviewed, the date, the language and a name, as suggestions you decide.`}</p>
+        </div>
+      ) : null}
       {proposal.kind === 'folder_consent' ? (
         <p className="text-muted-foreground text-xs">
           {provider
@@ -463,6 +511,20 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
                     await inventoryOver(created.id)
                     setAppliedCard({
                       page: { kind: 'study', id: created.id, phase },
+                      conversationId,
+                    })
+                  }
+                  // Spec 025: the analysis runs in the background; the assistant speaks at its end.
+                  if (proposal.kind === 'propose_analysis' && created.kind === 'study') {
+                    await navigate({
+                      to: '/studies/$studyId',
+                      params: { studyId: created.id },
+                      search: { phase: 'fieldwork' },
+                    })
+                    await analysisOver(created.id)
+                    await refresh()
+                    setAppliedCard({
+                      page: { kind: 'study', id: created.id, phase: 'fieldwork' },
                       conversationId,
                     })
                   }

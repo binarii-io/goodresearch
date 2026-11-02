@@ -461,6 +461,48 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     return { parts: [{ type: 'text', delta: 'The documents are in the folder.' }], delayMs: 0 }
   if (ranTool === 'publish_preparation' && toolOutput?.includes('connected their file source'))
     return { parts: [call('publish_preparation', PUBLISH_BOTH(guideStudy))], delayMs: 0 }
+  // Spec 025: interviews.
+  // The answer holding the card listed interviews first, so look at all its tools.
+  if (
+    lastMessage?.role === 'tool' &&
+    lastMessage.results.some(
+      (r) =>
+        (r.name === 'propose_accepting_suggestions' ||
+          r.name === 'propose_validating_interviews') &&
+        r.output.startsWith('Applied'),
+    )
+  )
+    return { parts: [{ type: 'text', delta: 'The card is applied.' }], delayMs: 0 }
+  if (ranTool === 'count_interviews' && toolOutput?.startsWith('{'))
+    return { parts: [{ type: 'text', delta: `Where they stand: ${toolOutput}` }], delayMs: 0 }
+  if (ranTool === 'list_interviews' && toolOutput?.startsWith('{')) {
+    const found = JSON.parse(toolOutput) as { matched: number; items: { id: string }[] }
+    const items = found.items.slice(0, 2).map((i) => ({ interviewId: i.id }))
+    if (/accept the suggestions/i.test(text))
+      return {
+        parts: [call('propose_accepting_suggestions', { studyId: guideStudy, items })],
+        delayMs: 0,
+      }
+    if (/validate them/i.test(text))
+      return {
+        parts: [call('propose_validating_interviews', { studyId: guideStudy, items })],
+        delayMs: 0,
+      }
+    return { parts: [{ type: 'text', delta: `${found.matched} interviews match.` }], delayMs: 0 }
+  }
+  if (ranTool === 'list_interviews' && toolOutput?.includes('agreed'))
+    return {
+      parts: [call('list_interviews', { studyId: guideStudy, filters: ['no-recording'] })],
+      delayMs: 0,
+    }
+  if (ranTool === 'propose_analysis' && toolOutput?.startsWith('Applied'))
+    return {
+      parts: [
+        { type: 'text', delta: 'The analysis is over.' },
+        call('count_interviews', { studyId: guideStudy }),
+      ],
+      delayMs: 0,
+    }
   // Spec 024: working in the folder.
   if (ranTool === 'browse_folder' && toolOutput?.includes('agreed'))
     return { parts: [call('browse_folder', { studyId: guideStudy })], delayMs: 0 }
@@ -525,6 +567,31 @@ const script = (request: ModelRequest): { parts: StreamPart[]; delayMs: number }
     }
   // After any other tool run, the answer is over.
   if (ranTool) return { parts: [], delayMs: 0 }
+  if (/what is left to do/i.test(text) && guideStudy && offered('count_interviews'))
+    return { parts: [call('count_interviews', { studyId: guideStudy })], delayMs: 0 }
+  if (/accept the suggestions/i.test(text) && guideStudy && offered('list_interviews'))
+    return {
+      parts: [call('list_interviews', { studyId: guideStudy, filters: ['to-decide'] })],
+      delayMs: 0,
+    }
+  if (/validate them/i.test(text) && guideStudy && offered('list_interviews'))
+    return {
+      parts: [call('list_interviews', { studyId: guideStudy, filters: ['ready'] })],
+      delayMs: 0,
+    }
+  if (/which ones have no video/i.test(text) && guideStudy && offered('list_interviews'))
+    return {
+      parts: [call('list_interviews', { studyId: guideStudy, filters: ['no-recording'] })],
+      delayMs: 0,
+    }
+  if (/analyse the rest/i.test(text) && guideStudy && offered('propose_analysis'))
+    return {
+      parts: [
+        { type: 'text', delta: 'Here is the analysis.' },
+        call('propose_analysis', { studyId: guideStudy }),
+      ],
+      delayMs: 0,
+    }
   if (/what is in the folder/i.test(text) && guideStudy && offered('browse_folder'))
     return { parts: [call('browse_folder', { studyId: guideStudy })], delayMs: 0 }
   if (/read the transcript/i.test(text) && guideStudy && offered('read_file'))

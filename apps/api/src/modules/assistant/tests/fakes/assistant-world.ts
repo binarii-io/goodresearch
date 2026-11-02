@@ -17,6 +17,39 @@ import type { ChatMessage, ModelRequestLike } from './types.ts'
 
 const newFolderWork = () => ({
   consents: new Set<string>(),
+  lastCard: '' as string,
+  linesResult: {
+    ok: true,
+    lines: [
+      {
+        index: 0,
+        interviewId: 'i1',
+        interview: 'Nadia',
+        version: 3,
+        field: 'date',
+        fileId: null,
+        value: '2026-10-23',
+        flag: null,
+        reason: null,
+      },
+    ],
+  } as Awaited<ReturnType<ResearchReads['prepareInterviewCard']>>,
+  lastSearch: {} as Parameters<ResearchReads['listInterviews']>[2],
+  counts: { ok: true, counts: { total: 5, 'to-decide': 2 } } as Awaited<
+    ReturnType<ResearchReads['interviewCounts']>
+  >,
+  interviews: {
+    ok: true,
+    page: { items: [{ id: 'i1', title: 'Nadia' }], matched: 1, page: 1, pages: 1 },
+  } as Awaited<ReturnType<ResearchReads['listInterviews']>>,
+  estimate: {
+    ok: true,
+    count: 3,
+    estimatedCost: 0.02,
+    consentNeeded: true,
+    aiConnected: true,
+    running: false,
+  } as Awaited<ReturnType<ResearchReads['analysisEstimate']>>,
   available: { ok: true } as Awaited<ReturnType<ResearchReads['folderWorkAvailable']>>,
   provider: 'anthropic' as string | null,
   browse: {
@@ -182,6 +215,17 @@ export const fakeResearch = () => {
     checkPublication: async () => publication.check,
     aiProvider: async () => folderWork.provider,
     folderWorkAvailable: async () => folderWork.available,
+    interviewCounts: async () => folderWork.counts,
+    interviewsStep: async () => undefined,
+    listInterviews: async (_actor, _studyId, search) => {
+      folderWork.lastSearch = search
+      return folderWork.interviews
+    },
+    prepareInterviewCard: async (_actor, _studyId, kind) => {
+      folderWork.lastCard = kind
+      return folderWork.linesResult
+    },
+    analysisEstimate: async () => folderWork.estimate,
     browseFolder: async () => folderWork.browse,
     findFiles: async () => folderWork.browse,
     readFile: async () => folderWork.read,
@@ -211,6 +255,8 @@ export const fakeResearch = () => {
     },
     attachFolder: async (c) => result('attachFolder', c, {}),
     publishPreparation: async (c) => result('publishPreparation', c, {}),
+    startAnalysis: async (c) => result('startAnalysis', c, {}),
+    applyInterviewCard: async (c) => result('applyInterviewCard', c, { outcomes: ['done'] }),
     applyFolderChanges: async (c) =>
       result('applyFolderChanges', c, { outcomes: folderWork.outcomes }),
     createTeamStudy: async (c) => result('createTeamStudy', c, { id: 's-new' }),

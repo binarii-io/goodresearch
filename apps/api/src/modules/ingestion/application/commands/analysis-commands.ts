@@ -489,6 +489,10 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
     ctx.sessions.filter(
       (s) =>
         !personDecided(s) &&
+        // A summary the app set aside stays aside until its files change or the person asks.
+        (all ||
+          filesChanged(s, ctx.fileById) ||
+          !(s.state === 'excluded' && s.analysis?.failure === 'NOT_A_TRANSCRIPT')) &&
         (all ||
           !s.analysis ||
           // Failed, or left waiting by a run that stopped (a live run refuses a new one).
@@ -611,6 +615,7 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
         consentNeeded:
           provider !== null && !(await deps.store.hasConsent(actor.id, studyId, provider)),
         aiConnected: provider !== null,
+        running: (await deps.store.lastRun(studyId))?.state === 'running',
       })
     },
 

@@ -1,5 +1,6 @@
 import {
   ApplyFolderChanges,
+  ApplyInterviewLines,
   ConfirmWithName,
   ContinueAssistantConversation,
   ConversationDetail,
@@ -243,6 +244,31 @@ export const registerAssistantRoutes = (
           actor: request.account,
           proposalId: request.params.proposalId,
           excluded: request.body.excluded,
+        }),
+        (value) => res.send(value),
+      ),
+  )
+
+  api.post(
+    '/api/assistant/proposals/:proposalId/apply-interview-lines',
+    {
+      ...secured,
+      schema: {
+        operationId: 'applyInterviewLinesProposal',
+        tags,
+        params: ProposalParams,
+        body: ApplyInterviewLines,
+        response: { 200: Proposal },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await proposals.applyInterviewLines({
+          actor: request.account,
+          proposalId: request.params.proposalId,
+          excluded: request.body.excluded,
+          reasons: request.body.reasons ?? [],
         }),
         (value) => res.send(value),
       ),

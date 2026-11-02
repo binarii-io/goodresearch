@@ -41,6 +41,12 @@ export const ProposalKind = z.enum([
   'propose_folder_changes',
   'folder_consent',
   'find_files',
+  'count_interviews',
+  'list_interviews',
+  'propose_analysis',
+  'propose_accepting_suggestions',
+  'propose_validating_interviews',
+  'propose_excluding_interviews',
 ])
 
 /** What the app's writing rules flag in a question (spec 006). */
@@ -106,6 +112,26 @@ export const ProposalPreview = z
     /** Spec 023: the documents a publication creates, and what a connection card asks for. */
     documents: z.array(z.enum(['guide', 'best-practices'])).optional(),
     access: z.enum(['read', 'write']).optional(),
+    /** Spec 025: the lines of a card on interviews, built by the app. */
+    interviewLines: z
+      .array(
+        z.object({
+          index: z.number().int(),
+          interviewId: z.string(),
+          interview: z.string(),
+          field: z.string().nullable(),
+          fileId: z.string().nullable(),
+          value: z.string(),
+          flag: z.string().nullable(),
+          reason: z.string().nullable(),
+          outcome: z.string().optional(),
+        }),
+      )
+      .optional(),
+    /** Spec 025: the analysis a card starts. */
+    interviews: z.number().int().optional(),
+    estimatedCost: z.number().nullable().optional(),
+    consentNeeded: z.boolean().optional(),
     /** Spec 024: the file read; the provider a consent is about; a batch of changes. */
     fileName: z.string().optional(),
     provider: z.string().optional(),
@@ -209,6 +235,19 @@ export const SendAssistantMessage = z
 export const ApplyFolderChanges = z
   .object({ excluded: z.array(z.number().int().min(0).max(199)).max(200) })
   .meta({ id: 'ApplyFolderChanges' })
+
+/** Spec 025: the lines of a card on interviews left out, and the reasons a person corrected. */
+export const ApplyInterviewLines = z
+  .object({
+    excluded: z.array(z.number().int().min(0)).max(500),
+    reasons: z
+      .array(
+        z.object({ index: z.number().int().min(0), reason: z.string().trim().min(1).max(500) }),
+      )
+      .max(500)
+      .optional(),
+  })
+  .meta({ id: 'ApplyInterviewLines' })
 
 export const ContinueAssistantConversation = z
   .object({

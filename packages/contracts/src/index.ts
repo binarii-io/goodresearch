@@ -13,6 +13,7 @@ export {
 } from './ai.ts'
 export {
   ApplyFolderChanges,
+  ApplyInterviewLines,
   AssistantMessage,
   AssistantPage,
   AssistantStreamEvent,

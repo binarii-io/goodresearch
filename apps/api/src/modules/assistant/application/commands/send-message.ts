@@ -9,6 +9,7 @@ import {
 } from '../../domain/project-framing.ts'
 import {
   isActivity,
+  isInterviewCard,
   isNavigation,
   isProposalKind,
   isRecordedAtOnce,
@@ -39,9 +40,11 @@ import {
   checksOf,
   folderWorkRefusal,
   GUIDE_TOOLS,
+  prepareAnalysis,
   prepareDeletion,
   prepareFolder,
   prepareFolderChanges,
+  prepareInterviewCard,
   prepareProject,
   prepareProposal,
   preparePublication,
@@ -76,6 +79,10 @@ type NewCard =
   | 'attach_folder'
   | 'publish_preparation'
   | 'propose_folder_changes'
+  | 'propose_analysis'
+  | 'propose_accepting_suggestions'
+  | 'propose_validating_interviews'
+  | 'propose_excluding_interviews'
 
 const NOTHING_WRITTEN = {
   en: 'I could not finish what you asked: nothing came of my attempt. You can try again, or tell me more.',
@@ -96,6 +103,8 @@ const CARD_SHOWN = 'Card shown to the person. Wait for their decision and add no
 const continuationOf = (held: readonly StoredProposal[]): Continuation => {
   const has = (kind: ProposalKind) => held.some((p) => p.kind === kind && p.state === 'applied')
   if (has('folder_consent')) return 'consented'
+  if (has('propose_analysis')) return 'analysed'
+  if (held.some((p) => isInterviewCard(p.kind) && p.state === 'applied')) return 'decided'
   if (has('propose_folder_changes')) return 'tidied'
   if (has('attach_folder')) return 'folder'
   if (has('publish_preparation')) return 'published'
@@ -113,7 +122,12 @@ const FOLDER_CARDS = [
   'browse_folder',
   'find_files',
   'read_file',
+  'list_interviews',
   'propose_folder_changes',
+  'propose_analysis',
+  'propose_accepting_suggestions',
+  'propose_validating_interviews',
+  'propose_excluding_interviews',
 ]
 
 const NOT_CONTINUING = [
@@ -129,7 +143,13 @@ const REPLACED = 'REPLACED'
 
 /** What the model is told about a tool call in the next turns (research R2). */
 const outcomeOf = (p: StoredProposal): string => {
-  if (p.kind === 'browse_folder' || p.kind === 'find_files' || p.kind === 'read_file')
+  if (
+    p.kind === 'browse_folder' ||
+    p.kind === 'find_files' ||
+    p.kind === 'read_file' ||
+    p.kind === 'count_interviews' ||
+    p.kind === 'list_interviews'
+  )
     return p.state === 'applied'
       ? 'Done then. Its result is not kept: call it again if you need it.'
       : (p.error ?? 'Not done.')
@@ -139,6 +159,10 @@ const outcomeOf = (p: StoredProposal): string => {
     return 'Not allowed yet: a card asks for the consent of the person.'
   if (p.kind === 'folder_consent' && p.state === 'dismissed')
     return 'The person refused: only counts are available, unless they ask again.'
+  if (isInterviewCard(p.kind) && p.state === 'applied')
+    return `Applied by the person. Outcome of each line: ${(p.preview.interviewLines ?? [])
+      .map((l) => `${l.interview}${l.field ? ` (${l.field})` : ''}: ${l.outcome ?? 'unknown'}`)
+      .join('; ')}.`
   if (p.kind === 'propose_folder_changes' && p.state === 'applied')
     return `Applied by the person. Outcome of each line: ${(p.preview.lines ?? [])
       .map((l) => `${l.after}: ${l.outcome ?? 'unknown'}`)
@@ -192,6 +216,14 @@ const callInput = (p: StoredProposal): Record<string, unknown> => {
     return sent
   }
   if (p.state === 'invalid' || !p.targetId) return { ...p.values }
+  // The app built the lines, names included: only the interviews asked for go back to the model.
+  if (isInterviewCard(p.kind))
+    return {
+      studyId: p.targetId,
+      items: [...new Set((p.preview.interviewLines ?? []).map((l) => l.interviewId))].map(
+        (interviewId) => ({ interviewId }),
+      ),
+    }
   const key =
     p.kind === 'rename_study' ||
     p.kind === 'open_study' ||
@@ -199,6 +231,8 @@ const callInput = (p: StoredProposal): Record<string, unknown> => {
     p.kind === 'attach_folder' ||
     p.kind === 'publish_preparation' ||
     p.kind === 'propose_folder_changes' ||
+    p.kind === 'propose_analysis' ||
+    isInterviewCard(p.kind) ||
     p.kind === 'connect_source' ||
     isStudyChange(p.kind)
       ? 'studyId'
@@ -286,7 +320,9 @@ export const makeSendMessage = (deps: AssistantDeps) => {
             p.kind === 'publish_preparation' ||
             p.kind === 'propose_interview_guide' ||
             p.kind === 'propose_folder_changes' ||
-            p.kind === 'folder_consent') &&
+            p.kind === 'folder_consent' ||
+            p.kind === 'propose_analysis' ||
+            isInterviewCard(p.kind)) &&
           p.state === 'applied',
       ) ||
       // Spec 022: the address only says the consent went well; the connection proves it.
@@ -395,21 +431,32 @@ export const makeSendMessage = (deps: AssistantDeps) => {
     const proposeOne = async (kind: NewCard, input: unknown, callId: string): Promise<string> => {
       const proposals = await deps.store.listProposals(c.conversationId)
       const prepared =
-        kind === 'propose_folder_changes'
-          ? await prepareFolderChanges(deps.research, c.actor, input)
-          : kind === 'publish_preparation'
-            ? await preparePublication(deps.research, c.actor, input, c.language)
-            : kind === 'attach_folder'
-              ? await prepareFolder(deps.research, c.actor, input)
-              : kind === 'create_study'
-                ? await prepareStudy(deps.research, c.actor, input, currentStudyFraming(proposals))
-                : await prepareProject(
-                    deps.research,
-                    c.actor,
-                    input,
-                    currentFraming(proposals),
-                    c.language,
-                  )
+        kind === 'propose_accepting_suggestions' ||
+        kind === 'propose_validating_interviews' ||
+        kind === 'propose_excluding_interviews'
+          ? await prepareInterviewCard(deps.research, c.actor, kind, input)
+          : kind === 'propose_analysis'
+            ? await prepareAnalysis(deps.research, c.actor, input)
+            : kind === 'propose_folder_changes'
+              ? await prepareFolderChanges(deps.research, c.actor, input)
+              : kind === 'publish_preparation'
+                ? await preparePublication(deps.research, c.actor, input, c.language)
+                : kind === 'attach_folder'
+                  ? await prepareFolder(deps.research, c.actor, input)
+                  : kind === 'create_study'
+                    ? await prepareStudy(
+                        deps.research,
+                        c.actor,
+                        input,
+                        currentStudyFraming(proposals),
+                      )
+                    : await prepareProject(
+                        deps.research,
+                        c.actor,
+                        input,
+                        currentFraming(proposals),
+                        c.language,
+                      )
       if ('refused' in prepared) {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         await record(callId, kind, raw, null, prepared.refused)
@@ -426,7 +473,9 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           // A card about a study only gives way to another card for the same study.
           ((kind !== 'attach_folder' &&
             kind !== 'publish_preparation' &&
-            kind !== 'propose_folder_changes') ||
+            kind !== 'propose_folder_changes' &&
+            kind !== 'propose_analysis' &&
+            !isInterviewCard(kind)) ||
             open.targetId === prepared.targetId)
         )
           await deps.store.transitionProposal(open.id, 'proposed', {
@@ -550,6 +599,21 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       return JSON.stringify({ items: found.items, cut: found.cut })
     }
 
+    const listInterviews = async (input: unknown, callId: string): Promise<string> => {
+      const parsed = TOOL_INPUTS.list_interviews.safeParse(input)
+      if (!parsed.success)
+        return 'Refused: send a studyId, and only known filters: to-decide, no-transcript, no-recording, not-analysed, ready, validated, excluded.'
+      const { studyId, filters, name, page } = parsed.data
+      const found = await deps.research.listInterviews(c.actor, studyId, { filters, name, page })
+      if (!found.ok) {
+        const reason = folderWorkRefusal(found.error)
+        await record(callId, 'list_interviews', parsed.data, null, reason)
+        return reason
+      }
+      await record(callId, 'list_interviews', parsed.data, { studyId })
+      return JSON.stringify(found.page)
+    }
+
     const find = async (input: unknown, callId: string): Promise<string> => {
       const parsed = TOOL_INPUTS.find_files.safeParse(input)
       if (!parsed.success) return 'Refused: send a studyId, and a query or a kind.'
@@ -594,7 +658,8 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           name === 'create_project' ||
           name === 'create_study' ||
           name === 'attach_folder' ||
-          name === 'publish_preparation'
+          name === 'publish_preparation' ||
+          name === 'propose_analysis'
         )
           return proposeNew(name, input, callId)
         if (isStudyChange(name as ProposalKind) || name === 'delete_project')
@@ -613,14 +678,35 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           name === 'browse_folder' ||
           name === 'find_files' ||
           name === 'read_file' ||
+          name === 'list_interviews' ||
+          name === 'propose_accepting_suggestions' ||
+          name === 'propose_validating_interviews' ||
+          name === 'propose_excluding_interviews' ||
           name === 'propose_folder_changes'
         ) {
           const consent = await askFolderConsent(name, input, callId)
           if (consent) return consent
-          if (name === 'propose_folder_changes') return proposeNew(name, input, callId)
+          if (name === 'propose_folder_changes' || isInterviewCard(name as ProposalKind))
+            return proposeNew(name as NewCard, input, callId)
           if (name === 'browse_folder') return browse(input, callId)
           if (name === 'find_files') return find(input, callId)
+          if (name === 'list_interviews') return listInterviews(input, callId)
           return read(input, callId)
+        }
+        if (name === 'count_interviews') {
+          const parsed = TOOL_INPUTS.count_interviews.safeParse(input)
+          if (!parsed.success) return 'Refused: send a studyId.'
+          const study = await deps.research.getStudy(c.actor.id, parsed.data.studyId)
+          const found = study
+            ? await deps.research.interviewCounts(c.actor, study.id)
+            : ({ ok: false, error: 'STUDY_NOT_FOUND' } as const)
+          if (!found.ok) {
+            const reason = folderWorkRefusal(found.error)
+            await record(callId, 'count_interviews', parsed.data, null, reason)
+            return reason
+          }
+          await record(callId, 'count_interviews', parsed.data, { studyId: parsed.data.studyId })
+          return JSON.stringify(found.counts)
         }
         if (name === 'offer_choices') {
           const parsed = TOOL_INPUTS.offer_choices.safeParse(input)

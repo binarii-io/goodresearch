@@ -94,7 +94,7 @@ test.describe('spec 009 — analyze the interviews', () => {
 
     // FR-017: no planned interview matches the person found: the interview joins the schedule.
     const two = interviews.getByRole('row', { name: /Interview 2 - transcript/ })
-    await two.getByRole('button', { name: 'Add Casey Test to the schedule' }).click()
+    await two.getByRole('button', { name: 'Add to the schedule: Casey Test' }).click()
     await expect(two.getByText('Casey Test').first()).toBeVisible()
     // FR-019, FR-020: "To decide (N)" opens the interview.
     await two.getByRole('button', { name: /To decide \(\d+\)/ }).click()

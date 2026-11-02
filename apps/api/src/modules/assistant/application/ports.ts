@@ -54,6 +54,10 @@ export type ProposalPreview = {
   readonly opensOn?: 'preparation' | 'fieldwork'
   readonly documents?: ('guide' | 'best-practices')[]
   readonly access?: 'read' | 'write'
+  readonly interviewLines?: Omit<InterviewCardLine, 'version'>[]
+  readonly interviews?: number
+  readonly estimatedCost?: number | null
+  readonly consentNeeded?: boolean
   readonly fileName?: string
   readonly provider?: string
   readonly lines?: {
@@ -116,6 +120,22 @@ export type GuideDraft = {
 }
 
 /** What the assistant may know of a study's preparation; never names from the schedule. */
+/** A line of a card on interviews, built by the app (spec 025). */
+export type InterviewCardLine = {
+  index: number
+  interviewId: string
+  interview: string
+  version: number
+  field: string | null
+  fileId: string | null
+  value: string
+  flag: string | null
+  reason: string | null
+  outcome?: string
+}
+
+export type InterviewCardKind = 'suggestions' | 'validate' | 'exclude'
+
 export type FileSearchKind = 'transcript' | 'recording' | 'document' | 'folder'
 
 /** One line of a batch of changes in a study's folder, as the model sends it (spec 024). */
@@ -231,6 +251,49 @@ export interface ResearchReads {
   }): Promise<
     { ok: true; folderName: string; folderOwner: string | null } | { ok: false; error: string }
   >
+  /** Spec 025: numbers of interviews by state; no name. */
+  interviewCounts(
+    actor: Actor,
+    studyId: string,
+  ): Promise<{ ok: true; counts: Record<string, number> } | { ok: false; error: string }>
+  /** Spec 025: what comes next on the interviews, for the study's next step. */
+  interviewsStep(
+    actor: Actor,
+    studyId: string,
+  ): Promise<'none' | 'analyse' | 'decide' | 'validate' | 'done' | undefined>
+  /** Spec 025: one page of what the filters select; names, never a transcript. */
+  listInterviews(
+    actor: Actor,
+    studyId: string,
+    search: {
+      filters?: readonly string[] | undefined
+      name?: string | undefined
+      page?: number | undefined
+    },
+  ): Promise<{ ok: true; page: Record<string, unknown> } | { ok: false; error: string }>
+  /** Spec 025: the lines of a card on interviews; nothing changes. */
+  prepareInterviewCard(
+    actor: Actor,
+    studyId: string,
+    kind: InterviewCardKind,
+    items: readonly { interviewId: string; fields?: readonly string[]; reason?: string }[],
+  ): Promise<{ ok: true; lines: InterviewCardLine[] } | { ok: false; error: string }>
+  /** Spec 025: what analysing now would take. */
+  analysisEstimate(
+    actor: Actor,
+    studyId: string,
+    again: boolean,
+  ): Promise<
+    | {
+        ok: true
+        count: number
+        estimatedCost: number | null
+        consentNeeded: boolean
+        aiConnected: boolean
+        running: boolean
+      }
+    | { ok: false; error: string }
+  >
   /** Spec 024: the AI provider this person's calls go to, null without one. */
   aiProvider(accountId: string): Promise<string | null>
   /** Spec 024: whether the assistant can work in this study's folder at all. */
@@ -318,6 +381,22 @@ export interface ResearchActions {
     name: string
     goal?: string
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
+  /** Spec 025: runs the lines kept of a card on interviews. */
+  applyInterviewCard(c: {
+    actor: Actor
+    studyId: string
+    kind: InterviewCardKind
+    lines: readonly InterviewCardLine[]
+    excluded: readonly number[]
+    reasons: readonly { index: number; reason: string }[]
+  }): Promise<{ ok: true; outcomes: string[] } | { ok: false; error: string }>
+  /** Spec 025: starts the analysis, with the consent the card states. */
+  startAnalysis(c: {
+    actor: Actor
+    studyId: string
+    consent: boolean
+    all: boolean
+  }): Promise<{ ok: true } | { ok: false; error: string }>
   /** Spec 024: runs the lines kept; each gives its outcome. */
   applyFolderChanges(c: {
     actor: Actor

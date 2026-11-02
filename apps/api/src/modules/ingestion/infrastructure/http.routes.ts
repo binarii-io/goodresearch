@@ -32,6 +32,7 @@ import { sendError } from '#platform/http/errors.ts'
 import { reply } from '#platform/http/result.ts'
 import type { AnalysisCommands } from '../application/commands/analysis-commands.ts'
 import type { FolderWork } from '../application/commands/folder-work.ts'
+import type { InterviewWork } from '../application/commands/interview-work.ts'
 import type { RenameCommands } from '../application/commands/rename-commands.ts'
 import type { SessionCommands } from '../application/commands/session-commands.ts'
 import type { SourceCommands } from '../application/commands/source-commands.ts'
@@ -41,6 +42,7 @@ import type { DevDrive } from './dev-drive.ts'
 
 export type IngestionHandlers = {
   readonly folderWork: FolderWork
+  readonly interviewWork: InterviewWork
   readonly commands: SourceCommands
   readonly queries: SourceQueries
   readonly sessions: SessionCommands

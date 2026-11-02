@@ -505,7 +505,11 @@ export function SessionDialog({
                 {view.transcript.name}
               </a>
             ) : view.noTranscript ? (
-              t`No transcript found: only a recording.`
+              view.attachments.length ? (
+                t`No transcript: only a recording and a document attached, which the next phases do not read.`
+              ) : (
+                t`No transcript or document found: only a recording.`
+              )
             ) : (
               t`The transcript is missing in Drive.`
             )}{' '}

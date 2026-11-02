@@ -17,15 +17,18 @@ import {
   CalendarIcon,
   FileSearchIcon,
   FileTextIcon,
+  FileXIcon,
   HourglassIcon,
   LoaderCircleIcon,
   MicIcon,
+  PaperclipIcon,
   PencilIcon,
   RefreshCwIcon,
   SparklesIcon,
   TriangleAlertIcon,
   UsersIcon,
   VideoIcon,
+  VideoOffIcon,
 } from '@goodresearch/ui/components/icons'
 import {
   Select,
@@ -216,17 +219,30 @@ function Overview({ data }: { data: Fieldwork }) {
 function FileIcons({ s }: { s: Session }) {
   const { t } = useLingui()
   const icon = 'inline-flex size-8 items-center justify-center rounded-md border hover:bg-muted'
+  // Nothing at all, or a document that holds no words of the interview: not the same to fix.
+  const noTranscript = s.attachments.length
+    ? t`No transcript: only a document attached, which the next phases do not read.`
+    : t`No transcript and no document found`
   return (
     <ul className="flex items-center gap-1">
       <li>
-        {s.noTranscript ? (
+        {s.noTranscript && s.attachments.length ? (
           <span
-            className="inline-flex size-8 items-center justify-center rounded-md bg-highlight-soft text-highlight-soft-foreground"
+            className="inline-flex size-8 items-center justify-center rounded-md bg-highlight-soft text-foreground"
             role="img"
-            aria-label={t`No transcript found`}
-            title={t`No transcript found`}
+            aria-label={noTranscript}
+            title={noTranscript}
           >
             <TriangleAlertIcon aria-hidden className="size-4" />
+          </span>
+        ) : s.noTranscript ? (
+          <span
+            className="inline-flex size-8 items-center justify-center rounded-md bg-destructive/10 text-destructive"
+            role="img"
+            aria-label={noTranscript}
+            title={noTranscript}
+          >
+            <FileXIcon aria-hidden className="size-4" />
           </span>
         ) : s.transcript ? (
           <a
@@ -243,6 +259,18 @@ function FileIcons({ s }: { s: Session }) {
           <Badge variant="destructive">{t`Transcript missing`}</Badge>
         )}
       </li>
+      {s.media.length === 0 ? (
+        <li>
+          <span
+            className="inline-flex size-8 items-center justify-center rounded-md border border-dashed text-muted-foreground"
+            role="img"
+            aria-label={t`No recording found`}
+            title={t`No recording found`}
+          >
+            <VideoOffIcon aria-hidden className="size-4" />
+          </span>
+        </li>
+      ) : null}
       {s.media.map((m) => {
         const video = isVideo(m)
         return (
@@ -264,6 +292,20 @@ function FileIcons({ s }: { s: Session }) {
           </li>
         )
       })}
+      {s.attachments.map((a) => (
+        <li key={a.fileId}>
+          <a
+            href={a.webLink}
+            target="_blank"
+            rel="noreferrer"
+            className={icon}
+            aria-label={t`Open the attached document: ${a.name}`}
+            title={t`Attached document, not a transcript: ${a.name}`}
+          >
+            <PaperclipIcon aria-hidden className="size-4" />
+          </a>
+        </li>
+      ))}
     </ul>
   )
 }
@@ -423,10 +465,15 @@ function Interviews({
                     <span className="truncate font-medium" title={name}>
                       {name}
                     </span>
-                    {s.noTranscript ? (
+                    {s.noTranscript && s.attachments.length ? (
                       <Badge variant="highlight">
                         <TriangleAlertIcon aria-hidden />
-                        {t`No transcript`}
+                        {t`Document, no transcript`}
+                      </Badge>
+                    ) : s.noTranscript ? (
+                      <Badge variant="destructive">
+                        <FileXIcon aria-hidden />
+                        {t`No transcript or document`}
                       </Badge>
                     ) : null}
                     <span className="text-muted-foreground text-xs">
@@ -488,7 +535,7 @@ function Interviews({
                       size="sm"
                       variant="outline"
                       disabled={schedule.pending}
-                      aria-label={t`Add ${scheduleEntryOf(s)?.interviewee ?? ''} to the schedule`}
+                      aria-label={t`Add to the schedule: ${scheduleEntryOf(s)?.interviewee ?? ''}`}
                       onClick={() => void schedule.add(s)}
                     >
                       {t`Add to the schedule`}
@@ -514,6 +561,7 @@ function Interviews({
                 </TableCell>
                 <TableCell>
                   <Switch
+                    className="h-6"
                     checked={s.state === 'validated'}
                     disabled={s.state === 'excluded' || decide.isPending}
                     aria-label={t`Validated: ${name}`}

@@ -32,6 +32,12 @@ export const PROPOSAL_KINDS = [
   'propose_folder_changes',
   'folder_consent',
   'find_files',
+  'count_interviews',
+  'list_interviews',
+  'propose_analysis',
+  'propose_accepting_suggestions',
+  'propose_validating_interviews',
+  'propose_excluding_interviews',
 ] as const
 export type ProposalKind = (typeof PROPOSAL_KINDS)[number]
 
@@ -42,6 +48,12 @@ export const isNavigation = (kind: ProposalKind): boolean =>
 /** Spec 019: cards the model learns about at once, like a new project. */
 export const isStudyChange = (kind: ProposalKind): boolean =>
   kind === 'attach_study' || kind === 'detach_study' || kind === 'update_study_goal'
+
+/** Spec 025: cards whose lines the person ticks, on interviews. */
+export const isInterviewCard = (kind: ProposalKind): boolean =>
+  kind === 'propose_accepting_suggestions' ||
+  kind === 'propose_validating_interviews' ||
+  kind === 'propose_excluding_interviews'
 
 /**
  * Run by the app during the answer, their output given back to the model (spec 006). So is a new
@@ -57,6 +69,10 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
   kind === 'browse_folder' ||
   kind === 'find_files' ||
   kind === 'read_file' ||
+  kind === 'count_interviews' ||
+  kind === 'list_interviews' ||
+  kind === 'propose_analysis' ||
+  isInterviewCard(kind) ||
   kind === 'propose_folder_changes' ||
   isStudyChange(kind) ||
   kind === 'delete_project'
@@ -77,7 +93,9 @@ export const isActivity = (kind: ProposalKind): boolean =>
   kind === 'check_guide_questions' ||
   kind === 'browse_folder' ||
   kind === 'find_files' ||
-  kind === 'read_file'
+  kind === 'read_file' ||
+  kind === 'count_interviews' ||
+  kind === 'list_interviews'
 
 export const isProposalKind = (name: string): name is ProposalKind =>
   (PROPOSAL_KINDS as readonly string[]).includes(name)

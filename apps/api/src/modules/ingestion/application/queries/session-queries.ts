@@ -2,6 +2,7 @@ import { err, ok, type Result, sumCosts } from '@goodresearch/shared'
 import { type Analysis, filesChanged, type Proposal, shownAnalysis } from '../../domain/analysis.ts'
 import { fileNamesState } from '../../domain/file-names.ts'
 import { fileWords, nameWords } from '../../domain/file-words.ts'
+import { countInterviews, peopleOf, selectInterviews } from '../../domain/interview-filters.ts'
 import type { InventoryFile } from '../../domain/inventory-walk.ts'
 import { suggestLink } from '../../domain/link-suggestion.ts'
 import {
@@ -295,6 +296,54 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
     }).length
 
   return {
+    /** Spec 025: numbers by state, no name. */
+    interviewCounts: async (actor: Actor, studyId: string) => {
+      const allowed = await gate(actor.id, studyId)
+      if (!allowed.ok) return allowed
+      const { sessions, view } = await build(actor.id, studyId, true)
+      return ok(countInterviews(sessions.map(view)))
+    },
+
+    /** Spec 025: one page of what the filters select, for the assistant; never a transcript. */
+    listInterviews: async (
+      actor: Actor,
+      studyId: string,
+      search: Parameters<typeof selectInterviews>[1],
+    ) => {
+      const allowed = await gate(actor.id, studyId)
+      if (!allowed.ok) return allowed
+      if (allowed.value.anonymised) return err('STUDY_ANONYMISED' as const)
+      const { sessions, view } = await build(actor.id, studyId, true)
+      const page = selectInterviews(sessions.map(view), search)
+      return ok({
+        ...page,
+        items: page.items.map((s) => ({
+          id: s.id,
+          title: s.title ?? s.defaultTitle,
+          people: peopleOf(s),
+          state: s.state,
+          hasTranscript: s.transcript !== null,
+          recordings: s.media.length,
+          attachedDocuments: s.attachments.length,
+          date: s.interviewDate,
+          language: s.language,
+          analysed: s.analysis?.state === 'done',
+          excludedReason: s.excludedReason,
+          toDecide: (s.analysis?.proposals ?? [])
+            .filter((p) => p.status === 'proposed')
+            .map((p) => ({
+              field: p.field,
+              value:
+                p.text ??
+                p.people?.map((person) => person.name).join(', ') ??
+                p.attachment?.name ??
+                null,
+              ...(p.otherDate ? { otherDate: p.otherDate } : {}),
+            })),
+        })),
+      })
+    },
+
     fieldwork: async (actor: Actor, studyId: string): Promise<Result<FieldworkView, Denied>> => {
       const allowed = await gate(actor.id, studyId)
       if (!allowed.ok) return allowed

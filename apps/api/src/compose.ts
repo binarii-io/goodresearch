@@ -15,6 +15,7 @@ import {
 import {
   createAiAnalyzer,
   createIngestionModule,
+  interviewsStep,
   registerIngestionRoutes,
 } from './modules/ingestion/index.ts'
 import {
@@ -69,6 +70,10 @@ const studyIsOpen = (s: { hasFolder: boolean; folderName: string | null }) =>
   !s.hasFolder || s.folderName !== null
 
 /** Wires the modules together; shared by the HTTP server and the worker. Connects nothing by itself. */
+type IngestionListInterviews = ReturnType<
+  typeof createIngestionModule
+>['handlers']['sessionQueries']['listInterviews']
+
 export const composeModules = (config: AppConfig, infra: Infrastructure) => {
   const clock = infra.clock ?? systemClock
   const jobs = infra.jobs ?? noJobs
@@ -395,6 +400,21 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     updateProjectGoal: async (c) => outcome(await r.updateProjectGoal(c)),
     renameProject: async (c) => outcome(await r.renameProject(c)),
     createStudy: async (c) => outcome(await r.studies.createStudy({ ...c, type: 'interviews' })),
+    applyInterviewCard: async (c) =>
+      outcome(
+        await bound(ingestion).handlers.interviewWork.apply(
+          c.actor,
+          c.studyId,
+          c.kind,
+          c.lines,
+          new Set(c.excluded),
+          new Map(c.reasons.map((r) => [r.index, r.reason])),
+        ),
+      ),
+    startAnalysis: async (c) => {
+      const done = await bound(ingestion).handlers.analysis.startRun(c)
+      return done.ok ? { ok: true as const } : { ok: false as const, error: String(done.error) }
+    },
     applyFolderChanges: async (c) =>
       outcome(
         await bound(ingestion).handlers.folderWork.apply(
@@ -474,6 +494,32 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         bound(ingestion).handlers.queries.folderState(actor, studyId),
       checkFolder: async (c) => outcome(await bound(ingestion).handlers.commands.checkFolder(c)),
       aiProvider: (accountId) => ai.gateway.providerOf(accountId),
+      interviewCounts: async (actor, studyId) => {
+        const done = await bound(ingestion).handlers.sessionQueries.interviewCounts(actor, studyId)
+        return done.ok ? { ok: true as const, counts: done.value } : done
+      },
+      interviewsStep: async (actor, studyId) => {
+        const done = await bound(ingestion).handlers.sessionQueries.interviewCounts(actor, studyId)
+        return done.ok ? interviewsStep(done.value) : undefined
+      },
+      listInterviews: async (actor, studyId, search) => {
+        const done = await bound(ingestion).handlers.sessionQueries.listInterviews(
+          actor,
+          studyId,
+          search as Parameters<IngestionListInterviews>[2],
+        )
+        return done.ok ? { ok: true as const, page: done.value } : done
+      },
+      prepareInterviewCard: async (actor, studyId, kind, items) =>
+        outcome(await bound(ingestion).handlers.interviewWork.prepare(actor, studyId, kind, items)),
+      analysisEstimate: async (actor, studyId, again) => {
+        const done = await bound(ingestion).handlers.analysis.estimate(actor, studyId, {
+          all: again,
+        })
+        return done.ok
+          ? { ok: true as const, ...done.value }
+          : { ok: false as const, error: String(done.error) }
+      },
       folderWorkAvailable: async (actor, studyId) => {
         const done = await bound(ingestion).handlers.folderWork.available(actor, studyId)
         return done.ok ? { ok: true as const } : done

@@ -91,6 +91,6 @@ test.describe('spec 023 — publish the preparation', () => {
     await expect(panel.getByRole('button', { name: /Cost of this conversation: \$/ })).toBeVisible()
 
     await say('what is the next step?')
-    await expect(panel.getByText('Next: run the interviews in the Fieldwork tab.')).toBeVisible()
+    await expect(panel.getByText('Next: analyse the interviews not analysed yet.')).toBeVisible()
   })
 })

@@ -467,6 +467,10 @@ msgstr "{flaggedCount} questions to review"
 msgid "{hidden, plural, one {The counts leave out # study whose folder you cannot open; the AI cost of the project includes it.} other {The counts leave out # studies whose folder you cannot open; the AI cost of the project includes them.}}"
 msgstr "{hidden, plural, one {The counts leave out # study whose folder you cannot open; the AI cost of the project includes it.} other {The counts leave out # studies whose folder you cannot open; the AI cost of the project includes them.}}"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "{interviewCount} interviews to analyse"
+msgstr "{interviewCount} interviews to analyse"
+
 #: src/features/research/project-journey.tsx
 msgid "{left, plural, one {Decide the # fact left} other {Decide the # facts left}}"
 msgstr "{left, plural, one {Decide the # fact left} other {Decide the # facts left}}"
@@ -746,6 +750,11 @@ msgstr "Accept all"
 msgid "Accept all shown ({0})"
 msgstr "Accept all shown ({0})"
 
+#: src/features/assistant/interview-lines-card.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Accept suggestions"
+msgstr "Accept suggestions"
+
 #. placeholder {0}: terms.length
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Accept the {0} terms shown?"
@@ -868,11 +877,6 @@ msgstr "Active"
 msgid "Add"
 msgstr "Add"
 
-#. placeholder {0}: scheduleEntryOf(s)?.interviewee ?? ''
-#: src/features/fieldwork/fieldwork-tab.tsx
-msgid "Add {0} to the schedule"
-msgstr "Add {0} to the schedule"
-
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Add a correction"
 msgstr "Add a correction"
@@ -934,6 +938,11 @@ msgstr "Add to a fact"
 #: src/features/preparation/schedule.tsx
 msgid "Add to the schedule"
 msgstr "Add to the schedule"
+
+#. placeholder {0}: scheduleEntryOf(s)?.interviewee ?? ''
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Add to the schedule: {0}"
+msgstr "Add to the schedule: {0}"
 
 #: src/features/quality/remark-card.tsx
 msgid "Added by a person"
@@ -1165,6 +1174,10 @@ msgid "Also use what is still to decide"
 msgstr "Also use what is still to decide"
 
 #: src/features/workspace/errors.ts
+msgid "An analysis is already running on this study. Wait for its end."
+msgstr "An analysis is already running on this study. Wait for its end."
+
+#: src/features/workspace/errors.ts
 msgid "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 msgstr "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 
@@ -1184,6 +1197,10 @@ msgstr "An interviewer"
 #: src/features/workspace/errors.ts
 msgid "An inventory is already running for this study."
 msgstr "An inventory is already running for this study."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Analyse the interviews"
+msgstr "Analyse the interviews"
 
 #: src/features/analysis/labels.ts
 msgid "Analysed"
@@ -1283,6 +1300,10 @@ msgstr "Anonymised: names become pseudonyms"
 msgid "another date found: {0}"
 msgstr "another date found: {0}"
 
+#: src/features/assistant/interview-lines-card.tsx
+msgid "Another date was found: {other}. Left unticked."
+msgstr "Another date was found: {other}. Left unticked."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Another folder replaces the inventory and discards the {interviews} interviews found, with their links and decisions. Nothing changes in Drive."
 msgstr "Another folder replaces the inventory and discards the {interviews} interviews found, with their links and decisions. Nothing changes in Drive."
@@ -1308,6 +1329,7 @@ msgid "app's rules only"
 msgstr "app's rules only"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Applied"
 msgstr "Applied"
@@ -1317,6 +1339,7 @@ msgid "Applied to the clean versions"
 msgstr "Applied to the clean versions"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Apply"
 msgstr "Apply"
@@ -1371,6 +1394,10 @@ msgstr "At most 60 main questions."
 msgid "At most 8 follow-ups per question."
 msgstr "At most 8 follow-ups per question."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "At most about ${estimatedCost}, on your AI provider."
+msgstr "At most about ${estimatedCost}, on your AI provider."
+
 #: src/features/research/attach-study-dialog.tsx
 #: src/routes/_authenticated/team-studies/$teamId.tsx
 msgid "Attach"
@@ -1401,6 +1428,11 @@ msgstr "Attach to {0}"
 #: src/routes/_authenticated/team-studies/$teamId.tsx
 msgid "Attach to a project"
 msgstr "Attach to a project"
+
+#. placeholder {0}: a.name
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Attached document, not a transcript: {0}"
+msgstr "Attached document, not a transcript: {0}"
 
 #: src/features/assistant/labels.ts
 #: src/features/preparation/drive-review.tsx
@@ -2022,6 +2054,10 @@ msgstr "Could not be verified"
 msgid "Could not check whether they are up to date"
 msgstr "Could not check whether they are up to date"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Counted the interviews"
+msgstr "Counted the interviews"
+
 #: src/features/synthesis/insight-panel.tsx
 msgid "Counter-evidence"
 msgstr "Counter-evidence"
@@ -2325,6 +2361,7 @@ msgid "Disconnect Google Drive?"
 msgstr "Disconnect Google Drive?"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -2332,6 +2369,7 @@ msgid "Dismiss"
 msgstr "Dismiss"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Dismissed"
 msgstr "Dismissed"
@@ -2344,8 +2382,13 @@ msgstr "Document"
 msgid "Document text"
 msgstr "Document text"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Document, no transcript"
+msgstr "Document, no transcript"
+
 #: src/features/analysis/labels.ts
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/preparation/labels.ts
 msgid "Done"
 msgstr "Done"
@@ -2589,6 +2632,11 @@ msgstr "Evidence changed ({changed}): some facts changed or left since this insi
 msgid "Exclude"
 msgstr "Exclude"
 
+#: src/features/assistant/interview-lines-card.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Exclude interviews"
+msgstr "Exclude interviews"
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Exclude the interview"
 msgstr "Exclude the interview"
@@ -2601,6 +2649,10 @@ msgstr "Excluded"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Excluded because: {0}"
 msgstr "Excluded because: {0}"
+
+#: src/features/workspace/errors.ts
+msgid "Excluding an interview needs a reason."
+msgstr "Excluding an interview needs a reason."
 
 #: src/features/assistant/labels.ts
 msgid "Existing studies"
@@ -3570,6 +3622,10 @@ msgstr "It adds something"
 msgid "it could not be started; try again in a moment"
 msgstr "it could not be started; try again in a moment"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "It finds who was interviewed, the date, the language and a name, as suggestions you decide."
+msgstr "It finds who was interviewed, the date, the language and a name, as suggestions you decide."
+
 #: src/features/synthesis/debrief-tab.tsx
 msgid "It includes what is still to decide, marked \"to validate\"."
 msgstr "It includes what is still to decide, marked \"to validate\"."
@@ -3779,6 +3835,10 @@ msgstr "Leave the presentation"
 msgid "Left out"
 msgstr "Left out"
 
+#: src/features/assistant/interview-lines-card.tsx
+msgid "Left to decide"
+msgstr "Left to decide"
+
 #: src/features/workspace/errors.ts
 msgid "Let goodresearch edit your Drive files first."
 msgstr "Let goodresearch edit your Drive files first."
@@ -3838,6 +3898,10 @@ msgstr "List"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Loading every occurrence…"
 msgstr "Loading every occurrence…"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Looked at the interviews"
+msgstr "Looked at the interviews"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Looked in the folder"
@@ -4320,6 +4384,10 @@ msgstr "No reading yet"
 msgid "No recommendation matches these filters."
 msgstr "No recommendation matches these filters."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No recording found"
+msgstr "No recording found"
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "No recording found for this interview."
 msgstr "No recording found for this interview."
@@ -4377,26 +4445,41 @@ msgstr "No term matches these filters."
 
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
-#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/labels.ts
 msgid "No transcript"
 msgstr "No transcript"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
-msgid "No transcript found"
-msgstr "No transcript found"
+msgid "No transcript and no document found"
+msgstr "No transcript and no document found"
 
 #: src/features/fieldwork/labels.ts
 msgid "no transcript found for it"
 msgstr "no transcript found for it"
 
-#: src/features/fieldwork/session-dialog.tsx
-msgid "No transcript found: only a recording."
-msgstr "No transcript found: only a recording."
-
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "No transcript in the folder yet. Transcripts dropped in the folder appear here after a refresh."
 msgstr "No transcript in the folder yet. Transcripts dropped in the folder appear here after a refresh."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No transcript or document"
+msgstr "No transcript or document"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "No transcript or document found: only a recording."
+msgstr "No transcript or document found: only a recording."
+
+#: src/features/assistant/interview-lines-card.tsx
+msgid "No transcript: left unticked."
+msgstr "No transcript: left unticked."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No transcript: only a document attached, which the next phases do not read."
+msgstr "No transcript: only a document attached, which the next phases do not read."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "No transcript: only a recording and a document attached, which the next phases do not read."
+msgstr "No transcript: only a recording and a document attached, which the next phases do not read."
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
@@ -4417,6 +4500,7 @@ msgid "Not analysed"
 msgstr "Not analysed"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Not applied"
 msgstr "Not applied"
@@ -4501,6 +4585,10 @@ msgstr "Not used by any recommendation"
 msgid "Notes"
 msgstr "Notes"
 
+#: src/features/assistant/interview-lines-card.tsx
+msgid "Nothing changes before you apply. What you leave unticked stays to decide."
+msgstr "Nothing changes before you apply. What you leave unticked stays to decide."
+
 #: src/features/assistant/folder-changes-card.tsx
 msgid "Nothing changes in Drive before you apply, and nothing is ever deleted."
 msgstr "Nothing changes in Drive before you apply, and nothing is ever deleted."
@@ -4520,6 +4608,10 @@ msgstr "Nothing is deleted: it stays in {others}."
 #: src/features/assistant/proposal-card.tsx
 msgid "Nothing is deleted: it stays on the team's Studies page, in no project."
 msgstr "Nothing is deleted: it stays on the team's Studies page, in no project."
+
+#: src/features/workspace/errors.ts
+msgid "Nothing is left to decide on these interviews."
+msgstr "Nothing is left to decide on these interviews."
 
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Nothing is sent, no cost."
@@ -4662,6 +4754,11 @@ msgstr "Open slide {0}"
 #: src/features/assistant/panel.tsx
 msgid "Open the AI provider page"
 msgstr "Open the AI provider page"
+
+#. placeholder {0}: a.name
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Open the attached document: {0}"
+msgstr "Open the attached document: {0}"
 
 #. placeholder {0}: m.name
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -5201,6 +5298,10 @@ msgstr "Reading in progress"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Reading the interviews: {0} of {1}"
 msgstr "Reading the interviews: {0} of {1}"
+
+#: src/features/assistant/interview-lines-card.tsx
+msgid "Reason"
+msgstr "Reason"
 
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Recommendation selected"
@@ -6334,6 +6435,10 @@ msgstr "The assistant asks you a few questions, shows its progress and proposes 
 msgid "The assistant has nothing to continue here."
 msgstr "The assistant has nothing to continue here."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "The beginning of each transcript is sent to your AI provider. Applying agrees to it for this study."
+msgstr "The beginning of each transcript is sent to your AI provider. Applying agrees to it for this study."
+
 #: src/features/preparation/drive-review.tsx
 msgid "The best practices are not brought back: the next update replaces this."
 msgstr "The best practices are not brought back: the next update replaces this."
@@ -6349,6 +6454,10 @@ msgstr "The cleaning was interrupted: clean the transcripts again."
 #: src/features/synthesis/takeaways.tsx
 msgid "The cost could not be estimated: the draft can still be asked for."
 msgstr "The cost could not be estimated: the draft can still be asked for."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "The cost could not be estimated."
+msgstr "The cost could not be estimated."
 
 #: src/features/workspace/errors.ts
 msgid "The debrief has not been published to Google Slides yet."
@@ -6682,6 +6791,10 @@ msgid "This correction is no longer there: the transcript or the lexicon changed
 msgstr "This correction is no longer there: the transcript or the lexicon changed."
 
 #: src/features/workspace/errors.ts
+msgid "This could not be done, and nothing changed. Ask the assistant for a new card."
+msgstr "This could not be done, and nothing changed. Ask the assistant for a new card."
+
+#: src/features/workspace/errors.ts
 msgid "This fact is no longer there."
 msgstr "This fact is no longer there."
 
@@ -6766,6 +6879,10 @@ msgstr "This interview is no longer in the folder's list."
 #: src/features/workspace/errors.ts
 msgid "This interview is no longer in the schedule."
 msgstr "This interview is no longer in the schedule."
+
+#: src/features/workspace/errors.ts
+msgid "This interview is no longer in the study."
+msgstr "This interview is no longer in the study."
 
 #: src/features/analysis/find-facts.tsx
 msgid "This interview is read again in full. Facts already decided stay as they are."
@@ -6862,6 +6979,10 @@ msgstr "This reformulation is already requalified."
 #: src/features/workspace/errors.ts
 msgid "This study already has a folder. Replace it from Fieldwork, which says what that discards."
 msgstr "This study already has a folder. Replace it from Fieldwork, which says what that discards."
+
+#: src/features/workspace/errors.ts
+msgid "This study anonymises names: use the Fieldwork tab."
+msgstr "This study anonymises names: use the Fieldwork tab."
 
 #: src/features/workspace/errors.ts
 msgid "This study belongs to another team."
@@ -7203,6 +7324,11 @@ msgstr "Validate"
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "Validate all shown ({0})"
 msgstr "Validate all shown ({0})"
+
+#: src/features/assistant/interview-lines-card.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Validate interviews"
+msgstr "Validate interviews"
 
 #: src/features/workspace/errors.ts
 msgid "Validate interviews in Fieldwork first: only validated interviews are read."

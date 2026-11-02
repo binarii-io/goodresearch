@@ -10,6 +10,11 @@ describe('spec 023 — the next step of a study', () => {
     ['nothing published', { ...all, published: [] }, 'publish'],
     ['only the guide published', { ...all, published: ['guide'] }, 'publish'],
     ['all done', all, 'fieldwork'],
+    ['no interview yet', { ...all, interviews: 'none' as const }, 'fieldwork'],
+    ['interviews to analyse', { ...all, interviews: 'analyse' as const }, 'analyse'],
+    ['suggestions to decide', { ...all, interviews: 'decide' as const }, 'decide'],
+    ['interviews ready', { ...all, interviews: 'validate' as const }, 'validate'],
+    ['interviews finished', { ...all, interviews: 'done' as const }, 'next-phase'],
   ])('with %s', (_case, state, step) => {
     expect(nextStep(state)).toBe(step)
   })

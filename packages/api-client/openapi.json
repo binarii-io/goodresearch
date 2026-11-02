@@ -1520,6 +1520,79 @@
               "write"
             ]
           },
+          "interviewLines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "interviewId": {
+                  "type": "string"
+                },
+                "interview": {
+                  "type": "string"
+                },
+                "field": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "fileId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "value": {
+                  "type": "string"
+                },
+                "flag": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "outcome": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "index",
+                "interviewId",
+                "interview",
+                "field",
+                "fileId",
+                "value",
+                "flag",
+                "reason"
+              ]
+            }
+          },
+          "interviews": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "estimatedCost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "consentNeeded": {
+            "type": "boolean"
+          },
           "fileName": {
             "type": "string"
           },
@@ -1778,7 +1851,13 @@
               "read_file",
               "propose_folder_changes",
               "folder_consent",
-              "find_files"
+              "find_files",
+              "count_interviews",
+              "list_interviews",
+              "propose_analysis",
+              "propose_accepting_suggestions",
+              "propose_validating_interviews",
+              "propose_excluding_interviews"
             ]
           },
           "state": {
@@ -2021,6 +2100,46 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 199
+            }
+          }
+        },
+        "required": [
+          "excluded"
+        ]
+      },
+      "ApplyInterviewLinesInput": {
+        "type": "object",
+        "properties": {
+          "excluded": {
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "reasons": {
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "index",
+                "reason"
+              ]
             }
           }
         },
@@ -14222,6 +14341,80 @@
               "write"
             ]
           },
+          "interviewLines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "interviewId": {
+                  "type": "string"
+                },
+                "interview": {
+                  "type": "string"
+                },
+                "field": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "fileId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "value": {
+                  "type": "string"
+                },
+                "flag": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "outcome": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "index",
+                "interviewId",
+                "interview",
+                "field",
+                "fileId",
+                "value",
+                "flag",
+                "reason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "interviews": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "estimatedCost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "consentNeeded": {
+            "type": "boolean"
+          },
           "fileName": {
             "type": "string"
           },
@@ -14487,7 +14680,13 @@
               "read_file",
               "propose_folder_changes",
               "folder_consent",
-              "find_files"
+              "find_files",
+              "count_interviews",
+              "list_interviews",
+              "propose_analysis",
+              "propose_accepting_suggestions",
+              "propose_validating_interviews",
+              "propose_excluding_interviews"
             ]
           },
           "state": {
@@ -14738,6 +14937,48 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 199
+            }
+          }
+        },
+        "required": [
+          "excluded"
+        ],
+        "additionalProperties": false
+      },
+      "ApplyInterviewLines": {
+        "type": "object",
+        "properties": {
+          "excluded": {
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "reasons": {
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "index",
+                "reason"
+              ],
+              "additionalProperties": false
             }
           }
         },
@@ -28069,6 +28310,47 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ApplyFolderChangesInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "path",
+            "name": "proposalId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assistant/proposals/{proposalId}/apply-interview-lines": {
+      "post": {
+        "operationId": "applyInterviewLinesProposal",
+        "tags": [
+          "assistant"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyInterviewLinesInput"
               }
             }
           }

@@ -10,6 +10,7 @@ import type { ProposalPreviewAccess } from './proposalPreviewAccess.ts';
 import type { ProposalPreviewChecksItem } from './proposalPreviewChecksItem.ts';
 import type { ProposalPreviewDocumentsItem } from './proposalPreviewDocumentsItem.ts';
 import type { ProposalPreviewGuide } from './proposalPreviewGuide.ts';
+import type { ProposalPreviewInterviewLinesItem } from './proposalPreviewInterviewLinesItem.ts';
 import type { ProposalPreviewLinesItem } from './proposalPreviewLinesItem.ts';
 import type { ProposalPreviewOpensOn } from './proposalPreviewOpensOn.ts';
 import type { ProposalPreviewPhase } from './proposalPreviewPhase.ts';
@@ -30,6 +31,15 @@ export interface ProposalPreview {
   opensOn?: ProposalPreviewOpensOn;
   documents?: ProposalPreviewDocumentsItem[];
   access?: ProposalPreviewAccess;
+  interviewLines?: ProposalPreviewInterviewLinesItem[];
+  /**
+     * @minimum -9007199254740991
+     * @maximum 9007199254740991
+     */
+  interviews?: number;
+  /** @nullable */
+  estimatedCost?: number | null;
+  consentNeeded?: boolean;
   fileName?: string;
   provider?: string;
   lines?: ProposalPreviewLinesItem[];

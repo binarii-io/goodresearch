@@ -1,6 +1,13 @@
 import { err, ok, type Result } from '@goodresearch/shared'
-import { decideProposal } from '../../domain/proposal.ts'
-import type { Actor, AssistantDeps, FolderLineInput, GuideDraft, StoredProposal } from '../ports.ts'
+import { decideProposal, isInterviewCard } from '../../domain/proposal.ts'
+import type {
+  Actor,
+  AssistantDeps,
+  FolderLineInput,
+  GuideDraft,
+  InterviewCardLine,
+  StoredProposal,
+} from '../ports.ts'
 import { proposalView } from '../views.ts'
 
 export type ProposalError =
@@ -85,6 +92,21 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
           result: { kind: 'study' as const, id: p.targetId ?? '' },
         }
       }
+      case 'propose_analysis': {
+        const studyId = p.targetId ?? ''
+        // What the person agreed to is what the card states: this provider, and consent only if
+        // the card asked for it.
+        const provider = await deps.research.aiProvider(actor.id)
+        if (!provider || provider !== p.preview.provider)
+          return { ok: false as const, error: 'AI_PROVIDER_REQUIRED' }
+        const r = await deps.actions.startAnalysis({
+          actor,
+          studyId,
+          consent: p.preview.consentNeeded === true,
+          all: v.again === true,
+        })
+        return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: studyId } } : r
+      }
       case 'publish_preparation': {
         const studyId = p.targetId ?? ''
         const r = await deps.actions.publishPreparation({
@@ -145,8 +167,13 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       case 'offer_choices':
       case 'browse_folder':
       case 'find_files':
+      case 'count_interviews':
+      case 'list_interviews':
       case 'read_file':
       case 'propose_folder_changes':
+      case 'propose_accepting_suggestions':
+      case 'propose_validating_interviews':
+      case 'propose_excluding_interviews':
       case 'load_skill':
       case 'check_guide_questions':
         return { ok: false as const, error: 'PROPOSAL_DECIDED' }
@@ -175,7 +202,8 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       // Spec 022: only the consent, at the source, decides this card.
       if (p.kind === 'connect_source') return err('PROPOSAL_NOT_FOUND')
       // Spec 024: the person chooses the lines, on the card's own route.
-      if (p.kind === 'propose_folder_changes') return err('FOLDER_CHANGES_REQUIRED')
+      if (p.kind === 'propose_folder_changes' || isInterviewCard(p.kind))
+        return err('FOLDER_CHANGES_REQUIRED')
       const allowed = decideProposal(p.state, 'applying')
       if (!allowed.ok) return allowed
       // Claim it first: a second Apply (double click, another tab) finds it taken.
@@ -206,6 +234,74 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
             decidedAt: deps.clock.now(),
           }
         : { ...p, state: 'failed', error: outcome.error, decidedAt: deps.clock.now() }
+      await deps.store.saveProposal(decided)
+      return ok(proposalView(decided))
+    },
+
+    /** Spec 025: the only way to run a card on interviews: the lines kept, each with its outcome. */
+    applyInterviewLines: async (c: {
+      actor: Actor
+      proposalId: string
+      excluded: readonly number[]
+      reasons: readonly { index: number; reason: string }[]
+    }): Promise<Result<ReturnType<typeof proposalView>, ProposalError>> => {
+      const p = await load(c.actor, c.proposalId)
+      if (!p || !isInterviewCard(p.kind)) return err('PROPOSAL_NOT_FOUND')
+      const allowed = decideProposal(p.state, 'applying')
+      if (!allowed.ok) return allowed
+      const claimed = await deps.store.transitionProposal(p.id, 'proposed', {
+        ...p,
+        state: 'applying',
+      })
+      if (!claimed) return err('PROPOSAL_DECIDED')
+      const fail = (error: string): StoredProposal => ({
+        ...p,
+        state: 'failed',
+        error,
+        decidedAt: deps.clock.now(),
+      })
+      const kind = (
+        {
+          propose_accepting_suggestions: 'suggestions',
+          propose_validating_interviews: 'validate',
+          propose_excluding_interviews: 'exclude',
+        } as const
+      )[p.kind as 'propose_accepting_suggestions']
+      let outcome: Awaited<ReturnType<typeof deps.actions.applyInterviewCard>>
+      try {
+        outcome = await deps.actions.applyInterviewCard({
+          actor: c.actor,
+          studyId: p.targetId ?? '',
+          kind,
+          lines: p.values.lines as InterviewCardLine[],
+          excluded: c.excluded,
+          reasons: c.reasons,
+        })
+      } catch (error) {
+        await deps.store.saveProposal(fail('INTERNAL'))
+        throw error
+      }
+      if (!outcome.ok) {
+        const failed = fail(outcome.error)
+        await deps.store.saveProposal(failed)
+        return ok(proposalView(failed))
+      }
+      const { outcomes } = outcome
+      const decided: StoredProposal = {
+        ...p,
+        state: 'applied',
+        resultKind: 'study',
+        resultId: p.targetId,
+        preview: {
+          ...p.preview,
+          interviewLines: (p.preview.interviewLines ?? []).map((l, i) => ({
+            ...l,
+            reason: c.reasons.find((r) => r.index === l.index)?.reason ?? l.reason,
+            outcome: outcomes[i] ?? 'skipped',
+          })),
+        },
+        decidedAt: deps.clock.now(),
+      }
       await deps.store.saveProposal(decided)
       return ok(proposalView(decided))
     },

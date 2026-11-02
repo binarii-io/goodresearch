@@ -467,6 +467,10 @@ msgstr "{flaggedCount} questions à revoir"
 msgid "{hidden, plural, one {The counts leave out # study whose folder you cannot open; the AI cost of the project includes it.} other {The counts leave out # studies whose folder you cannot open; the AI cost of the project includes them.}}"
 msgstr "{hidden, plural, one {Les chiffres ne comptent pas # étude dont vous ne pouvez pas ouvrir le dossier ; le coût IA du projet l'inclut.} other {Les chiffres ne comptent pas # études dont vous ne pouvez pas ouvrir le dossier ; le coût IA du projet les inclut.}}"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "{interviewCount} interviews to analyse"
+msgstr "{interviewCount} entretiens à analyser"
+
 #: src/features/research/project-journey.tsx
 msgid "{left, plural, one {Decide the # fact left} other {Decide the # facts left}}"
 msgstr "{left, plural, one {Décider le # fait restant} other {Décider les # faits restants}}"
@@ -746,6 +750,11 @@ msgstr "Tout accepter"
 msgid "Accept all shown ({0})"
 msgstr "Tout accepter ({0})"
 
+#: src/features/assistant/interview-lines-card.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Accept suggestions"
+msgstr "Accepter les suggestions"
+
 #. placeholder {0}: terms.length
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Accept the {0} terms shown?"
@@ -868,11 +877,6 @@ msgstr "Actif"
 msgid "Add"
 msgstr "Ajouter"
 
-#. placeholder {0}: scheduleEntryOf(s)?.interviewee ?? ''
-#: src/features/fieldwork/fieldwork-tab.tsx
-msgid "Add {0} to the schedule"
-msgstr "Ajouter {0} au planning"
-
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Add a correction"
 msgstr "Ajouter une correction"
@@ -934,6 +938,11 @@ msgstr "Ajouter à un fait"
 #: src/features/preparation/schedule.tsx
 msgid "Add to the schedule"
 msgstr "Ajouter au planning"
+
+#. placeholder {0}: scheduleEntryOf(s)?.interviewee ?? ''
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Add to the schedule: {0}"
+msgstr "Ajouter au planning : {0}"
 
 #: src/features/quality/remark-card.tsx
 msgid "Added by a person"
@@ -1165,6 +1174,10 @@ msgid "Also use what is still to decide"
 msgstr "Utiliser aussi ce qui est encore à décider"
 
 #: src/features/workspace/errors.ts
+msgid "An analysis is already running on this study. Wait for its end."
+msgstr "Une analyse est déjà en cours sur cette étude. Attendez qu'elle se termine."
+
+#: src/features/workspace/errors.ts
 msgid "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 msgstr "Un insight a besoin d'au moins un fait accepté en soutien : acceptez d'abord ses faits à valider."
 
@@ -1184,6 +1197,10 @@ msgstr "Un intervieweur"
 #: src/features/workspace/errors.ts
 msgid "An inventory is already running for this study."
 msgstr "Un inventaire est déjà en cours pour cette étude."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Analyse the interviews"
+msgstr "Analyser les entretiens"
 
 #: src/features/analysis/labels.ts
 msgid "Analysed"
@@ -1283,6 +1300,10 @@ msgstr "Anonymisé : les noms deviennent des pseudonymes"
 msgid "another date found: {0}"
 msgstr "autre date trouvée : {0}"
 
+#: src/features/assistant/interview-lines-card.tsx
+msgid "Another date was found: {other}. Left unticked."
+msgstr "Une autre date a été trouvée : {other}. Laissée décochée."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Another folder replaces the inventory and discards the {interviews} interviews found, with their links and decisions. Nothing changes in Drive."
 msgstr "Un autre dossier remplace l'inventaire et supprime les {interviews} entretiens trouvés, avec leurs liens et décisions. Rien ne change dans Drive."
@@ -1308,6 +1329,7 @@ msgid "app's rules only"
 msgstr "règles de l'app seulement"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Applied"
 msgstr "Appliquée"
@@ -1317,6 +1339,7 @@ msgid "Applied to the clean versions"
 msgstr "Appliquées aux versions propres"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Apply"
 msgstr "Appliquer"
@@ -1371,6 +1394,10 @@ msgstr "60 questions principales au plus."
 msgid "At most 8 follow-ups per question."
 msgstr "8 relances au plus par question."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "At most about ${estimatedCost}, on your AI provider."
+msgstr "Environ ${estimatedCost} au maximum, sur votre fournisseur d’IA."
+
 #: src/features/research/attach-study-dialog.tsx
 #: src/routes/_authenticated/team-studies/$teamId.tsx
 msgid "Attach"
@@ -1401,6 +1428,11 @@ msgstr "Rattacher à {0}"
 #: src/routes/_authenticated/team-studies/$teamId.tsx
 msgid "Attach to a project"
 msgstr "Rattacher à un projet"
+
+#. placeholder {0}: a.name
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Attached document, not a transcript: {0}"
+msgstr "Document joint, pas une transcription : {0}"
 
 #: src/features/assistant/labels.ts
 #: src/features/preparation/drive-review.tsx
@@ -2022,6 +2054,10 @@ msgstr "Non vérifiable"
 msgid "Could not check whether they are up to date"
 msgstr "Impossible de vérifier s'ils sont à jour"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "Counted the interviews"
+msgstr "A compté les entretiens"
+
 #: src/features/synthesis/insight-panel.tsx
 msgid "Counter-evidence"
 msgstr "Contre-exemples"
@@ -2325,6 +2361,7 @@ msgid "Disconnect Google Drive?"
 msgstr "Déconnecter Google Drive ?"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -2332,6 +2369,7 @@ msgid "Dismiss"
 msgstr "Ignorer"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Dismissed"
 msgstr "Ignorée"
@@ -2344,8 +2382,13 @@ msgstr "Document"
 msgid "Document text"
 msgstr "Texte du document"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Document, no transcript"
+msgstr "Document, pas de transcription"
+
 #: src/features/analysis/labels.ts
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/preparation/labels.ts
 msgid "Done"
 msgstr "Réalisé"
@@ -2589,6 +2632,11 @@ msgstr "Preuves modifiées ({changed}) : des faits ont changé ou sont partis de
 msgid "Exclude"
 msgstr "Exclure"
 
+#: src/features/assistant/interview-lines-card.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Exclude interviews"
+msgstr "Exclure des entretiens"
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Exclude the interview"
 msgstr "Exclure l'entretien"
@@ -2601,6 +2649,10 @@ msgstr "Exclu"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Excluded because: {0}"
 msgstr "Exclu pour la raison : {0}"
+
+#: src/features/workspace/errors.ts
+msgid "Excluding an interview needs a reason."
+msgstr "Exclure un entretien demande une raison."
 
 #: src/features/assistant/labels.ts
 msgid "Existing studies"
@@ -3570,6 +3622,10 @@ msgstr "Elle ajoute quelque chose"
 msgid "it could not be started; try again in a moment"
 msgstr "il n'a pas pu démarrer ; réessayez dans un instant"
 
+#: src/features/assistant/proposal-card.tsx
+msgid "It finds who was interviewed, the date, the language and a name, as suggestions you decide."
+msgstr "Elle trouve qui a été interviewé, la date, la langue et un nom, sous forme de suggestions que vous décidez."
+
 #: src/features/synthesis/debrief-tab.tsx
 msgid "It includes what is still to decide, marked \"to validate\"."
 msgstr "Elle inclut ce qui reste à décider, marqué « à valider »."
@@ -3779,6 +3835,10 @@ msgstr "Quitter la présentation"
 msgid "Left out"
 msgstr "Écartée"
 
+#: src/features/assistant/interview-lines-card.tsx
+msgid "Left to decide"
+msgstr "Reste à décider"
+
 #: src/features/workspace/errors.ts
 msgid "Let goodresearch edit your Drive files first."
 msgstr "Autorisez d’abord goodresearch à modifier vos fichiers Drive."
@@ -3838,6 +3898,10 @@ msgstr "Liste"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Loading every occurrence…"
 msgstr "Chargement de toutes les occurrences…"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Looked at the interviews"
+msgstr "A regardé les entretiens"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Looked in the folder"
@@ -4320,6 +4384,10 @@ msgstr "Aucune lecture pour l’instant"
 msgid "No recommendation matches these filters."
 msgstr "Aucune recommandation ne correspond à ces filtres."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No recording found"
+msgstr "Aucun enregistrement trouvé"
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "No recording found for this interview."
 msgstr "Aucun enregistrement trouvé pour cet entretien."
@@ -4377,26 +4445,41 @@ msgstr "Aucun terme ne correspond à ces filtres."
 
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
-#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/labels.ts
 msgid "No transcript"
 msgstr "Pas de transcription"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
-msgid "No transcript found"
-msgstr "Aucune transcription trouvée"
+msgid "No transcript and no document found"
+msgstr "Ni transcription ni document trouvés"
 
 #: src/features/fieldwork/labels.ts
 msgid "no transcript found for it"
 msgstr "aucune transcription trouvée pour lui"
 
-#: src/features/fieldwork/session-dialog.tsx
-msgid "No transcript found: only a recording."
-msgstr "Aucune transcription trouvée : seulement un enregistrement."
-
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "No transcript in the folder yet. Transcripts dropped in the folder appear here after a refresh."
 msgstr "Aucune transcription dans le dossier pour l'instant. Les transcriptions déposées dans le dossier apparaissent ici après une actualisation."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No transcript or document"
+msgstr "Ni transcription ni document"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "No transcript or document found: only a recording."
+msgstr "Ni transcription ni document trouvés : seulement un enregistrement."
+
+#: src/features/assistant/interview-lines-card.tsx
+msgid "No transcript: left unticked."
+msgstr "Pas de transcription : laissé décoché."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No transcript: only a document attached, which the next phases do not read."
+msgstr "Pas de transcription : seulement un document joint, que les phases suivantes ne lisent pas."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "No transcript: only a recording and a document attached, which the next phases do not read."
+msgstr "Pas de transcription : seulement un enregistrement et un document joint, que les phases suivantes ne lisent pas."
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
@@ -4417,6 +4500,7 @@ msgid "Not analysed"
 msgstr "Non analysé"
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
 msgid "Not applied"
 msgstr "Non appliquée"
@@ -4501,6 +4585,10 @@ msgstr "Utilisé par aucune recommandation"
 msgid "Notes"
 msgstr "Notes"
 
+#: src/features/assistant/interview-lines-card.tsx
+msgid "Nothing changes before you apply. What you leave unticked stays to decide."
+msgstr "Rien ne change avant que vous appliquiez. Ce que vous laissez décoché reste à décider."
+
 #: src/features/assistant/folder-changes-card.tsx
 msgid "Nothing changes in Drive before you apply, and nothing is ever deleted."
 msgstr "Rien ne change dans Drive avant que vous appliquiez, et rien n’est jamais supprimé."
@@ -4520,6 +4608,10 @@ msgstr "Rien n’est supprimé : elle reste dans {others}."
 #: src/features/assistant/proposal-card.tsx
 msgid "Nothing is deleted: it stays on the team's Studies page, in no project."
 msgstr "Rien n’est supprimé : elle reste sur la page Études de l’équipe, sans projet."
+
+#: src/features/workspace/errors.ts
+msgid "Nothing is left to decide on these interviews."
+msgstr "Il ne reste rien à décider sur ces entretiens."
 
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Nothing is sent, no cost."
@@ -4662,6 +4754,11 @@ msgstr "Ouvrir la slide {0}"
 #: src/features/assistant/panel.tsx
 msgid "Open the AI provider page"
 msgstr "Ouvrir la page Fournisseur IA"
+
+#. placeholder {0}: a.name
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Open the attached document: {0}"
+msgstr "Ouvrir le document joint : {0}"
 
 #. placeholder {0}: m.name
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -5201,6 +5298,10 @@ msgstr "Lecture en cours"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Reading the interviews: {0} of {1}"
 msgstr "Lecture des entretiens : {0} sur {1}"
+
+#: src/features/assistant/interview-lines-card.tsx
+msgid "Reason"
+msgstr "Raison"
 
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Recommendation selected"
@@ -6334,6 +6435,10 @@ msgstr "L’assistant vous pose quelques questions, montre son avancement et pro
 msgid "The assistant has nothing to continue here."
 msgstr "L’assistant n’a rien à poursuivre ici."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "The beginning of each transcript is sent to your AI provider. Applying agrees to it for this study."
+msgstr "Le début de chaque transcription est envoyé à votre fournisseur d’IA. Appliquer vaut accord pour cette étude."
+
 #: src/features/preparation/drive-review.tsx
 msgid "The best practices are not brought back: the next update replaces this."
 msgstr "Les bonnes pratiques ne reviennent pas dans l’app : la prochaine mise à jour remplace ceci."
@@ -6349,6 +6454,10 @@ msgstr "Le nettoyage a été interrompu : nettoyez à nouveau les transcriptions
 #: src/features/synthesis/takeaways.tsx
 msgid "The cost could not be estimated: the draft can still be asked for."
 msgstr "Le coût n'a pas pu être estimé : le brouillon peut quand même être demandé."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "The cost could not be estimated."
+msgstr "Le coût n’a pas pu être estimé."
 
 #: src/features/workspace/errors.ts
 msgid "The debrief has not been published to Google Slides yet."
@@ -6682,6 +6791,10 @@ msgid "This correction is no longer there: the transcript or the lexicon changed
 msgstr "Cette correction n’existe plus : la transcription ou le lexique a changé."
 
 #: src/features/workspace/errors.ts
+msgid "This could not be done, and nothing changed. Ask the assistant for a new card."
+msgstr "Cela n'a pas pu être fait, et rien n'a changé. Demandez une nouvelle carte à l'assistant."
+
+#: src/features/workspace/errors.ts
 msgid "This fact is no longer there."
 msgstr "Ce fait n'existe plus."
 
@@ -6766,6 +6879,10 @@ msgstr "Cet entretien ne fait plus partie de la liste du dossier."
 #: src/features/workspace/errors.ts
 msgid "This interview is no longer in the schedule."
 msgstr "Cet entretien n’est plus dans le planning."
+
+#: src/features/workspace/errors.ts
+msgid "This interview is no longer in the study."
+msgstr "Cet entretien n'est plus dans l'étude."
 
 #: src/features/analysis/find-facts.tsx
 msgid "This interview is read again in full. Facts already decided stay as they are."
@@ -6862,6 +6979,10 @@ msgstr "Cette reformulation est déjà requalifiée."
 #: src/features/workspace/errors.ts
 msgid "This study already has a folder. Replace it from Fieldwork, which says what that discards."
 msgstr "Cette étude a déjà un dossier. Remplacez-le depuis la Passation, qui indique ce que cela supprime."
+
+#: src/features/workspace/errors.ts
+msgid "This study anonymises names: use the Fieldwork tab."
+msgstr "Cette étude anonymise les noms : utilisez l'onglet Passation."
 
 #: src/features/workspace/errors.ts
 msgid "This study belongs to another team."
@@ -7203,6 +7324,11 @@ msgstr "Valider"
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "Validate all shown ({0})"
 msgstr "Valider tout ce qui est affiché ({0})"
+
+#: src/features/assistant/interview-lines-card.tsx
+#: src/features/assistant/proposal-card.tsx
+msgid "Validate interviews"
+msgstr "Valider des entretiens"
 
 #: src/features/workspace/errors.ts
 msgid "Validate interviews in Fieldwork first: only validated interviews are read."

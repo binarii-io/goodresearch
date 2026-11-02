@@ -14,6 +14,7 @@ export {
   ExternalLinkIcon,
   FileSearchIcon,
   FileTextIcon,
+  FileXIcon,
   FolderIcon,
   FolderOpenIcon,
   HistoryIcon,
@@ -23,6 +24,7 @@ export {
   LogOutIcon,
   MergeIcon,
   MicIcon,
+  PaperclipIcon,
   PencilIcon,
   PlusIcon,
   PresentationIcon,
@@ -41,5 +43,6 @@ export {
   UserIcon,
   UsersIcon,
   VideoIcon,
+  VideoOffIcon,
   XIcon,
 } from 'lucide-react'

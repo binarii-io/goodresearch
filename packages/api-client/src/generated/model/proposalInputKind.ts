@@ -35,4 +35,10 @@ export const ProposalInputKind = {
   propose_folder_changes: 'propose_folder_changes',
   folder_consent: 'folder_consent',
   find_files: 'find_files',
+  count_interviews: 'count_interviews',
+  list_interviews: 'list_interviews',
+  propose_analysis: 'propose_analysis',
+  propose_accepting_suggestions: 'propose_accepting_suggestions',
+  propose_validating_interviews: 'propose_validating_interviews',
+  propose_excluding_interviews: 'propose_excluding_interviews',
 } as const;

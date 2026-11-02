@@ -104,6 +104,59 @@ const INPUTS = {
       .max(200),
   }),
   folder_consent: z.object({}),
+  // Spec 025.
+  count_interviews: z.object({ studyId: Id }),
+  list_interviews: z.object({
+    studyId: Id,
+    filters: z
+      .array(
+        z.enum([
+          'to-decide',
+          'no-transcript',
+          'no-recording',
+          'not-analysed',
+          'ready',
+          'validated',
+          'excluded',
+        ]),
+      )
+      .max(7)
+      .optional(),
+    name: z.string().trim().min(1).max(120).optional(),
+    page: z.number().int().min(1).max(10).optional(),
+  }),
+  propose_analysis: z.object({ studyId: Id, again: z.boolean().optional() }),
+  propose_accepting_suggestions: z.object({
+    studyId: Id,
+    items: z
+      .array(
+        z.object({
+          interviewId: Id,
+          fields: z
+            .array(
+              z.enum(['interviewees', 'interviewers', 'date', 'language', 'name', 'attachment']),
+            )
+            .max(6)
+            .optional(),
+        }),
+      )
+      .min(1)
+      .max(50),
+  }),
+  propose_validating_interviews: z.object({
+    studyId: Id,
+    items: z
+      .array(z.object({ interviewId: Id }))
+      .min(1)
+      .max(50),
+  }),
+  propose_excluding_interviews: z.object({
+    studyId: Id,
+    items: z
+      .array(z.object({ interviewId: Id, reason: z.string().trim().min(1).max(500) }))
+      .min(1)
+      .max(50),
+  }),
   offer_choices: z.object({
     question: z.string().trim().min(1).max(300),
     choices: z
@@ -203,6 +256,42 @@ export const TOOLS: readonly ToolSpec[] = [
     description:
       "Propose to create a study's interview guide and interview best practices as documents in its folder (kinds: guide, best-practices). If the person has not allowed editing, the app shows a card for that and the conversation goes on after. The result says whether a card was shown or why it was refused.",
     inputSchema: INPUTS.publish_preparation,
+  },
+  {
+    name: 'count_interviews',
+    description:
+      'How many interviews of a study are in each state: to-decide (suggestions of the analysis undecided), no-transcript, no-recording, not-analysed, ready (to validate), validated, excluded. An interview can be in several. Holds no name. Call it first to answer what is left to do, instead of listing.',
+    inputSchema: INPUTS.count_interviews,
+  },
+  {
+    name: 'list_interviews',
+    description:
+      "List a study's interviews, with what is left to decide on each. Prefer filters (an interview must match all of them) or a part of a name: only what is asked comes back. Without any filter it gives them all, 50 per page: use it when you need to unblock yourself. The first time, a card asks the person's consent: then wait. The result is not kept for later messages.",
+    inputSchema: INPUTS.list_interviews,
+  },
+  {
+    name: 'propose_analysis',
+    description:
+      'Propose to analyse the interviews not analysed yet (again: true to analyse the others again): the analysis finds who was interviewed, the date, the language and a name, as suggestions the person decides. A card shows how many and the estimated cost; it starts only when they apply. The result says whether a card was shown or why it was refused.',
+    inputSchema: INPUTS.propose_analysis,
+  },
+  {
+    name: 'propose_accepting_suggestions',
+    description:
+      "Show a card of the analysis's suggestions on the interviews named (ids from list_interviews), to accept: `fields` keeps only some of them (interviewees, interviewers, date, language, name, attachment); without it, all those undecided. It accepts nothing: the person unticks lines and applies, and what is unticked stays to decide. An `attachment` joins a document to the interview: it does not become its transcript.",
+    inputSchema: INPUTS.propose_accepting_suggestions,
+  },
+  {
+    name: 'propose_validating_interviews',
+    description:
+      'Show a card of interviews to validate (ids from list_interviews). It validates nothing: only the person does, by applying it. An interview without transcript is flagged and starts unticked. Validated interviews go on to the next phases.',
+    inputSchema: INPUTS.propose_validating_interviews,
+  },
+  {
+    name: 'propose_excluding_interviews',
+    description:
+      'Show a card of interviews to exclude, each with its reason, which you ask the person for if you do not have it (ids from list_interviews). It excludes nothing: only the person does, by applying it, and they can correct the reason.',
+    inputSchema: INPUTS.propose_excluding_interviews,
   },
   {
     name: 'browse_folder',
@@ -485,6 +574,12 @@ export const preparePublication = async (
 /** Spec 024: why the assistant cannot work in the folder, in words the model can pass on. */
 const FOLDER_WORK_REFUSALS: Record<string, string> = {
   ...FOLDER_REFUSALS,
+  NOTHING_TO_DECIDE: 'Refused: there is nothing left to decide on these interviews.',
+  REASON_REQUIRED: 'Refused: an exclusion needs its reason. Ask the person.',
+  INTERVIEW_NOT_FOUND: 'Refused: use interview ids given by list_interviews.',
+  NOTHING_TO_ANALYZE: 'Refused: there is nothing left to analyse.',
+  ANALYSIS_RUNNING: 'Refused: an analysis is already running. Wait for its end.',
+  NOT_AN_INTERVIEW_STUDY: 'Refused: this is not an interview study.',
   NO_SOURCE_FOLDER: 'Refused: this study has no folder. Offer to add it first.',
   STUDY_ANONYMISED:
     'Refused: this study is set to anonymise names, so its file names and content are not sent to you. Only counts are available.',
@@ -501,6 +596,75 @@ const FOLDER_WORK_REFUSALS: Record<string, string> = {
 
 export const folderWorkRefusal = (code: string): string =>
   FOLDER_WORK_REFUSALS[code] ?? 'Refused: this cannot be done in the folder.'
+
+const CARD_KINDS = {
+  propose_accepting_suggestions: 'suggestions',
+  propose_validating_interviews: 'validate',
+  propose_excluding_interviews: 'exclude',
+} as const
+
+/** Spec 025: a card on interviews, built by the app, or the reason. */
+export const prepareInterviewCard = async (
+  research: ResearchReads,
+  actor: Actor,
+  name: keyof typeof CARD_KINDS,
+  rawInput: unknown,
+): Promise<{ refused: string } | PreparedProposal> => {
+  const input = INPUTS[name].safeParse(rawInput)
+  if (!input.success)
+    return { refused: 'Refused: send a studyId and items with interview ids from list_interviews.' }
+  const { studyId, items } = input.data
+  const study = await research.getStudy(actor.id, studyId)
+  if (!study) return { refused: folderWorkRefusal('STUDY_NOT_FOUND') }
+  const prepared = await research.prepareInterviewCard(actor, studyId, CARD_KINDS[name], items)
+  if (!prepared.ok) return { refused: folderWorkRefusal(prepared.error) }
+  return {
+    kind: name,
+    targetId: studyId,
+    targetVersion: null,
+    values: { lines: prepared.lines },
+    preview: {
+      studyId,
+      studyName: study.name,
+      interviewLines: prepared.lines.map(({ version: _version, ...line }) => line),
+    },
+  }
+}
+
+/** Spec 025: the card of an analysis, or the reason. */
+export const prepareAnalysis = async (
+  research: ResearchReads,
+  actor: Actor,
+  rawInput: unknown,
+): Promise<{ refused: string } | PreparedProposal> => {
+  const input = INPUTS.propose_analysis.safeParse(rawInput)
+  if (!input.success) return { refused: 'Refused: send a studyId.' }
+  const { studyId, again = false } = input.data
+  const study = await research.getStudy(actor.id, studyId)
+  if (!study) return { refused: folderWorkRefusal('STUDY_NOT_FOUND') }
+  const estimate = await research.analysisEstimate(actor, studyId, again)
+  if (!estimate.ok) return { refused: folderWorkRefusal(estimate.error) }
+  if (estimate.running) return { refused: folderWorkRefusal('ANALYSIS_RUNNING') }
+  if (!estimate.aiConnected)
+    return {
+      refused: 'Refused: the person has no AI provider connected. They can add one in the app.',
+    }
+  if (estimate.count === 0) return { refused: folderWorkRefusal('NOTHING_TO_ANALYZE') }
+  return {
+    kind: 'propose_analysis',
+    targetId: studyId,
+    targetVersion: null,
+    values: { again },
+    preview: {
+      studyId,
+      studyName: study.name,
+      interviews: estimate.count,
+      estimatedCost: estimate.estimatedCost,
+      consentNeeded: estimate.consentNeeded,
+      provider: (await research.aiProvider(actor.id)) ?? '',
+    },
+  }
+}
 
 /** Spec 024: the card of a batch, its connection card, or the reason. */
 export const prepareFolderChanges = async (

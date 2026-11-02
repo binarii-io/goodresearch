@@ -8,6 +8,10 @@ const REUSABLE_LIMIT = 30
 const NEXT_STEPS: Record<NextStep, string> = {
   'write-guide': 'write its interview guide',
   'add-folder': 'add the folder holding its interviews',
+  analyse: 'analyse the interviews not analysed yet',
+  decide: 'decide the suggestions of the analysis on its interviews',
+  validate: 'validate the interviews that are ready',
+  'next-phase': 'go on to the next phase, the interviews being decided',
   publish: 'publish its interview guide and the best practices to its folder',
   fieldwork: 'run the interviews in the Fieldwork tab',
 }
@@ -29,6 +33,8 @@ const INSTRUCTIONS = `You are the goodresearch assistant. You help people run us
 - Each message of the person starts with the page it was sent from. The context below describes the page the person is on now; when it differs from earlier messages, the person has moved.
 - When the person can choose among a few clear options, such as the next steps, offer them with offer_choices rather than a list in your text.
 - When the person asks what comes next, answer in your own words from the next step in the context, never from memory, and offer the steps with offer_choices.
+- For a study's interviews: count_interviews answers what is left to do, list_interviews gives only what its filters select, and propose_analysis offers to analyse them. Never ask for every interview when a count or a filter answers.
+- You never accept, validate or exclude yourself: propose_accepting_suggestions, propose_validating_interviews and propose_excluding_interviews show a card, and only a person validates, by applying it. Accepting suggestions never validates an interview. A document attached to an interview is not its transcript: an interview without one stays without one, say so plainly, even if a document holds a summary of it.
 - You can work in a study's folder like a colleague: find_files to look for a file or a person, browse_folder to see all of it, read_file to read a file, propose_folder_changes for one card of renames, moves and new sub-folders. Everything changes only when the person applies the card. You cannot delete, trash or change sharing: say so, and offer a sub-folder named "To sort"; the person deletes in their own storage.
 - Skills hold instructions for specific tasks. When a task matches a skill listed below that is not loaded yet, call load_skill first and follow its instructions. When the person wants to create a research project, that is the skill project-framing. When they want to create a study, that is the skill study-framing.`
 
@@ -40,6 +46,10 @@ const CONTINUATIONS = {
     'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready, then call offer_choices with the next steps: adding the folder that holds its interviews if they exist already, and preparing its interview guide. Start neither, and call no other tool. Do not repeat the framing.',
   folder:
     'The person just applied your folder proposal and the study is open on the tab named in the context: nobody wrote a new message. From the source folder in the context, give the number of transcripts, recordings and other files; if its inventory is still running, say so and that the Fieldwork tab follows it. Then call offer_choices with what is left to prepare according to the context: writing the interview guide if there is none, planning the interviews if none is planned; if both are done, going to Fieldwork. Start nothing, and call no other tool.',
+  decided:
+    'The person just applied your card on interviews: nobody wrote a new message. Your call shows the outcome of each line. In one or two sentences, say what was done and what failed. Call count_interviews if you need the numbers, then offer_choices with what comes next. Start nothing.',
+  analysed:
+    'The person just applied your analysis proposal: nobody wrote a new message. Call count_interviews, then say in two sentences what the analysis found and what is left, or that it is still running and the Fieldwork tab follows it. Then call offer_choices with what comes next. Start nothing.',
   consented:
     'The person just agreed to send the names and content of the files of this study to their AI provider: nobody wrote a new message. Go on with what they asked: call again the tool that led to the card.',
   tidied:
@@ -195,11 +205,17 @@ export const buildContext = async (
           `Interview schedule of this study: ${counts || 'no planned interview'} (names are not shared with you).`,
         )
         const hasGuide = preparation.guide !== null
+        const published = hasGuide && folder ? await research.publishedKinds(actor, study.id) : []
+        // Spec 025: read only once the preparation is done, when it can change the answer.
+        const interviews =
+          published.includes('guide') && published.includes('best-practices')
+            ? await research.interviewsStep(actor, study.id)
+            : undefined
         const step = nextStep({
           hasGuide,
           hasFolder: folder !== null,
-          // Only read when it can change the answer.
-          published: hasGuide && folder ? await research.publishedKinds(actor, study.id) : [],
+          published,
+          interviews,
         })
         lines.push(`Next step of this study: ${NEXT_STEPS[step]}.`)
       }

@@ -55,7 +55,9 @@ test.describe('spec 008 — the interviews found in the study folder', () => {
     // Spec 009 FR-020: every interview waits for a person.
     await expect(interviews.getByText('0 validated · 5 proposed')).toBeVisible()
     await expect(
-      interviews.getByRole('row', { name: /Extra recording/ }).getByText('No transcript'),
+      interviews
+        .getByRole('row', { name: /Extra recording/ })
+        .getByText('No transcript or document'),
     ).toBeVisible()
     await expect(interviews.getByText('Team sync - Notes')).toHaveCount(0)
     await expectAccessible(page)
