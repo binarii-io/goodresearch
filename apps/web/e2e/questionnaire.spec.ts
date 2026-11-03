@@ -23,6 +23,12 @@ test.describe('spec 027 - survey preparation', () => {
     await dialog.getByRole('button', { name: 'Create study' }).click()
     await page.getByRole('tab', { name: '1 · Preparation' }).click()
     const main = page.getByRole('main')
+    // A questionnaire has no transcript: three phases only.
+    await expect(page.getByRole('tablist', { name: 'Study phases' }).getByRole('tab')).toHaveText([
+      '1 · Preparation',
+      '2 · Fieldwork',
+      '3 · Analysis',
+    ])
     await expect(main.getByRole('heading', { name: 'Questionnaire', exact: true })).toBeVisible()
     await expectAccessible(page)
 

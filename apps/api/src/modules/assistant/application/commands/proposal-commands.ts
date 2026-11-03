@@ -147,6 +147,28 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
           ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
           : r
       }
+      case 'propose_opening_form':
+      case 'propose_closing_form': {
+        const r = await deps.actions.setFormOpen({
+          actor,
+          publicationId: str(v.publicationId),
+          open: p.kind === 'propose_opening_form',
+        })
+        return r.ok
+          ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
+          : r
+      }
+      case 'propose_target_rule': {
+        const r = await deps.actions.saveTargetRule({
+          actor,
+          studyId: p.targetId ?? '',
+          accepted: v.accepted as Record<string, string[]>,
+          version: p.targetVersion,
+        })
+        return r.ok
+          ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
+          : r
+      }
       case 'propose_questionnaire': {
         const r = await deps.actions.saveQuestionnaire({
           actor,
@@ -178,6 +200,7 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       case 'report_guide_progress':
       case 'report_questionnaire_progress':
       case 'check_questionnaire_items':
+      case 'count_responses':
       case 'report_project_progress':
       case 'report_study_progress':
       case 'connect_source':

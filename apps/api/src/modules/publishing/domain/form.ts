@@ -382,6 +382,44 @@ export const formItems = (read: readonly FormReadBlock[], map: FormItemMap): Ite
   return items
 }
 
+/** Whether taking `next` for an item detaches its answers: all but its text (spec 028 R6). */
+export const breaksAnswers = (before: unknown, next: unknown): boolean => {
+  const { text: _a, ...a } = (before ?? {}) as Record<string, unknown>
+  const { text: _b, ...b } = (next ?? {}) as Record<string, unknown>
+  return next === undefined || !same(a, b)
+}
+
+/** The grid each item shares with others that were there before, as a comparable key. */
+const gridsOf = (items: Items, existing: readonly string[]) => {
+  const grids = (items.get('layout') as { grids?: string[][] } | undefined)?.grids ?? []
+  return new Map(
+    grids.flatMap((grid) => {
+      const kept = grid.filter((id) => existing.includes(id))
+      return kept.map((id) => [id, kept.join('|')] as const)
+    }),
+  )
+}
+
+/**
+ * What an update does to items that already have responses (spec 028 FR-011): a change that would
+ * detach their answers, or only a new wording. A new item has no answers: it passes.
+ */
+export const impactOfUpdate = (base: Items, app: Items) => {
+  const existing = [...base.keys()].filter((k) => k.startsWith('item:')).map((k) => k.slice(5))
+  const present = existing.filter((id) => app.has(`item:${id}`))
+  const before = gridsOf(base, present)
+  const after = gridsOf(app, present)
+  const breaking: string[] = []
+  const reworded: string[] = []
+  for (const id of existing) {
+    const a = base.get(`item:${id}`)
+    const b = app.get(`item:${id}`)
+    if (breaksAnswers(a, b) || before.get(id) !== after.get(id)) breaking.push(id)
+    else if (!same(a, b)) reworded.push(id)
+  }
+  return { breaking, reworded }
+}
+
 const within = (text: unknown, max: number) =>
   typeof text === 'string' && text.trim().length >= 1 && text.trim().length <= max
 

@@ -47,6 +47,14 @@ const INPUTS = {
     ),
   }) as z.ZodType<{ studyId: string } & Record<string, (typeof GUIDE_POINT_STATES)[number]>>,
   check_questionnaire_items: z.object({ studyId: Id, questionnaire: QuestionnaireDraft }),
+  // Spec 028: counts only; no tool gives an answer of a response.
+  count_responses: z.object({ studyId: Id }),
+  propose_opening_form: z.object({ studyId: Id }),
+  propose_closing_form: z.object({ studyId: Id }),
+  propose_target_rule: z.object({
+    studyId: Id,
+    accepted: z.record(z.string().max(64), z.array(z.string().min(1).max(600)).min(1).max(20)),
+  }),
   report_guide_progress: z.object({
     studyId: Id,
     ...Object.fromEntries(GUIDE_CHECKLIST.map(([key]) => [key, z.enum(GUIDE_POINT_STATES)])),
@@ -191,6 +199,29 @@ export const TOOL_INPUTS = INPUTS
  * can change, as the guide's on an interview study.
  */
 export const QUESTIONNAIRE_TOOLS: readonly ToolSpec[] = [
+  {
+    name: 'count_responses',
+    description:
+      "How many responses the study's form has: total, counted, out of target, profile not answered, refused consent. Holds no answer: you never see what people answered.",
+    inputSchema: INPUTS.count_responses,
+  },
+  {
+    name: 'propose_opening_form',
+    description:
+      'Propose to open the published form to responses. The person confirms on a card; it is refused if the form collects identities, its consent does not end it, or it is not up to date.',
+    inputSchema: INPUTS.propose_opening_form,
+  },
+  {
+    name: 'propose_closing_form',
+    description: 'Propose to close the form to responses. The person confirms on a card.',
+    inputSchema: INPUTS.propose_closing_form,
+  },
+  {
+    name: 'propose_target_rule',
+    description:
+      'Propose which answers of the profiling items belong to the target audience: `accepted` maps an item id of a profiling section with choices to its accepted options, word for word. A response must pass every item. The card shows how many responses it would set aside; nothing is deleted.',
+    inputSchema: INPUTS.propose_target_rule,
+  },
   {
     name: 'check_questionnaire_items',
     description:
@@ -912,6 +943,36 @@ export const prepareProposal = async (
           name: study.name,
           ...(input.data.phase ? { phase: input.data.phase } : {}),
         },
+      }
+    }
+    case 'propose_opening_form':
+    case 'propose_closing_form': {
+      const input = INPUTS[call.name].safeParse(call.input)
+      if (!input.success || input.data.studyId !== surveyStudy?.id || !surveyStudy.publicationId)
+        return null
+      return {
+        kind: call.name,
+        targetId: surveyStudy.id,
+        targetVersion: null,
+        values: { publicationId: surveyStudy.publicationId },
+        preview: { studyName: surveyStudy.name },
+      }
+    }
+    case 'propose_target_rule': {
+      const input = INPUTS.propose_target_rule.safeParse(call.input)
+      if (!input.success || input.data.studyId !== surveyStudy?.id) return null
+      const preview = await research.previewTargetRule(
+        actor.id,
+        surveyStudy.id,
+        input.data.accepted,
+      )
+      if (!preview) return null
+      return {
+        kind: 'propose_target_rule',
+        targetId: surveyStudy.id,
+        targetVersion: surveyStudy.ruleVersion,
+        values: { accepted: input.data.accepted },
+        preview: { studyName: surveyStudy.name, targetRule: preview },
       }
     }
     case 'propose_questionnaire': {

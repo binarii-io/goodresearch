@@ -33,16 +33,25 @@ export type SurveyNextStep =
   | 'add-folder'
   | 'publish-questionnaire'
   | 'readiness'
-  | 'fieldwork-later'
+  | 'open-form'
+  | 'collect'
+  | 'close-form'
+  | 'analysis-later'
 
 export const surveyNextStep = (s: {
   hasQuestionnaire: boolean
   hasFolder: boolean
   published: readonly string[]
   checksDone: boolean
+  /** Spec 028. */
+  accepting: boolean
+  counted: number
+  target: number | null
 }): SurveyNextStep => {
   if (!s.hasQuestionnaire) return 'write-questionnaire'
   if (!s.hasFolder) return 'add-folder'
   if (!s.published.includes('questionnaire')) return 'publish-questionnaire'
-  return s.checksDone ? 'fieldwork-later' : 'readiness'
+  if (s.accepting) return s.target !== null && s.counted >= s.target ? 'close-form' : 'collect'
+  if (s.counted > 0) return 'analysis-later'
+  return s.checksDone ? 'open-form' : 'readiness'
 }

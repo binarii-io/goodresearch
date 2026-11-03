@@ -46,6 +46,10 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   propose_questionnaire: msg`Questionnaire`,
   report_questionnaire_progress: msg`Questionnaire design progress`,
   check_questionnaire_items: msg`Item check`,
+  count_responses: msg`Counted the responses`,
+  propose_opening_form: msg`Open the form to responses`,
+  propose_closing_form: msg`Close the form`,
+  propose_target_rule: msg`Target audience`,
   report_guide_progress: msg`Guide design progress`,
   report_project_progress: msg`Project framing progress`,
   report_study_progress: msg`Study framing progress`,
@@ -132,6 +136,7 @@ export function ProposalCard({
     proposal.kind === 'find_files' ||
     proposal.kind === 'read_file' ||
     proposal.kind === 'count_interviews' ||
+    proposal.kind === 'count_responses' ||
     proposal.kind === 'list_interviews'
   )
     return <FolderLine proposal={proposal} />
@@ -162,11 +167,13 @@ function FolderLine({ proposal }: { proposal: Proposal }) {
         ? t`Read an extract of: ${file}`
         : proposal.kind === 'find_files'
           ? t`Searched the folder`
-          : proposal.kind === 'count_interviews'
-            ? t`Counted the interviews`
-            : proposal.kind === 'list_interviews'
-              ? t`Looked at the interviews`
-              : t`Looked in the folder`}
+          : proposal.kind === 'count_responses'
+            ? t`Counted the responses`
+            : proposal.kind === 'count_interviews'
+              ? t`Counted the interviews`
+              : proposal.kind === 'list_interviews'
+                ? t`Looked at the interviews`
+                : t`Looked in the folder`}
     </p>
   )
 }
@@ -458,6 +465,20 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
               <GuideView guide={guide} compact />
             </div>
           </details>
+        </div>
+      ) : null}
+      {p.targetRule ? (
+        <div className="grid gap-2">
+          <ul className="ml-5 list-disc">
+            {p.targetRule.items.map((item) => (
+              <li key={item.text}>
+                {item.text}: {item.accepted.join(', ')}
+              </li>
+            ))}
+          </ul>
+          <p className="text-muted-foreground text-xs">
+            {t`Would set aside ${p.targetRule.setAside} of ${p.targetRule.total} responses. Nothing is deleted.`}
+          </p>
         </div>
       ) : null}
       {questionnaire ? (

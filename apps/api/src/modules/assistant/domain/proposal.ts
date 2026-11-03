@@ -22,6 +22,10 @@ export const PROPOSAL_KINDS = [
   'propose_questionnaire',
   'report_questionnaire_progress',
   'check_questionnaire_items',
+  'count_responses',
+  'propose_opening_form',
+  'propose_closing_form',
+  'propose_target_rule',
   'attach_study',
   'detach_study',
   'update_study_goal',
@@ -66,6 +70,7 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
   kind === 'load_skill' ||
   kind === 'check_guide_questions' ||
   kind === 'check_questionnaire_items' ||
+  kind === 'count_responses' ||
   kind === 'create_project' ||
   kind === 'create_study' ||
   kind === 'attach_folder' ||
@@ -97,6 +102,7 @@ export const isActivity = (kind: ProposalKind): boolean =>
   kind === 'load_skill' ||
   kind === 'check_guide_questions' ||
   kind === 'check_questionnaire_items' ||
+  kind === 'count_responses' ||
   kind === 'browse_folder' ||
   kind === 'find_files' ||
   kind === 'read_file' ||

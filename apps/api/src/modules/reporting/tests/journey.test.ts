@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { type JourneyCounts, nextStep, stepsOf } from '../domain/journey.ts'
 
 const empty = { total: 0, validated: 0, toDecide: 0 }
+const interviewsOnly = { responses: 0, received: 0, kinds: { interviews: true, surveys: false } }
 const allDone = { total: 3, validated: 3, toDecide: 0 }
 const counts = (over: Partial<JourneyCounts> = {}): JourneyCounts => ({
-  interviews: { ...allDone, participants: 3 },
+  interviews: { ...allDone, participants: 3, ...interviewsOnly },
   facts: allDone,
   insights: allDone,
   recommendations: allDone,
@@ -32,7 +33,7 @@ describe('the journey of a project (spec 017)', () => {
 
   it('starts a new project on the interviews', () => {
     const steps = stepsOf({
-      interviews: { ...empty, participants: 0 },
+      interviews: { ...empty, participants: 0, ...interviewsOnly },
       facts: empty,
       insights: empty,
       recommendations: empty,
@@ -43,13 +44,19 @@ describe('the journey of a project (spec 017)', () => {
   })
 
   it('does not hold the research on interviews left to validate once one is validated', () => {
-    const interviews = { total: 24, validated: 21, toDecide: 3, participants: 22 }
+    const interviews = {
+      total: 24,
+      validated: 21,
+      toDecide: 3,
+      participants: 22,
+      ...interviewsOnly,
+    }
     expect(stateOf({ interviews }, 'interviews')).toBe('done')
     expect(nextStep(stepsOf(counts({ interviews })))).toBeNull()
   })
 
   it('asks to validate the interviews while none is validated', () => {
-    const interviews = { total: 3, validated: 0, toDecide: 3, participants: 2 }
+    const interviews = { total: 3, validated: 0, toDecide: 3, participants: 2, ...interviewsOnly }
     expect(stateOf({ interviews }, 'interviews')).toBe('to-decide')
     expect(nextStep(stepsOf(counts({ interviews })))).toBe('interviews')
   })
@@ -70,5 +77,26 @@ describe('the journey of a project (spec 017)', () => {
     const steps = stepsOf(counts({ takeawaysWritten: false }))
     expect(steps.at(-1)?.state).toBe('empty')
     expect(nextStep(steps)).toBe('debrief')
+  })
+
+  it('counts the fieldwork done once a survey study has a counted response (spec 028)', () => {
+    const survey = { responses: 0, received: 0, kinds: { interviews: false, surveys: true } }
+    const fieldwork = (responses: number, received = responses) =>
+      stateOf(
+        { interviews: { ...empty, participants: 0, ...survey, responses, received } },
+        'interviews',
+      )
+    expect(fieldwork(0)).toBe('empty')
+    expect(fieldwork(4)).toBe('done')
+    // All set aside by the target rule: a person has to look at it.
+    expect(fieldwork(0, 40)).toBe('to-decide')
+  })
+
+  it('keeps interviews to validate open in a project that also has responses (spec 028)', () => {
+    const mixed = { responses: 5, received: 5, kinds: { interviews: true, surveys: true } }
+    const state = (interviews: { total: number; validated: number; toDecide: number }) =>
+      stateOf({ interviews: { ...interviews, participants: 0, ...mixed } }, 'interviews')
+    expect(state({ total: 3, validated: 0, toDecide: 3 })).toBe('to-decide')
+    expect(state(empty)).toBe('done')
   })
 })

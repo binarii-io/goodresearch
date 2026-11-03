@@ -26,6 +26,8 @@ Survey studies are collected with a form in the study's Drive folder, the team w
 
 Option 2. The app keeps a map from each item to its identity at the source, and detects the spreadsheet without reading it.
 
+Spec 028 builds the reading, opening and protection of responses (ADR-0011).
+
 Three consequences of the service, kept visible:
 
 - **Randomisation is partial.** No setting orders questions across a form: options are shuffled, consecutive scales of a theme sharing a legend become a grid with shuffled rows, themes stay in order. The setting can be turned off, as grids are less comfortable on a phone. The screen says all this.

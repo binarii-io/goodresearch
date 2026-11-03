@@ -37,6 +37,11 @@ export const Publication = z
     form: z
       .object({
         linkedSheetLink: z.string().nullable(),
+        responderLink: z.string().nullable(),
+        openedBy: z.string().nullable(),
+        openedAt: Timestamp.nullable(),
+        closedBy: z.string().nullable(),
+        closedAt: Timestamp.nullable(),
         acceptingResponses: z.boolean(),
         collectsIdentity: z.boolean(),
       })
@@ -111,7 +116,10 @@ export const DecisionResult = z
   .meta({ id: 'DecisionResult' })
 
 export const UpdatePublication = z
-  .object({ replaceDriveChanges: z.boolean().default(false) })
+  .object({
+    replaceDriveChanges: z.boolean().default(false),
+    confirmRewording: z.boolean().default(false),
+  })
   .meta({ id: 'UpdatePublication' })
 
 export const PublicationParams = z.object({ publicationId: Id })

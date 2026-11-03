@@ -359,6 +359,16 @@ export {
   StartAnalysisRun,
 } from './sessions.ts'
 export {
+  ReadResponses,
+  ResponseDetail,
+  ResponseParams,
+  ResponseState,
+  ResponsesPage,
+  ResponsesQuery,
+  ResponsesSummary,
+  SaveTargetRule,
+} from './surveys.ts'
+export {
   AccessEventType,
   AccessHistoryEntry,
   AccountStatus,

@@ -369,6 +369,31 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "responses": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "received": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "kinds": {
+                      "type": "object",
+                      "properties": {
+                        "interviews": {
+                          "type": "boolean"
+                        },
+                        "surveys": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "interviews",
+                        "surveys"
+                      ]
                     }
                   },
                   "required": [
@@ -377,7 +402,10 @@
                     "total",
                     "validated",
                     "toDecide",
-                    "participants"
+                    "participants",
+                    "responses",
+                    "received",
+                    "kinds"
                   ]
                 },
                 {
@@ -548,6 +576,32 @@
                           "type": "integer",
                           "minimum": -9007199254740991,
                           "maximum": 9007199254740991
+                        },
+                        "responses": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "received": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                "counted": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "received",
+                                "counted"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -555,7 +609,8 @@
                         "toValidate",
                         "excluded",
                         "facts",
-                        "factsToDecide"
+                        "factsToDecide",
+                        "responses"
                       ]
                     },
                     {
@@ -738,6 +793,32 @@
                           "type": "integer",
                           "minimum": -9007199254740991,
                           "maximum": 9007199254740991
+                        },
+                        "responses": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "received": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                "counted": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "received",
+                                "counted"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -745,7 +826,8 @@
                         "toValidate",
                         "excluded",
                         "facts",
-                        "factsToDecide"
+                        "factsToDecide",
+                        "responses"
                       ]
                     },
                     {
@@ -2698,6 +2780,84 @@
           "replacesGuide": {
             "type": "boolean"
           },
+          "responseCounts": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "counted": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "outOfTarget": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "profileNotAnswered": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "refusedConsent": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "total",
+              "counted",
+              "outOfTarget",
+              "profileNotAnswered",
+              "refusedConsent"
+            ]
+          },
+          "targetRule": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string"
+                    },
+                    "accepted": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "accepted"
+                  ]
+                }
+              },
+              "setAside": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "total": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "items",
+              "setAside",
+              "total"
+            ]
+          },
           "type": {
             "type": "string",
             "const": "survey"
@@ -3136,6 +3296,10 @@
               "propose_questionnaire",
               "report_questionnaire_progress",
               "check_questionnaire_items",
+              "count_responses",
+              "propose_opening_form",
+              "propose_closing_form",
+              "propose_target_rule",
               "attach_study",
               "detach_study",
               "update_study_goal",
@@ -6761,6 +6925,13 @@
               "SCHEDULE_FULL",
               "NOT_AN_INTERVIEW_STUDY",
               "NOT_A_SURVEY_STUDY",
+              "FORM_NOT_PUBLISHED",
+              "FORM_COLLECTS_IDENTITY",
+              "FORM_CONSENT_BROKEN",
+              "FORM_NOT_IN_SYNC",
+              "RESPONSES_BLOCK_UPDATE",
+              "REWORDING_TO_CONFIRM",
+              "RESPONSE_NOT_FOUND",
               "DRIVE_WRITE_REQUIRED",
               "ALREADY_PUBLISHED",
               "NO_SOURCE_FOLDER",
@@ -10730,6 +10901,48 @@
                       "null"
                     ]
                   },
+                  "responderLink": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "openedBy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "openedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "closedBy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "closedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "acceptingResponses": {
                     "type": "boolean"
                   },
@@ -10739,6 +10952,11 @@
                 },
                 "required": [
                   "linkedSheetLink",
+                  "responderLink",
+                  "openedBy",
+                  "openedAt",
+                  "closedBy",
+                  "closedAt",
                   "acceptingResponses",
                   "collectsIdentity"
                 ]
@@ -10937,6 +11155,10 @@
         "type": "object",
         "properties": {
           "replaceDriveChanges": {
+            "default": false,
+            "type": "boolean"
+          },
+          "confirmRewording": {
             "default": false,
             "type": "boolean"
           }
@@ -14141,6 +14363,377 @@
           "outOfDate"
         ]
       },
+      "SaveTargetRuleInput": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "additionalProperties": {
+              "minItems": 1,
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600
+              }
+            }
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "accepted",
+          "version"
+        ]
+      },
+      "ReadResponsesInput": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "default": false,
+            "type": "boolean"
+          }
+        }
+      },
+      "ResponsesSummaryInput": {
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "counted": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "outOfTarget": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "profileNotAnswered": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "refusedConsent": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "total",
+              "counted",
+              "outOfTarget",
+              "profileNotAnswered",
+              "refusedConsent"
+            ]
+          },
+          "fromFormerForm": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reading": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "done",
+                      "failed",
+                      "stopped"
+                    ]
+                  },
+                  "readAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "unknownQuestions": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "unknownValues": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "status",
+                  "readAt",
+                  "unknownQuestions",
+                  "unknownValues"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rule": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "accepted": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "additionalProperties": {
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 600
+                      }
+                    }
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "person",
+                      "assistant"
+                    ]
+                  },
+                  "updatedBy": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  }
+                },
+                "required": [
+                  "accepted",
+                  "version",
+                  "stale",
+                  "origin",
+                  "updatedBy",
+                  "updatedAt"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "filterable": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "text",
+                "options"
+              ]
+            }
+          }
+        },
+        "required": [
+          "counts",
+          "fromFormerForm",
+          "target",
+          "reading",
+          "rule",
+          "filterable"
+        ]
+      },
+      "ResponsesPageInput": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "submittedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "counted",
+                    "out-of-target",
+                    "profile-not-answered",
+                    "refused-consent"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "submittedAt",
+                "state"
+              ]
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ]
+      },
+      "ResponseDetailInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "counted",
+              "out-of-target",
+              "profile-not-answered",
+              "refused-consent"
+            ]
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "formerText": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "itemId",
+                "text",
+                "formerText",
+                "values"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "submittedAt",
+          "state",
+          "answers"
+        ]
+      },
       "PublicConfigInput": {
         "type": "object",
         "properties": {
@@ -14542,6 +15135,32 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "responses": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "received": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "kinds": {
+                      "type": "object",
+                      "properties": {
+                        "interviews": {
+                          "type": "boolean"
+                        },
+                        "surveys": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "interviews",
+                        "surveys"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -14550,7 +15169,10 @@
                     "total",
                     "validated",
                     "toDecide",
-                    "participants"
+                    "participants",
+                    "responses",
+                    "received",
+                    "kinds"
                   ],
                   "additionalProperties": false
                 },
@@ -14726,6 +15348,33 @@
                           "type": "integer",
                           "minimum": -9007199254740991,
                           "maximum": 9007199254740991
+                        },
+                        "responses": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "received": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                "counted": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "received",
+                                "counted"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -14733,7 +15382,8 @@
                         "toValidate",
                         "excluded",
                         "facts",
-                        "factsToDecide"
+                        "factsToDecide",
+                        "responses"
                       ],
                       "additionalProperties": false
                     },
@@ -14923,6 +15573,33 @@
                           "type": "integer",
                           "minimum": -9007199254740991,
                           "maximum": 9007199254740991
+                        },
+                        "responses": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "received": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                "counted": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "received",
+                                "counted"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -14930,7 +15607,8 @@
                         "toValidate",
                         "excluded",
                         "facts",
-                        "factsToDecide"
+                        "factsToDecide",
+                        "responses"
                       ],
                       "additionalProperties": false
                     },
@@ -16944,6 +17622,87 @@
           "replacesGuide": {
             "type": "boolean"
           },
+          "responseCounts": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "counted": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "outOfTarget": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "profileNotAnswered": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "refusedConsent": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "total",
+              "counted",
+              "outOfTarget",
+              "profileNotAnswered",
+              "refusedConsent"
+            ],
+            "additionalProperties": false
+          },
+          "targetRule": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string"
+                    },
+                    "accepted": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "accepted"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "setAside": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "total": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "items",
+              "setAside",
+              "total"
+            ],
+            "additionalProperties": false
+          },
           "type": {
             "type": "string",
             "const": "survey"
@@ -17392,6 +18151,10 @@
               "propose_questionnaire",
               "report_questionnaire_progress",
               "check_questionnaire_items",
+              "count_responses",
+              "propose_opening_form",
+              "propose_closing_form",
+              "propose_target_rule",
               "attach_study",
               "detach_study",
               "update_study_goal",
@@ -21126,6 +21889,13 @@
               "SCHEDULE_FULL",
               "NOT_AN_INTERVIEW_STUDY",
               "NOT_A_SURVEY_STUDY",
+              "FORM_NOT_PUBLISHED",
+              "FORM_COLLECTS_IDENTITY",
+              "FORM_CONSENT_BROKEN",
+              "FORM_NOT_IN_SYNC",
+              "RESPONSES_BLOCK_UPDATE",
+              "REWORDING_TO_CONFIRM",
+              "RESPONSE_NOT_FOUND",
               "DRIVE_WRITE_REQUIRED",
               "ALREADY_PUBLISHED",
               "NO_SOURCE_FOLDER",
@@ -25212,6 +25982,48 @@
                       "null"
                     ]
                   },
+                  "responderLink": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "openedBy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "openedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "closedBy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "closedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "acceptingResponses": {
                     "type": "boolean"
                   },
@@ -25221,6 +26033,11 @@
                 },
                 "required": [
                   "linkedSheetLink",
+                  "responderLink",
+                  "openedBy",
+                  "openedAt",
+                  "closedBy",
+                  "closedAt",
                   "acceptingResponses",
                   "collectsIdentity"
                 ],
@@ -25429,10 +26246,15 @@
           "replaceDriveChanges": {
             "default": false,
             "type": "boolean"
+          },
+          "confirmRewording": {
+            "default": false,
+            "type": "boolean"
           }
         },
         "required": [
-          "replaceDriveChanges"
+          "replaceDriveChanges",
+          "confirmRewording"
         ],
         "additionalProperties": false
       },
@@ -28747,6 +29569,392 @@
         ],
         "additionalProperties": false
       },
+      "SaveTargetRule": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "additionalProperties": {
+              "minItems": 1,
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600
+              }
+            }
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "accepted",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "ReadResponses": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "force"
+        ],
+        "additionalProperties": false
+      },
+      "ResponsesSummary": {
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "counted": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "outOfTarget": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "profileNotAnswered": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "refusedConsent": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "total",
+              "counted",
+              "outOfTarget",
+              "profileNotAnswered",
+              "refusedConsent"
+            ],
+            "additionalProperties": false
+          },
+          "fromFormerForm": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reading": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "done",
+                      "failed",
+                      "stopped"
+                    ]
+                  },
+                  "readAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "unknownQuestions": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "unknownValues": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "status",
+                  "readAt",
+                  "unknownQuestions",
+                  "unknownValues"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rule": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "accepted": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "additionalProperties": {
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 600
+                      }
+                    }
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "person",
+                      "assistant"
+                    ]
+                  },
+                  "updatedBy": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  }
+                },
+                "required": [
+                  "accepted",
+                  "version",
+                  "stale",
+                  "origin",
+                  "updatedBy",
+                  "updatedAt"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "filterable": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "text",
+                "options"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "counts",
+          "fromFormerForm",
+          "target",
+          "reading",
+          "rule",
+          "filterable"
+        ],
+        "additionalProperties": false
+      },
+      "ResponsesPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "submittedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "counted",
+                    "out-of-target",
+                    "profile-not-answered",
+                    "refused-consent"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "submittedAt",
+                "state"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "additionalProperties": false
+      },
+      "ResponseDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "counted",
+              "out-of-target",
+              "profile-not-answered",
+              "refused-consent"
+            ]
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "formerText": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "itemId",
+                "text",
+                "formerText",
+                "values"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "submittedAt",
+          "state",
+          "answers"
+        ],
+        "additionalProperties": false
+      },
       "PublicConfig": {
         "type": "object",
         "properties": {
@@ -31165,6 +32373,38 @@
         }
       }
     },
+    "/api/studies/{studyId}/responses/rule-cost": {
+      "get": {
+        "operationId": "getTargetRuleCost",
+        "tags": [
+          "assistant"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionnaireDesignCost"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/assistant/conversations/{conversationId}": {
       "get": {
         "operationId": "getConversation",
@@ -31737,6 +32977,70 @@
         }
       }
     },
+    "/api/publications/{publicationId}/open": {
+      "post": {
+        "operationId": "openForm",
+        "tags": [
+          "publishing"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "publicationId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Publication"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/publications/{publicationId}/close": {
+      "post": {
+        "operationId": "closeForm",
+        "tags": [
+          "publishing"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "publicationId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Publication"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/publications/{publicationId}": {
       "delete": {
         "operationId": "forgetPublication",
@@ -31758,6 +33062,214 @@
         "responses": {
           "200": {
             "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/responses/summary": {
+      "get": {
+        "operationId": "getResponsesSummary",
+        "tags": [
+          "surveys"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsesSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/responses/read": {
+      "post": {
+        "operationId": "readResponses",
+        "tags": [
+          "surveys"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReadResponsesInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/responses": {
+      "get": {
+        "operationId": "listResponses",
+        "tags": [
+          "surveys"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "counted",
+                "out-of-target",
+                "profile-not-answered",
+                "refused-consent"
+              ]
+            },
+            "in": "query",
+            "name": "state",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsesPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/responses/{responseId}": {
+      "get": {
+        "operationId": "getResponse",
+        "tags": [
+          "surveys"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "in": "path",
+            "name": "responseId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/target-rule": {
+      "put": {
+        "operationId": "saveTargetRule",
+        "tags": [
+          "surveys"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveTargetRuleInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionAck"
+                }
+              }
+            }
           }
         }
       }

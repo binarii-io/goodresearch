@@ -25,6 +25,9 @@ describe('spec 027 - the next step of a survey study', () => {
     hasFolder: true,
     published: ['questionnaire'],
     checksDone: true,
+    accepting: false,
+    counted: 0,
+    target: 10,
   }
   it.each([
     [
@@ -35,7 +38,11 @@ describe('spec 027 - the next step of a survey study', () => {
     ['no folder', { ...all, hasFolder: false, published: [] }, 'add-folder'],
     ['not published', { ...all, published: [] }, 'publish-questionnaire'],
     ['checks left', { ...all, checksDone: false }, 'readiness'],
-    ['all done', all, 'fieldwork-later'],
+    ['ready to open', all, 'open-form'],
+    ['open, collecting', { ...all, accepting: true, counted: 3 }, 'collect'],
+    ['open, without a target', { ...all, accepting: true, counted: 30, target: null }, 'collect'],
+    ['target reached', { ...all, accepting: true, counted: 10 }, 'close-form'],
+    ['closed with responses', { ...all, counted: 10 }, 'analysis-later'],
   ])('with %s', (_case, state, step) => {
     expect(surveyNextStep(state)).toBe(step)
   })

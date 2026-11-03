@@ -1,7 +1,6 @@
 import type { QualityFigures } from '@goodresearch/api-client'
-import { CircleHelpIcon } from '@goodresearch/ui/components/icons'
+import { HelpTip } from '@goodresearch/ui/components/help-tip'
 import { StatTile, StatTiles } from '@goodresearch/ui/components/stat-tile'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@goodresearch/ui/components/tooltip'
 import { useLingui } from '@lingui/react/macro'
 import type { ReactNode } from 'react'
 
@@ -11,26 +10,7 @@ type Breakdown = QualityFigures['leading']['questions']
 const counted = (b: Breakdown) => b.agreed + b.noOpinion
 
 /** FR-006: where an indicator comes from, and its reference value; it never changes a figure. */
-function Hint({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <button
-            type="button"
-            aria-label={label}
-            className="grid size-5 cursor-help place-items-center rounded-full hover:bg-muted"
-          />
-        }
-      >
-        <CircleHelpIcon aria-hidden className="size-3.5" />
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs text-left">
-        {children}
-      </TooltipContent>
-    </Tooltip>
-  )
-}
+const Hint = HelpTip
 
 const add = (a: Breakdown, b: Breakdown): Breakdown => ({
   agreed: a.agreed + b.agreed,

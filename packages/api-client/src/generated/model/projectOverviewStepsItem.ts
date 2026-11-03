@@ -28,6 +28,20 @@ export type ProjectOverviewStepsItem = {
      * @maximum 9007199254740991
      */
   participants: number;
+  /**
+     * @minimum -9007199254740991
+     * @maximum 9007199254740991
+     */
+  responses: number;
+  /**
+     * @minimum -9007199254740991
+     * @maximum 9007199254740991
+     */
+  received: number;
+  kinds: {
+  interviews: boolean;
+  surveys: boolean;
+};
 } | {
   key: 'facts' | 'insights' | 'recommendations';
   state: 'empty' | 'to-decide' | 'done';

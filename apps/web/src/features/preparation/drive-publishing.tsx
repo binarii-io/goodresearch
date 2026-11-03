@@ -25,7 +25,7 @@ import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { normalise } from '../../app/i18n.ts'
 import { errorCode, errorMessage } from '../workspace/errors.ts'
@@ -54,12 +54,14 @@ const REASONS: Record<NonNullable<Publication['unavailableReason']>, MessageDesc
 }
 
 /** Goes to Google's consent for editing, then back to this tab (spec 007 FR-002). */
-const askWriteConsent = (studyId: string) => {
+export const askWriteConsent = (studyId: string) => {
   const back = `/studies/${studyId}?phase=preparation`
   window.location.assign(
     `/api/sources/google-drive/connect?access=write&returnTo=${encodeURIComponent(back)}`,
   )
 }
+
+type DetailOfResponses = { items?: string[]; responses?: number }
 
 /** What the last check read of a form (spec 027 FR-014, FR-017, FR-024). */
 function FormFacts({ form }: { form: NonNullable<Publication['form']> }) {
@@ -72,9 +74,7 @@ function FormFacts({ form }: { form: NonNullable<Publication['form']> }) {
         </p>
       ) : null}
       <p>
-        {form.acceptingResponses
-          ? t`Open to responses: someone opened it by hand.`
-          : t`Closed to responses until Fieldwork.`}
+        {form.acceptingResponses ? t`Open to responses.` : t`Closed to responses until Fieldwork.`}
       </p>
       {form.linkedSheetLink ? (
         <p>
@@ -99,6 +99,9 @@ function PublicationRow({ studyId, publication }: { studyId: string; publication
   const forget = useForgetPublication()
   const [reviewing, setReviewing] = useState(false)
   const [replace, setReplace] = useState(false)
+  const [reworded, setReworded] = useState<DetailOfResponses | null>(null)
+  const [blocked, setBlocked] = useState<string[]>([])
+  const replacing = useRef(false)
   const [owner, setOwner] = useState<string | null>(null)
   const p = publication
   const refresh = () =>
@@ -106,14 +109,24 @@ function PublicationRow({ studyId, publication }: { studyId: string; publication
   const toReview = p.counts.fromDrive + p.counts.conflicts + p.counts.notUnderstood
   const when = p.lastCheckedAt ? formatRelative(p.lastCheckedAt) : null
 
-  const runUpdate = async (replaceDriveChanges: boolean) => {
+  const runUpdate = async (replaceDriveChanges: boolean, confirmRewording = false) => {
+    setBlocked([])
+    // Both can be asked in a row: the second question keeps the first answer.
+    replacing.current = replaceDriveChanges
     try {
-      await update.mutateAsync({ publicationId: p.id, data: { replaceDriveChanges } })
+      await update.mutateAsync({
+        publicationId: p.id,
+        data: { replaceDriveChanges, confirmRewording },
+      })
       toast.success(t`Updated in Drive`)
     } catch (failure) {
       const code = errorCode(failure)
       if (code === 'DRIVE_WRITE_REQUIRED') return askWriteConsent(studyId)
       if (code === 'DRIVE_CHANGES_PENDING') return setReplace(true)
+      // Spec 028: what responses already answered.
+      const detail = (failure as { problem?: { detail?: DetailOfResponses } }).problem?.detail
+      if (code === 'REWORDING_TO_CONFIRM') return setReworded(detail ?? {})
+      if (code === 'RESPONSES_BLOCK_UPDATE') setBlocked(detail?.items ?? [])
       if (code === 'DRIVE_CANNOT_EDIT') {
         const checked = await check.mutateAsync({ publicationId: p.id }).catch(() => null)
         setOwner(checked?.access?.owner ?? null)
@@ -127,6 +140,45 @@ function PublicationRow({ studyId, publication }: { studyId: string; publication
   return (
     <div className="grid gap-2 rounded-md border bg-card p-3">
       {p.form ? <FormFacts form={p.form} /> : null}
+      {blocked.length ? (
+        <div role="alert" className="grid gap-1 text-sm">
+          <p>{t`This form has responses, and this change would detach them from these items. Undo it in the questionnaire to update the form:`}</p>
+          <ul className="ml-5 list-disc">
+            {blocked.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <AlertDialog
+        open={reworded !== null}
+        onOpenChange={(next) => (next ? undefined : setReworded(null))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Reword items that have responses?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`${reworded?.responses ?? 0} responses answered the former wording, which stays attached to them.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <ul className="ml-5 list-disc text-sm">
+            {(reworded?.items ?? []).map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setReworded(null)
+                void runUpdate(replacing.current, true)
+              }}
+            >
+              {t`Update in Drive`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2 text-sm">
           <GoogleDriveIcon />

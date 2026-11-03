@@ -1,4 +1,4 @@
-import type { FormOperation, FormRead } from './form-model.ts'
+import type { FormOperation, FormRead, FormResponse } from './form-model.ts'
 /**
  * Documents and tables written to a source with one person's own access (spec 007). Neutral
  * models: the publishing module renders and reads them; adapters translate them for a connector
@@ -159,6 +159,13 @@ export interface DriveDocuments {
     operations: readonly FormOperation[],
     revision: string,
   ): Promise<void>
+  /** Spec 028: page by page, up to `max`; `complete` is false when it stopped there. */
+  listResponses(
+    refreshToken: string,
+    fileId: string,
+    max: number,
+  ): Promise<{ responses: FormResponse[]; complete: boolean }>
+  setAccepting(refreshToken: string, fileId: string, open: boolean): Promise<void>
   /** `null` when the file does not exist or the person cannot open it. */
   metadata(refreshToken: string, fileId: string): Promise<FileMeta | null>
   /**

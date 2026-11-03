@@ -10,7 +10,17 @@ const Counts = {
 }
 
 export const JourneyStep = z.discriminatedUnion('key', [
-  z.object({ key: z.literal('interviews'), ...Counts, participants: z.number().int() }),
+  z.object({
+    key: z.literal('interviews'),
+    ...Counts,
+    participants: z.number().int(),
+    /** Spec 028: responses counted by the survey studies. */
+    responses: z.number().int(),
+    /** Responses received, counted or set aside. */
+    received: z.number().int(),
+    /** Which kinds of study the project holds, so the step is named after them. */
+    kinds: z.object({ interviews: z.boolean(), surveys: z.boolean() }),
+  }),
   z.object({ key: z.enum(['facts', 'insights', 'recommendations']), ...Counts }),
   z.object({ key: z.literal('debrief'), state: StepState }),
 ])
@@ -38,6 +48,10 @@ export const ProjectOverview = z
             excluded: z.number().int(),
             facts: z.number().int(),
             factsToDecide: z.number().int(),
+            /** Spec 028: a survey study's responses; null for the other studies, or unread. */
+            responses: z
+              .object({ received: z.number().int(), counted: z.number().int() })
+              .nullable(),
           })
           .nullable(),
       }),

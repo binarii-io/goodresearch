@@ -1,9 +1,11 @@
 import { err, ok, type Result } from '@goodresearch/shared'
 import {
   applyToQuestionnaire,
+  breaksAnswers,
   type FormItemMap,
   type FormModel,
   formItems,
+  impactOfUpdate,
   mapFromRead,
   planFormUpdate,
   type QuestionnaireContent,
@@ -51,6 +53,11 @@ export type PublishingError =
   | 'DRIVE_CHANGES_PENDING'
   | 'VERSION_CONFLICT'
   | 'VALIDATION'
+  | 'FORM_COLLECTS_IDENTITY'
+  | 'FORM_CONSENT_BROKEN'
+  | 'FORM_NOT_IN_SYNC'
+  | 'RESPONSES_BLOCK_UPDATE'
+  | 'REWORDING_TO_CONFIRM'
 
 /** Checks run at most this often when the publications are listed (research R9). */
 export const CHECK_EVERY_MS = 5 * 60 * 1000
@@ -76,9 +83,9 @@ const NAMES: Record<PublicationKind, 'guide' | 'practices' | 'schedule' | 'quest
 /** What a form's reading adds to a publication; nothing for the other kinds of file. */
 const formFields = (read: object) => {
   if (!('itemMap' in read)) return {}
-  const { itemMap, drive, linkedSheetLink, acceptingResponses, collectsIdentity } =
+  const { itemMap, drive, linkedSheetLink, responderLink, acceptingResponses, collectsIdentity } =
     read as StoredPublication
-  return { itemMap, drive, linkedSheetLink, acceptingResponses, collectsIdentity }
+  return { itemMap, drive, linkedSheetLink, responderLink, acceptingResponses, collectsIdentity }
 }
 
 /**
@@ -343,6 +350,7 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         seen = {
           ...p,
           linkedSheetLink: form.linkedSheetLink,
+          responderLink: form.responderLink,
           acceptingResponses: form.acceptingResponses,
           collectsIdentity: form.collectsIdentity,
         }
@@ -387,6 +395,17 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
     })
   }
 
+  /**
+   * Responses of a form, the most of what was read and what the source holds now: nobody may have
+   * opened the Fieldwork tab yet (spec 028 FR-011).
+   */
+  const responsesOf = async (files: StudyFiles, p: StoredPublication) => {
+    const listed = await files.listResponses(p.fileId, 20_000)
+    if (!listed.ok) return listed
+    const stored = await deps.responses.count(p.studyId, p.fileId)
+    return ok(Math.max(stored, listed.value.responses.length))
+  }
+
   /** Reads a form just written: the identity of each block, and that as the new base. */
   const formBase = async (files: StudyFiles, fileId: string, model: FormModel) => {
     const meta = await files.metadata(fileId)
@@ -403,6 +422,7 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       name: meta.value?.name,
       itemMap,
       linkedSheetLink: read.value.linkedSheetLink,
+      responderLink: read.value.responderLink,
       acceptingResponses: read.value.acceptingResponses,
       collectsIdentity: read.value.collectsIdentity,
     })
@@ -471,6 +491,11 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
           updatedAt: at,
           itemMap: null,
           linkedSheetLink: null,
+          responderLink: null,
+          openedBy: null,
+          openedAt: null,
+          closedBy: null,
+          closedAt: null,
           acceptingResponses: null,
           collectsIdentity: null,
         })
@@ -507,6 +532,7 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
           name?: string | undefined
           itemMap?: FormItemMap
           linkedSheetLink?: string | null
+          responderLink?: string | null
           acceptingResponses?: boolean
           collectsIdentity?: boolean
         } = base?.ok ? base.value : { base: [], revision: null, version: 0, name }
@@ -541,6 +567,11 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
           updatedAt: at,
           itemMap: read.itemMap ?? null,
           linkedSheetLink: read.linkedSheetLink ?? null,
+          responderLink: read.responderLink ?? null,
+          openedBy: null,
+          openedAt: null,
+          closedBy: null,
+          closedAt: null,
           acceptingResponses: read.acceptingResponses ?? null,
           collectsIdentity: read.collectsIdentity ?? null,
         }
@@ -616,6 +647,30 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         })
       )
         return err('VALIDATION')
+      // Spec 028 FR-011a: a change made in the form cannot detach responses either.
+      const acceptedItems = accept
+        .map((d) => known(d.changeId))
+        .filter((x) => x?.key.startsWith('item:'))
+      if (p.kind === 'questionnaire' && acceptedItems.length) {
+        const writing = await deps.files(c.actor.id, p.studyId, 'write')
+        if (!writing.ok) return writing
+        const atSource = await responsesOf(writing.value, p)
+        if (!atSource.ok) return atSource
+        if (atSource.value > 0) {
+          const textOf = (x: StoredChange | undefined) =>
+            (x?.base as { text?: string } | undefined)?.text ?? ''
+          const breaking = acceptedItems.filter((x) => breaksAnswers(x?.base ?? x?.app, x?.drive))
+          if (breaking.length) return err('RESPONSES_BLOCK_UPDATE', { items: breaking.map(textOf) })
+          // A rewording made in the form keeps the former wording too.
+          await deps.responses.recordWordings(
+            p.studyId,
+            acceptedItems.flatMap((x) =>
+              x?.base ? [{ itemId: x.key.slice('item:'.length), text: textOf(x) }] : [],
+            ),
+            now(),
+          )
+        }
+      }
       const rejected = await deps.store.decide(
         p.id,
         c.decisions.filter((d) => d.decision === 'reject').map((d) => d.changeId),
@@ -682,6 +737,8 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       actor: Actor
       publicationId: string
       replaceDriveChanges: boolean
+      /** Spec 028: reworded items with responses, confirmed by the person. */
+      confirmRewording?: boolean
     }): Promise<Result<StoredPublication, PublishingError | string>> => {
       const loaded = await load(c.actor, c.publicationId, 'write')
       if (!loaded.ok) return loaded
@@ -714,6 +771,32 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       if (!app.ok) return app
       if (!app.value) return err('VALIDATION')
       const target = app.value.file
+      // Spec 028: nothing written may detach the responses from their items.
+      if (p.kind === 'questionnaire') {
+        const atSource = await responsesOf(files, p)
+        if (!atSource.ok) return atSource
+        const responses = atSource.value
+        if (responses > 0) {
+          const base = new Map(p.base)
+          const { breaking, reworded } = impactOfUpdate(base, app.value.items)
+          const textOf = (id: string, items: Items) =>
+            (items.get(`item:${id}`) as { text?: string } | undefined)?.text ?? id
+          if (breaking.length)
+            return err('RESPONSES_BLOCK_UPDATE', {
+              items: breaking.map((id) => textOf(id, base)),
+            })
+          if (reworded.length && !c.confirmRewording)
+            return err('REWORDING_TO_CONFIRM', {
+              items: reworded.map((id) => textOf(id, base)),
+              responses,
+            })
+          await deps.responses.recordWordings(
+            p.studyId,
+            reworded.map((itemId) => ({ itemId, text: textOf(itemId, base) })),
+            now(),
+          )
+        }
+      }
       const form = 'form' in current.value ? current.value.form : null
       const written =
         'form' in target
@@ -781,6 +864,40 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         ...(base.value.name ? { fileName: base.value.name } : {}),
       }
       if (!(await deps.store.saveBase(next, p.baseRev))) return err('VERSION_CONFLICT')
+      return ok(next)
+    },
+
+    /** Opens or closes a form to responses, a person's decision (spec 028 US1). */
+    setOpen: async (c: {
+      actor: Actor
+      publicationId: string
+      open: boolean
+    }): Promise<Result<StoredPublication, PublishingError | string>> => {
+      const loaded = await load(c.actor, c.publicationId, 'write')
+      if (!loaded.ok) return loaded
+      const { p, files } = loaded.value
+      if (p.kind !== 'questionnaire') return err('VALIDATION')
+      const checked = await checkWith(c.actor, p, files)
+      if (!checked.ok) return checked
+      if (!checked.value.canEdit) return err('DRIVE_CANNOT_EDIT')
+      const seen = checked.value.publication
+      if (c.open) {
+        if (seen.collectsIdentity) return err('FORM_COLLECTS_IDENTITY')
+        const consent = new Map(seen.drive ?? []).get('consent') as { exits?: boolean } | undefined
+        if (consent?.exits !== true) return err('FORM_CONSENT_BROKEN')
+        if (seen.state !== 'in-sync') return err('FORM_NOT_IN_SYNC')
+      }
+      const written = await files.setAccepting(p.fileId, c.open)
+      if (!written.ok) return written
+      const at = now()
+      const next: StoredPublication = {
+        ...seen,
+        acceptingResponses: c.open,
+        ...(c.open
+          ? { openedBy: c.actor.id, openedAt: at }
+          : { closedBy: c.actor.id, closedAt: at }),
+      }
+      await deps.store.save(next)
       return ok(next)
     },
 

@@ -212,10 +212,72 @@ describe('spec 027 - what comes after a card, on a survey study', () => {
     expect(text).not.toContain('transcripts,')
   })
 
+  it('names only the tabs of a survey study', async () => {
+    expect(await system('study')).toContain('preparation, fieldwork, analysis; no other tab')
+  })
+
   it('keeps the interview wording on an interview study', async () => {
     world.research.study.type = 'interviews'
     world.research.questionnaire.value = null
     expect(await system('study')).toContain('preparing its interview guide')
+  })
+})
+
+describe('spec 028 - fieldwork with the assistant', () => {
+  it('gives counts, never an answer, and tells the next step', async () => {
+    world.research.questionnaire.value = {
+      version: 1,
+      content: questionnaire as never,
+      checksDone: true,
+    }
+    world.model.answer([call('count_responses', { studyId: 's1' })])
+    await send('Where are we?')
+    expect(JSON.parse(world.model.outputs[0] ?? '{}')).toEqual({
+      total: 10,
+      counted: 6,
+      outOfTarget: 3,
+      profileNotAnswered: 1,
+      refusedConsent: 0,
+      target: 100,
+      open: false,
+    })
+  })
+
+  it('opens the form only through a card', async () => {
+    world.model.answer([call('propose_opening_form', { studyId: 's1' })])
+    await send('Open it')
+    expect(world.research.actionsLog).toEqual([])
+    await world.proposals.apply({ actor: ada, proposalId: world.idOf('call-propose_opening_form') })
+    expect(world.research.actionsLog).toMatchObject([
+      { action: 'setFormOpen', input: { publicationId: 'pub-1', open: true } },
+    ])
+  })
+
+  it('shows no opening card without a published form', async () => {
+    if (world.research.survey.progress) world.research.survey.progress.publicationId = null
+    world.model.answer([call('propose_opening_form', { studyId: 's1' })])
+    const events = await send('Open it')
+    expect(events.filter((e) => e.type === 'proposal')).toEqual([])
+  })
+
+  it('proposes a target rule with what it would set aside, saved on Apply', async () => {
+    world.model.answer([
+      call('propose_target_rule', { studyId: 's1', accepted: { job: ['Designer'] } }),
+    ])
+    const events = await send('Which answers?')
+    expect(events.find((e) => e.type === 'proposal')).toMatchObject({
+      proposal: { preview: { targetRule: { setAside: 4, total: 10 } } },
+    })
+    await world.proposals.apply({ actor: ada, proposalId: world.idOf('call-propose_target_rule') })
+    expect(world.research.actionsLog).toMatchObject([
+      { action: 'saveTargetRule', input: { accepted: { job: ['Designer'] }, version: null } },
+    ])
+  })
+
+  it('shows no card for a rule the app does not accept', async () => {
+    world.model.answer([call('propose_target_rule', { studyId: 's1', accepted: { free: ['x'] } })])
+    const events = await send('Which answers?')
+    expect(events.filter((e) => e.type === 'proposal')).toEqual([])
   })
 })
 

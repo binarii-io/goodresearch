@@ -89,6 +89,7 @@ describe('the project Overview on PostgreSQL', () => {
       excluded: 1,
       facts: 2,
       factsToDecide: 1,
+      responses: null,
     })
   })
 

@@ -187,6 +187,8 @@ export const publishingWorld = () => {
       },
     } as { version: number; content: QuestionnaireContent } | null,
     canWrite: new Set(['ada', 'ben']),
+    responses: 0,
+    wordings: [] as { itemId: string; text: string }[],
     saved: [] as GuideInput[],
   }
   const store = inMemoryStore()
@@ -216,6 +218,8 @@ export const publishingWorld = () => {
       readForm: (id) => wrap(() => drive.readForm(account, id)),
       updateForm: (id, operations, revision) =>
         wrap(() => drive.updateForm(account, id, operations, revision)),
+      setAccepting: (id, open) => wrap(() => drive.setAccepting(account, id, open)),
+      listResponses: (id, max) => wrap(() => drive.listResponses(account, id, max)),
       metadata: (id) => wrap(() => drive.metadata(account, id)),
     }
   }
@@ -283,6 +287,12 @@ export const publishingWorld = () => {
       deletePlanned: async (c) => {
         state.rows = state.rows.filter((r) => r.id !== c.id)
         return { ok: true }
+      },
+    },
+    responses: {
+      count: async () => state.responses,
+      recordWordings: async (_study, wordings) => {
+        state.wordings.push(...wordings)
       },
     },
     clock: fixedClock(new Date('2026-10-25T10:00:00Z')),

@@ -16,6 +16,8 @@ import type { ProposalPreviewInputLinesItem } from './proposalPreviewInputLinesI
 import type { ProposalPreviewInputOpensOn } from './proposalPreviewInputOpensOn.ts';
 import type { ProposalPreviewInputPhase } from './proposalPreviewInputPhase.ts';
 import type { ProposalPreviewInputQuestionnaire } from './proposalPreviewInputQuestionnaire.ts';
+import type { ProposalPreviewInputResponseCounts } from './proposalPreviewInputResponseCounts.ts';
+import type { ProposalPreviewInputTargetRule } from './proposalPreviewInputTargetRule.ts';
 
 export interface ProposalPreviewInput {
   projectName?: string;
@@ -54,6 +56,8 @@ export interface ProposalPreviewInput {
   otherProjects?: string[];
   guide?: ProposalPreviewInputGuide;
   replacesGuide?: boolean;
+  responseCounts?: ProposalPreviewInputResponseCounts;
+  targetRule?: ProposalPreviewInputTargetRule;
   type?: 'survey';
   questionnaire?: ProposalPreviewInputQuestionnaire;
   replacesQuestionnaire?: boolean;

@@ -31,9 +31,12 @@ const code = (error: string): ErrorCode =>
 
 const send = <T>(
   res: FastifyReply,
-  result: { ok: true; value: T } | { ok: false; error: string },
+  result:
+    | { ok: true; value: T }
+    | { ok: false; error: string; detail?: Readonly<Record<string, unknown>> },
   onOk: (value: T) => FastifyReply,
-): FastifyReply => (result.ok ? onOk(result.value) : sendError(res, code(result.error)))
+): FastifyReply =>
+  result.ok ? onOk(result.value) : sendError(res, code(result.error), result.detail)
 
 /** How long the list waits for the checks made when the tab opens. */
 const CHECK_WAIT_MS = 3000
@@ -194,11 +197,38 @@ export const registerPublishingRoutes = (
         actor: request.account,
         publicationId: request.params.publicationId,
         replaceDriveChanges: request.body.replaceDriveChanges,
+        confirmRewording: request.body.confirmRewording,
       })
-      if (!done.ok) return sendError(res, code(done.error))
+      if (!done.ok) return sendError(res, code(done.error), done.detail)
       return res.send(noAccess(await queries.view(done.value)))
     },
   )
+
+  for (const [path, open, operationId] of [
+    ['open', true, 'openForm'],
+    ['close', false, 'closeForm'],
+  ] as const)
+    api.post(
+      `/api/publications/:publicationId/${path}`,
+      {
+        ...secured,
+        schema: {
+          operationId,
+          tags,
+          params: PublicationParams,
+          response: { 200: Publication },
+        },
+      },
+      async (request, res) => {
+        const done = await commands.setOpen({
+          actor: request.account,
+          publicationId: request.params.publicationId,
+          open,
+        })
+        if (!done.ok) return sendError(res, code(done.error))
+        return res.send(noAccess(await queries.view(done.value)))
+      },
+    )
 
   api.delete(
     '/api/publications/:publicationId',

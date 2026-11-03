@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { DriveCannotEdit, DriveRevisionMismatch } from '../domain/drive-documents.ts'
 import { FormServiceDisabled } from '../domain/form-model.ts'
-import { createGoogleForms, toFormRead, toFormRequests } from '../infrastructure/google-forms.ts'
+import {
+  createGoogleForms,
+  toFormRead,
+  toFormRequests,
+  toFormResponses,
+} from '../infrastructure/google-forms.ts'
 
 type RawItem = {
   questionItem: { question: { choiceQuestion: { options: { goToAction: string }[] } } }
@@ -234,5 +239,57 @@ describe('createGoogleForms', () => {
     await expect(
       failing(400, 'requiredRevisionId is stale').updateForm('t', 'F', [], 'r'),
     ).rejects.toBeInstanceOf(DriveRevisionMismatch)
+  })
+})
+
+describe('reading responses (spec 028)', () => {
+  it('keeps the answers by question, several values for a checkbox, never the email', () => {
+    const { responses } = toFormResponses({
+      responses: [
+        {
+          responseId: 'r1',
+          lastSubmittedTime: '2026-11-02T10:00:00Z',
+          respondentEmail: 'someone@example.test',
+          answers: {
+            q1: { questionId: 'q1', textAnswers: { answers: [{ value: 'A' }, { value: 'B' }] } },
+          },
+        },
+      ],
+    })
+    expect(responses).toEqual([
+      { id: 'r1', submittedAt: '2026-11-02T10:00:00Z', answers: { q1: ['A', 'B'] } },
+    ])
+    expect(JSON.stringify(responses)).not.toContain('someone')
+  })
+
+  const page = (ids: string[], next?: string) =>
+    new Response(
+      JSON.stringify({
+        ...(next ? { nextPageToken: next } : {}),
+        responses: ids.map((responseId) => ({
+          responseId,
+          lastSubmittedTime: '2026-11-02T10:00:00Z',
+        })),
+      }),
+    )
+
+  it('follows the pages, and stops at the maximum', async () => {
+    const forms = createGoogleForms(async (_t, url) =>
+      url.includes('pageToken=n') ? page(['b']) : page(['a'], 'n'),
+    )
+    expect((await forms.listResponses('t', 'F', 10)).responses.map((r) => r.id)).toEqual(['a', 'b'])
+    expect(await forms.listResponses('t', 'F', 1)).toMatchObject({ complete: false })
+  })
+
+  it('keeps the form published when closing it', async () => {
+    let body: unknown
+    const forms = createGoogleForms(async (_t, _u, init) => {
+      body = init?.json
+      return new Response('{}')
+    })
+    await forms.setAccepting('t', 'F', false)
+    expect(body).toEqual({
+      publishSettings: { publishState: { isPublished: true, isAcceptingResponses: false } },
+    })
   })
 })

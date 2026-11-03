@@ -26,7 +26,7 @@ Decided by default for this spec, following the interview process; each can be r
 
 ### User Story 1 - Create a survey study (Priority: P1)
 
-A person creates a study of type Survey, with the same form and the same assistant card as an interview study. Its page has the same phases; Preparation is usable, and the following phases say what they will hold and that they come later.
+A person creates a study of type Survey, with the same form and the same assistant card as an interview study. Its page has the phases that apply to a questionnaire: Preparation, Fieldwork and Analysis (Lexicon, Enrichment and Quality work on transcripts and on how interviews were conducted). Preparation is usable; the following phases say that they come later.
 
 **Why this priority**: Nothing else exists without it; the type is declared today but refused.
 
@@ -35,7 +35,7 @@ A person creates a study of type Survey, with the same form and the same assista
 **Acceptance Scenarios**:
 
 1. **Given** a person in a team, **When** they create a study with the type Survey, **Then** it is created and the Preparation tab offers the questionnaire, not the interview guide or the schedule.
-2. **Given** a survey study, **When** Fieldwork, Enrichment or Analysis are shown, **Then** they say they come later and hold no interview screen.
+2. **Given** a survey study, **When** its page is shown, **Then** only Preparation, Fieldwork and Analysis are offered, even from an old link to another phase; Fieldwork and Analysis say they come later and hold no interview screen.
 3. **Given** a survey study, **When** a command reserved to interview studies is requested (guide, schedule, sessions), **Then** it is refused with the existing "not an interview study" outcome.
 4. **Given** a project with an interview study and a survey study, **When** its overview is shown, **Then** the survey study neither blocks nor distorts the interview counts and its next step.
 
@@ -201,7 +201,7 @@ The assistant can propose publishing the questionnaire with a card, as for the i
 - **FR-018**: Readiness checks MUST be shown: computed (consent and thanks, recruitment and target number, published and in sync), and marked by a person (review by another person, pre-test by naive participants, with name, date and the number of people for the pre-test). They block nothing, and show "questionnaire changed since" when the version moved.
 - **FR-019**: Best practices MUST exist in English and French, name no company or tool vendor, and cover the four steps, biases, ethics, and analysis ahead. The assistant's skill MUST apply the same rules.
 - **FR-020**: Reading and changing MUST follow spec 026: the questionnaire reads like the interview guide; changes need the owning team; folder access applies as for any study with a source folder. A read-only person gets no proposal.
-- **FR-021**: Only survey studies have a questionnaire (`NOT_A_SURVEY_STUDY` otherwise); interview commands keep refusing survey studies. Fieldwork, Enrichment and Analysis of a survey study MUST show no interview screen and MUST NOT run an inventory of sessions. Project overview and next steps MUST leave survey studies out of interview counts.
+- **FR-021**: Only survey studies have a questionnaire (`NOT_A_SURVEY_STUDY` otherwise); interview commands keep refusing survey studies. A survey study MUST offer no Lexicon, Enrichment or Quality phase; its Fieldwork and Analysis MUST show no interview screen and MUST NOT run an inventory of sessions. Project overview and next steps MUST leave survey studies out of interview counts.
 - **FR-022**: Deleting a study MUST delete its questionnaire and never the form at the source.
 - **FR-023**: All interface texts MUST exist in English and French, using the glossary, with the new terms added in the same change; screens MUST meet WCAG 2.2 AA.
 - **FR-024**: The contact item's text MUST state that the address is used only to send the results and then deleted, and the tab MUST remind the team that deleting it at the source is theirs to do. Spec 028 never imports its answers.

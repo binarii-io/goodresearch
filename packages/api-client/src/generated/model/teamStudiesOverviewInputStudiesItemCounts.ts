@@ -4,6 +4,7 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
+import type { TeamStudiesOverviewInputStudiesItemCountsResponses } from './teamStudiesOverviewInputStudiesItemCountsResponses.ts';
 
 export type TeamStudiesOverviewInputStudiesItemCounts = {
   /**
@@ -31,4 +32,5 @@ export type TeamStudiesOverviewInputStudiesItemCounts = {
      * @maximum 9007199254740991
      */
   factsToDecide: number;
+  responses: TeamStudiesOverviewInputStudiesItemCountsResponses;
 } | null;

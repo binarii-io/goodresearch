@@ -24,22 +24,25 @@ const forbidden = async () => {
 
 const setup = (
   options: {
-    studies?: { id: string; access: boolean }[] | null
+    studies?: { id: string; access: boolean; type?: 'interviews' | 'survey' }[] | null
     prices?: Record<string, number | null>
     over?: Partial<ReportingSources>
     canDelete?: boolean
   } = {},
 ) => {
   const prices = options.prices ?? { a: 1, l: 0.5, c: 0.25, q: 0.25, f: 1 }
+  const studies =
+    options.studies === undefined
+      ? [{ id: 'st', access: true, type: 'interviews' as const }]
+      : (options.studies?.map((s) => ({ ...s, type: s.type ?? ('interviews' as const) })) ?? null)
   const sources: ReportingSources = {
-    studies: async () =>
-      options.studies === undefined ? [{ id: 'st', access: true }] : options.studies,
+    studies: async () => studies,
     canDelete: async () => options.canDelete ?? true,
     linkedStudies: async () => [{ otherProjects: 0 }, { otherProjects: 2 }],
     hasPublishedDeck: async () => true,
-    teamStudies: async () =>
-      options.studies === undefined ? [{ id: 'st', access: true }] : options.studies,
+    teamStudies: async () => studies,
     studyCounts: async () => counts,
+    responseCounts: async () => ({ received: 7, counted: 5 }),
     studyCostRefs: async (id) => (id === 'closed' ? { ...refs, facts: ['closed'] } : refs),
     insightCounts: async () => [],
     recommendationCounts: async () => [],
@@ -73,6 +76,9 @@ describe('project overview (spec 017)', () => {
       validated: 21,
       toDecide: 3,
       participants: 22,
+      responses: 0,
+      received: 0,
+      kinds: { interviews: true, surveys: false },
     })
     expect(o.steps[1]).toEqual({
       key: 'facts',
@@ -89,7 +95,37 @@ describe('project overview (spec 017)', () => {
       excluded: 2,
       facts: 612,
       factsToDecide: 464,
+      responses: null,
     })
+  })
+
+  it('counts the responses of survey studies in the first step (spec 028)', async () => {
+    const o = await read(
+      setup({
+        studies: [
+          { id: 'st', access: true },
+          { id: 'sv', access: true, type: 'survey' },
+        ],
+      }),
+    )
+    expect(o.steps[0]).toMatchObject({
+      responses: 5,
+      received: 7,
+      kinds: { interviews: true, surveys: true },
+    })
+    expect(o.studies[1]?.counts?.responses).toEqual({ received: 7, counted: 5 })
+    expect(o.studies[0]?.counts?.responses).toBeNull()
+  })
+
+  it('shows no response count it could not read (spec 028)', async () => {
+    const o = await read(
+      setup({
+        studies: [{ id: 'sv', access: true, type: 'survey' }],
+        over: { responseCounts: async () => null },
+      }),
+    )
+    expect(o.studies[0]?.counts?.responses).toBeNull()
+    expect(o.steps[0]).toMatchObject({ responses: 0, received: 0 })
   })
 
   it('gives the cost per use of a study and the total of the project', async () => {

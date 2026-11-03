@@ -318,6 +318,100 @@ export function useGetQuestionnaireDesignCost<TData = Awaited<ReturnType<typeof 
 
 
 
+export const getGetTargetRuleCostUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/responses/rule-cost`
+}
+
+export const getTargetRuleCost = async (studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuestionnaireDesignCost> => {
+
+  return apiFetch<QuestionnaireDesignCost>(getGetTargetRuleCostUrl(studyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTargetRuleCostQueryKey = (studyId: string,) => {
+    return [
+    `/api/studies/${studyId}/responses/rule-cost`
+    ] as const;
+    }
+
+
+export const getGetTargetRuleCostQueryOptions = <TData = Awaited<ReturnType<typeof getTargetRuleCost>>, TError = unknown>(studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetRuleCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTargetRuleCostQueryKey(studyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTargetRuleCost>>> = ({ signal }) => getTargetRuleCost(studyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTargetRuleCost>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTargetRuleCostQueryResult = NonNullable<Awaited<ReturnType<typeof getTargetRuleCost>>>
+export type GetTargetRuleCostQueryError = unknown
+
+
+export function useGetTargetRuleCost<TData = Awaited<ReturnType<typeof getTargetRuleCost>>, TError = unknown>(
+ studyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetRuleCost>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTargetRuleCost>>,
+          TError,
+          Awaited<ReturnType<typeof getTargetRuleCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTargetRuleCost<TData = Awaited<ReturnType<typeof getTargetRuleCost>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetRuleCost>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTargetRuleCost>>,
+          TError,
+          Awaited<ReturnType<typeof getTargetRuleCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTargetRuleCost<TData = Awaited<ReturnType<typeof getTargetRuleCost>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetRuleCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTargetRuleCost<TData = Awaited<ReturnType<typeof getTargetRuleCost>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetRuleCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTargetRuleCostQueryOptions(studyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 export const getGetConversationUrl = (conversationId: string,) => {
 
 

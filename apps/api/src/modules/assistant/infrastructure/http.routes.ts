@@ -122,6 +122,22 @@ export const registerAssistantRoutes = (
   )
 
   api.get(
+    '/api/studies/:studyId/responses/rule-cost',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getTargetRuleCost',
+        tags,
+        params: StudyParams,
+        response: { 200: QuestionnaireDesignCost },
+      },
+    },
+    async (request, res) =>
+      (await queries.targetRuleCost(request.account.id, request.params.studyId)) ??
+      sendError(res, 'STUDY_NOT_FOUND'),
+  )
+
+  api.get(
     '/api/assistant/conversations/:conversationId',
     {
       ...secured,

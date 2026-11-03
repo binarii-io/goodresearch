@@ -12,6 +12,7 @@ export {
   CircleHelpIcon,
   DownloadIcon,
   ExternalLinkIcon,
+  EyeIcon,
   FileSearchIcon,
   FileTextIcon,
   FileXIcon,

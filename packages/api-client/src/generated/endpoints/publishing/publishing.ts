@@ -559,6 +559,140 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdatePublicationMutationOptions(options), queryClient);
     }
+    export const getOpenFormUrl = (publicationId: string,) => {
+
+
+
+
+  return `/api/publications/${publicationId}/open`
+}
+
+export const openForm = async (publicationId: string, options?: Parameters<typeof apiFetch>[1]): Promise<Publication> => {
+
+  return apiFetch<Publication>(getOpenFormUrl(publicationId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getOpenFormMutationKey = () => ['openForm'] as const;
+
+export const getOpenFormMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openForm>>, TError,OpenFormMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof openForm>>, TError,OpenFormMutationVariables, TContext> => {
+
+const mutationKey = getOpenFormMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof openForm>>, OpenFormMutationVariables> = (props) => {
+          const {publicationId} = props ?? {};
+
+          return  openForm(publicationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OpenFormMutationResult = NonNullable<Awaited<ReturnType<typeof openForm>>>
+
+    export type OpenFormMutationError = unknown
+    export type OpenFormMutationVariables = {publicationId: string}
+
+    export const useOpenForm = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openForm>>, TError,OpenFormMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof openForm>>,
+        TError,
+        OpenFormMutationVariables,
+        TContext
+      > => {
+      return useMutation(getOpenFormMutationOptions(options), queryClient);
+    }
+    export const getCloseFormUrl = (publicationId: string,) => {
+
+
+
+
+  return `/api/publications/${publicationId}/close`
+}
+
+export const closeForm = async (publicationId: string, options?: Parameters<typeof apiFetch>[1]): Promise<Publication> => {
+
+  return apiFetch<Publication>(getCloseFormUrl(publicationId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCloseFormMutationKey = () => ['closeForm'] as const;
+
+export const getCloseFormMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeForm>>, TError,CloseFormMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof closeForm>>, TError,CloseFormMutationVariables, TContext> => {
+
+const mutationKey = getCloseFormMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof closeForm>>, CloseFormMutationVariables> = (props) => {
+          const {publicationId} = props ?? {};
+
+          return  closeForm(publicationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CloseFormMutationResult = NonNullable<Awaited<ReturnType<typeof closeForm>>>
+
+    export type CloseFormMutationError = unknown
+    export type CloseFormMutationVariables = {publicationId: string}
+
+    export const useCloseForm = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeForm>>, TError,CloseFormMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof closeForm>>,
+        TError,
+        CloseFormMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCloseFormMutationOptions(options), queryClient);
+    }
     export const getForgetPublicationUrl = (publicationId: string,) => {
 
 

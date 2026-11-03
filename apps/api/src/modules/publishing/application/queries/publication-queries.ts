@@ -41,6 +41,11 @@ const view = (
       p.kind === 'questionnaire'
         ? {
             linkedSheetLink: p.linkedSheetLink,
+            responderLink: p.responderLink,
+            openedBy: name(p.openedBy),
+            openedAt: p.openedAt?.toISOString() ?? null,
+            closedBy: name(p.closedBy),
+            closedAt: p.closedAt?.toISOString() ?? null,
             acceptingResponses: p.acceptingResponses === true,
             collectsIdentity: p.collectsIdentity === true,
           }
@@ -52,7 +57,11 @@ const view = (
 const views = async (deps: PublishingDeps, list: readonly StoredPublication[]) => {
   const changes = await deps.store.changesOf(list.map((p) => p.id))
   const names = await deps.store.accountNames([
-    ...new Set(list.flatMap((p) => [p.publishedBy, p.updatedBy]).filter((id) => id !== null)),
+    ...new Set(
+      list
+        .flatMap((p) => [p.publishedBy, p.updatedBy, p.openedBy, p.closedBy])
+        .filter((id) => id !== null),
+    ),
   ])
   return list.map((p) =>
     view(

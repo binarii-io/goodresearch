@@ -57,6 +57,8 @@ export function ProjectJourney({ projectId }: { projectId: string }) {
     <Link to="." search={(previous) => ({ ...previous, tab })} />
   )
   const number = (n: number) => i18n.number(n)
+  const first = steps.find((s) => s.key === 'interviews')
+  const surveys = first?.key === 'interviews' && first.kinds.surveys
 
   return (
     <nav aria-label={t`Progress of the research`}>
@@ -94,13 +96,20 @@ export function ProjectJourney({ projectId }: { projectId: string }) {
             )
           if (step.key === 'interviews') {
             const toValidate = number(step.toDecide)
+            // Named after the kinds of study the project holds (spec 028): a survey has responses.
+            const surveysOnly = step.kinds.surveys && !step.kinds.interviews
+            const mixed = step.kinds.surveys && step.kinds.interviews
+            const responses = plural(step.responses, {
+              one: '# response counted',
+              other: '# responses counted',
+            })
             return (
               <JourneyStep
                 key={step.key}
                 {...shared}
-                label={t`Interviews`}
-                value={number(step.total)}
-                dimmed={step.total === 0 && !isNext}
+                label={surveysOnly ? t`Responses` : mixed ? t`Fieldwork` : t`Interviews`}
+                value={number(surveysOnly ? step.responses : step.total)}
+                dimmed={step.total + step.received === 0 && !isNext}
                 action={
                   !isNext
                     ? undefined
@@ -108,20 +117,35 @@ export function ProjectJourney({ projectId }: { projectId: string }) {
                       ? t`Create a first study`
                       : open.length === 0
                         ? t`Ask for access to a study's folder`
-                        : step.total === 0
-                          ? t`Add the interviews to a study`
-                          : t`Validate the interviews`
+                        : surveysOnly
+                          ? step.received > 0
+                            ? t`Check the target audience`
+                            : t`Collect the responses of a survey`
+                          : step.total === 0 && !mixed
+                            ? t`Add the interviews to a study`
+                            : step.total === 0
+                              ? t`Add interviews or collect responses`
+                              : t`Validate the interviews`
                 }
                 detail={
-                  step.total === 0
-                    ? undefined
-                    : [
-                        plural(step.participants, {
-                          one: '# participant',
-                          other: '# participants',
-                        }),
-                        step.toDecide > 0 ? t`${toValidate} to validate` : t`All validated`,
-                      ].join(' · ')
+                  surveysOnly
+                    ? step.received > step.responses
+                      ? plural(step.received, { one: '# received', other: '# received' })
+                      : undefined
+                    : step.total + step.responses === 0
+                      ? undefined
+                      : [
+                          ...(step.total
+                            ? [
+                                plural(step.participants, {
+                                  one: '# participant',
+                                  other: '# participants',
+                                }),
+                                step.toDecide > 0 ? t`${toValidate} to validate` : t`All validated`,
+                              ]
+                            : []),
+                          ...(mixed ? [responses] : []),
+                        ].join(' · ')
                 }
                 render={studyLink(canChange ? 'fieldwork' : 'analysis')}
               />
@@ -136,7 +160,10 @@ export function ProjectJourney({ projectId }: { projectId: string }) {
                 one: 'Decide the # fact left',
                 other: 'Decide the # facts left',
               }),
-              from: t`Will come from the interviews`,
+              from:
+                step.key === 'facts' && surveys
+                  ? t`Will come from the studies`
+                  : t`Will come from the interviews`,
               all: t`All validated`,
               validated: plural(step.validated, { one: '# validated', other: '# validated' }),
               bar: t`Facts validated`,

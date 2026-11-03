@@ -59,7 +59,11 @@ export function FolderButton({
         <DialogContent closeLabel={t`Close`} className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{t`Study folder`}</DialogTitle>
-            <DialogDescription>{t`The Drive folder the interviews come from.`}</DialogDescription>
+            <DialogDescription>
+              {interviewStudy
+                ? t`The Drive folder the interviews come from.`
+                : t`The Drive folder the questionnaire's form is published in.`}
+            </DialogDescription>
           </DialogHeader>
           <SourcePanel
             studyId={studyId}

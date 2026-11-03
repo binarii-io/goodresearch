@@ -23,6 +23,7 @@ export function StudyCard({
   study: {
     id: string
     name: string
+    type: 'interviews' | 'survey' | 'usability-test'
     hasFolder: boolean
     folderName: string | null
     updatedAt: string
@@ -58,7 +59,7 @@ export function StudyCard({
       />
       <div className="grid min-w-0 gap-2.5">
         <div className="flex min-w-0 items-center gap-2.5">
-          <Badge variant="secondary">{t`Interviews`}</Badge>
+          <Badge variant="secondary">{study.type === 'survey' ? t`Survey` : t`Interviews`}</Badge>
           <Link
             to="/studies/$studyId"
             params={{ studyId: study.id }}
@@ -73,7 +74,10 @@ export function StudyCard({
           </div>
         </div>
         {note}
-        {counts ? <StudyChips counts={counts} /> : null}
+        {/* A survey whose responses could not be read shows no count rather than a wrong one. */}
+        {counts && (study.type !== 'survey' || counts.responses) ? (
+          <StudyChips counts={counts} />
+        ) : null}
         {closed ? (
           study.hasFolder ? (
             <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
@@ -118,10 +122,25 @@ function StudyChips({
     excluded: number
     facts: number
     factsToDecide: number
+    /** Spec 028: a survey study's responses; null for the other studies. */
+    responses: { received: number; counted: number } | null
   }
 }) {
   const { t, i18n } = useLingui()
   const toValidate = i18n.number(c.toValidate)
+  if (c.responses) {
+    const { received, counted } = c.responses
+    if (received === 0) return <p className="text-muted-foreground text-sm">{t`No response yet`}</p>
+    const setAside = i18n.number(received - counted)
+    return (
+      <p className="flex flex-wrap gap-1.5">
+        <Badge className="bg-polarity-positive text-foreground">
+          {plural(counted, { one: '# response counted', other: '# responses counted' })}
+        </Badge>
+        {received > counted ? <Badge variant="secondary">{t`${setAside} set aside`}</Badge> : null}
+      </p>
+    )
+  }
   if (c.validated + c.toValidate + c.excluded === 0)
     return <p className="text-muted-foreground text-sm">{t`No interview yet`}</p>
   return (

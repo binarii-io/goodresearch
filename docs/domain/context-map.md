@@ -34,6 +34,7 @@ Every AI-produced object follows the same lifecycle and the same protections. Th
 | 9 | **AI Gateway** | Generic | Adapters + ledger | AI provider connection, UsageEntry (append-only), PricingCatalog |
 | 10 | **Assistant** | Supporting | Plain handlers + proposal rules | Conversation (messages, action proposals) |
 | 11 | **Publishing** | Supporting | Domain model (three-way sync) | PublishedDocument (base, state, Drive changes) |
+| 12 | **Surveys** | Supporting | Plain handlers + pure rules | SurveyResponse, TargetRule |
 
 Background jobs (`Job`, per-item progress, stop, retry) are **shared infrastructure** used by contexts 3–7, not a context of their own.
 
@@ -78,7 +79,7 @@ Integration rules between contexts: reference by **ID only**, communicate throug
 ### 2. Research
 
 - **Project** — a research question. `name`, `goal` (question, objectives, hypotheses — given to the AI everywhere), `reviewPolicy` (`auto | manual`), **exactly one team** (required; access follows the team). Linked to 0..n studies (many-to-many, spec 019). Its key takeaways are owned by the Synthesis context.
-- **Study** — one source of evidence, owned by **exactly one team**, linked to zero or more projects of that team (spec 019). It can start in no project (spec 021). It has its own **research goal**: a copy of its project's when created with the form in a project, written at creation otherwise (assistant's card, form of the Studies page), read by its AI steps; the project's goal is read by the AI steps over the project. A study in no project stays on its team's **Studies page**. Facts belong to the study, so a decision on a fact applies in every linked project. `type` (`interviews`, `survey` since spec 027; `usability-test`, `documents`, `analytics` later), phases **Preparation → Fieldwork → Enrichment → Analysis** (Enrichment, spec 010: the team lexicon, then Cleaning, spec 011, on the validated interviews; Analysis, spec 012: verbatims and facts per interview). Setting **text analysed** (spec 012): `with-corrections` (default: the raw version with every correction of Cleaning not rejected, those still to decide included) or `clean-only` (the latest validated clean version).
+- **Study** — one source of evidence, owned by **exactly one team**, linked to zero or more projects of that team (spec 019). It can start in no project (spec 021). It has its own **research goal**: a copy of its project's when created with the form in a project, written at creation otherwise (assistant's card, form of the Studies page), read by its AI steps; the project's goal is read by the AI steps over the project. A study in no project stays on its team's **Studies page**. Facts belong to the study, so a decision on a fact applies in every linked project. `type` (`interviews`, `survey` since spec 027; `usability-test`, `documents`, `analytics` later), phases **Preparation → Fieldwork → Enrichment → Analysis**, a survey study having only **Preparation → Fieldwork → Analysis** (spec 027) (Enrichment, spec 010: the team lexicon, then Cleaning, spec 011, on the validated interviews; Analysis, spec 012: verbatims and facts per interview). Setting **text analysed** (spec 012): `with-corrections` (default: the raw version with every correction of Cleaning not rejected, those still to decide included) or `clean-only` (the latest validated clean version).
 - **InterviewGuide** (spec 006) — the protocol of an interview study, at most one per study: a **framing** (objectives with the research themes, hypotheses, audience, format) and ordered **sections** of kind `introduction | warm-up | theme | wrap-up`, each with a title, a duration and ordered main **GuideQuestions** (app `id`, `text`, follow-ups). Versioned, with its origin (`assistant` when an assistant proposal was applied, `person` when edited by hand). Question ids are kept when a new version has the same question (same id sent back, or same text). Limits: 12 sections, 60 main questions, 8 follow-ups each. It is the hub: it feeds evaluation coverage, insight themes and the deck.
 - **Questionnaire** (spec 027) — the instrument of a survey study, at most one per study: a **framing** (objective, hypotheses, target audience, recruitment `targeted | wide-then-filter`, administration, target number of responses and its reason, language, consent, thanks, shuffle setting) and ordered **sections** of kind `introduction | profiling | theme | closing`, each with ordered **Items**. Versioned, with its origin (`assistant | person | drive`). Item ids are kept when a new version has the same item (same id sent back, or same text). Limits: 12 sections, 80 items, 15 hypotheses, 2 to 20 options. Same shape as the guide, its own rules: the two share nothing in code.
 - **Item** (spec 027) — one element of a questionnaire, a statement or a question: text, **measure** (`factual | subjective`), required, optional sub-theme, and a kind: `likert` (5 or 7 points, two end labels), `single-choice`, `multiple-choice` (2 to 20 options, flagged ordered when they must not be shuffled) or `open`. Each kind states what analysis it allows. At most one **contact item**: optional, open, in the closing section, to send the results; never imported, deleting its answers at the source is the team's to do.
@@ -191,6 +192,15 @@ Spec 016: how the interviews were conducted, as facts to read: no score, no verd
 - **Drive change** — decided once (accepted or rejected, shared by the team). Accepted changes go through the Research commands (guide origin `drive`); rejected ones are replaced at the next update. The best practices are fixed content: their Drive changes are reported, never brought back.
 - **States**: in sync, out of date, changed in Drive, conflict, unavailable (deleted, trashed, moved out of the folder, or no access). Checked when the Preparation tab opens (at most every 5 minutes) and on demand; never deleted at the source.
 
+### 12. Surveys (spec 028, ADR-0011)
+
+- **Opening and closing a form** (held by Publishing) — a person's confirmed decision. Refused while the form collects identities, its consent does not end it on refusal, or it is not in sync; review and pre-test are recalled and block nothing. Closing keeps it published: people see that it is closed.
+- **SurveyResponse** — one response read from a study's form, under the identity kept at publication: consent, and answers per item (a scale or a grid's column as its number). Never who answered, never the contact item; a refusal holds no answer. A copy: the source stays the truth. Never sent to an AI provider.
+- **Reading** — all responses, when the Fieldwork tab opens (at most once a minute) and on Refresh, with the person's own access; never the results spreadsheet. A response gone from the source goes, if the reading finished. A question unknown to the questionnaire is left out and counted.
+- **TargetRule** — per choice item of a profiling section, its accepted options; written by a person, or proposed by the assistant through a card. Versioned.
+- **Response state** — computed at each read, never stored: `refused-consent`, `profile-not-answered`, `out-of-target`, `counted`. Nothing is deleted: changing the rule brings responses back.
+- **Protecting responses** — once a response exists, an update of the form, or accepting a change made in it, is refused when it would detach answers: an item removed, its kind, scale or options changed, moved in or out of a grid. A rewording asks for a confirmation and keeps the former wording for the responses that answered it. Adding an item passes.
+
 ## Bilingual glossary
 
 Code, API and docs use the English term. The UI ships in English and French; translators use this table so a term is always translated the same way. A new domain term is added here in the same PR that introduces it.
@@ -234,6 +244,11 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Pre-test / Naive participant | Prétest / Participant naïf | |
 | Form | Formulaire | The published questionnaire |
 | Results spreadsheet | Feuille de résultats | Linked by hand in the form |
+| Response | Réponse | Spec 028 |
+| Open / Close the form | Ouvrir / Fermer le formulaire | |
+| Target rule | Règle de cible | "Target audience / Public cible" in the UI |
+| Counted / Out of target / Profile not answered / Refused consent | Retenue / Hors cible / Profil non renseigné / Consentement refusé | States of a response |
+| Refresh | Actualiser | |
 | Skill | Skill | Instructions the assistant loads for a task |
 | Writing check | Vérification des questions | |
 | Source | Source | |

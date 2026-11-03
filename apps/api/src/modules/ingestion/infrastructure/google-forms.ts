@@ -9,6 +9,7 @@ import {
   type FormOperation,
   type FormRead,
   type FormReadBlock,
+  type FormResponse,
   FormServiceDisabled,
   type FormWriteBlock,
 } from '../domain/form-model.ts'
@@ -42,6 +43,7 @@ const Question = z.looseObject({
 
 const RawForm = z.looseObject({
   revisionId: z.string(),
+  responderUri: z.string().optional(),
   linkedSheetId: z.string().optional(),
   settings: z.looseObject({ emailCollectionType: z.string().optional() }).optional(),
   publishSettings: z
@@ -129,6 +131,50 @@ const blockOf = (item: NonNullable<RawForm['items']>[number]): FormReadBlock => 
   return { ...base, kind: 'unsupported' }
 }
 
+const RawResponses = z.looseObject({
+  nextPageToken: z.string().optional(),
+  responses: z
+    .array(
+      z.looseObject({
+        responseId: z.string(),
+        lastSubmittedTime: z.string(),
+        answers: z
+          .record(
+            z.string(),
+            z.looseObject({
+              textAnswers: z
+                .looseObject({
+                  answers: z.array(z.looseObject({ value: z.string().optional() })).optional(),
+                })
+                .optional(),
+            }),
+          )
+          .optional(),
+      }),
+    )
+    .optional(),
+})
+
+/** Only what the app keeps: `respondentEmail` stops here (spec 028 FR-006). */
+export const toFormResponses = (raw: unknown) => {
+  const page = RawResponses.parse(raw)
+  return {
+    next: page.nextPageToken,
+    responses: (page.responses ?? []).map(
+      (r): FormResponse => ({
+        id: r.responseId,
+        submittedAt: r.lastSubmittedTime,
+        answers: Object.fromEntries(
+          Object.entries(r.answers ?? {}).map(([questionId, a]) => [
+            questionId,
+            (a.textAnswers?.answers ?? []).map((v) => v.value ?? ''),
+          ]),
+        ),
+      }),
+    ),
+  }
+}
+
 /** Only the absence of collection is safe to assume: anything else shows the warning. */
 export const toFormRead = (raw: unknown): FormRead => {
   const form = RawForm.parse(raw)
@@ -138,6 +184,7 @@ export const toFormRead = (raw: unknown): FormRead => {
     linkedSheetLink: form.linkedSheetId
       ? `https://docs.google.com/spreadsheets/d/${form.linkedSheetId}`
       : null,
+    responderLink: form.responderUri ?? null,
     acceptingResponses: form.publishSettings?.publishState?.isAcceptingResponses === true,
     collectsIdentity: form.settings?.emailCollectionType !== 'DO_NOT_COLLECT',
   }
@@ -317,19 +364,25 @@ export const createGoogleForms = (call: Call) => {
     )
   }
 
+  const publish = async (
+    token: string,
+    fileId: string,
+    isPublished: boolean,
+    isAcceptingResponses: boolean,
+  ) =>
+    json(
+      await call(token, `${url(fileId)}:setPublishSettings`, {
+        method: 'POST',
+        json: { publishSettings: { publishState: { isPublished, isAcceptingResponses } } },
+      }),
+      'forms.setPublishSettings',
+    )
+
   /** New forms start closed; never trusted: checked, and closed if found open (research R4). */
   const ensureClosed = async (token: string, fileId: string) => {
     const form = await readForm(token, fileId)
     if (!form.acceptingResponses) return
-    await json(
-      await call(token, `${url(fileId)}:setPublishSettings`, {
-        method: 'POST',
-        json: {
-          publishSettings: { publishState: { isPublished: false, isAcceptingResponses: false } },
-        },
-      }),
-      'forms.setPublishSettings',
-    )
+    await publish(token, fileId, false, false)
   }
 
   return {
@@ -357,6 +410,26 @@ export const createGoogleForms = (call: Call) => {
       return file
     },
     readForm,
+    /** Closing stays published: people see the closed page (spec 028 research R5). */
+    setAccepting: async (token: string, fileId: string, open: boolean): Promise<void> => {
+      await publish(token, fileId, true, open)
+    },
+    /** Whole, each time: a response deleted at the source is only seen so (research R1). */
+    listResponses: async (token: string, fileId: string, max: number) => {
+      const responses: FormResponse[] = []
+      let pageToken: string | undefined
+      do {
+        const query = pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : ''
+        const page = toFormResponses(
+          await json(await call(token, `${url(fileId)}/responses${query}`), 'forms.responses.list'),
+        )
+        responses.push(...page.responses)
+        pageToken = page.next
+        if (responses.length >= max && pageToken)
+          return { responses: responses.slice(0, max), complete: false }
+      } while (pageToken)
+      return { responses, complete: true }
+    },
     updateForm: async (
       token: string,
       fileId: string,

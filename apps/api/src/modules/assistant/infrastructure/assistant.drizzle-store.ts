@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, type SQL, sql } from 'drizzle-orm'
 import type { Db } from '#platform/db.ts'
 import type {
   AiFailure,
@@ -45,6 +45,27 @@ const toProposal = (r: ProposalRow): StoredProposal => ({
   error: r.error,
   decidedAt: r.decidedAt,
 })
+
+/** The answers on a study's page, in conversations holding such a proposal made there. */
+const answersOf = async (db: Db, studyId: string, proposal: SQL | undefined) => {
+  const conversations = db
+    .selectDistinct({ id: assistantMessages.conversationId })
+    .from(assistantProposals)
+    .innerJoin(assistantMessages, eq(assistantMessages.id, assistantProposals.messageId))
+    .where(and(proposal, eq(assistantMessages.pageId, studyId)))
+  return (
+    await db
+      .select({ id: assistantMessages.id })
+      .from(assistantMessages)
+      .where(
+        and(
+          inArray(assistantMessages.conversationId, conversations),
+          eq(assistantMessages.role, 'assistant'),
+          eq(assistantMessages.pageId, studyId),
+        ),
+      )
+  ).map((m) => m.id)
+}
 
 export const createAssistantStore = (db: Db): AssistantStore => ({
   listConversations: async (accountId) =>
@@ -119,32 +140,18 @@ export const createAssistantStore = (db: Db): AssistantStore => ({
       .onConflictDoUpdate({ target: assistantMessages.id, set: update })
   },
 
-  answersWithSkill: async (studyId, skill) => {
-    const designing = db
-      .selectDistinct({ id: assistantMessages.conversationId })
-      .from(assistantProposals)
-      .innerJoin(assistantMessages, eq(assistantMessages.id, assistantProposals.messageId))
-      .where(
-        and(
-          eq(assistantProposals.kind, 'load_skill'),
-          eq(assistantProposals.state, 'applied'),
-          sql`${assistantProposals.values}->>'name' = ${skill}`,
-          eq(assistantMessages.pageId, studyId),
-        ),
-      )
-    return (
-      await db
-        .select({ id: assistantMessages.id })
-        .from(assistantMessages)
-        .where(
-          and(
-            inArray(assistantMessages.conversationId, designing),
-            eq(assistantMessages.role, 'assistant'),
-            eq(assistantMessages.pageId, studyId),
-          ),
-        )
-    ).map((m) => m.id)
-  },
+  answersWithSkill: (studyId, skill) =>
+    answersOf(
+      db,
+      studyId,
+      and(
+        eq(assistantProposals.kind, 'load_skill'),
+        eq(assistantProposals.state, 'applied'),
+        sql`${assistantProposals.values}->>'name' = ${skill}`,
+      ),
+    ),
+
+  answersWithCard: (studyId, kind) => answersOf(db, studyId, eq(assistantProposals.kind, kind)),
 
   listProposals: async (conversationId) => {
     const ids = db

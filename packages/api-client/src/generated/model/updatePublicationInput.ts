@@ -7,4 +7,5 @@
 
 export interface UpdatePublicationInput {
   replaceDriveChanges?: boolean;
+  confirmRewording?: boolean;
 }

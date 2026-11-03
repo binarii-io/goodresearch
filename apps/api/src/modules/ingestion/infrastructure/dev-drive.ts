@@ -241,7 +241,30 @@ export const createDevDrive = (appUrl: URL) => {
     return true
   }
 
-  return { gateway, authorization, documents, edit }
+  /** Someone answers a form, by the titles of its questions, for end-to-end tests (spec 028). */
+  const respond = (fileId: string, id: string, answers: Record<string, string[]>): boolean => {
+    const form = documents.files.get(fileId)?.form
+    if (!form) return false
+    const byTitle = new Map(
+      form.blocks.flatMap((b) =>
+        b.kind === 'grid'
+          ? b.rows.map((r) => [r.title, r.questionId] as const)
+          : b.questionId
+            ? [[b.title, b.questionId] as const]
+            : [],
+      ),
+    )
+    documents.respond(fileId, {
+      id,
+      submittedAt: new Date().toISOString(),
+      answers: Object.fromEntries(
+        Object.entries(answers).map(([title, values]) => [byTitle.get(title) ?? title, values]),
+      ),
+    })
+    return true
+  }
+
+  return { gateway, authorization, documents, edit, respond }
 }
 
 export type DevDrive = ReturnType<typeof createDevDrive>

@@ -51,6 +51,7 @@ import {
 } from '../../../features/preparation/questionnaire-tab.tsx'
 import { QualityTab } from '../../../features/quality/quality-tab.tsx'
 import { StudySettingsButton } from '../../../features/research/study-settings.tsx'
+import { SurveyFieldworkTab } from '../../../features/surveys/survey-fieldwork-tab.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useMe } from '../../../features/workspace/me.ts'
 import { NotFound } from '../../../features/workspace/not-found.tsx'
@@ -94,8 +95,13 @@ function StudyPage() {
   // Spec 026: another team's study opens on its facts; the Fieldwork tab is reserved.
   const reader = study.data?.canChange === false
   // Spec 027: a survey has nothing else yet.
-  const phase =
-    asked ?? (study.data?.type === 'survey' ? 'preparation' : reader ? 'analysis' : 'fieldwork')
+  const survey = study.data?.type === 'survey'
+  // A questionnaire has no transcript: no Lexicon, Enrichment or Quality, even from an old link.
+  const phase = survey
+    ? asked === 'fieldwork' || asked === 'analysis'
+      ? asked
+      : 'preparation'
+    : (asked ?? (reader ? 'analysis' : 'fieldwork'))
   const source = useGetStudySource(studyId)
   const rename = useRenameStudy()
   const remove = useDeleteStudy()
@@ -295,10 +301,16 @@ function StudyPage() {
               <TabsList aria-label={t`Study phases`}>
                 <TabsTrigger value="preparation">{t`1 · Preparation`}</TabsTrigger>
                 <TabsTrigger value="fieldwork">{t`2 · Fieldwork`}</TabsTrigger>
-                <TabsTrigger value="lexicon">{t`3 · Lexicon`}</TabsTrigger>
-                <TabsTrigger value="enrichment">{t`4 · Enrichment`}</TabsTrigger>
-                <TabsTrigger value="quality">{t`5 · Quality`}</TabsTrigger>
-                <TabsTrigger value="analysis">{t`6 · Analysis`}</TabsTrigger>
+                {survey ? (
+                  <TabsTrigger value="analysis">{t`3 · Analysis`}</TabsTrigger>
+                ) : (
+                  <>
+                    <TabsTrigger value="lexicon">{t`3 · Lexicon`}</TabsTrigger>
+                    <TabsTrigger value="enrichment">{t`4 · Enrichment`}</TabsTrigger>
+                    <TabsTrigger value="quality">{t`5 · Quality`}</TabsTrigger>
+                    <TabsTrigger value="analysis">{t`6 · Analysis`}</TabsTrigger>
+                  </>
+                )}
               </TabsList>
             </>
           }
@@ -383,9 +395,12 @@ function StudyPage() {
           ) : s.type === 'interviews' ? (
             <FieldworkTab studyId={studyId} isAdmin={me.role === 'admin'} />
           ) : (
-            <div className="grid gap-3">
-              <p className="text-muted-foreground text-base">{t`Fieldwork for this type of study is coming in a later version.`}</p>
-              <SourcePanel studyId={studyId} isAdmin={me.role === 'admin'} />
+            <div className="grid gap-6">
+              {/* Once attached, the folder lives behind the icon of the page bar, as for interviews. */}
+              {readable && source.data?.source ? null : (
+                <SourcePanel studyId={studyId} isAdmin={me.role === 'admin'} />
+              )}
+              <SurveyFieldworkTab studyId={studyId} />
             </div>
           )}
         </TabsContent>

@@ -51,6 +51,7 @@ export type IngestionHandlers = {
   readonly rename: RenameCommands
   /** Simulated Drive only (`DRIVE_FAKE`): what a person does in Drive, for end-to-end tests. */
   readonly devEdit?: DevDrive['edit']
+  readonly devRespond?: DevDrive['respond']
 }
 
 const DevEdit = z.object({
@@ -64,7 +65,8 @@ export const registerIngestionRoutes = (
   app: FastifyInstance,
   deps: { guard: preHandlerAsyncHookHandler; handlers: IngestionHandlers },
 ): void => {
-  const { commands, queries, sessions, sessionQueries, analysis, rename, devEdit } = deps.handlers
+  const { commands, queries, sessions, sessionQueries, analysis, rename, devEdit, devRespond } =
+    deps.handlers
   const api = app.withTypeProvider<ZodTypeProvider>()
   const secured = { preHandler: deps.guard }
   const tags = ['sources']
@@ -417,6 +419,26 @@ export const registerIngestionRoutes = (
       },
       async (request, res) =>
         devEdit(request.params.fileId, request.body)
+          ? res.status(204).send()
+          : sendError(res, 'NOT_FOUND'),
+    )
+
+  if (devRespond)
+    api.post(
+      '/api/dev/drive-documents/:fileId/responses',
+      {
+        ...secured,
+        schema: {
+          hide: true,
+          params: z.object({ fileId: z.string().max(200) }),
+          body: z.object({
+            id: z.string().max(64),
+            answers: z.record(z.string(), z.array(z.string())),
+          }),
+        },
+      },
+      async (request, res) =>
+        devRespond(request.params.fileId, request.body.id, request.body.answers)
           ? res.status(204).send()
           : sendError(res, 'NOT_FOUND'),
     )

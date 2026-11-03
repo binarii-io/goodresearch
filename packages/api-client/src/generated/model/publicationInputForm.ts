@@ -8,6 +8,14 @@
 export type PublicationInputForm = {
   /** @nullable */
   linkedSheetLink: string | null;
+  /** @nullable */
+  responderLink: string | null;
+  /** @nullable */
+  openedBy: string | null;
+  openedAt: string | null;
+  /** @nullable */
+  closedBy: string | null;
+  closedAt: string | null;
   acceptingResponses: boolean;
   collectsIdentity: boolean;
 } | null;

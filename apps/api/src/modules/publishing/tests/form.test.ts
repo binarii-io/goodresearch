@@ -4,6 +4,7 @@ import {
   type FormBlock,
   type FormReadBlock,
   formItems,
+  impactOfUpdate,
   mapFromRead,
   planFormUpdate,
   type QuestionnaireContent,
@@ -354,5 +355,60 @@ describe('applyToQuestionnaire', () => {
       new Map([['order:section:s1', { type: 'order', ids: ['c', 'a'] }]]),
     )
     expect(next.sections[0]?.items.map((i) => i.id)).toEqual(['c', 'a'])
+  })
+})
+
+describe('impactOfUpdate', () => {
+  const before = questionnaire([likert('a'), likert('b'), open('c'), choice('d')])
+  const base = questionnaireItems(before)
+  const impact = (next: QuestionnaireContent) => impactOfUpdate(base, questionnaireItems(next))
+
+  it('sees nothing when nothing changed', () => {
+    expect(impact(before)).toEqual({ breaking: [], reworded: [] })
+  })
+
+  it('lets an addition through, even inside a grid', () => {
+    expect(
+      impact(questionnaire([likert('a'), likert('b'), likert('n'), open('c'), choice('d')])),
+    ).toEqual({ breaking: [], reworded: [] })
+  })
+
+  it('tells a rewording', () => {
+    expect(
+      impact(questionnaire([likert('a', 'New'), likert('b'), open('c'), choice('d')])),
+    ).toEqual({ breaking: [], reworded: ['a'] })
+  })
+
+  it('breaks on an item removed', () => {
+    expect(impact(questionnaire([likert('a'), likert('b'), open('c')])).breaking).toEqual(['d'])
+  })
+
+  it('breaks on a change of kind, scale or options', () => {
+    expect(
+      impact(
+        questionnaire([likert('a'), likert('b', 'Scale b', { points: 5 }), open('c'), choice('d')]),
+      ).breaking,
+    ).toContain('b')
+    expect(
+      impact(
+        questionnaire([
+          likert('a'),
+          likert('b'),
+          open('c'),
+          { ...choice('d'), options: ['A', 'Z'] },
+        ]),
+      ).breaking,
+    ).toEqual(['d'])
+  })
+
+  it('breaks when a scale leaves its grid, or the shuffle setting undoes the grid', () => {
+    expect(
+      impact(questionnaire([likert('a'), open('c'), likert('b'), choice('d')])).breaking.sort(),
+    ).toEqual(['a', 'b'])
+    expect(
+      impact(
+        questionnaire([likert('a'), likert('b'), open('c'), choice('d')], false),
+      ).breaking.sort(),
+    ).toEqual(['a', 'b'])
   })
 })

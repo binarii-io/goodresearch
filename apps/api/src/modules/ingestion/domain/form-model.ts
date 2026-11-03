@@ -53,8 +53,16 @@ export type FormRead = {
   readonly blocks: readonly FormReadBlock[]
   readonly revision: string
   readonly linkedSheetLink: string | null
+  readonly responderLink: string | null
   readonly acceptingResponses: boolean
   readonly collectsIdentity: boolean
+}
+
+/** A response as the service gives it, keyed by question; never who answered (spec 028). */
+export type FormResponse = {
+  readonly id: string
+  readonly submittedAt: string
+  readonly answers: Readonly<Record<string, readonly string[]>>
 }
 
 /** The form service is not enabled for the deployer's account (spec 027 research R6). */

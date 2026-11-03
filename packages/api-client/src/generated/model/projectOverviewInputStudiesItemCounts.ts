@@ -4,6 +4,7 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
+import type { ProjectOverviewInputStudiesItemCountsResponses } from './projectOverviewInputStudiesItemCountsResponses.ts';
 
 export type ProjectOverviewInputStudiesItemCounts = {
   /**
@@ -31,4 +32,5 @@ export type ProjectOverviewInputStudiesItemCounts = {
      * @maximum 9007199254740991
      */
   factsToDecide: number;
+  responses: ProjectOverviewInputStudiesItemCountsResponses;
 } | null;

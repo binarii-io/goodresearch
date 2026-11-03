@@ -274,3 +274,170 @@ describe('publishing a questionnaire (spec 027 US5)', () => {
     expect([...world.store.rows.values()]).toEqual([])
   })
 })
+
+describe('opening and closing (spec 028 US1)', () => {
+  const open = (value = true) =>
+    world.commands.setOpen({ actor: ada, publicationId: stored().id, open: value })
+
+  it('opens a form in sync, with who and when, then closes it', async () => {
+    await publish()
+    expect((await open()).ok).toBe(true)
+    expect(stored()).toMatchObject({ acceptingResponses: true, openedBy: 'ada' })
+    expect(world.drive.files.get(stored().fileId)?.form?.acceptingResponses).toBe(true)
+    expect((await open(false)).ok).toBe(true)
+    expect(stored()).toMatchObject({ acceptingResponses: false, closedBy: 'ada' })
+  })
+
+  it('refuses a form collecting identities', async () => {
+    await publish()
+    world.drive.editForm(stored().fileId, 'someone', (f) => ({ ...f, collectsIdentity: true }))
+    expect(await open()).toEqual({ ok: false, error: 'FORM_COLLECTS_IDENTITY' })
+    expect(world.drive.files.get(stored().fileId)?.form?.acceptingResponses).toBe(false)
+  })
+
+  it('refuses a consent that no longer ends the form', async () => {
+    await publish()
+    editBlocks((all) =>
+      all.map((b) =>
+        b.kind === 'choice' ? { ...b, options: b.options.map((o) => ({ ...o, exit: false })) } : b,
+      ),
+    )
+    expect(await open()).toEqual({ ok: false, error: 'FORM_CONSENT_BROKEN' })
+  })
+
+  it('refuses a form out of date or changed at the source', async () => {
+    await publish()
+    changeAppItem()
+    expect(await open()).toEqual({ ok: false, error: 'FORM_NOT_IN_SYNC' })
+  })
+
+  it('closes whatever the state of the form', async () => {
+    await publish()
+    changeAppItem()
+    expect((await open(false)).ok).toBe(true)
+  })
+
+  it('refuses a person who can only view the form', async () => {
+    await publish()
+    world.drive.viewers.set(stored().fileId, new Set(['ada']))
+    expect(await open()).toEqual({ ok: false, error: 'DRIVE_CANNOT_EDIT' })
+  })
+})
+
+describe('protecting the responses (spec 028 US5)', () => {
+  const update = (confirmRewording = false) =>
+    world.commands.update({
+      actor: ada,
+      publicationId: stored().id,
+      replaceDriveChanges: false,
+      confirmRewording,
+    })
+  const withItems = (change: (items: never[]) => unknown[]) => {
+    const q = world.state.questionnaire
+    if (!q) throw new Error('none')
+    world.state.questionnaire = {
+      version: q.version + 1,
+      content: {
+        ...q.content,
+        sections: q.content.sections.map((s) => ({
+          ...s,
+          items: change(s.items as never[]),
+        })) as never,
+      },
+    }
+  }
+
+  it('updates freely before any response', async () => {
+    await publish()
+    withItems((items) => items.slice(0, 1))
+    expect((await update()).ok).toBe(true)
+  })
+
+  it('refuses removing an item once responses exist, naming it, the form unchanged', async () => {
+    await publish()
+    world.state.responses = 3
+    const before = blocks().length
+    withItems((items) => items.slice(0, 1))
+    expect(await update()).toMatchObject({
+      ok: false,
+      error: 'RESPONSES_BLOCK_UPDATE',
+      detail: { items: ['Tell us more'] },
+    })
+    expect(blocks()).toHaveLength(before)
+  })
+
+  it('refuses too when the responses are only at the source, none read yet', async () => {
+    await publish()
+    world.drive.respond(stored().fileId, {
+      id: 'r',
+      submittedAt: '2026-11-02T10:00:00Z',
+      answers: {},
+    })
+    withItems((items) => items.slice(0, 1))
+    expect(await update()).toMatchObject({ ok: false, error: 'RESPONSES_BLOCK_UPDATE' })
+  })
+
+  it('keeps the former wording when accepting a rewording made in the form', async () => {
+    await publish()
+    world.state.responses = 3
+    editBlocks((all) => all.map((b) => (b.title === 'Tell us more' ? { ...b, title: 'New' } : b)))
+    await check()
+    const change = (await pending()).find((c) => c.key === 'item:b')
+    const done = await world.commands.decide({
+      actor: ada,
+      publicationId: stored().id,
+      decisions: [{ changeId: change?.id ?? '', decision: 'accept' }],
+    })
+    expect(done.ok).toBe(true)
+    expect(world.state.wordings).toEqual([{ itemId: 'b', text: 'Tell us more' }])
+  })
+
+  it('asks to confirm a rewording, then keeps the former wording and the identity', async () => {
+    await publish()
+    world.state.responses = 3
+    const before = stored().itemMap
+    changeAppItem()
+    expect(await update()).toMatchObject({
+      ok: false,
+      error: 'REWORDING_TO_CONFIRM',
+      detail: { responses: 3 },
+    })
+    expect((await update(true)).ok).toBe(true)
+    expect(world.state.wordings).toEqual([{ itemId: 'b', text: 'Tell us more' }])
+    expect(stored().itemMap).toEqual(before)
+  })
+
+  it('lets an added item through', async () => {
+    await publish()
+    world.state.responses = 3
+    withItems((items) => [
+      ...items,
+      {
+        id: 'n',
+        text: 'New',
+        measure: 'subjective',
+        required: false,
+        subTheme: null,
+        contact: false,
+        kind: 'open',
+      },
+    ])
+    expect((await update()).ok).toBe(true)
+  })
+
+  it('refuses accepting a removal made in the form, and still takes a rewording', async () => {
+    await publish()
+    world.state.responses = 3
+    editBlocks((all) => all.filter((b) => b.title !== 'Tell us more'))
+    await check()
+    const removal = (await pending()).find((c) => c.key === 'item:b')
+    expect(
+      await world.commands.decide({
+        actor: ada,
+        publicationId: stored().id,
+        decisions: [{ changeId: removal?.id ?? '', decision: 'accept' }],
+      }),
+    ).toMatchObject({ ok: false, error: 'RESPONSES_BLOCK_UPDATE' })
+    expect(world.state.questionnaire?.content.sections[0]?.items).toHaveLength(2)
+  })
+})

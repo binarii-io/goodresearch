@@ -28,8 +28,10 @@ const SURVEY_NEXT_STEPS: Record<SurveyNextStep, string> = {
   'publish-questionnaire': 'publish its questionnaire as a form in its folder',
   readiness:
     'have it reviewed by another person and pre-tested with a few naive participants, then mark these checks on the Preparation tab; this advises and blocks nothing',
-  'fieldwork-later':
-    'nothing more in the app for now: opening the form and reading its responses come in a later version',
+  'open-form': 'open the form to responses and share its link, from the Fieldwork tab',
+  collect: 'collect responses: the team shares the link, and the Fieldwork tab follows them',
+  'close-form': 'close the form: the target number of responses is reached',
+  'analysis-later': 'nothing more in the app for now: the analysis comes in a later version',
 }
 
 /** The app's own words for its tabs (bilingual glossary): the model would translate them itself. */
@@ -90,7 +92,15 @@ export type Continuation = keyof typeof CONTINUATIONS
 export type GuideStudy = { id: string; name: string; guideVersion: number | null }
 
 /** The survey study of the page, for the questionnaire tools (spec 027). */
-export type SurveyStudy = { id: string; name: string; version: number | null }
+export type SurveyStudy = {
+  id: string
+  name: string
+  version: number | null
+  /** Spec 028: its published form, and its target rule's version. */
+  publicationId: string | null
+  accepting: boolean
+  ruleVersion: number | null
+}
 
 const STATUS_LABELS: Record<string, string> = {
   'to-contact': 'to contact',
@@ -214,7 +224,9 @@ export const buildContext = async (
       lines.push(
         'The person is on a study page.',
         `Study: ${study.name} (${study.type}), Study id: ${study.id}`,
-        `Tabs (study phases): preparation, fieldwork, enrichment, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
+        study.type === 'survey'
+          ? `Tabs (study phases): preparation, fieldwork, analysis; no other tab exists on a survey study. Current tab: ${page.phase ?? 'preparation'}`
+          : `Tabs (study phases): preparation, fieldwork, enrichment, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
         `Source folder: ${
           folder && study.type === 'survey'
             ? folder.name
@@ -243,7 +255,15 @@ export const buildContext = async (
       const questionnaire =
         study.type === 'survey' ? await research.questionnaire(actor.id, study.id) : null
       if (questionnaire) {
-        surveyStudy = { id: study.id, name: study.name, version: questionnaire.version }
+        const progress = await research.surveyProgress(actor.id, study.id)
+        surveyStudy = {
+          id: study.id,
+          name: study.name,
+          version: questionnaire.version,
+          publicationId: progress?.publicationId ?? null,
+          accepting: progress?.accepting === true,
+          ruleVersion: progress?.ruleVersion ?? null,
+        }
         const has = questionnaire.content !== null
         const published = has && folder ? await research.publishedKinds(actor, study.id) : []
         lines.push(
@@ -257,6 +277,9 @@ export const buildContext = async (
                 hasFolder: folder !== null,
                 published,
                 checksDone: questionnaire.checksDone,
+                accepting: progress?.accepting === true,
+                counted: progress?.counts.counted ?? 0,
+                target: progress?.target ?? null,
               })
             ]
           }.`,

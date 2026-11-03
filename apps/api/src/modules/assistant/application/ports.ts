@@ -89,6 +89,12 @@ export type ProposalPreview = {
     studiesWithoutProject: number
   }
   readonly type?: 'survey'
+  readonly responseCounts?: ResponseCounts
+  readonly targetRule?: {
+    items: { text: string; accepted: string[] }[]
+    setAside: number
+    total: number
+  }
   readonly questionnaire?: QuestionnaireDraft
   readonly replacesQuestionnaire?: boolean
   readonly itemChecks?: ItemChecks
@@ -177,6 +183,8 @@ export interface AssistantStore {
   listConversations(accountId: string): Promise<Conversation[]>
   /** Spec 027: the answers given on a study's page in conversations that loaded a skill. */
   answersWithSkill(studyId: string, skill: string): Promise<string[]>
+  /** Spec 028: the answers on a study's page in conversations holding this kind of card. */
+  answersWithCard(studyId: string, kind: ProposalKind): Promise<string[]>
   /** Only the owner's conversation (privacy, FR-008). */
   getConversation(accountId: string, conversationId: string): Promise<Conversation | null>
   createConversation(conversation: Conversation): Promise<void>
@@ -396,6 +404,27 @@ export interface ResearchReads {
     /** The human checks marked and still valid (US6). */
     checksDone: boolean
   } | null>
+  /** Spec 028: where the fieldwork stands, as counts; `null` without access. */
+  surveyProgress(
+    accountId: string,
+    studyId: string,
+  ): Promise<{
+    publicationId: string | null
+    accepting: boolean
+    counts: ResponseCounts
+    target: number | null
+    ruleVersion: number | null
+  } | null>
+  /** Spec 028: `null` for what is not a valid rule. */
+  previewTargetRule(
+    accountId: string,
+    studyId: string,
+    accepted: Record<string, string[]>,
+  ): Promise<{
+    items: { text: string; accepted: string[] }[]
+    setAside: number
+    total: number
+  } | null>
   /** The app's writing rules, as the tab shows them (spec 027 FR-007). */
   checkQuestionnaire(draft: QuestionnaireDraft): ItemChecks
 }
@@ -499,6 +528,17 @@ export interface ResearchActions {
     name: string
     version: number
   }): Promise<{ ok: true } | { ok: false; error: string }>
+  setFormOpen(c: {
+    actor: Actor
+    publicationId: string
+    open: boolean
+  }): Promise<{ ok: true } | { ok: false; error: string }>
+  saveTargetRule(c: {
+    actor: Actor
+    studyId: string
+    accepted: Record<string, string[]>
+    version: number | null
+  }): Promise<{ ok: true } | { ok: false; error: string }>
   /** `version: null` when the study had no questionnaire when it was proposed. */
   saveQuestionnaire(c: {
     actor: Actor
@@ -513,6 +553,14 @@ export interface ResearchActions {
     guide: GuideDraft
     version: number | null
   }): Promise<{ ok: true } | { ok: false; error: string }>
+}
+
+export type ResponseCounts = {
+  total: number
+  counted: number
+  outOfTarget: number
+  profileNotAnswered: number
+  refusedConsent: number
 }
 
 export type PublishableKind = 'guide' | 'best-practices' | 'questionnaire'

@@ -96,6 +96,7 @@ export const createPublishingStore = (db: Db): PublishingStore => ({
           lastEditor: p.lastEditor,
           fileName: p.fileName,
           linkedSheetLink: p.linkedSheetLink,
+          responderLink: p.responderLink,
           acceptingResponses: p.acceptingResponses,
           collectsIdentity: p.collectsIdentity,
         })

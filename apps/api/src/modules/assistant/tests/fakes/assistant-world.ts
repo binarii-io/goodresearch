@@ -93,6 +93,21 @@ export const inMemoryAssistantStore = () => {
         )
         .map((m) => m.id)
     },
+    answersWithCard: async (studyId, kind) => {
+      const conversations = new Set(
+        [...proposalRows.values()]
+          .filter((p) => p.kind === kind)
+          .map((p) => messages.find((m) => m.id === p.messageId))
+          .filter((m) => m?.pageId === studyId)
+          .map((m) => m?.conversationId),
+      )
+      return messages
+        .filter(
+          (m) =>
+            conversations.has(m.conversationId) && m.role === 'assistant' && m.pageId === studyId,
+        )
+        .map((m) => m.id)
+    },
     listConversations: async (accountId) =>
       [...conversations.values()]
         .filter((c) => c.accountId === accountId)
@@ -176,6 +191,15 @@ export const fakeResearch = () => {
   const preparation: { guide: Awaited<ReturnType<ResearchReads['preparation']>> } = {
     guide: { guide: null, schedule: { scheduled: 2, 'to-contact': 1 } },
   }
+  const survey: { progress: Awaited<ReturnType<ResearchReads['surveyProgress']>> } = {
+    progress: {
+      publicationId: 'pub-1',
+      accepting: false,
+      counts: { total: 10, counted: 6, outOfTarget: 3, profileNotAnswered: 1, refusedConsent: 0 },
+      target: 100,
+      ruleVersion: null,
+    },
+  }
   const questionnaire: { value: Awaited<ReturnType<ResearchReads['questionnaire']>> } = {
     value: null,
   }
@@ -258,6 +282,15 @@ export const fakeResearch = () => {
     projectRunning: async () => running.value,
     questionnaire: async (accountId, id) =>
       accountId === 'ada' && id === 's1' ? questionnaire.value : null,
+    surveyProgress: async () => survey.progress,
+    previewTargetRule: async (_a, _s, accepted) =>
+      Object.keys(accepted).includes('job')
+        ? {
+            items: [{ text: 'Job', accepted: accepted.job ?? [] }],
+            setAside: 4,
+            total: 10,
+          }
+        : null,
     checkQuestionnaire: (draft) => ({
       items: draft.sections.flatMap((s) =>
         s.items.map((i) => ({
@@ -305,6 +338,8 @@ export const fakeResearch = () => {
     updateStudyGoal: async (c) => result('updateStudyGoal', c, {}),
     saveGuide: async (c) => result('saveGuide', c, {}),
     saveQuestionnaire: async (c) => result('saveQuestionnaire', c, {}),
+    setFormOpen: async (c) => result('setFormOpen', c, {}),
+    saveTargetRule: async (c) => result('saveTargetRule', c, {}),
   }
   return {
     reads,
@@ -326,6 +361,7 @@ export const fakeResearch = () => {
     study,
     preparation,
     questionnaire,
+    survey,
     actions,
     actionsLog,
     failNext: (error: string) => {

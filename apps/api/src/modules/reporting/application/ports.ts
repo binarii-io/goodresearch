@@ -1,6 +1,13 @@
 export type StatusCount = { readonly status: string; readonly count: number }
 
-export type ReportedStudy = { readonly id: string; readonly access: boolean }
+export type ReportedStudy = {
+  readonly id: string
+  readonly access: boolean
+  readonly type: 'interviews' | 'survey' | 'usability-test'
+}
+
+/** Spec 028: the responses of a survey study, as its target rule counts them. */
+export type ResponseCounts = { readonly received: number; readonly counted: number }
 
 /** What the other modules count in a study; no access check, no Drive. */
 export type StudyCounts = {
@@ -50,6 +57,8 @@ export type ReportingSources = {
   linkedStudies(accountId: string, projectId: string): Promise<readonly { otherProjects: number }[]>
   hasPublishedDeck(projectId: string): Promise<boolean>
   studyCounts(studyId: string): Promise<StudyCounts>
+  /** Spec 028: only for survey studies the person can open; null when they cannot be read. */
+  responseCounts(accountId: string, studyId: string): Promise<ResponseCounts | null>
   studyCostRefs(studyId: string): Promise<StudyCostRefs>
   insightCounts(projectId: string): Promise<readonly StatusCount[]>
   recommendationCounts(projectId: string): Promise<readonly StatusCount[]>

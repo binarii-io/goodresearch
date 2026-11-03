@@ -27,6 +27,7 @@ import {
 import { createPublishingModule, registerPublishingRoutes } from './modules/publishing/index.ts'
 import { createReportingModule, registerOverviewRoutes } from './modules/reporting/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
+import { createSurveysModule, registerSurveysRoutes } from './modules/surveys/index.ts'
 import {
   createInsightsAi,
   createSynthesisModule,
@@ -553,6 +554,12 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       return done.ok ? { ok: true as const } : done
     },
     updateStudyGoal: async (c) => outcome(await r.studies.updateStudyGoal(c)),
+    setFormOpen: async (c) => {
+      const done = await publishing.handlers.commands.setOpen(c)
+      return done.ok ? { ok: true as const } : { ok: false as const, error: String(done.error) }
+    },
+    saveTargetRule: async (c) =>
+      outcome(await bound(surveys).handlers.commands.saveRule({ ...c, origin: 'assistant' })),
     saveQuestionnaire: async (c) =>
       outcome(
         await r.questionnaires.saveQuestionnaire({
@@ -668,13 +675,37 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       questionnaire: (accountId, studyId) =>
         r.questionnaireQueries.questionnaireForAssistant(accountId, studyId),
       checkQuestionnaire: research.checkQuestionnaire,
+      surveyProgress: async (accountId, studyId) => {
+        const form = await publishing.formOfStudy(studyId)
+        const seen = await bound(surveys).handlers.queries.progress(accountId, studyId)
+        if (!seen.ok) return null
+        return {
+          publicationId: form?.id ?? null,
+          accepting: form?.accepting === true,
+          ...seen.value,
+        }
+      },
+      previewTargetRule: async (accountId, studyId, accepted) => {
+        const done = await bound(surveys).handlers.queries.previewRule(accountId, studyId, accepted)
+        return done.ok ? done.value : null
+      },
     },
   })
   const at = (iso: string | null) => (iso ? new Date(iso) : null)
+  let surveys: ReturnType<typeof createSurveysModule> | undefined
   const publishing = createPublishingModule({
     db: infra.db,
     clock,
     files: (accountId, studyId, access) => bound(ingestion).studyFiles(accountId, studyId, access),
+    // Late binding: the responses need the published form.
+    responses: {
+      count: (studyId: string, fileId: string) => bound(surveys).responseCount(studyId, fileId),
+      recordWordings: (
+        studyId: string,
+        wordings: readonly { itemId: string; text: string }[],
+        until: Date,
+      ) => bound(surveys).recordWordings(studyId, wordings, until),
+    },
     reads: {
       studyName: async (accountId, studyId) =>
         (await r.studyQueries.getStudy(accountId, studyId))?.name ?? null,
@@ -732,6 +763,23 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     },
   })
 
+  const questionnaireOf = async (accountId: string, studyId: string) => {
+    const found = await r.questionnaireQueries.getQuestionnaire(accountId, studyId)
+    if (!found.ok) return found
+    return {
+      ok: true as const,
+      value: found.value ? { content: found.value.content, version: found.value.version } : null,
+    }
+  }
+  surveys = createSurveysModule({
+    db: infra.db,
+    clock,
+    // The service refuses to list responses with a read-only grant, so reading needs the write one.
+    files: (accountId, studyId) => bound(ingestion).studyFiles(accountId, studyId, 'write'),
+    questionnaire: questionnaireOf,
+    form: publishing.formOfStudy,
+  })
+
   // Spec 017: read models across the modules, built after all of them.
   const reporting = createReportingModule({
     sources: {
@@ -746,12 +794,20 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         (await r.studyQueries.readTeamStudies(accountId, teamId, filter))?.studies.map((s) => ({
           id: s.id,
           access: studyIsOpen(s),
+          type: s.type,
         })) ?? null,
       studies: async (accountId, projectId) =>
         (await r.studyQueries.readStudies(accountId, projectId))?.map((s) => ({
           id: s.id,
           access: studyIsOpen(s),
+          type: s.type,
         })) ?? null,
+      responseCounts: async (accountId, studyId) => {
+        const progress = await bound(surveys).handlers.queries.progress(accountId, studyId)
+        return progress.ok
+          ? { received: progress.value.counts.total, counted: progress.value.counts.counted }
+          : null
+      },
       studyCounts: async (studyId) => {
         const interviews = await bound(ingestion).studyOverview(studyId)
         return {
@@ -828,6 +884,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     quality,
     synthesis,
     reporting,
+    surveys,
   }
 }
 
@@ -851,6 +908,7 @@ export const composeApp = async (
     quality,
     synthesis,
     reporting,
+    surveys,
   } = modules
   const auth = createAuth({
     config,
@@ -882,6 +940,7 @@ export const composeApp = async (
       registerAiRoutes(instance, { guard, handlers: ai.handlers })
       registerAssistantRoutes(instance, { guard, handlers: assistant.handlers })
       registerPublishingRoutes(instance, { guard, handlers: publishing.handlers })
+      registerSurveysRoutes(instance, { guard, handlers: surveys.handlers })
       registerTranscriptsRoutes(instance, { guard, handlers: transcripts.handlers })
       registerEvidenceRoutes(instance, { guard, handlers: evidence.handlers })
       registerQualityRoutes(instance, { guard, handlers: quality.handlers })

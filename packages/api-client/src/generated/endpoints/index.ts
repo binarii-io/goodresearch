@@ -15,4 +15,5 @@ export * from './quality/quality.ts';
 export * from './recommendations/recommendations.ts';
 export * from './sources/sources.ts';
 export * from './studies/studies.ts';
+export * from './surveys/surveys.ts';
 export * from './teams/teams.ts';

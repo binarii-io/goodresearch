@@ -176,6 +176,7 @@ const outcomeOf = (p: StoredProposal): string => {
     p.kind === 'find_files' ||
     p.kind === 'read_file' ||
     p.kind === 'count_interviews' ||
+    p.kind === 'count_responses' ||
     p.kind === 'list_interviews'
   )
     return p.state === 'applied'
@@ -780,6 +781,23 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           return skill === 'study-framing'
             ? `${SKILLS[skill].instructions}\n\n${await reusableStudies(deps.research, c.actor, c.page)}`
             : SKILLS[skill].instructions
+        }
+        if (name === 'count_responses') {
+          const parsed = TOOL_INPUTS.count_responses.safeParse(input)
+          const seen =
+            parsed.success && surveyStudy && parsed.data.studyId === surveyStudy.id
+              ? await deps.research.surveyProgress(c.actor.id, surveyStudy.id)
+              : null
+          if (!seen) {
+            await record(callId, 'count_responses', raw, null)
+            return 'Invalid: use the Study id of the context.'
+          }
+          await record(callId, 'count_responses', raw, { responseCounts: seen.counts })
+          return JSON.stringify({
+            ...seen.counts,
+            target: seen.target,
+            open: seen.accepting,
+          })
         }
         if (name === 'check_questionnaire_items') {
           const parsed = TOOL_INPUTS.check_questionnaire_items.safeParse(input)

@@ -13,6 +13,7 @@ import type {
   FormOperation,
   FormRead,
   FormReadBlock,
+  FormResponse,
   FormWriteBlock,
 } from '../domain/form-model.ts'
 
@@ -169,6 +170,7 @@ export class InMemoryDriveDocuments implements DriveDocuments {
       form: {
         blocks: this.#applyForm([], operations),
         linkedSheetLink: null,
+        responderLink: `https://forms.example.test/${name.length}`,
         acceptingResponses: false,
         collectsIdentity: false,
       },
@@ -197,6 +199,36 @@ export class InMemoryDriveDocuments implements DriveDocuments {
         blocks: this.#applyForm(file.form.blocks, operations),
       },
     })
+  }
+
+  /** Answered forms, by file id (spec 028). */
+  readonly formResponses = new Map<string, FormResponse[]>()
+
+  async listResponses(refreshToken: string, fileId: string, max: number) {
+    const opened = this.#open(refreshToken, fileId)
+    if (!opened?.file.form) throw new DriveCannotEdit()
+    if (this.viewers.get(fileId)?.has(opened.account)) throw new DriveCannotEdit()
+    const all = this.formResponses.get(fileId) ?? []
+    return { responses: all.slice(0, max), complete: all.length <= max }
+  }
+
+  async setAccepting(refreshToken: string, fileId: string, open: boolean) {
+    const { file } = this.#editable(refreshToken, fileId)
+    if (!file.form) throw new DriveCannotEdit()
+    file.form = { ...file.form, acceptingResponses: open }
+  }
+
+  /** Someone answers the form. */
+  respond(fileId: string, response: FormResponse): void {
+    this.formResponses.set(fileId, [...(this.formResponses.get(fileId) ?? []), response])
+  }
+
+  /** Someone deletes a response at the source. */
+  removeResponse(fileId: string, id: string): void {
+    this.formResponses.set(
+      fileId,
+      (this.formResponses.get(fileId) ?? []).filter((r) => r.id !== id),
+    )
   }
 
   /** Someone edits the form at the source. */

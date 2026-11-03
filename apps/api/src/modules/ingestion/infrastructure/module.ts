@@ -122,7 +122,7 @@ export const createIngestionModule = (deps: {
     queries: makeSourceQueries(ingestion),
     sessions,
     sessionQueries,
-    ...(devDrive ? { devEdit: devDrive.edit } : {}),
+    ...(devDrive ? { devEdit: devDrive.edit, devRespond: devDrive.respond } : {}),
   }
   const jobs: JobHandler[] = [
     {

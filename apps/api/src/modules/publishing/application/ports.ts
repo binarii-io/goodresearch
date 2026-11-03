@@ -19,6 +19,7 @@ export type FormRead = {
   readonly blocks: readonly FormReadBlock[]
   readonly revision: string
   readonly linkedSheetLink: string | null
+  readonly responderLink: string | null
   readonly acceptingResponses: boolean
   readonly collectsIdentity: boolean
 }
@@ -70,6 +71,11 @@ export type StudyFiles = {
     operations: readonly FormOperation[],
     revision: string,
   ): Promise<Result<void, FileError>>
+  setAccepting(fileId: string, open: boolean): Promise<Result<void, FileError>>
+  listResponses(
+    fileId: string,
+    max: number,
+  ): Promise<Result<{ responses: readonly unknown[]; complete: boolean }, FileError>>
   metadata(fileId: string): Promise<Result<FileMeta | null, FileError>>
 }
 
@@ -172,6 +178,11 @@ export type StoredPublication = {
   /** Spec 027, forms only: identities at the source, and what the last read found. */
   readonly itemMap: FormItemMap | null
   readonly linkedSheetLink: string | null
+  readonly responderLink: string | null
+  readonly openedBy: string | null
+  readonly openedAt: Date | null
+  readonly closedBy: string | null
+  readonly closedAt: Date | null
   readonly acceptingResponses: boolean | null
   readonly collectsIdentity: boolean | null
 }
@@ -229,6 +240,15 @@ export type PublishingDeps = {
   readonly files: FilesPort
   readonly reads: PreparationReads
   readonly actions: PreparationActions
+  /** Spec 028: what was collected through a form, so that nothing detaches it. */
+  readonly responses: {
+    count(studyId: string, fileId: string): Promise<number>
+    recordWordings(
+      studyId: string,
+      wordings: readonly { itemId: string; text: string }[],
+      until: Date,
+    ): Promise<void>
+  }
   readonly clock: { now(): Date }
   readonly newId: () => string
 }

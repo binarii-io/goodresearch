@@ -16,6 +16,8 @@ import type { ProposalPreviewLinesItem } from './proposalPreviewLinesItem.ts';
 import type { ProposalPreviewOpensOn } from './proposalPreviewOpensOn.ts';
 import type { ProposalPreviewPhase } from './proposalPreviewPhase.ts';
 import type { ProposalPreviewQuestionnaire } from './proposalPreviewQuestionnaire.ts';
+import type { ProposalPreviewResponseCounts } from './proposalPreviewResponseCounts.ts';
+import type { ProposalPreviewTargetRule } from './proposalPreviewTargetRule.ts';
 
 export interface ProposalPreview {
   projectName?: string;
@@ -54,6 +56,8 @@ export interface ProposalPreview {
   otherProjects?: string[];
   guide?: ProposalPreviewGuide;
   replacesGuide?: boolean;
+  responseCounts?: ProposalPreviewResponseCounts;
+  targetRule?: ProposalPreviewTargetRule;
   type?: 'survey';
   questionnaire?: ProposalPreviewQuestionnaire;
   replacesQuestionnaire?: boolean;

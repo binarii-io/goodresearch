@@ -43,6 +43,11 @@ export const publishingDocuments = pgTable(
     /** Spec 027, forms only: app ids to ids at the source; what the last check read. */
     itemMap: jsonb('item_map'),
     linkedSheetLink: text('linked_sheet_link'),
+    responderLink: text('responder_link'),
+    openedBy: text('opened_by'),
+    openedAt: timestamp('opened_at', { withTimezone: true }),
+    closedBy: text('closed_by'),
+    closedAt: timestamp('closed_at', { withTimezone: true }),
     acceptingResponses: boolean('accepting_responses'),
     collectsIdentity: boolean('collects_identity'),
   },

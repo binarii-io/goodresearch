@@ -11,7 +11,12 @@ import {
   type TableRead,
 } from '../domain/drive-documents.ts'
 import { DriveConnectionLost, type DriveItem } from '../domain/drive-gateway.ts'
-import { type FormOperation, type FormRead, FormServiceDisabled } from '../domain/form-model.ts'
+import {
+  type FormOperation,
+  type FormRead,
+  type FormResponse,
+  FormServiceDisabled,
+} from '../domain/form-model.ts'
 import { resolveStudyAccess } from './access.ts'
 import { readRefreshToken } from './connection.ts'
 import type { IngestionDeps } from './ports.ts'
@@ -65,6 +70,11 @@ export type StudyFiles = {
     operations: readonly FormOperation[],
     revision: string,
   ): Promise<Result<void, FormFileError>>
+  listResponses(
+    fileId: string,
+    max: number,
+  ): Promise<Result<{ responses: FormResponse[]; complete: boolean }, FormFileError>>
+  setAccepting(fileId: string, open: boolean): Promise<Result<void, FormFileError>>
   metadata(fileId: string): Promise<Result<FileMeta | null, FileError>>
   renameFile(fileId: string, name: string): Promise<Result<FileMeta | null, FileError>>
   /** Spec 024: reading and moving, for the assistant's work in the folder. */
@@ -149,6 +159,8 @@ export const makeStudyFiles =
       readForm: (fileId) => runForm(() => documents.readForm(token, fileId)),
       updateForm: (fileId, operations, revision) =>
         runForm(() => documents.updateForm(token, fileId, operations, revision)),
+      listResponses: (fileId, max) => runForm(() => documents.listResponses(token, fileId, max)),
+      setAccepting: (fileId, open) => runForm(() => documents.setAccepting(token, fileId, open)),
       metadata: (fileId) => run(() => documents.metadata(token, fileId)),
       renameFile: (fileId, name) => run(() => documents.renameFile(token, fileId, name)),
       item: (id) => run(() => gateway.getItem(token, id)),

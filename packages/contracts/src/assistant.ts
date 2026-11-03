@@ -32,6 +32,10 @@ export const ProposalKind = z.enum([
   'propose_questionnaire',
   'report_questionnaire_progress',
   'check_questionnaire_items',
+  'count_responses',
+  'propose_opening_form',
+  'propose_closing_form',
+  'propose_target_rule',
   'attach_study',
   'detach_study',
   'update_study_goal',
@@ -171,6 +175,24 @@ export const ProposalPreview = z
     guide: GuideDraft.optional(),
     /** Whether the proposed guide replaces an existing one. */
     replacesGuide: z.boolean().optional(),
+    /** Spec 028: counts of a form's responses, never an answer. */
+    responseCounts: z
+      .object({
+        total: z.number().int(),
+        counted: z.number().int(),
+        outOfTarget: z.number().int(),
+        profileNotAnswered: z.number().int(),
+        refusedConsent: z.number().int(),
+      })
+      .optional(),
+    /** Spec 028: a proposed target rule, and what it would set aside. */
+    targetRule: z
+      .object({
+        items: z.array(z.object({ text: z.string(), accepted: z.array(z.string()) })),
+        setAside: z.number().int(),
+        total: z.number().int(),
+      })
+      .optional(),
     /** A study created through the assistant: only said for a survey (spec 027). */
     type: z.literal('survey').optional(),
     /** A proposed questionnaire (spec 027), and what the app's rules say of it. */
