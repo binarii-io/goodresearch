@@ -4,6 +4,8 @@ import type { CheckedTerm } from '../domain/answer-check.ts'
 import type { Interview } from '../domain/candidates.ts'
 import {
   absorb,
+  attachTo,
+  closeToAccepted,
   countedSpellings,
   decideTerm,
   defaultScope,
@@ -11,6 +13,7 @@ import {
   mergeTerms,
   proposeTerm,
   spellingsOf,
+  targetOf,
   toDecide,
 } from '../domain/lexicon-term.ts'
 import { ANCHORS_KEPT, countOccurrences, occurrenceAt } from '../domain/occurrences.ts'
@@ -150,7 +153,7 @@ describe('mergeTerms', () => {
 })
 
 describe('absorb (a new reading)', () => {
-  it('only adds proposed variants to a decided term, never a rejected one again', () => {
+  it('adds new spellings to a decided term, never a rejected one again', () => {
     const accepted = value(
       decideTerm(
         term(),
@@ -170,17 +173,98 @@ describe('absorb (a new reading)', () => {
     ) as LexiconTerm
     expect(next.definition).toBe('The research app.')
     expect(next.category).toBe('product')
+    // A spelling close to one already accepted is corrected at once; a distant one waits.
     expect(next.variants.map((v) => [v.spelling, v.status])).toEqual([
       ['Gooresearch', 'accepted'],
       ['good research', 'rejected'],
-      ['Goodreserch', 'proposed'],
+      ['Goodreserch', 'accepted'],
     ])
-    expect(toDecide(next)).toBe(true)
+    expect(toDecide(next)).toBe(false)
     expect(absorb(next, checked({ variants: ['Goodreserch'] }), LATER)).toBeNull()
+    const distant = absorb(next, checked({ variants: ['GR tool'] }), LATER) as LexiconTerm
+    expect(distant.variants.at(-1)).toMatchObject({ spelling: 'GR tool', status: 'proposed' })
+    expect(toDecide(distant)).toBe(true)
   })
 
   it('refreshes a term still proposed', () => {
     expect(absorb(term(), checked({ definition: 'New' }), LATER)?.definition).toBe('New')
+  })
+})
+
+describe('a term already validated comes back in a new interview', () => {
+  const kpi = () =>
+    value(
+      decideTerm(
+        term({ form: 'Kapi', kind: 'suspect', correction: 'KPI', variants: [] }),
+        { decision: 'accept' },
+        'p1',
+        LATER,
+      ),
+    )
+
+  it('knows what a term stands for and which spellings are close', () => {
+    expect(targetOf(kpi())).toBe('KPI')
+    expect(targetOf(term())).toBe('Goodresearch')
+    expect(closeToAccepted('Kapy', ['Kapi'])).toBe(true)
+    expect(closeToAccepted('Goodreserch', ['Goodresearch'])).toBe(true)
+    expect(closeToAccepted("l'boarding", ['onboarding'])).toBe(true)
+    // Short spellings are often other acronyms: a person decides them.
+    expect(closeToAccepted('API', ['KPI'])).toBe(false)
+    expect(closeToAccepted('Pyth', ['Python'])).toBe(false)
+    expect(closeToAccepted('datastore', ['Datasphere'])).toBe(false)
+    expect(closeToAccepted('cheat', ['sheet'])).toBe(false)
+  })
+
+  it('takes a new spelling of the same word: close, corrected at once; distant, to decide', () => {
+    const next = absorb(
+      kpi(),
+      checked({ form: 'Kapy', kind: 'suspect', correction: 'KPI', variants: ['KPI', 'CPI'] }),
+      LATER,
+    ) as LexiconTerm
+    // The word it stands for is never one of its spellings.
+    expect(next.variants.map((v) => [v.spelling, v.status, v.auto])).toEqual([
+      ['Kapy', 'accepted', true],
+      ['CPI', 'proposed', undefined],
+    ])
+    expect(next.status).toBe('accepted')
+  })
+
+  it('measures closeness only against what a person accepted, never a person name', () => {
+    const onboarding = value(
+      decideTerm(term({ form: 'onboarding', variants: [] }), { decision: 'accept' }, 'p1', LATER),
+    )
+    const once = absorb(
+      onboarding,
+      checked({ form: 'boarding', variants: [] }),
+      LATER,
+    ) as LexiconTerm
+    expect(once.variants.at(-1)).toMatchObject({ spelling: 'boarding', status: 'accepted' })
+    const twice = absorb(once, checked({ form: 'hoarding', variants: [] }), LATER) as LexiconTerm
+    expect(twice.variants.at(-1)).toMatchObject({ spelling: 'hoarding', status: 'proposed' })
+    const person = value(
+      decideTerm(
+        term({ form: 'Annabel', category: 'person', variants: [] }),
+        { decision: 'accept' },
+        'p1',
+        LATER,
+      ),
+    )
+    const named = absorb(person, checked({ form: 'Anabel', variants: [] }), LATER) as LexiconTerm
+    expect(named.variants.at(-1)).toMatchObject({ spelling: 'Anabel', status: 'proposed' })
+  })
+
+  it('attaches a term still proposed that stands for a validated word, then gives it away', () => {
+    const old = term(
+      { form: 'Kapy', kind: 'suspect', correction: 'KPI', variants: ['key metric'] },
+      't2',
+    )
+    const { from, into } = attachTo(old, kpi(), LATER)
+    expect(from).toMatchObject({ status: 'merged', mergedInto: 't1', decidedBy: null })
+    expect(into.variants.map((v) => [v.spelling, v.status])).toEqual([
+      ['Kapy', 'accepted'],
+      ['key metric', 'proposed'],
+    ])
+    expect(into.version).toBe(kpi().version + 1)
   })
 })
 

@@ -36,12 +36,14 @@ import {
 } from '../../domain/lexicon-run.ts'
 import {
   absorb,
+  attachTo,
   decideTerm,
   type LexiconTerm,
   mergeTerms,
   proposeTerm,
   spellingsOf,
   type TermDecision,
+  targetOf,
 } from '../../domain/lexicon-term.ts'
 import { countOccurrences, occurrenceAt, type Verdict } from '../../domain/occurrences.ts'
 import { keepIds, parseSegments, type Segment } from '../../domain/segments.ts'
@@ -82,6 +84,10 @@ export type DecideError =
   | 'MERGE_ITSELF'
   | 'LANGUAGE_DIFFERS'
   | 'INVALID_TRANSITION'
+
+/** A term a person validated, as a new reading finds it again (not a person's name). */
+const validated = (t: LexiconTerm) =>
+  (t.status === 'accepted' || t.status === 'edited') && t.category !== 'person'
 
 const interviewsOf = (transcripts: readonly Transcript[]): Interview[] =>
   transcripts.map((t) => ({ sessionId: t.sessionId, language: t.language, segments: t.segments }))
@@ -314,11 +320,17 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
       const keys = [proposal.form, proposal.existingForm, ...proposal.variants]
         .filter((k): k is string => k !== null)
         .map(fold)
+      // A term holding one of its spellings (decided, rejected or not) keeps it; otherwise a new
+      // spelling of a validated term's word joins that term, never a new one.
+      const target = fold(targetOf(proposal))
       const existing =
         terms.find((t) => fold(t.form) === fold(proposal.existingForm ?? proposal.form)) ??
         terms.find((t) =>
           [t.form, ...t.variants.map((v) => v.spelling)].some((s) => keys.includes(fold(s))),
-        )
+        ) ??
+        (proposal.category === 'person'
+          ? undefined
+          : terms.find((t) => validated(t) && fold(targetOf(t)) === target))
       if (existing) {
         const next = absorb(existing, proposal, now())
         if (!next || (await deps.store.saveTerm(next, existing.version)) === 'ok') return
@@ -333,6 +345,33 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
       if ((await deps.store.insertTerm(term)) === 'ok') return
     }
     deps.log.warn({ runId: run.id }, 'lexicon proposal not written: changed meanwhile')
+  }
+
+  /**
+   * Terms still proposed that stand for a validated term's word join it (spellings close to an
+   * accepted one accepted, the others to decide), so the lexicon no longer offers them again.
+   */
+  const settle = async (teamId: string) => {
+    const terms = await deps.store.teamTerms(teamId)
+    const validatedOf = new Map<string, LexiconTerm>()
+    for (const t of terms)
+      if (validated(t)) validatedOf.set(`${t.language}|${fold(targetOf(t))}`, t)
+    for (const from of terms) {
+      if (from.status !== 'proposed' || from.category === 'person') continue
+      const into = validatedOf.get(`${from.language}|${fold(targetOf(from))}`)
+      if (!into) continue
+      // Against the versions read; a term changed meanwhile is left for the next reading.
+      const joined = attachTo(from, into, now())
+      try {
+        if (
+          (await deps.store.saveMerge(joined.from, from.version, joined.into, into.version)) ===
+          'ok'
+        )
+          validatedOf.set(`${into.language}|${fold(targetOf(into))}`, joined.into)
+      } catch (error) {
+        deps.log.warn({ error: String(error), termId: from.id }, 'lexicon term not settled')
+      }
+    }
   }
 
   /** Recounts the occurrences of the team's terms in every imported transcript of the study. */
@@ -493,8 +532,10 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
       }
     }
 
-    // 4. Occurrences of the team's terms in the study, recounted by the app.
+    // 4. Proposed terms that stand for a validated word join it; then the occurrences of the
+    // team's terms in the study, recounted by the app.
     await save({ ...(run as LexiconRun), phase: 'counting', failure })
+    await settle(run.teamId)
     await recount(run.studyId, run.teamId, run.startedBy)
     // Read only when the whole reading went through: otherwise "Find terms" offers them again.
     if (!failure)

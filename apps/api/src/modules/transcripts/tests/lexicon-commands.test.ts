@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { makeLexiconCommands } from '../application/commands/lexicon-commands.ts'
 import type { SourceSession } from '../application/ports.ts'
+import { proposeTerm } from '../domain/lexicon-term.ts'
 import { fakeAi, fakeSources, testDeps } from './fakes/in-memory-transcripts.ts'
 
 const ACTOR = { id: 'p1', role: 'member' as const }
@@ -181,7 +182,7 @@ describe('runJob', () => {
         for (const e of c.excerpts) expect(e.length).toBeLessThanOrEqual(200)
   })
 
-  it('never changes a decision and never proposes a rejected term again', async () => {
+  it('never changes a decision, never proposes a rejected term again, and takes close spellings', async () => {
     const s = setup()
     await readAll(s)
     const byForm = (form: string) => [...s.memory.terms.values()].find((t) => t.form === form)
@@ -198,14 +199,58 @@ describe('runJob', () => {
     expect(after?.variants.map((v) => [v.spelling, v.status])).toEqual(
       expect.arrayContaining([
         ['Gooresearch', 'accepted'],
-        ['Goodreserch', 'proposed'],
-        ['good research', 'proposed'],
+        // Close to the accepted form: corrected at once, nothing comes back to decide.
+        ['Goodreserch', 'accepted'],
+        ['good research', 'accepted'],
       ]),
     )
     expect(after?.variants).toHaveLength(3)
     expect(byForm('Hmm')?.status).toBe('rejected')
     expect(s.ai.batches.at(-1)?.candidates.map((c) => c.spelling)).not.toContain('Hmm')
     expect(s.ai.batches.at(-1)?.knownForms).toEqual(['Goodresearch'])
+  })
+
+  it('joins a new spelling of a validated word to its term, and old proposals with it', async () => {
+    const suspect = (form: string, correction: string, quote: string) => ({
+      form,
+      kind: 'suspect' as const,
+      correction,
+      category: 'acronym' as const,
+      definition: null,
+      variants: [form],
+      existingTerm: null,
+      quote,
+    })
+    const ai = fakeAi({
+      answer: (batch) =>
+        batch.candidates.flatMap((c) =>
+          c.spelling === 'Kapo' || c.spelling === 'Databaze'
+            ? [suspect(c.spelling, 'KPI', c.excerpts[0] ?? '')]
+            : [],
+        ),
+    })
+    const s = setup([session('a', 'Lee: So?\nSam Example: The Kapo and the Databaze moved.')], ai)
+    // Before: "Kapi" validated (KPI), "Kapy" still proposed for the same word.
+    const make = (id: string, form: string) =>
+      proposeTerm(
+        { ...suspect(form, 'KPI', ''), variants: [], existingForm: null },
+        { id, teamId: 'team-1', language: 'en', now: new Date('2026-10-20T10:00:00Z') },
+      )
+    s.memory.terms.set('kapi', { ...make('kapi', 'Kapi'), status: 'accepted' })
+    s.memory.terms.set('kapy', make('kapy', 'Kapy'))
+
+    await readAll(s)
+    const terms = [...s.memory.terms.values()]
+    // No new term for KPI: everything joined the validated one.
+    expect(terms.filter((t) => t.status === 'proposed' && t.correction === 'KPI')).toEqual([])
+    expect(s.memory.terms.get('kapy')).toMatchObject({ status: 'merged', mergedInto: 'kapi' })
+    expect(s.memory.terms.get('kapi')?.variants.map((v) => [v.spelling, v.status])).toEqual(
+      expect.arrayContaining([
+        ['Kapo', 'accepted'],
+        ['Kapy', 'accepted'],
+        ['Databaze', 'proposed'],
+      ]),
+    )
   })
 
   it('keeps the others when one interview cannot be read', async () => {

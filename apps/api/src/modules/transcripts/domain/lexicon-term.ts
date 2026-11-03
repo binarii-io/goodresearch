@@ -1,6 +1,6 @@
 import { err, fold, ok, type Result } from '@goodresearch/shared'
 import type { CheckedTerm, TermCategory, TermKind } from './answer-check.ts'
-import type { KnownSpelling, TermLanguage } from './candidates.ts'
+import { editDistance, type KnownSpelling, type TermLanguage } from './candidates.ts'
 
 export type TermStatus = 'proposed' | 'accepted' | 'edited' | 'rejected' | 'merged'
 /**
@@ -14,6 +14,8 @@ export type Variant = {
   readonly spelling: string
   readonly status: VariantStatus
   readonly origin: 'rules' | 'ai' | 'merge'
+  /** Accepted by the app as close to a person's spelling, not by a person: never a reference. */
+  readonly auto?: boolean | undefined
 }
 
 /** A term of a team's lexicon (context map LexiconTerm); one decision changes one term. */
@@ -90,22 +92,73 @@ const touched = (t: LexiconTerm, now: Date): LexiconTerm => ({
   updatedAt: now,
 })
 
-/** Adds spellings the term does not hold yet (form or variant), up to the limit. */
+/** What a term stands for: the correction of a suspect term, the form of the others. */
+export const targetOf = (t: Pick<LexiconTerm, 'form' | 'kind' | 'correction'>): string =>
+  t.kind === 'suspect' && t.correction ? t.correction : t.form
+
+/** Letters and digits only, folded: "l'boarding" and "lboarding" are one spelling. */
+const squash = (s: string) => fold(s).replace(/[^\p{L}\p{N}]/gu, '')
+
+/**
+ * A spelling a reading finds is close to one a person accepted when it has 4 letters or more and
+ * one letter differs (two from 6 letters): a slip of the transcription, corrected without asking.
+ * Shorter spellings (often other acronyms) and distant ones may be another word: a person decides.
+ */
+export const closeToAccepted = (spelling: string, accepted: readonly string[]): boolean => {
+  const s = squash(spelling)
+  if (s.length < 4) return false
+  const max = s.length >= 6 ? 2 : 1
+  return accepted.some((a) => {
+    const k = squash(a)
+    return k.length > 0 && editDistance(s, k, max) <= max
+  })
+}
+
+/** The spellings a person accepted for a term: its form, its correction, the variants they accepted. */
+const acceptedSpellings = (t: LexiconTerm): string[] => [
+  t.form,
+  ...(t.correction ? [t.correction] : []),
+  ...t.variants.filter((v) => v.status === 'accepted' && !v.auto).map((v) => v.spelling),
+]
+
+/** Adds spellings the term does not hold yet (form, word it stands for, variant), up to the limit. */
 const withVariants = (
   term: LexiconTerm,
   spellings: readonly string[],
-  status: VariantStatus,
+  status: VariantStatus | ((spelling: string) => Pick<Variant, 'status' | 'auto'>),
   origin: Variant['origin'],
 ): Variant[] => {
-  const held = new Set([fold(term.form), ...term.variants.map((v) => fold(v.spelling))])
+  const held = new Set([
+    fold(term.form),
+    fold(targetOf(term)),
+    ...term.variants.map((v) => fold(v.spelling)),
+  ])
   const out = [...term.variants]
   for (const spelling of spellings) {
     if (out.length >= VARIANT_LIMIT || held.has(fold(spelling))) continue
     held.add(fold(spelling))
-    out.push({ spelling, status, origin })
+    out.push({
+      spelling,
+      origin,
+      ...(typeof status === 'function' ? status(spelling) : { status }),
+    })
   }
   return out
 }
+
+/**
+ * On a term a person decided, a spelling close to one they accepted is accepted at once (marked
+ * `auto`), a distant one proposed. A person's name is never corrected without a person.
+ */
+const statusFor =
+  (term: LexiconTerm) =>
+  (spelling: string): Pick<Variant, 'status' | 'auto'> =>
+    isDecided(term) &&
+    term.status !== 'rejected' &&
+    term.category !== 'person' &&
+    closeToAccepted(spelling, acceptedSpellings(term))
+      ? { status: 'accepted', auto: true }
+      : { status: 'proposed' }
 
 /** A new term from a checked AI proposal: proposed, its other spellings as proposed variants. */
 export const proposeTerm = (
@@ -138,13 +191,15 @@ export const proposeTerm = (
 }
 
 /**
- * Research R7: a new reading only adds proposed variants to a term; a term still proposed may take
- * the new kind, category, definition and quote. Null when nothing changes. A rejected spelling is
+ * Research R7: a new reading only adds spellings to a term (the proposal's form too, when it stands
+ * for the same word); a term still proposed may take the new kind, category, definition and quote.
+ * On a term a person validated, a spelling close to an accepted one is accepted at once (Cleaning
+ * corrects it), a distant one waits for a person. Null when nothing changes. A rejected spelling is
  * held, so it never comes back.
  */
 export const absorb = (term: LexiconTerm, checked: CheckedTerm, now: Date): LexiconTerm | null => {
   if (term.status === 'merged') return null
-  const variants = withVariants(term, checked.variants, 'proposed', 'ai')
+  const variants = withVariants(term, [checked.form, ...checked.variants], statusFor(term), 'ai')
   const refresh = !isDecided(term)
   const next: LexiconTerm = {
     ...term,
@@ -292,6 +347,34 @@ export const mergeTerms = (
       now,
     ),
   })
+}
+
+/**
+ * A term still proposed that stands for the same word as a validated one joins it: its spellings
+ * become the validated term's (close ones accepted, distant ones proposed, rejected ones kept
+ * rejected) and it is merged into it, by the app (no person decided it).
+ */
+export const attachTo = (
+  from: LexiconTerm,
+  into: LexiconTerm,
+  now: Date,
+): { from: LexiconTerm; into: LexiconTerm } => {
+  const close = statusFor(into)
+  let variants = [...into.variants]
+  for (const [spelling, rejected] of [
+    [from.form, false] as const,
+    ...from.variants.map((v) => [v.spelling, v.status === 'rejected'] as const),
+  ])
+    variants = withVariants(
+      { ...into, variants },
+      [spelling],
+      rejected ? 'rejected' : close,
+      'merge',
+    )
+  return {
+    from: touched({ ...from, status: 'merged', mergedInto: into.id }, now),
+    into: touched({ ...into, variants }, now),
+  }
 }
 
 /** The spellings of a term for the rules (research R4): merged terms gave theirs away. */

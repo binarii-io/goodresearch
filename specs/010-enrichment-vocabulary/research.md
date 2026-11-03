@@ -90,6 +90,16 @@ Pure domain functions over the segments of the study's validated interviews:
     - a term rejected, or a variant rejected, is matched first and never comes back.
 - **Uniqueness**: one term per `(team, language, folded form)`. An AI proposal whose form is an existing term's becomes new variants of that term.
 
+### Update: a validated term found again (fix/lexicon-validated-terms)
+
+- **Problem**: a word already validated came back to decide at each reading under a new spelling. After a suspect term "Teh → The" was accepted, "Thhe" or "Tje" came back as new suspect terms for the same word.
+- **Decision**: a proposal that stands for the same word as a validated term (the correction of a suspect term, the form of the others; not a person's name) joins that term instead of becoming a new one. A spelling already held by a term (decided, rejected or not) stays with that term. The new spellings are added as variants:
+  - a spelling **close** to one a person accepted (the form, the correction, a variant a person accepted) is accepted at once, marked `auto`, so Cleaning corrects it without asking. Close means 4 letters or more and one letter apart, or two from 6 letters, counting letters and digits only and ignoring case and accents. A spelling accepted by the app is never a reference for the next ones, so corrections do not drift;
+  - a **short** spelling (3 letters or less, often another acronym), a **distant** one (the AI may link a different word), or any spelling of a person's name is a variant to decide on the existing term, never a new term.
+- **Settle**: at the end of each reading, the terms still proposed that stand for a validated word are merged into it by the app (`decidedBy` stays empty), with the same rule, from one read of the lexicon; a term changed meanwhile is left for the next reading. A lexicon that already holds such duplicates is tidied at its next reading.
+- **Rejected**: correcting every linked spelling at once (a wrong link would rewrite transcripts); keeping them as new terms (the problem); merging only when a term is decided (proposals made before the decision would stay).
+- **Scope**: interview transcripts only. Survey open answers are typed by respondents and never corrected.
+
 ## R8 — Runs, costs, consent (FR-014–FR-016)
 
 - **Decision**: a pg-boss queue `transcripts.lexicon`, policy `exclusive` keyed by study. The run row `transcripts_lexicon_runs` holds:

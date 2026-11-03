@@ -181,7 +181,12 @@ export const fakeSources = (input: {
  * before it, quotes its first excerpt, and records every batch sent.
  */
 export const fakeAi = (
-  options: { provider?: string | null; fail?: 'unavailable' | 'failed' } = {},
+  options: {
+    provider?: string | null
+    fail?: 'unavailable' | 'failed'
+    /** What the AI answers instead, from the batch (a test writes it). */
+    answer?: (batch: Batch) => AnswerTerm[]
+  } = {},
 ) => {
   const batches: Batch[] = []
   const refs: string[] = []
@@ -191,6 +196,7 @@ export const fakeAi = (
       refs.push(ref)
       if (options.fail === 'unavailable') throw new AiUnavailable()
       if (options.fail === 'failed') throw new AiFailed(false)
+      if (options.answer) return options.answer(batch)
       const out: AnswerTerm[] = []
       for (const c of batch.candidates) {
         const known = batch.knownForms.find((f) => isClose(fold(f), fold(c.spelling)))
