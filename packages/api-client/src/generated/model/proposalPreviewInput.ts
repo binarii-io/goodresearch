@@ -13,10 +13,12 @@ import type { ProposalPreviewInputGuide } from './proposalPreviewInputGuide.ts';
 import type { ProposalPreviewInputInterviewLinesItem } from './proposalPreviewInputInterviewLinesItem.ts';
 import type { ProposalPreviewInputItemChecks } from './proposalPreviewInputItemChecks.ts';
 import type { ProposalPreviewInputLinesItem } from './proposalPreviewInputLinesItem.ts';
+import type { ProposalPreviewInputOpenItem } from './proposalPreviewInputOpenItem.ts';
 import type { ProposalPreviewInputOpensOn } from './proposalPreviewInputOpensOn.ts';
 import type { ProposalPreviewInputPhase } from './proposalPreviewInputPhase.ts';
 import type { ProposalPreviewInputQuestionnaire } from './proposalPreviewInputQuestionnaire.ts';
 import type { ProposalPreviewInputResponseCounts } from './proposalPreviewInputResponseCounts.ts';
+import type { ProposalPreviewInputSurveyFactsItem } from './proposalPreviewInputSurveyFactsItem.ts';
 import type { ProposalPreviewInputTargetRule } from './proposalPreviewInputTargetRule.ts';
 
 export interface ProposalPreviewInput {
@@ -58,6 +60,8 @@ export interface ProposalPreviewInput {
   replacesGuide?: boolean;
   responseCounts?: ProposalPreviewInputResponseCounts;
   targetRule?: ProposalPreviewInputTargetRule;
+  surveyFacts?: ProposalPreviewInputSurveyFactsItem[];
+  openItem?: ProposalPreviewInputOpenItem;
   type?: 'survey';
   questionnaire?: ProposalPreviewInputQuestionnaire;
   replacesQuestionnaire?: boolean;

@@ -66,6 +66,11 @@ msgstr "{0, plural, one {{1} of # interview imported} other {{2} of # interviews
 msgid "{0, plural, one {# excluded} other {# excluded}}"
 msgstr "{0, plural, one {# excluded} other {# excluded}}"
 
+#. placeholder {0}: found.created
+#: src/features/surveys/find-survey-facts.tsx
+msgid "{0, plural, one {# fact to decide.} other {# facts to decide.}}"
+msgstr "{0, plural, one {# fact to decide.} other {# facts to decide.}}"
+
 #. placeholder {0}: c.factsToDecide
 #: src/features/research/study-card.tsx
 msgid "{0, plural, one {# fact to decide} other {# facts to decide}}"
@@ -224,6 +229,41 @@ msgstr "{0} agreed, {1} no opinion"
 msgid "{0} AI corrections were left out by the app's checks (not found in the turn, too long, or on a name)."
 msgstr "{0} AI corrections were left out by the app's checks (not found in the turn, too long, or on a name)."
 
+#. placeholder {0}: figure.formerWording
+#: src/features/surveys/figure-card.tsx
+msgid "{0} answered a former wording."
+msgstr "{0} answered a former wording."
+
+#. placeholder {0}: th.answers
+#: src/features/surveys/open-item.tsx
+msgid "{0} answers"
+msgstr "{0} answers"
+
+#. placeholder {0}: item.answers
+#. placeholder {1}: item.themed
+#. placeholder {2}: item.themes
+#: src/features/surveys/open-item.tsx
+msgid "{0} answers · {1} in {2} themes"
+msgstr "{0} answers · {1} in {2} themes"
+
+#. placeholder {0}: answers.data.leftOut
+#: src/features/surveys/open-item.tsx
+msgid "{0} answers held nothing once masked: they are left out."
+msgstr "{0} answers held nothing once masked: they are left out."
+
+#. placeholder {0}: e.answers
+#. placeholder {1}: e.parts
+#: src/features/surveys/open-item.tsx
+msgid "{0} answers in {1} parts: about {cost} with your AI provider."
+msgstr "{0} answers in {1} parts: about {cost} with your AI provider."
+
+#. placeholder {0}: p.openItem.answers
+#. placeholder {1}: p.openItem.text
+#. placeholder {2}: p.openItem.parts
+#: src/features/assistant/proposal-card.tsx
+msgid "{0} answers to “{1}”, in {2} parts"
+msgstr "{0} answers to “{1}”, in {2} parts"
+
 #. placeholder {0}: result.applied
 #. placeholder {1}: result.rejected
 #: src/features/preparation/drive-review.tsx
@@ -268,6 +308,12 @@ msgstr "{0} facts were not accepted: they changed meanwhile, or their speaker is
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "{0} facts, {1} calls to the AI: about {cost} with your AI provider."
 msgstr "{0} facts, {1} calls to the AI: about {cost} with your AI provider."
+
+#. placeholder {0}: e.figures
+#. placeholder {1}: e.themes
+#: src/features/surveys/find-survey-facts.tsx
+msgid "{0} figures and {1} accepted themes: about {cost} with your AI provider."
+msgstr "{0} figures and {1} accepted themes: about {cost} with your AI provider."
 
 #. placeholder {0}: v.grids.length
 #: src/features/preparation/drive-review.tsx
@@ -409,10 +455,22 @@ msgstr "{0} recommendations rest only on insights still to decide: validate thei
 msgid "{0} remarks"
 msgstr "{0} remarks"
 
+#. placeholder {0}: c.respondents
+#. placeholder {0}: i.confidence.respondents
+#: src/features/synthesis/insight-card.tsx
+#: src/features/synthesis/insight-panel.tsx
+msgid "{0} respondents"
+msgstr "{0} respondents"
+
 #. placeholder {0}: reworded?.responses ?? 0
 #: src/features/preparation/drive-publishing.tsx
 msgid "{0} responses answered the former wording, which stays attached to them."
 msgstr "{0} responses answered the former wording, which stays attached to them."
+
+#. placeholder {0}: a.counts.setAside
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "{0} set aside"
+msgstr "{0} set aside"
 
 #. placeholder {0}: facts.length
 #. placeholder {1}: data.facts.length
@@ -579,6 +637,10 @@ msgstr "{sectionsOf} sections · {itemCountOf} items · about {estimated} min"
 #: src/features/research/study-card.tsx
 msgid "{setAside} set aside"
 msgstr "{setAside} set aside"
+
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "{themed} of {answers} open answers in a theme"
+msgstr "{themed} of {answers} open answers in a theme"
 
 #: src/features/synthesis/debrief-tab.tsx
 msgid "{toDecide} insights and recommendations not validated yet; each slide holding one says \"to validate\"."
@@ -839,6 +901,8 @@ msgstr "About you"
 #: src/features/analysis/fact-card.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-review.tsx
+#: src/features/surveys/open-item.tsx
+#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Accept"
@@ -886,6 +950,10 @@ msgstr "Accept the fact"
 msgid "Accept the new spellings of {0}"
 msgstr "Accept the new spellings of {0}"
 
+#: src/features/workspace/errors.ts
+msgid "Accept the theme before making a fact of it."
+msgstr "Accept the theme before making a fact of it."
+
 #. placeholder {0}: term.form
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Accept: {0}"
@@ -902,6 +970,8 @@ msgstr "Accept: {label}"
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/surveys/open-item.tsx
+#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/labels.ts
 msgid "Accepted"
@@ -922,10 +992,15 @@ msgid "Accepted corrections"
 msgstr "Accepted corrections"
 
 #: src/features/analysis/analysis-tab.tsx
+#: src/features/surveys/survey-analysis-tab.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insights-tab.tsx
 msgid "Accepted facts"
 msgstr "Accepted facts"
+
+#: src/features/surveys/survey-facts.tsx
+msgid "Accepted facts feed the project's insights, with those of interviews."
+msgstr "Accepted facts feed the project's insights, with those of interviews."
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Accepted terms"
@@ -1167,6 +1242,17 @@ msgstr "Agree to send the facts to your AI provider first."
 msgid "Agree to send the transcripts to your AI provider first."
 msgstr "Agree to send the transcripts to your AI provider first."
 
+#: src/features/surveys/figure-card.tsx
+msgid "Agreement"
+msgstr "Agreement"
+
+#. placeholder {0}: share(c.agree)
+#. placeholder {0}: share(m.percent)
+#: src/features/surveys/figure-card.tsx
+#: src/features/surveys/figure-fact-dialog.tsx
+msgid "Agreement: {0}"
+msgstr "Agreement: {0}"
+
 #: src/features/enrichment/labels.ts
 msgid "AI"
 msgstr "AI"
@@ -1174,6 +1260,11 @@ msgstr "AI"
 #: src/features/research/study-list.tsx
 msgid "AI cost of the project: {amount}"
 msgstr "AI cost of the project: {amount}"
+
+#. placeholder {0}: money(item.cost)
+#: src/features/surveys/open-item.tsx
+msgid "AI cost: {0}"
+msgstr "AI cost: {0}"
 
 #: src/features/research/study-card.tsx
 msgid "AI cost: {amount}"
@@ -1216,6 +1307,7 @@ msgstr "AI, from the lexicon"
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/remarks-list.tsx
 #: src/features/surveys/responses-list.tsx
+#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insights-picker.tsx
 #: src/features/synthesis/insights-tab.tsx
@@ -1224,7 +1316,9 @@ msgid "All"
 msgstr "All"
 
 #. placeholder {0}: data.sessions.length
+#. placeholder {0}: themes.data.answers
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/surveys/open-item.tsx
 msgid "All ({0})"
 msgstr "All ({0})"
 
@@ -1249,6 +1343,10 @@ msgstr "All interviews"
 #: src/features/ingestion/source-panel.tsx
 msgid "All kinds"
 msgstr "All kinds"
+
+#: src/features/surveys/figure-fact-dialog.tsx
+msgid "All respondents"
+msgstr "All respondents"
 
 #: src/features/synthesis/debrief-tab.tsx
 msgid "All slides"
@@ -1352,6 +1450,10 @@ msgid "An analysis is already running on this study. Wait for its end."
 msgstr "An analysis is already running on this study. Wait for its end."
 
 #: src/features/workspace/errors.ts
+msgid "An analysis of this study is already running. Wait for it to end."
+msgstr "An analysis of this study is already running. Wait for it to end."
+
+#: src/features/workspace/errors.ts
 msgid "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 msgstr "An insight needs at least one accepted supporting fact: accept its facts to validate first."
 
@@ -1388,6 +1490,7 @@ msgstr "Analysed on"
 #: src/features/assistant/proposal-card.tsx
 #: src/features/fieldwork/proposals.tsx
 #: src/features/research/study-card.tsx
+#: src/features/surveys/survey-analysis-tab.tsx
 msgid "Analysis"
 msgstr "Analysis"
 
@@ -1396,6 +1499,7 @@ msgid "Analysis for this type of study is coming in a later version."
 msgstr "Analysis for this type of study is coming in a later version."
 
 #: src/features/analysis/analysis-tab.tsx
+#: src/features/surveys/survey-analysis-tab.tsx
 msgid "Analysis in numbers"
 msgstr "Analysis in numbers"
 
@@ -1486,10 +1590,18 @@ msgstr "Another folder replaces the inventory and discards the {interviews} inte
 msgid "Another term of the lexicon already has this form: merge them instead."
 msgstr "Another term of the lexicon already has this form: merge them instead."
 
+#: src/features/surveys/figure-card.tsx
+msgid "Answer"
+msgstr "Answer"
+
 #. placeholder {0}: a.text
 #: src/features/surveys/responses-list.tsx
 msgid "Answered this former wording. Now: {0}"
 msgstr "Answered this former wording. Now: {0}"
+
+#: src/features/surveys/open-item.tsx
+msgid "Answers"
+msgstr "Answers"
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Any confidence"
@@ -1564,6 +1676,10 @@ msgstr "asks for directly identifying data"
 #: src/routes/_authenticated.tsx
 msgid "Assistant"
 msgstr "Assistant"
+
+#: src/features/workspace/errors.ts
+msgid "At least 5 counted answers are needed to find themes."
+msgstr "At least 5 counted answers are needed to find themes."
 
 #: src/features/fieldwork/analysis.tsx
 msgid "At most {cost} with your AI provider: the AI is asked only when the app's rules do not find everything."
@@ -1681,6 +1797,25 @@ msgstr "Back to the project"
 msgid "Back to the team's studies"
 msgstr "Back to the team's studies"
 
+#. placeholder {0}: f.base
+#: src/features/assistant/proposal-card.tsx
+msgid "base {0}"
+msgstr "base {0}"
+
+#. placeholder {0}: c.base
+#: src/features/surveys/figure-card.tsx
+msgid "Base {0}"
+msgstr "Base {0}"
+
+#. placeholder {0}: c.base
+#: src/features/surveys/figure-card.tsx
+msgid "Base {0}, small"
+msgstr "Base {0}, small"
+
+#: src/features/surveys/figure-card.tsx
+msgid "Base: {base} respondents"
+msgstr "Base: {base} respondents"
+
 #. placeholder {0}: Math.min(run.batchesDone + 1, run.batchesTotal)
 #. placeholder {1}: run.batchesTotal
 #: src/features/enrichment/enrichment-tab.tsx
@@ -1783,7 +1918,9 @@ msgstr "Can't tell: {excerpt}"
 #: src/features/quality/requalify-dialog.tsx
 #: src/features/quality/review-dialog.tsx
 #: src/features/research/detach-study-dialog.tsx
+#: src/features/surveys/find-survey-facts.tsx
 #: src/features/surveys/form-state.tsx
+#: src/features/surveys/open-item.tsx
 #: src/features/synthesis/debrief-tab.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
@@ -2073,7 +2210,10 @@ msgstr "Click to change"
 #: src/features/research/delete-project-dialog.tsx
 #: src/features/research/study-list.tsx
 #: src/features/research/study-settings.tsx
+#: src/features/surveys/figure-fact-dialog.tsx
+#: src/features/surveys/open-item.tsx
 #: src/features/surveys/responses-list.tsx
+#: src/features/surveys/survey-facts.tsx
 #: src/features/surveys/target-rule.tsx
 #: src/features/synthesis/debrief-tab.tsx
 #: src/features/synthesis/insights-tab.tsx
@@ -2143,6 +2283,10 @@ msgstr "Columns of the sheet"
 #: src/features/research/study-list.tsx
 msgid "coming later"
 msgstr "coming later"
+
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Computed by the app over the counted responses only. Each share is over the respondents who answered the question."
+msgstr "Computed by the app over the counted responses only. Each share is over the respondents who answered the question."
 
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/synthesis/deck-slide.tsx
@@ -2286,6 +2430,7 @@ msgid "Cost of the analyses: {0}"
 msgstr "Cost of the analyses: {0}"
 
 #: src/features/analysis/analysis-tab.tsx
+#: src/features/surveys/survey-analysis-tab.tsx
 msgid "Cost of the analysis"
 msgstr "Cost of the analysis"
 
@@ -2347,6 +2492,10 @@ msgstr "Could not check whether they are up to date"
 msgid "Counted"
 msgstr "Counted"
 
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Counted responses"
+msgstr "Counted responses"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Counted the interviews"
 msgstr "Counted the interviews"
@@ -2366,6 +2515,10 @@ msgstr "Counter-evidence from at least half as many participants lowers it one l
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "Counting the facts to read…"
 msgstr "Counting the facts to read…"
+
+#: src/features/surveys/find-survey-facts.tsx
+msgid "Counting the figures to read…"
+msgstr "Counting the figures to read…"
 
 #: src/features/synthesis/recommendation-run-dialog.tsx
 msgid "Counting the insights to read…"
@@ -2437,6 +2590,15 @@ msgstr "Create the recommendation"
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Created {created} · Updated {updated}"
 msgstr "Created {created} · Updated {updated}"
+
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Cross by"
+msgstr "Cross by"
+
+#. placeholder {0}: a.crossable.find((c) => c.id === v)?.text ?? ''
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Cross by: {0}"
+msgstr "Cross by: {0}"
 
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -2602,6 +2764,7 @@ msgstr "Deleted for good, with no way back:"
 msgid "Describe the research question, objectives and hypotheses."
 msgstr "Describe the research question, objectives and hypotheses."
 
+#: src/features/surveys/open-item.tsx
 #: src/features/synthesis/insight-panel.tsx
 msgid "Description"
 msgstr "Description"
@@ -2649,6 +2812,17 @@ msgstr "Development only: keys starting with \"test-ok\" work."
 #: src/features/quality/remarks-list.tsx
 msgid "Disagree"
 msgstr "Disagree"
+
+#: src/features/surveys/figure-card.tsx
+msgid "Disagreement"
+msgstr "Disagreement"
+
+#. placeholder {0}: share(c.disagree)
+#. placeholder {0}: share(m.percent)
+#: src/features/surveys/figure-card.tsx
+#: src/features/surveys/figure-fact-dialog.tsx
+msgid "Disagreement: {0}"
+msgstr "Disagreement: {0}"
 
 #: src/routes/_authenticated/sources.tsx
 msgid "Disconnect"
@@ -2729,6 +2903,10 @@ msgstr "Drive did not answer: try again"
 msgid "Durations are whole minutes from 1 to 180."
 msgstr "Durations are whole minutes from 1 to 180."
 
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Each question broken down by the answers to “{crossName}”. A respondent who chose several answers counts in each."
+msgstr "Each question broken down by the answers to “{crossName}”. A respondent who chose several answers counts in each."
+
 #: src/features/surveys/survey-fieldwork-tab.tsx
 msgid "Each response of the form is read here. Those outside the target audience or without consent are set aside, never deleted."
 msgstr "Each response of the form is read here. Those outside the target audience or without consent are set aside, never deleted."
@@ -2744,6 +2922,7 @@ msgstr "Each transcript of the folder is an interview. Link it to the planned in
 #: src/features/analysis/fact-card.tsx
 #: src/features/preparation/preparation-tab.tsx
 #: src/features/preparation/questionnaire-tab.tsx
+#: src/features/surveys/survey-facts.tsx
 msgid "Edit"
 msgstr "Edit"
 
@@ -2753,6 +2932,7 @@ msgid "Edit {0}"
 msgstr "Edit {0}"
 
 #: src/features/analysis/fact-dialog.tsx
+#: src/features/surveys/survey-facts.tsx
 msgid "Edit the fact"
 msgstr "Edit the fact"
 
@@ -2983,9 +3163,15 @@ msgstr "Existing studies"
 msgid "Expand the sidebar"
 msgstr "Expand the sidebar"
 
+#: src/features/surveys/figure-fact-dialog.tsx
+#: src/features/surveys/open-item.tsx
+msgid "Fact proposed: decide it in the Facts tab."
+msgstr "Fact proposed: decide it in the Facts tab."
+
 #: src/features/analysis/interview-facts.tsx
 #: src/features/research/project-journey.tsx
 #: src/features/research/study-card.tsx
+#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "Facts"
@@ -3007,6 +3193,10 @@ msgstr "Facts ({0} to decide)"
 msgid "Facts ({0})"
 msgstr "Facts ({0})"
 
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Facts ({toDecide} to decide)"
+msgstr "Facts ({toDecide} to decide)"
+
 #: src/features/analysis/find-facts.tsx
 msgid "Facts already decided stay as they are."
 msgstr "Facts already decided stay as they are."
@@ -3014,6 +3204,10 @@ msgstr "Facts already decided stay as they are."
 #: src/features/workspace/errors.ts
 msgid "Facts are already being found for this study."
 msgstr "Facts are already being found for this study."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Facts from the figures"
+msgstr "Facts from the figures"
 
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "Facts not yet in an insight"
@@ -3032,6 +3226,7 @@ msgstr "Facts still to validate add {0} participants for and {1} against: once a
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/analysis/labels.ts
+#: src/features/surveys/survey-analysis-tab.tsx
 msgid "Facts to decide"
 msgstr "Facts to decide"
 
@@ -3069,6 +3264,31 @@ msgstr "Fieldwork"
 msgid "Fieldwork in numbers"
 msgstr "Fieldwork in numbers"
 
+#: src/features/surveys/figure-fact-dialog.tsx
+msgid "Figure"
+msgstr "Figure"
+
+#. placeholder {0}: f.base
+#: src/features/surveys/survey-facts.tsx
+msgid "Figure {value}, base {0}"
+msgstr "Figure {value}, base {0}"
+
+#. placeholder {0}: f.base
+#. placeholder {1}: f.cross.option
+#: src/features/surveys/survey-facts.tsx
+msgid "Figure {value}, base {0}, among “{1}”"
+msgstr "Figure {value}, base {0}, among “{1}”"
+
+#. placeholder {0}: f.support.kind === 'figure' && f.support.figure.measure === 'mean' ? i18n.number(f.figureChanged.value, { maximumFractionDigits: 1 }) : share(f.figureChanged.value)
+#. placeholder {1}: f.figureChanged.base
+#: src/features/surveys/survey-facts.tsx
+msgid "Figure changed: today {0}, base {1}."
+msgstr "Figure changed: today {0}, base {1}."
+
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Figures"
+msgstr "Figures"
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/proposals.tsx
 msgid "Files"
@@ -3100,6 +3320,7 @@ msgstr "Final text"
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/analysis/find-facts.tsx
+#: src/features/surveys/find-survey-facts.tsx
 msgid "Find facts"
 msgstr "Find facts"
 
@@ -3156,6 +3377,7 @@ msgid "Find terms: {0}"
 msgstr "Find terms: {0}"
 
 #: src/features/analysis/find-facts.tsx
+#: src/features/surveys/find-survey-facts.tsx
 msgid "Find the facts"
 msgstr "Find the facts"
 
@@ -3169,6 +3391,7 @@ msgid "Find the facts of the interviews"
 msgstr "Find the facts of the interviews"
 
 #: src/features/analysis/find-facts.tsx
+#: src/features/surveys/find-survey-facts.tsx
 msgid "Find the facts?"
 msgstr "Find the facts?"
 
@@ -3180,6 +3403,23 @@ msgstr "Find the terms of “{0}”?"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Find the terms of the interviews?"
 msgstr "Find the terms of the interviews?"
+
+#: src/features/surveys/open-item.tsx
+msgid "Find the themes"
+msgstr "Find the themes"
+
+#: src/features/surveys/open-item.tsx
+msgid "Find themes"
+msgstr "Find themes"
+
+#. placeholder {0}: item.text
+#: src/features/surveys/open-item.tsx
+msgid "Find themes in “{0}”?"
+msgstr "Find themes in “{0}”?"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "Find themes in open answers"
+msgstr "Find themes in open answers"
 
 #. placeholder {0}: run.done + run.failed
 #. placeholder {1}: run.total
@@ -3194,6 +3434,10 @@ msgstr "Finding facts: {0} of {1} interviews"
 #: src/features/analysis/analysis-tab.tsx
 msgid "Finding facts: part {0} of {1}, {2} of {3} interviews"
 msgstr "Finding facts: part {0} of {1}, {2} of {3} interviews"
+
+#: src/features/surveys/find-survey-facts.tsx
+msgid "Finding facts…"
+msgstr "Finding facts…"
 
 #. placeholder {0}: run.callsDone
 #. placeholder {1}: run.calls || '…'
@@ -3218,6 +3462,12 @@ msgstr "Finding the terms: batch {0} of {1}"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Finding the terms…"
 msgstr "Finding the terms…"
+
+#. placeholder {0}: mine.partsDone + 1
+#. placeholder {1}: mine.parts
+#: src/features/surveys/open-item.tsx
+msgid "Finding themes: part {0} of {1}…"
+msgstr "Finding themes: part {0} of {1}…"
 
 #. placeholder {0}: reading.chunksDone
 #. placeholder {1}: reading.chunks
@@ -3393,6 +3643,7 @@ msgstr "Give access"
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/quality/quality-tab.tsx
+#: src/features/surveys/survey-analysis-tab.tsx
 msgid "Go to Fieldwork"
 msgstr "Go to Fieldwork"
 
@@ -3548,6 +3799,10 @@ msgstr "Help me improve the questionnaire of this study."
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Hidden by another correction here"
 msgstr "Hidden by another correction here"
+
+#: src/features/surveys/open-item.tsx
+msgid "Hide"
+msgstr "Hide"
 
 #: src/features/synthesis/insight-panel.tsx
 msgid "Hide the facts"
@@ -3720,6 +3975,11 @@ msgstr "In French"
 #: src/features/synthesis/facts-panel.tsx
 msgid "In no insight"
 msgstr "In no insight"
+
+#. placeholder {0}: themes.data.unthemed
+#: src/features/surveys/open-item.tsx
+msgid "In no theme ({0})"
+msgstr "In no theme ({0})"
 
 #: src/features/preparation/drive-publishing.tsx
 #: src/features/synthesis/debrief-tab.tsx
@@ -4069,6 +4329,10 @@ msgstr "Item {0}"
 msgid "Item check"
 msgstr "Item check"
 
+#: src/features/surveys/survey-facts.tsx
+msgid "Item removed: the question is no longer in the questionnaire."
+msgstr "Item removed: the question is no longer in the questionnaire."
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Its facts feed this project too, without any AI cost. Decisions on them apply in every project it is in."
 msgstr "Its facts feed this project too, without any AI cost. Decisions on them apply in every project it is in."
@@ -4113,6 +4377,10 @@ msgstr "Just after:"
 #: src/features/quality/remark-card.tsx
 msgid "Just before:"
 msgstr "Just before:"
+
+#: src/features/surveys/survey-facts.tsx
+msgid "Keep"
+msgstr "Keep"
 
 #: src/features/preparation/guide-editor.tsx
 msgid "Keep at least one section."
@@ -4166,6 +4434,10 @@ msgstr "Key takeaways written"
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "Kind"
 msgstr "Kind"
+
+#: src/features/surveys/open-item.tsx
+msgid "Label"
+msgstr "Label"
 
 #: src/features/preparation/questionnaire-editor.tsx
 msgid "Label of the highest point"
@@ -4261,6 +4533,12 @@ msgstr "Leave the presentation"
 msgid "Left out"
 msgstr "Left out"
 
+#. placeholder {0}: mine.droppedQuotes
+#. placeholder {1}: mine.droppedThemes
+#: src/features/surveys/open-item.tsx
+msgid "Left out of the last search: {0} quotes not found in the answers, {1} themes without an answer."
+msgstr "Left out of the last search: {0} quotes not found in the answers, {1} themes without an answer."
+
 #: src/features/assistant/interview-lines-card.tsx
 msgid "Left to decide"
 msgstr "Left to decide"
@@ -4338,6 +4616,10 @@ msgid "Loading every occurrence…"
 msgstr "Loading every occurrence…"
 
 #: src/features/assistant/proposal-card.tsx
+msgid "Looked at the analysis"
+msgstr "Looked at the analysis"
+
+#: src/features/assistant/proposal-card.tsx
 msgid "Looked at the interviews"
 msgstr "Looked at the interviews"
 
@@ -4374,6 +4656,10 @@ msgstr "low confidence"
 msgid "Low confidence"
 msgstr "Low confidence"
 
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Made from figures and themes"
+msgstr "Made from figures and themes"
+
 #: src/features/workspace/app-sidebar.tsx
 msgid "Main"
 msgstr "Main"
@@ -4381,6 +4667,15 @@ msgstr "Main"
 #: src/features/synthesis/deck-slide.tsx
 msgid "Major projects"
 msgstr "Major projects"
+
+#: src/features/surveys/figure-fact-dialog.tsx
+#: src/features/surveys/open-item.tsx
+msgid "Make a fact"
+msgstr "Make a fact"
+
+#: src/features/surveys/figure-fact-dialog.tsx
+msgid "Make a fact of this figure"
+msgstr "Make a fact of this figure"
 
 #: src/features/quality/requalify-dialog.tsx
 msgid "Make it a remark"
@@ -4394,6 +4689,10 @@ msgstr "Many open questions: they are harder to interpret."
 msgid "Marked by {who} {when}"
 msgstr "Marked by {who} {when}"
 
+#: src/features/surveys/open-item.tsx
+msgid "Masking and counting the answers…"
+msgstr "Masking and counting the answers…"
+
 #: src/features/synthesis/recommendations-tab.tsx
 msgid "Matrix"
 msgstr "Matrix"
@@ -4403,9 +4702,25 @@ msgstr "Matrix"
 msgid "May be out of date"
 msgstr "May be out of date"
 
+#: src/features/surveys/figure-card.tsx
+msgid "Mean"
+msgstr "Mean"
+
+#. placeholder {0}: i18n.number(c.mean, { maximumFractionDigits: 1 })
+#. placeholder {0}: m.mean === null ? '—' : i18n.number(m.mean, { maximumFractionDigits: 1 })
+#: src/features/surveys/figure-card.tsx
+#: src/features/surveys/figure-fact-dialog.tsx
+msgid "Mean: {0}"
+msgstr "Mean: {0}"
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Media"
 msgstr "Media"
+
+#. placeholder {0}: i18n.number(c.median ?? 0, { maximumFractionDigits: 1 })
+#: src/features/surveys/figure-card.tsx
+msgid "Median: {0}"
+msgstr "Median: {0}"
 
 #: src/features/synthesis/labels.ts
 msgid "medium"
@@ -4453,6 +4768,14 @@ msgstr "Merge {0} into another term"
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Merge into"
 msgstr "Merge into"
+
+#: src/features/surveys/open-item.tsx
+msgid "Merge into another theme"
+msgstr "Merge into another theme"
+
+#: src/features/surveys/open-item.tsx
+msgid "Merge into…"
+msgstr "Merge into…"
 
 #: src/features/enrichment/labels.ts
 msgid "Merged"
@@ -4692,6 +5015,7 @@ msgstr "New verbatim"
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/surveys/responses-list.tsx
 #: src/features/synthesis/facts-panel.tsx
+#: src/features/workspace/pager.tsx
 msgid "Next"
 msgstr "Next"
 
@@ -4723,6 +5047,14 @@ msgstr "No AI provider is set up: only the app's rules will run, at no cost."
 msgid "No answer"
 msgstr "No answer"
 
+#: src/features/surveys/open-item.tsx
+msgid "No answer here."
+msgstr "No answer here."
+
+#: src/features/surveys/find-survey-facts.tsx
+msgid "No answer of a respondent is sent; figures or themes that already have a fact are left out."
+msgstr "No answer of a respondent is sent; figures or themes that already have a fact are left out."
+
 #: src/features/preparation/drive-review.tsx
 msgid "No change to review."
 msgstr "No change to review."
@@ -4739,9 +5071,21 @@ msgstr "No conversation yet."
 msgid "No correction matches these filters."
 msgstr "No correction matches these filters."
 
+#: src/features/workspace/errors.ts
+msgid "No counted response yet: the facts come with the first ones."
+msgstr "No counted response yet: the facts come with the first ones."
+
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "No counted response yet: the figures come with the first ones."
+msgstr "No counted response yet: the figures come with the first ones."
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "No counter-evidence found."
 msgstr "No counter-evidence found."
+
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "No cross"
+msgstr "No cross"
 
 #: src/features/analysis/labels.ts
 msgid "No fact"
@@ -4751,6 +5095,10 @@ msgstr "No fact"
 #: src/features/analysis/interview-facts.tsx
 msgid "No fact here."
 msgstr "No fact here."
+
+#: src/features/surveys/survey-facts.tsx
+msgid "No fact here. Use “Find facts”, or make one from a figure with “Make a fact”."
+msgstr "No fact here. Use “Find facts”, or make one from a figure with “Make a fact”."
 
 #: src/features/synthesis/insight-panel.tsx
 msgid "No fact linked."
@@ -4825,6 +5173,10 @@ msgstr "No longer accepted"
 #: src/features/synthesis/insight-run-dialog.tsx
 msgid "No name, no verbatim and no interview title is sent."
 msgstr "No name, no verbatim and no interview title is sent."
+
+#: src/features/surveys/find-survey-facts.tsx
+msgid "No new fact: what stands out already has one."
+msgstr "No new fact: what stands out already has one."
 
 #: src/features/quality/remarks-list.tsx
 msgid "No opinion"
@@ -4950,6 +5302,10 @@ msgstr "No team yet"
 #: src/features/enrichment/lexicon-table.tsx
 msgid "No term matches these filters."
 msgstr "No term matches these filters."
+
+#: src/features/surveys/open-item.tsx
+msgid "No theme"
+msgstr "No theme"
 
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
@@ -5242,6 +5598,10 @@ msgstr "Only the names change: no file is moved, copied or deleted."
 msgid "Only the team that owns this can change it."
 msgstr "Only the team that owns this can change it."
 
+#: src/features/workspace/errors.ts
+msgid "Only themes of the same question can be merged."
+msgstr "Only themes of the same question can be merged."
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Only turns with corrections"
 msgstr "Only turns with corrections"
@@ -5296,6 +5656,11 @@ msgstr "Open in Google Slides"
 #: src/features/preparation/labels.ts
 msgid "Open question"
 msgstr "Open question"
+
+#. placeholder {0}: a.openItems.length
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Open questions ({0})"
+msgstr "Open questions ({0})"
 
 #. placeholder {0}: n + 1
 #: src/features/synthesis/debrief-tab.tsx
@@ -5439,6 +5804,10 @@ msgstr "Organisation"
 msgid "Other"
 msgstr "Other"
 
+#: src/features/surveys/figure-card.tsx
+msgid "Other answers"
+msgstr "Other answers"
+
 #: src/features/enrichment/labels.ts
 #: src/features/fieldwork/labels.ts
 msgid "Other language"
@@ -5485,10 +5854,12 @@ msgstr "Owner: {owner}"
 #: src/features/analysis/facts-list.tsx
 #: src/features/surveys/responses-list.tsx
 #: src/features/synthesis/facts-panel.tsx
+#: src/features/workspace/pager.tsx
 msgid "Page {page} of {pages}"
 msgstr "Page {page} of {pages}"
 
 #: src/features/analysis/facts-list.tsx
+#: src/features/workspace/pager.tsx
 msgid "Pages"
 msgstr "Pages"
 
@@ -5620,6 +5991,7 @@ msgstr "Points"
 #: src/features/analysis/fact-dialog.tsx
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx
+#: src/features/surveys/figure-fact-dialog.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insights-tab.tsx
 msgid "Polarity"
@@ -5666,6 +6038,7 @@ msgstr "Present"
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/surveys/responses-list.tsx
 #: src/features/synthesis/facts-panel.tsx
+#: src/features/workspace/pager.tsx
 msgid "Previous"
 msgstr "Previous"
 
@@ -5760,6 +6133,10 @@ msgstr "Projects"
 #: src/routes/_authenticated/team-studies/$teamId.tsx
 msgid "Projects of the team"
 msgstr "Projects of the team"
+
+#: src/features/surveys/figure-fact-dialog.tsx
+msgid "Propose the fact"
+msgstr "Propose the fact"
 
 #: src/features/fieldwork/labels.ts
 msgid "Proposed"
@@ -5964,6 +6341,10 @@ msgid "Read the best practices"
 msgstr "Read the best practices"
 
 #: src/features/assistant/proposal-card.tsx
+msgid "Read the figures"
+msgstr "Read the figures"
+
+#: src/features/assistant/proposal-card.tsx
 msgid "Read the whole guide"
 msgstr "Read the whole guide"
 
@@ -6078,6 +6459,8 @@ msgstr "Region"
 #: src/features/analysis/fact-card.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/preparation/drive-review.tsx
+#: src/features/surveys/open-item.tsx
+#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Reject"
@@ -6116,6 +6499,8 @@ msgstr "Reject: {label}"
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/surveys/open-item.tsx
+#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/labels.ts
 #: src/features/synthesis/recommendation-panel.tsx
@@ -6187,6 +6572,7 @@ msgid "Removing the provider deletes it from goodresearch. To also withdraw good
 msgstr "Removing the provider deletes it from goodresearch. To also withdraw goodresearch's access at Google, use your Google account permissions."
 
 #: src/features/assistant/folder-changes-card.tsx
+#: src/features/surveys/open-item.tsx
 msgid "Rename"
 msgstr "Rename"
 
@@ -6216,6 +6602,10 @@ msgstr "Rename the project"
 #: src/features/assistant/proposal-card.tsx
 msgid "Rename the study"
 msgstr "Rename the study"
+
+#: src/features/surveys/open-item.tsx
+msgid "Rename the theme"
+msgstr "Rename the theme"
 
 #: src/features/fieldwork/proposals.tsx
 msgid "Renamed"
@@ -6293,6 +6683,10 @@ msgstr "Research projects"
 #: src/features/assistant/labels.ts
 msgid "Research question"
 msgstr "Research question"
+
+#: src/features/surveys/figure-fact-dialog.tsx
+msgid "Respondents"
+msgstr "Respondents"
 
 #: src/features/surveys/responses-list.tsx
 msgid "Response"
@@ -6459,6 +6853,8 @@ msgstr "same time"
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/schedule.tsx
+#: src/features/surveys/open-item.tsx
+#: src/features/surveys/survey-facts.tsx
 msgid "Save"
 msgstr "Save"
 
@@ -6578,9 +6974,17 @@ msgstr "See in the interview"
 msgid "See in the study"
 msgstr "See in the study"
 
+#: src/features/synthesis/facts-panel.tsx
+msgid "See in the survey · {respondents} respondents"
+msgstr "See in the survey · {respondents} respondents"
+
 #: src/features/quality/remark-card.tsx
 msgid "See in the transcript"
 msgstr "See in the transcript"
+
+#: src/features/surveys/open-item.tsx
+msgid "See the answers and themes"
+msgstr "See the answers and themes"
 
 #: src/features/synthesis/takeaways-band.tsx
 msgid "See the debrief"
@@ -6637,6 +7041,8 @@ msgstr "Set up your AI provider first: it groups the spellings and explains the 
 
 #: src/features/analysis/find-facts.tsx
 #: src/features/quality/review-dialog.tsx
+#: src/features/surveys/find-survey-facts.tsx
+#: src/features/surveys/open-item.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/recommendation-run-dialog.tsx
 #: src/features/synthesis/takeaways.tsx
@@ -6668,6 +7074,10 @@ msgstr "Set up your AI provider to find what the app's rules did not."
 msgid "Set up your AI provider to review the interviews."
 msgstr "Set up your AI provider to review the interviews."
 
+#: src/features/surveys/figure-card.tsx
+msgid "Several answers each: shares may exceed 100 %."
+msgstr "Several answers each: shares may exceed 100 %."
+
 #. placeholder {0}: word ?? ''
 #: src/features/fieldwork/labels.ts
 msgid "shared word “{0}”"
@@ -6684,6 +7094,10 @@ msgstr "Show every occurrence ({total})"
 #: src/routes/_authenticated/index.tsx
 msgid "Show more"
 msgstr "Show more"
+
+#: src/features/surveys/open-item.tsx
+msgid "Shown masked, as the AI receives them."
+msgstr "Shown masked, as the AI receives them."
 
 #: src/features/preparation/questionnaire-editor.tsx
 msgid "Shuffle the scales of each theme"
@@ -6746,6 +7160,19 @@ msgstr "Slide by slide"
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Slides"
 msgstr "Slides"
+
+#: src/features/assistant/proposal-card.tsx
+msgid "small base"
+msgstr "small base"
+
+#: src/features/surveys/figure-card.tsx
+#: src/features/surveys/survey-facts.tsx
+msgid "Small base"
+msgstr "Small base"
+
+#: src/features/surveys/figure-fact-dialog.tsx
+msgid "Small base: the fact will say so."
+msgstr "Small base: the fact will say so."
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "Small extras"
@@ -6839,6 +7266,7 @@ msgstr "State"
 msgid "State of the form"
 msgstr "State of the form"
 
+#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/new-insight-dialog.tsx
 msgid "Statement"
@@ -7014,6 +7442,11 @@ msgstr "Survey"
 #: src/features/synthesis/deck-slide.tsx
 msgid "Survey answers."
 msgstr "Survey answers."
+
+#. placeholder {0}: c.respondents
+#: src/features/synthesis/insight-card.tsx
+msgid "Survey facts add {0} respondents; a survey fact on 30 respondents or more raises the confidence one level, at most to high."
+msgstr "Survey facts add {0} respondents; a survey fact on 30 respondents or more raises the confidence one level, at most to high."
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Take back"
@@ -7231,6 +7664,10 @@ msgstr "The AI cost could not be loaded."
 msgid "The AI cost includes studies shared with other projects: it counts in each of them."
 msgstr "The AI cost includes studies shared with other projects: it counts in each of them."
 
+#: src/features/workspace/errors.ts
+msgid "The AI provider did not answer. Try again in a moment."
+msgstr "The AI provider did not answer. Try again in a moment."
+
 #: src/features/enrichment/labels.ts
 msgid "The AI provider returned an error or took too long: some corrections may be missing, try again."
 msgstr "The AI provider returned an error or took too long: some corrections may be missing, try again."
@@ -7258,6 +7695,10 @@ msgstr "The AI reads each interview in full and points out the interviewers' sen
 msgid "The AI reads the accepted facts of the studies you choose and proposes insights: findings that hold across participants. You decide each one."
 msgstr "The AI reads the accepted facts of the studies you choose and proposes insights: findings that hold across participants. You decide each one."
 
+#: src/features/surveys/find-survey-facts.tsx
+msgid "The AI reads the figures the app computed and the themes you accepted, and points at those worth a fact. The app writes each fact, which waits for a person's decision."
+msgstr "The AI reads the figures the app computed and the themes you accepted, and points at those worth a fact. The app writes each fact, which waits for a person's decision."
+
 #: src/features/synthesis/recommendation-run-dialog.tsx
 msgid "The AI reads the project's insights and proposes what the team should do, why, and how to know it worked. You decide each one."
 msgstr "The AI reads the project's insights and proposes what the team should do, why, and how to know it worked. You decide each one."
@@ -7274,6 +7715,14 @@ msgstr "The analysis was interrupted: analyze again."
 msgid "The analysis was interrupted: find the facts again."
 msgstr "The analysis was interrupted: find the facts again."
 
+#: src/features/assistant/proposal-card.tsx
+msgid "The answers are masked before they are sent. The themes are proposals you decide in the Analysis tab."
+msgstr "The answers are masked before they are sent. The themes are proposals you decide in the Analysis tab."
+
+#: src/features/surveys/open-item.tsx
+msgid "The answers are masked first: names the team knows, emails, phone numbers, web addresses and long numbers never leave the app. The AI groups them into themes you decide."
+msgstr "The answers are masked first: names the team knows, emails, phone numbers, web addresses and long numbers never leave the app. The AI groups them into themes you decide."
+
 #: src/features/fieldwork/analysis.tsx
 msgid "The app adds neither the schedule nor the list of your team. With anonymisation on, the names it knows are replaced before sending; other names in the text stay."
 msgstr "The app adds neither the schedule nor the list of your team. With anonymisation on, the names it knows are replaced before sending; other names in the text stay."
@@ -7289,6 +7738,10 @@ msgstr "The app cannot read this file format."
 #: src/features/enrichment/cleaning-table.tsx
 msgid "The app first applies the lexicon itself, at no cost. The AI then reads each transcript in full and proposes corrections: you decide each one."
 msgstr "The app first applies the lexicon itself, at no cost. The AI then reads each transcript in full and proposes corrections: you decide each one."
+
+#: src/features/assistant/proposal-card.tsx
+msgid "The app writes each statement from the figure as it is today. You then decide each fact."
+msgstr "The app writes each statement from the figure as it is today. You then decide each fact."
 
 #. placeholder {0}: data.run.leftOut
 #: src/features/quality/quality-tab.tsx
@@ -7465,6 +7918,10 @@ msgstr "The last reading failed."
 msgid "The last refresh failed ({reason}). The list below is from {when}."
 msgstr "The last refresh failed ({reason}). The list below is from {when}."
 
+#: src/features/surveys/open-item.tsx
+msgid "The last search for themes failed: try again."
+msgstr "The last search for themes failed: try again."
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The lexicon for this type of study is coming in a later version."
 msgstr "The lexicon for this type of study is coming in a later version."
@@ -7511,6 +7968,11 @@ msgstr "The options of choices are shuffled."
 msgid "The order of the themes stays fixed: the form cannot shuffle it."
 msgstr "The order of the themes stays fixed: the form cannot shuffle it."
 
+#: src/features/surveys/open-item.tsx
+#: src/features/surveys/survey-facts.tsx
+msgid "The other language is translated after you save."
+msgstr "The other language is translated after you save."
+
 #: src/routes/_authenticated/sources.tsx
 msgid "The permission is revoked at Google. You will need to connect again to see or refresh study folders."
 msgstr "The permission is revoked at Google. You will need to connect again to see or refresh study folders."
@@ -7554,6 +8016,10 @@ msgstr "The provider did not answer."
 #: src/features/ai/labels.ts
 msgid "The provider is limiting requests right now."
 msgstr "The provider is limiting requests right now."
+
+#: src/features/workspace/errors.ts
+msgid "The question of this fact is no longer in the questionnaire."
+msgstr "The question of this fact is no longer in the questionnaire."
 
 #: src/features/preparation/questionnaire-tab.tsx
 msgid "The questionnaire holds the framing (objective, target audience, recruitment, consent) and the items, grouped by theme. Each item says what it measures and what analysis it allows."
@@ -7669,6 +8135,28 @@ msgstr "Theme"
 msgid "Theme 1"
 msgstr "Theme 1"
 
+#. placeholder {0}: s.share.answers
+#. placeholder {1}: s.share.base
+#: src/features/surveys/survey-facts.tsx
+msgid "Theme of open answers: {0} of {1} answers"
+msgstr "Theme of open answers: {0} of {1} answers"
+
+#: src/features/surveys/open-item.tsx
+msgid "Theme of this answer"
+msgstr "Theme of this answer"
+
+#: src/features/surveys/open-item.tsx
+msgid "Theme the other answers"
+msgstr "Theme the other answers"
+
+#: src/features/surveys/survey-analysis-tab.tsx
+msgid "Themes and translations"
+msgstr "Themes and translations"
+
+#: src/features/surveys/open-item.tsx
+msgid "Themes are offered from 5 counted answers."
+msgstr "Themes are offered from 5 counted answers."
+
 #: src/features/preparation/questionnaire-tab.tsx
 msgid "These checks advise: they block nothing."
 msgstr "These checks advise: they block nothing."
@@ -7740,6 +8228,18 @@ msgstr "This fact was deleted."
 #: src/features/workspace/errors.ts
 msgid "This fact was rejected or is no longer in the project."
 msgstr "This fact was rejected or is no longer in the project."
+
+#: src/features/workspace/errors.ts
+msgid "This figure has not changed."
+msgstr "This figure has not changed."
+
+#: src/features/workspace/errors.ts
+msgid "This figure no longer exists: the question or its option changed."
+msgstr "This figure no longer exists: the question or its option changed."
+
+#: src/features/workspace/errors.ts
+msgid "This figure or theme already has a fact: decide that one."
+msgstr "This figure or theme already has a fact: decide that one."
 
 #: src/features/fieldwork/labels.ts
 msgid "This file is a summary, not a transcript: the app excluded it. Reopen it if it is an interview."
@@ -7928,6 +8428,10 @@ msgid "This published file is no longer known."
 msgstr "This published file is no longer known."
 
 #: src/features/workspace/errors.ts
+msgid "This question is no longer in the questionnaire."
+msgstr "This question is no longer in the questionnaire."
+
+#: src/features/workspace/errors.ts
 msgid "This recommendation is no longer there."
 msgstr "This recommendation is no longer there."
 
@@ -8011,6 +8515,10 @@ msgstr "This text is not in the interview any more."
 msgid "This text is not in the turn any more."
 msgstr "This text is not in the turn any more."
 
+#: src/features/workspace/errors.ts
+msgid "This theme no longer exists."
+msgstr "This theme no longer exists."
+
 #: src/features/enrichment/labels.ts
 msgid "This transcript is too long to be read (more than 400,000 characters)."
 msgstr "This transcript is too long to be read (more than 400,000 characters)."
@@ -8065,6 +8573,8 @@ msgstr "To create the documents in the study folder, goodresearch asks Google fo
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/fieldwork/labels.ts
 #: src/features/fieldwork/session-dialog.tsx
+#: src/features/surveys/open-item.tsx
+#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/labels.ts
 msgid "To decide"
 msgstr "To decide"
@@ -8143,6 +8653,10 @@ msgstr "too long"
 msgid "Too many words belong to no known person, so the shares would be false. Say who speaks in the interview."
 msgstr "Too many words belong to no known person, so the shares would be false. Say who speaks in the interview."
 
+#: src/features/surveys/figure-card.tsx
+msgid "Total"
+msgstr "Total"
+
 #. placeholder {0}: money(data.cost ?? 0)
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/recommendations-tab.tsx
@@ -8184,6 +8698,8 @@ msgid "Translate again"
 msgstr "Translate again"
 
 #: src/features/analysis/fact-card.tsx
+#: src/features/surveys/open-item.tsx
+#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-card.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -8252,6 +8768,9 @@ msgstr "Unavailable in Drive"
 #: src/features/quality/quality-tab.tsx
 #: src/features/quality/review-dialog.tsx
 #: src/features/research/cost-breakdown.tsx
+#: src/features/surveys/find-survey-facts.tsx
+#: src/features/surveys/open-item.tsx
+#: src/features/surveys/survey-analysis-tab.tsx
 #: src/features/surveys/survey-fieldwork-tab.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/recommendation-run-dialog.tsx
@@ -8276,6 +8795,10 @@ msgstr "Update in Drive"
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Update in Google Slides"
 msgstr "Update in Google Slides"
+
+#: src/features/surveys/survey-facts.tsx
+msgid "Update to today"
+msgstr "Update to today"
 
 #: src/features/research/study-card.tsx
 msgid "Updated {updated}"

@@ -37,7 +37,7 @@ flowchart TD
     C -->|"responses, no target rule"| R["Card: target rule, and what it sets aside"]
     R -->|"Apply"| C
     C -->|"target reached"| F["Card: close the form"]
-    F -->|"Apply"| N["Analysis, in a later version"]
+    F -->|"Apply"| N["Analysis: journey 11"]
 ```
 
 ## Guarantees

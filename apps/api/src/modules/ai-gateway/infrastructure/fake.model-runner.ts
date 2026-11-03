@@ -944,6 +944,85 @@ export const createFakeRunner = (): ModelRunner => {
         if (!parsed.success) throw new ProviderCallError('UNKNOWN')
         return { object: parsed.data, usage: { inputTokens: 300, outputTokens: 80 } }
       }
+      // Spec 029: themes of open answers: answers naming a tool, the others, each quoted by its first
+      // three words, and one invented quote (the app must drop it).
+      if (request.prompt?.includes('\n<open-answers>\n')) {
+        await sleep(300)
+        const answers = [
+          ...(request.prompt.split('\n<open-answers>\n')[1] ?? '').matchAll(/^(\d+)\. (.+)$/gm),
+        ].map((m) => ({ n: Number(m[1]), text: m[2] ?? '' }))
+        const quote = (text: string) => text.split(/\s+/).slice(0, 3).join(' ')
+        const tools = answers.filter((a) => /tool/i.test(a.text))
+        const rest = answers.filter((a) => !/tool/i.test(a.text))
+        const theme = (en: string, fr: string, list: typeof answers) => ({
+          label: { en, fr },
+          description: {
+            en: `Respondents speak of ${en.toLowerCase()}.`,
+            fr: `Les répondants parlent de ${fr.toLowerCase()}.`,
+          },
+          answers: list.map((a, i) => ({
+            n: a.n,
+            quote: i === 0 ? 'A quote that is not there' : quote(a.text),
+          })),
+          existing: null,
+        })
+        const answer = {
+          themes: [
+            ...(tools.length ? [theme('Tools', 'Outils', tools)] : []),
+            ...(rest.length ? [theme('Other ways', 'Autres façons', rest)] : []),
+          ],
+        }
+        const parsed = request.schema.safeParse(answer)
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 3000, outputTokens: 300 } }
+      }
+      // Spec 029 FR-010a: "Find facts" of a survey points at each scale's agreement, the first
+      // answer of each choice item, each accepted theme, and one figure the app does not compute.
+      if (request.prompt?.includes('\n<survey-figures>\n')) {
+        await sleep(300)
+        const [themes = '', figures = ''] = request.prompt.split('\n<survey-figures>\n')
+        const facts = [
+          ...[
+            ...figures.matchAll(
+              /^- (\S+) ".*?" \((likert|single-choice|multiple-choice)[^)]*\): (.*)$/gm,
+            ),
+          ].map((m) => ({
+            figure: {
+              itemId: m[1] ?? '',
+              measure: m[2] === 'likert' ? ('agree' as const) : ('option' as const),
+              option: m[2] === 'likert' ? null : (/"([^"]+)"/.exec(m[3] ?? '')?.[1] ?? null),
+            },
+            themeId: null,
+            polarity: 'neutral' as const,
+          })),
+          ...[...themes.matchAll(/^(\S+) — /gm)].map((m) => ({
+            figure: null,
+            themeId: m[1] ?? '',
+            polarity: 'negative' as const,
+          })),
+          {
+            figure: { itemId: 'invented', measure: 'mean' as const, option: null },
+            themeId: null,
+            polarity: 'neutral' as const,
+          },
+        ]
+        const parsed = request.schema.safeParse({ facts })
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 1500, outputTokens: 200 } }
+      }
+      if (request.prompt?.startsWith('<themes-to-merge>\n')) {
+        const parsed = request.schema.safeParse({ merges: [] })
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 300, outputTokens: 20 } }
+      }
+      if (request.prompt?.startsWith('<translate-theme>\n')) {
+        const [, , to, ...text] = request.prompt.split('\n')
+        const parsed = request.schema.safeParse({
+          text: `${to?.replace('to: ', '').toUpperCase()}: ${text.join(' ')}`,
+        })
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 200, outputTokens: 40 } }
+      }
       if (request.prompt?.startsWith('<translate>\n')) {
         const [, , to, ...text] = request.prompt.split('\n')
         const parsed = request.schema.safeParse({

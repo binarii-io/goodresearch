@@ -28,8 +28,10 @@ import type {
   AddVerbatimInput,
   AttributeSpeakerInput,
   CreateFactInput,
+  CreateSurveyFactInput,
   Created,
   DecideFactInput,
+  DecideSurveyFactInput,
   EstimateFactsRunParams,
   FactsBulkResult,
   FactsEstimate,
@@ -38,8 +40,14 @@ import type {
   FactsRunStarted,
   InterviewFacts,
   ListFactsParams,
+  ListSurveyFactsParams,
   ResizeVerbatimInput,
-  StartFactsRunInput
+  StartFactsRunInput,
+  SurveyFact,
+  SurveyFactFigureInput,
+  SurveyFactsFindEstimate,
+  SurveyFactsFound,
+  SurveyFactsPage
 } from '../../model';
 
 import { apiFetch } from '../../../fetcher.ts';
@@ -1412,4 +1420,524 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getTranslateFactMutationOptions(options), queryClient);
+    }
+    export const getListSurveyFactsUrl = (studyId: string,
+    params?: ListSurveyFactsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/studies/${studyId}/survey-facts?${stringifiedParams}` : `/api/studies/${studyId}/survey-facts`
+}
+
+export const listSurveyFacts = async (studyId: string,
+    params?: ListSurveyFactsParams, options?: Parameters<typeof apiFetch>[1]): Promise<SurveyFactsPage> => {
+
+  return apiFetch<SurveyFactsPage>(getListSurveyFactsUrl(studyId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSurveyFactsQueryKey = (studyId: string,
+    params?: ListSurveyFactsParams,) => {
+    return [
+    `/api/studies/${studyId}/survey-facts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListSurveyFactsQueryOptions = <TData = Awaited<ReturnType<typeof listSurveyFacts>>, TError = unknown>(studyId: string,
+    params?: ListSurveyFactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyFacts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSurveyFactsQueryKey(studyId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSurveyFacts>>> = ({ signal }) => listSurveyFacts(studyId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSurveyFacts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSurveyFactsQueryResult = NonNullable<Awaited<ReturnType<typeof listSurveyFacts>>>
+export type ListSurveyFactsQueryError = unknown
+
+
+export function useListSurveyFacts<TData = Awaited<ReturnType<typeof listSurveyFacts>>, TError = unknown>(
+ studyId: string,
+    params: undefined |  ListSurveyFactsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyFacts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSurveyFacts>>,
+          TError,
+          Awaited<ReturnType<typeof listSurveyFacts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSurveyFacts<TData = Awaited<ReturnType<typeof listSurveyFacts>>, TError = unknown>(
+ studyId: string,
+    params?: ListSurveyFactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyFacts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSurveyFacts>>,
+          TError,
+          Awaited<ReturnType<typeof listSurveyFacts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSurveyFacts<TData = Awaited<ReturnType<typeof listSurveyFacts>>, TError = unknown>(
+ studyId: string,
+    params?: ListSurveyFactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyFacts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListSurveyFacts<TData = Awaited<ReturnType<typeof listSurveyFacts>>, TError = unknown>(
+ studyId: string,
+    params?: ListSurveyFactsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyFacts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSurveyFactsQueryOptions(studyId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getCreateSurveyFactUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/survey-facts`
+}
+
+export const createSurveyFact = async (studyId: string,
+    createSurveyFactInput: CreateSurveyFactInput, options?: Parameters<typeof apiFetch>[1]): Promise<Created> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<Created>(getCreateSurveyFactUrl(studyId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createSurveyFactInput)
+  }
+);}
+
+
+
+
+
+export const getCreateSurveyFactMutationKey = () => ['createSurveyFact'] as const;
+
+export const getCreateSurveyFactMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSurveyFact>>, TError,CreateSurveyFactMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSurveyFact>>, TError,CreateSurveyFactMutationVariables, TContext> => {
+
+const mutationKey = getCreateSurveyFactMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSurveyFact>>, CreateSurveyFactMutationVariables> = (props) => {
+          const {studyId,data} = props ?? {};
+
+          return  createSurveyFact(studyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSurveyFactMutationResult = NonNullable<Awaited<ReturnType<typeof createSurveyFact>>>
+    export type CreateSurveyFactMutationBody = CreateSurveyFactInput
+    export type CreateSurveyFactMutationError = unknown
+    export type CreateSurveyFactMutationVariables = {studyId: string;data: CreateSurveyFactInput}
+
+    export const useCreateSurveyFact = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSurveyFact>>, TError,CreateSurveyFactMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createSurveyFact>>,
+        TError,
+        CreateSurveyFactMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateSurveyFactMutationOptions(options), queryClient);
+    }
+    export const getEstimateSurveyFactsFindUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/survey-facts/find/estimate`
+}
+
+export const estimateSurveyFactsFind = async (studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<SurveyFactsFindEstimate> => {
+
+  return apiFetch<SurveyFactsFindEstimate>(getEstimateSurveyFactsFindUrl(studyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getEstimateSurveyFactsFindQueryKey = (studyId: string,) => {
+    return [
+    `/api/studies/${studyId}/survey-facts/find/estimate`
+    ] as const;
+    }
+
+
+export const getEstimateSurveyFactsFindQueryOptions = <TData = Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError = unknown>(studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getEstimateSurveyFactsFindQueryKey(studyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof estimateSurveyFactsFind>>> = ({ signal }) => estimateSurveyFactsFind(studyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type EstimateSurveyFactsFindQueryResult = NonNullable<Awaited<ReturnType<typeof estimateSurveyFactsFind>>>
+export type EstimateSurveyFactsFindQueryError = unknown
+
+
+export function useEstimateSurveyFactsFind<TData = Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError = unknown>(
+ studyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof estimateSurveyFactsFind>>,
+          TError,
+          Awaited<ReturnType<typeof estimateSurveyFactsFind>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEstimateSurveyFactsFind<TData = Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof estimateSurveyFactsFind>>,
+          TError,
+          Awaited<ReturnType<typeof estimateSurveyFactsFind>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEstimateSurveyFactsFind<TData = Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useEstimateSurveyFactsFind<TData = Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateSurveyFactsFind>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getEstimateSurveyFactsFindQueryOptions(studyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getFindSurveyFactsUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/survey-facts/find`
+}
+
+export const findSurveyFacts = async (studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<SurveyFactsFound> => {
+
+  return apiFetch<SurveyFactsFound>(getFindSurveyFactsUrl(studyId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getFindSurveyFactsMutationKey = () => ['findSurveyFacts'] as const;
+
+export const getFindSurveyFactsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof findSurveyFacts>>, TError,FindSurveyFactsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof findSurveyFacts>>, TError,FindSurveyFactsMutationVariables, TContext> => {
+
+const mutationKey = getFindSurveyFactsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof findSurveyFacts>>, FindSurveyFactsMutationVariables> = (props) => {
+          const {studyId} = props ?? {};
+
+          return  findSurveyFacts(studyId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FindSurveyFactsMutationResult = NonNullable<Awaited<ReturnType<typeof findSurveyFacts>>>
+
+    export type FindSurveyFactsMutationError = unknown
+    export type FindSurveyFactsMutationVariables = {studyId: string}
+
+    export const useFindSurveyFacts = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof findSurveyFacts>>, TError,FindSurveyFactsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof findSurveyFacts>>,
+        TError,
+        FindSurveyFactsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getFindSurveyFactsMutationOptions(options), queryClient);
+    }
+    export const getDecideSurveyFactUrl = (studyId: string,
+    factId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/survey-facts/${factId}`
+}
+
+export const decideSurveyFact = async (studyId: string,
+    factId: string,
+    decideSurveyFactInput: DecideSurveyFactInput, options?: Parameters<typeof apiFetch>[1]): Promise<SurveyFact> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<SurveyFact>(getDecideSurveyFactUrl(studyId,factId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(decideSurveyFactInput)
+  }
+);}
+
+
+
+
+
+export const getDecideSurveyFactMutationKey = () => ['decideSurveyFact'] as const;
+
+export const getDecideSurveyFactMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideSurveyFact>>, TError,DecideSurveyFactMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideSurveyFact>>, TError,DecideSurveyFactMutationVariables, TContext> => {
+
+const mutationKey = getDecideSurveyFactMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideSurveyFact>>, DecideSurveyFactMutationVariables> = (props) => {
+          const {studyId,factId,data} = props ?? {};
+
+          return  decideSurveyFact(studyId,factId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideSurveyFactMutationResult = NonNullable<Awaited<ReturnType<typeof decideSurveyFact>>>
+    export type DecideSurveyFactMutationBody = DecideSurveyFactInput
+    export type DecideSurveyFactMutationError = unknown
+    export type DecideSurveyFactMutationVariables = {studyId: string;factId: string;data: DecideSurveyFactInput}
+
+    export const useDecideSurveyFact = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideSurveyFact>>, TError,DecideSurveyFactMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof decideSurveyFact>>,
+        TError,
+        DecideSurveyFactMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideSurveyFactMutationOptions(options), queryClient);
+    }
+    export const getUpdateSurveyFactFigureUrl = (studyId: string,
+    factId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/survey-facts/${factId}/figure`
+}
+
+export const updateSurveyFactFigure = async (studyId: string,
+    factId: string,
+    surveyFactFigureInput: SurveyFactFigureInput, options?: Parameters<typeof apiFetch>[1]): Promise<SurveyFact> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<SurveyFact>(getUpdateSurveyFactFigureUrl(studyId,factId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(surveyFactFigureInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateSurveyFactFigureMutationKey = () => ['updateSurveyFactFigure'] as const;
+
+export const getUpdateSurveyFactFigureMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSurveyFactFigure>>, TError,UpdateSurveyFactFigureMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSurveyFactFigure>>, TError,UpdateSurveyFactFigureMutationVariables, TContext> => {
+
+const mutationKey = getUpdateSurveyFactFigureMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSurveyFactFigure>>, UpdateSurveyFactFigureMutationVariables> = (props) => {
+          const {studyId,factId,data} = props ?? {};
+
+          return  updateSurveyFactFigure(studyId,factId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSurveyFactFigureMutationResult = NonNullable<Awaited<ReturnType<typeof updateSurveyFactFigure>>>
+    export type UpdateSurveyFactFigureMutationBody = SurveyFactFigureInput
+    export type UpdateSurveyFactFigureMutationError = unknown
+    export type UpdateSurveyFactFigureMutationVariables = {studyId: string;factId: string;data: SurveyFactFigureInput}
+
+    export const useUpdateSurveyFactFigure = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSurveyFactFigure>>, TError,UpdateSurveyFactFigureMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateSurveyFactFigure>>,
+        TError,
+        UpdateSurveyFactFigureMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateSurveyFactFigureMutationOptions(options), queryClient);
     }

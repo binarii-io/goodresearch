@@ -45,6 +45,14 @@ export type StoredMessage = {
   readonly createdAt: Date
 }
 
+/** Spec 029: a figure of the Analysis tab, as a fact would cite it. */
+export type SurveyFigureRef = {
+  readonly itemId: string
+  readonly measure: 'option' | 'agree' | 'disagree' | 'mean'
+  readonly option?: string | undefined
+  readonly cross?: { readonly itemId: string; readonly option: string } | undefined
+}
+
 /** What a card shows (contracts `ProposalPreview`). */
 export type ProposalPreview = {
   readonly projectName?: string
@@ -95,6 +103,16 @@ export type ProposalPreview = {
     setAside: number
     total: number
   }
+  /** Spec 029. */
+  readonly surveyFacts?: {
+    item: string
+    figure: string
+    base: number
+    smallBase: boolean
+    cross: string | null
+    polarity: 'positive' | 'negative' | 'neutral'
+  }[]
+  readonly openItem?: { text: string; answers: number; parts: number }
   readonly questionnaire?: QuestionnaireDraft
   readonly replacesQuestionnaire?: boolean
   readonly itemChecks?: ItemChecks
@@ -321,6 +339,49 @@ export interface ResearchReads {
     items: readonly { interviewId: string; fields?: readonly string[]; reason?: string }[],
   ): Promise<{ ok: true; lines: InterviewCardLine[] } | { ok: false; error: string }>
   /** Spec 025: what analysing now would take. */
+  /** Spec 029: where a survey's analysis stands, as counts; null without access. */
+  surveyAnalysisState(
+    accountId: string,
+    studyId: string,
+  ): Promise<{
+    counted: number
+    setAside: number
+    openItems: { id: string; text: string; answers: number; themes: number; themed: number }[]
+    facts: { total: number; toDecide: number; accepted: number }
+  } | null>
+  /** Spec 029: the figures computed by the app, as a compact text for the model; never an answer. */
+  surveyFigures(accountId: string, studyId: string, crossBy: string | null): Promise<string | null>
+  /** Spec 029: today's value of each figure a fact would cite; null when gone. */
+  surveyFigureValues(
+    accountId: string,
+    studyId: string,
+    refs: readonly SurveyFigureRef[],
+  ): Promise<
+    readonly ({
+      item: string
+      cross: string | null
+      value: number
+      base: number
+      smallBase: boolean
+    } | null)[]
+  >
+  /** Spec 029: what a theme analysis of an open item would send and cost. */
+  themesEstimate(
+    actor: Actor,
+    studyId: string,
+    itemId: string,
+    onlyNew: boolean,
+  ): Promise<
+    | {
+        ok: true
+        text: string
+        answers: number
+        parts: number
+        cost: number | null
+        aiConnected: boolean
+      }
+    | { ok: false; error: string }
+  >
   analysisEstimate(
     actor: Actor,
     studyId: string,
@@ -532,6 +593,18 @@ export interface ResearchActions {
     actor: Actor
     publicationId: string
     open: boolean
+  }): Promise<{ ok: true } | { ok: false; error: string }>
+  /** Spec 029: survey facts from figures, each checked against today's figure. */
+  createSurveyFacts(c: {
+    actor: Actor
+    studyId: string
+    facts: readonly (SurveyFigureRef & { polarity: 'positive' | 'negative' | 'neutral' })[]
+  }): Promise<{ ok: true; made: number } | { ok: false; error: string }>
+  startThemes(c: {
+    actor: Actor
+    studyId: string
+    itemId: string
+    onlyNew: boolean
   }): Promise<{ ok: true } | { ok: false; error: string }>
   saveTargetRule(c: {
     actor: Actor

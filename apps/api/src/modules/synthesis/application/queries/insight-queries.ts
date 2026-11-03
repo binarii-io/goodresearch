@@ -211,6 +211,8 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
           // FR-018: a study the viewer cannot open shows its facts as counts only.
           studyId: visible ? fact.studyId : null,
           sessionId: visible ? fact.sessionId : null,
+          source: visible ? fact.source : null,
+          respondents: visible ? (fact.respondents ?? null) : null,
           participant: visible ? (fact.participants[0] ?? null) : null,
           version: visible ? fact.version : null,
           statement: visible ? mask(fact.statement) : null,
@@ -269,6 +271,8 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
         studyId: f.studyId,
         studyName: names.get(f.studyId) ?? '',
         sessionId: f.sessionId,
+        source: f.source,
+        respondents: f.respondents ?? null,
         participant: f.participants[0] ?? null,
         statement: mask(f.statement),
         status: f.status === 'proposed' ? ('to-decide' as const) : ('accepted' as const),

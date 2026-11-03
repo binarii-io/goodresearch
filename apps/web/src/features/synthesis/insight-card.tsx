@@ -44,6 +44,9 @@ export function ConfidenceExplained({ confidence: c }: { confidence: InsightConf
         <span>{t`${c.panelIfAccepted - c.panel} more participants have facts still to validate.`}</span>
       ) : null}
       <span>{t`High from ${c.highAt} supporting participants (5, or 30% of the panel when more); medium from 3.`}</span>
+      {c.respondents > 0 ? (
+        <span>{t`Survey facts add ${c.respondents} respondents; a survey fact on 30 respondents or more raises the confidence one level, at most to high.`}</span>
+      ) : null}
       {c.lowered ? (
         <span>{t`Counter-evidence from at least half as many participants lowers it one level.`}</span>
       ) : null}
@@ -158,6 +161,7 @@ export function InsightCardView({
         {c.pendingSupport + c.pendingCounter > 0
           ? t`For ${c.support} (+${c.pendingSupport} to validate) · against ${c.counter} (+${c.pendingCounter} to validate) participants`
           : t`For ${c.support} · against ${c.counter} participants`}
+        {c.respondents > 0 ? ` · ${t`${c.respondents} respondents`}` : ''}
       </span>
     </article>
   )

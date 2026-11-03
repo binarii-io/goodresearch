@@ -5,6 +5,7 @@ import {
   fromPlaceholders,
   holdsName,
   isAcronym,
+  maskAnswer,
   maskBilingual,
   nameKey,
   quoteFound,
@@ -120,5 +121,30 @@ describe('holdsName', () => {
   })
   it('ignores words of a name shorter than 3 letters', () => {
     expect(holdsName('Jo is here', ['Al Jo'])).toBe(false)
+  })
+})
+
+describe('maskAnswer (spec 029, ADR-0012)', () => {
+  const names = ['Camille Martin', 'Sam Example']
+  it('replaces names the team knows, a first name alone too', () => {
+    expect(maskAnswer('Camille helped, and Sam Example too', names)).toBe(
+      '[Person 1] helped, and [Person 2] too',
+    )
+  })
+  it('replaces emails, web addresses, phone numbers and long numbers', () => {
+    expect(
+      maskAnswer(
+        'Write to camille.m@corp.example or see https://intra.example/page, call +33 6 12 34 56 78, ticket 4482913',
+        [],
+      ),
+    ).toBe('Write to [email] or see [link], call [phone], ticket [number]')
+    expect(maskAnswer('See www.example.test for 3 tools in 2026', [])).toBe(
+      'See [link] for 3 tools in 2026',
+    )
+  })
+  it('gives null when nothing is left but marks', () => {
+    expect(maskAnswer('Camille Martin', names)).toBeNull()
+    expect(maskAnswer('  sam@corp.example. ', [])).toBeNull()
+    expect(maskAnswer('', [])).toBeNull()
   })
 })

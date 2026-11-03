@@ -5,11 +5,14 @@ import { type Bilingual, type FactPolarity, OTHER, type ProjectTheme } from './i
 export type LineFact = {
   readonly id: string
   readonly studyId: string
-  readonly sessionId: string
+  /** Null for a survey fact (spec 029). */
+  readonly sessionId: string | null
   readonly statement: Bilingual
   readonly polarity: FactPolarity
   readonly theme: { readonly id: string; readonly title: string } | null
   readonly participants: readonly string[]
+  /** Spec 029: a survey fact's base. */
+  readonly respondents?: number | null
 }
 
 export type FactLine = { readonly ref: string; readonly theme: string; readonly text: string }
@@ -23,7 +26,8 @@ const order = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
 /**
  * Research R2: one line per fact, `fN | polarity | tN | code | statement`, in study, interview and
  * theme order. The code is the participant's pseudonym, prefixed by the study (`S2-P01`) when the
- * project has several; `themes` maps `tN` (and `other`) to the project themes.
+ * project has several; a survey fact's code is `survey n=<base>`, after the interviews of its study
+ * (spec 029). `themes` maps `tN` (and `other`) to the project themes.
  */
 export const factLines = (
   facts: readonly LineFact[],
@@ -36,7 +40,8 @@ export const factLines = (
   const sorted = [...facts].sort(
     (a, b) =>
       (studyIndex.get(a.studyId) ?? 0) - (studyIndex.get(b.studyId) ?? 0) ||
-      order(a.sessionId, b.sessionId) ||
+      Number(a.sessionId === null) - Number(b.sessionId === null) ||
+      order(a.sessionId ?? '', b.sessionId ?? '') ||
       Number(key(a) === OTHER.key) - Number(key(b) === OTHER.key) ||
       order(key(a), key(b)) ||
       order(a.id, b.id),
@@ -58,8 +63,10 @@ export const factLines = (
     const ref = `f${i + 1}`
     refs.set(ref, f.id)
     const study = (studyIndex.get(f.studyId) ?? 0) + 1
-    const codes = f.participants.length > 0 ? f.participants : ['?']
-    const who = codes.map((c) => (several ? `S${study}-${c}` : c)).join(',')
+    const codes =
+      f.sessionId === null ? ['survey'] : f.participants.length > 0 ? f.participants : ['?']
+    const base = f.sessionId === null ? ` n=${f.respondents ?? 0}` : ''
+    const who = codes.map((c) => (several ? `S${study}-${c}` : c)).join(',') + base
     const theme = refOfTheme(themeOf(f.theme))
     return {
       ref,

@@ -31,6 +31,7 @@ export {
   isAcronym,
   isTranscriptEnd,
   languageOf,
+  maskAnswer,
   maskBilingual,
   nameKey,
   normaliseQuote,

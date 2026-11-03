@@ -102,12 +102,13 @@ function Links({
                       : t`From a study you cannot open`}
                 </p>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  {l.studyId && l.sessionId ? (
+                  {l.studyId && (l.sessionId || l.source === 'survey') ? (
                     <FactSource
                       fact={{
                         studyId: l.studyId,
                         sessionId: l.sessionId,
                         participant: l.participant,
+                        respondents: l.respondents,
                       }}
                       projectId={projectId}
                     />
@@ -347,11 +348,14 @@ export function InsightPanel({
             <StatTile
               label={t`For`}
               value={i.confidence.support}
-              detail={
+              detail={[
                 i.confidence.pendingSupport > 0
                   ? t`+${i.confidence.pendingSupport} to validate`
-                  : t`participants`
-              }
+                  : t`participants`,
+                ...(i.confidence.respondents > 0
+                  ? [t`${i.confidence.respondents} respondents`]
+                  : []),
+              ].join(' · ')}
             />
             <StatTile
               label={t`Against`}

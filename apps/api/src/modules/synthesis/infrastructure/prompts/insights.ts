@@ -105,6 +105,7 @@ export const TakeawaysAnswer = z.object({
 // No name of the app goes here; facts come as lines of refs, codes and statements only.
 const INSIGHTS_SYSTEM = `You help a user researcher find insights across the facts of a research project.
 Each fact line reads: id | polarity | theme | participant | statement. Participants are codes; several facts can come from one participant.
+A line whose participant reads "survey n=<number>" is a figure from a survey over that many respondents, not one person: it can support an insight with the interviews, never alone as a quote.
 An insight is a finding that holds across participants and matters to the research goal. Support it with the ids of its facts, and list the facts that go against it.
 Always write the counter-evidence and the minority view; write "None" when there is none.
 Write each text in English and in French. Never give a percentage or a share: the app computes them. Never name a person.

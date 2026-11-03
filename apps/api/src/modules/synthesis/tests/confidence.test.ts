@@ -36,6 +36,55 @@ const facts = (n: number, p: FactNow['polarity'] = 'negative') =>
 const byId = (list: FactNow[]) => new Map(list.map((f) => [f.id, f]))
 const studies = new Set(['st'])
 
+describe('survey facts in confidence (spec 029)', () => {
+  const survey = (id: string, respondents: number, studyId = 'sv'): FactNow => ({
+    ...fact(id, 'x', 'negative', 'accepted', studyId),
+    participants: [],
+    respondents,
+  })
+  const both = new Set(['st', 'sv'])
+
+  it('raises the level by one with a supporting survey fact on 30 respondents or more', () => {
+    const list = [...facts(3), survey('s1', 42)]
+    const low = confidence([link('f1'), link('s1')], byId(list), both, 10)
+    expect(low).toMatchObject({ level: 'medium', support: 1, respondents: 42 })
+    const medium = confidence(
+      [link('f1'), link('f2'), link('f3'), link('s1')],
+      byId(list),
+      both,
+      10,
+    )
+    expect(medium.level).toBe('high')
+  })
+
+  it('never raises with a small base, and never above high', () => {
+    const list = [...facts(6), survey('s1', 12), survey('s2', 80)]
+    expect(confidence([link('f1'), link('s1')], byId(list), both, 10)).toMatchObject({
+      level: 'low',
+      respondents: 12,
+    })
+    const all = [...facts(6).map((f) => link(f.id)), link('s2')]
+    expect(confidence(all, byId(list), both, 10).level).toBe('high')
+  })
+
+  it('counts respondents once per study, the largest base', () => {
+    const list = [survey('s1', 40), survey('s2', 35), survey('s3', 20, 'sv2')]
+    const c = confidence(
+      [link('s1'), link('s2'), link('s3')],
+      byId(list),
+      new Set(['sv', 'sv2']),
+      0,
+    )
+    expect(c.respondents).toBe(60)
+  })
+
+  it('leaves an interview-only insight as it was', () => {
+    const list = facts(3)
+    const c = confidence([link('f1'), link('f2'), link('f3')], byId(list), studies, 10)
+    expect(c).toMatchObject({ level: 'medium', respondents: 0 })
+  })
+})
+
 describe('panel (FR-008)', () => {
   it('counts the participants with accepted facts in the project, study by study', () => {
     const list = [

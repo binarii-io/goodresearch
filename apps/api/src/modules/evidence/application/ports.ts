@@ -132,6 +132,31 @@ export type FactRequest = {
   }[]
 }
 
+/** Spec 029: what a survey's "Find facts" sends: figures the app computed, accepted themes; no answer. */
+export type SurveyFactRequest = {
+  readonly figures: string
+  readonly themes: readonly {
+    readonly id: string
+    readonly item: string
+    readonly label: string
+    readonly description: string
+    readonly answers: number
+    readonly base: number
+  }[]
+  /** The study's facts already made, decided or not: never proposed again. */
+  readonly existing: readonly string[]
+}
+
+export type SurveyFactAnswer = {
+  readonly figure: {
+    readonly itemId: string
+    readonly measure: 'option' | 'agree' | 'disagree' | 'mean'
+    readonly option: string | null
+  } | null
+  readonly themeId: string | null
+  readonly polarity: Polarity
+}
+
 export type FactAnswer = {
   /** An existing fact taken up (`F1`…); absent for a new one. */
   readonly ref?: string | undefined
@@ -149,6 +174,14 @@ export type FactsAi = {
     request: VerbatimRequest,
   ): Promise<readonly { turn: string; text: string; reason: string | null }[]>
   facts(accountId: string, ref: string, request: FactRequest): Promise<readonly FactAnswer[]>
+  /** Spec 029 FR-010a: the figures and themes worth a fact; the app writes each statement. */
+  surveyFacts(
+    accountId: string,
+    ref: string,
+    request: SurveyFactRequest,
+  ): Promise<readonly SurveyFactAnswer[]>
+  /** The cost of one "Find facts" of a survey study, with its own instructions. */
+  surveyEstimate(accountId: string, inputChars: number): Promise<number | null>
   translate(
     accountId: string,
     ref: string,

@@ -15,18 +15,35 @@ import { useBilingual } from './insight-card.tsx'
 
 const ALL = 'all'
 
-/** A fact's link to its interview in its study's Analysis tab. */
+/** A fact's link to its interview, or to its survey's figures (spec 029), in the Analysis tab. */
 export function FactSource({
   fact,
   projectId,
 }: {
-  fact: { studyId: string; sessionId: string; participant: string | null }
+  fact: {
+    studyId: string
+    sessionId: string | null
+    participant: string | null
+    respondents?: number | null
+  }
   /** The project it is read from, for the study page's breadcrumb (spec 019). */
   projectId: string
 }) {
   const { t } = useLingui()
   // Spec 026: interviews stay with the team; a reader goes to the study's facts.
   const canChange = useCanChange()
+  const respondents = fact.respondents ?? 0
+  if (!fact.sessionId)
+    return (
+      <Link
+        to="/studies/$studyId"
+        params={{ studyId: fact.studyId }}
+        search={{ phase: 'analysis', from: projectId }}
+        className="text-xs underline underline-offset-2"
+      >
+        {t`See in the survey · ${respondents} respondents`}
+      </Link>
+    )
   return (
     <Link
       to="/studies/$studyId"

@@ -51,6 +51,7 @@ import {
 } from '../../../features/preparation/questionnaire-tab.tsx'
 import { QualityTab } from '../../../features/quality/quality-tab.tsx'
 import { StudySettingsButton } from '../../../features/research/study-settings.tsx'
+import { SurveyAnalysisTab } from '../../../features/surveys/survey-analysis-tab.tsx'
 import { SurveyFieldworkTab } from '../../../features/surveys/survey-fieldwork-tab.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useMe } from '../../../features/workspace/me.ts'
@@ -452,7 +453,13 @@ function StudyPage() {
           {s.projects.length > 1 ? (
             <p className="mb-3 text-muted-foreground text-sm">{t`This study feeds ${others}: decisions on its facts apply in all of them.`}</p>
           ) : null}
-          {s.type !== 'interviews' ? (
+          {s.type === 'survey' ? (
+            reader ? (
+              <ReservedToTeam team={s.team.name} />
+            ) : (
+              <SurveyAnalysisTab studyId={studyId} />
+            )
+          ) : s.type !== 'interviews' ? (
             <p className="text-muted-foreground text-base">{t`Analysis for this type of study is coming in a later version.`}</p>
           ) : source.isPending ? (
             <Skeleton className="h-40 w-full" />

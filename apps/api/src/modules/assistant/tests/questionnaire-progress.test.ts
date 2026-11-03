@@ -28,6 +28,8 @@ describe('spec 027 - the next step of a survey study', () => {
     accepting: false,
     counted: 0,
     target: 10,
+    openToTheme: 0,
+    facts: { total: 0, toDecide: 0 },
   }
   it.each([
     [
@@ -42,7 +44,14 @@ describe('spec 027 - the next step of a survey study', () => {
     ['open, collecting', { ...all, accepting: true, counted: 3 }, 'collect'],
     ['open, without a target', { ...all, accepting: true, counted: 30, target: null }, 'collect'],
     ['target reached', { ...all, accepting: true, counted: 10 }, 'close-form'],
-    ['closed with responses', { ...all, counted: 10 }, 'analysis-later'],
+    ['closed, open answers to theme', { ...all, counted: 10, openToTheme: 1 }, 'theme-open-items'],
+    ['closed, no fact yet', { ...all, counted: 10 }, 'make-facts'],
+    ['facts to decide', { ...all, counted: 10, facts: { total: 3, toDecide: 2 } }, 'decide-facts'],
+    [
+      'every fact decided',
+      { ...all, counted: 10, facts: { total: 3, toDecide: 0 } },
+      'analysis-done',
+    ],
   ])('with %s', (_case, state, step) => {
     expect(surveyNextStep(state)).toBe(step)
   })

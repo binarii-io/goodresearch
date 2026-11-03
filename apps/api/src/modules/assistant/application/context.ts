@@ -31,7 +31,13 @@ const SURVEY_NEXT_STEPS: Record<SurveyNextStep, string> = {
   'open-form': 'open the form to responses and share its link, from the Fieldwork tab',
   collect: 'collect responses: the team shares the link, and the Fieldwork tab follows them',
   'close-form': 'close the form: the target number of responses is reached',
-  'analysis-later': 'nothing more in the app for now: the analysis comes in a later version',
+  'theme-open-items':
+    'find the themes of the open answers, from the Analysis tab (the answers are masked first, and the person confirms the cost)',
+  'make-facts':
+    'read the figures in the Analysis tab, cross them by a profiling question, and make facts of the striking ones',
+  'decide-facts': 'decide the facts still to decide, in the Analysis tab',
+  'analysis-done':
+    'the survey is analysed: its accepted facts feed the project insights with those of interviews',
 }
 
 /** The app's own words for its tabs (bilingual glossary): the model would translate them itself. */
@@ -256,6 +262,7 @@ export const buildContext = async (
         study.type === 'survey' ? await research.questionnaire(actor.id, study.id) : null
       if (questionnaire) {
         const progress = await research.surveyProgress(actor.id, study.id)
+        const analysisState = await research.surveyAnalysisState(actor.id, study.id)
         surveyStudy = {
           id: study.id,
           name: study.name,
@@ -280,6 +287,10 @@ export const buildContext = async (
                 accepting: progress?.accepting === true,
                 counted: progress?.counts.counted ?? 0,
                 target: progress?.target ?? null,
+                openToTheme:
+                  analysisState?.openItems.filter((o) => o.answers >= 5 && o.themes === 0).length ??
+                  0,
+                facts: analysisState?.facts ?? { total: 0, toDecide: 0 },
               })
             ]
           }.`,

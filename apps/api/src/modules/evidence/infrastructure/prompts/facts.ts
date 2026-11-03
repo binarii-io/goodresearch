@@ -6,6 +6,7 @@ import {
   AiUnavailable,
   type FactRequest,
   type FactsAi,
+  type SurveyFactRequest,
   type VerbatimRequest,
 } from '../../application/ports.ts'
 
@@ -13,6 +14,8 @@ import {
 export const VERBATIMS_TASK = 'fact-verbatims'
 export const FACTS_TASK = 'facts'
 export const TRANSLATION_TASK = 'fact-translation'
+/** Spec 029 FR-010a. */
+export const SURVEY_FACTS_TASK = 'survey-facts'
 
 /** It runs in the worker: a part may take a while to answer (as a cleaning chunk). */
 const TIMEOUT_MS = 120_000
@@ -21,6 +24,7 @@ const TIMEOUT_MS = 120_000
 export const VERBATIMS_MARKER = '<interview-turns>'
 export const FACTS_MARKER = '<verbatims>'
 export const TRANSLATION_MARKER = '<translate>'
+export const SURVEY_FACTS_MARKER = '<survey-figures>'
 
 // Lenient on lengths: the app checks and cuts what it keeps (research R6).
 export const VerbatimsAnswer = z.object({
@@ -71,6 +75,31 @@ const FACTS_MAX = 80
 
 export const TranslationAnswer = z.object({ statement: z.string() })
 
+// The app writes each statement from its own figure (spec 029 FR-010a): the AI only points.
+export const SurveyFactsAnswer = z.object({
+  facts: z
+    .array(
+      z.object({
+        figure: z
+          .object({
+            itemId: z.string().describe('The id of the question, as listed.'),
+            measure: z
+              .enum(['option', 'agree', 'disagree', 'mean'])
+              .describe('option: the share of one answer; agree, disagree, mean: of a scale.'),
+            option: z
+              .string()
+              .nullable()
+              .describe('With option: the answer, copied exactly as listed; otherwise null.'),
+          })
+          .nullable()
+          .describe('A figure worth a fact, or null for a theme.'),
+        themeId: z.string().nullable().describe('The id of an accepted theme, or null.'),
+        polarity: z.enum(['positive', 'negative', 'neutral']),
+      }),
+    )
+    .describe('At most 10 facts, the most telling first.'),
+})
+
 // No name of the app goes here; the turns hold placeholders instead of known names.
 const VERBATIMS_SYSTEM = `You help a user researcher analyse an interview transcript.
 You get the research goal, the themes of the interview guide and numbered turns, each with who speaks.
@@ -94,6 +123,29 @@ Answer with the translation only, at most 200 characters.
 ${REGISTERS.translation}
 
 ${WRITING_STYLE}`
+
+const SURVEY_FACTS_SYSTEM = `You help a user researcher pick the facts of a survey study.
+You get the figures the app computed over the counted responses, and the themes a person accepted in the open answers.
+Pick at most 10 figures or themes that say something telling: a clear majority, a split, a low or high score, a frequent theme. Prefer what answers the questions of the study.
+Point at each one only: a figure by the id of its question, its measure and, for the share of one answer, that answer copied exactly; a theme by its id. The app writes the statement.
+Avoid small bases unless nothing else says it. Never propose again a fact of the list of existing facts.
+Give each a polarity: positive, negative or neutral for the respondents.`
+
+const renderSurveyFacts = (r: SurveyFactRequest) =>
+  [
+    '<existing-facts>',
+    ...r.existing,
+    '</existing-facts>',
+    '<accepted-themes>',
+    ...r.themes.map(
+      (t) =>
+        `${t.id} — "${t.item}": ${t.label} (${t.answers} of ${t.base} answers). ${t.description}`,
+    ),
+    '</accepted-themes>',
+    SURVEY_FACTS_MARKER,
+    r.figures,
+    '</survey-figures>',
+  ].join('\n')
 
 const renderVerbatims = (r: VerbatimRequest) =>
   [
@@ -189,6 +241,27 @@ export const createFactsAi = (ai: {
       throw failure(error)
     }
   },
+  surveyFacts: async (accountId, ref, request) => {
+    try {
+      const { object } = await ai.gateway().generateObject(
+        accountId,
+        SURVEY_FACTS_TASK,
+        {
+          system: SURVEY_FACTS_SYSTEM,
+          prompt: renderSurveyFacts(request),
+          schema: SurveyFactsAnswer,
+          maxOutputTokens: 2_000,
+        },
+        // A person waits for it in the Analysis tab.
+        { ref, timeoutMs: 60_000 },
+      )
+      return object.facts.slice(0, 20)
+    } catch (error) {
+      throw failure(error)
+    }
+  },
+  surveyEstimate: (accountId, inputChars) =>
+    ai.estimateCost(accountId, inputChars + SURVEY_FACTS_SYSTEM.length, 2_000),
   providerOf: (accountId) => ai.gateway().providerOf(accountId),
   estimate: (accountId, inputChars, outputTokens, calls) =>
     ai.estimateCost(

@@ -26,6 +26,10 @@ export const PROPOSAL_KINDS = [
   'propose_opening_form',
   'propose_closing_form',
   'propose_target_rule',
+  'survey_analysis_state',
+  'read_figures',
+  'propose_survey_facts',
+  'propose_theme_analysis',
   'attach_study',
   'detach_study',
   'update_study_goal',
@@ -71,6 +75,9 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
   kind === 'check_guide_questions' ||
   kind === 'check_questionnaire_items' ||
   kind === 'count_responses' ||
+  kind === 'survey_analysis_state' ||
+  kind === 'read_figures' ||
+  kind === 'propose_theme_analysis' ||
   kind === 'create_project' ||
   kind === 'create_study' ||
   kind === 'attach_folder' ||
@@ -103,6 +110,8 @@ export const isActivity = (kind: ProposalKind): boolean =>
   kind === 'check_guide_questions' ||
   kind === 'check_questionnaire_items' ||
   kind === 'count_responses' ||
+  kind === 'survey_analysis_state' ||
+  kind === 'read_figures' ||
   kind === 'browse_folder' ||
   kind === 'find_files' ||
   kind === 'read_file' ||

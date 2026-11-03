@@ -8,6 +8,7 @@ import type { InsightLinkInputFact } from './insightLinkInputFact.ts';
 import type { InsightLinkInputOrigin } from './insightLinkInputOrigin.ts';
 import type { InsightLinkInputPolarity } from './insightLinkInputPolarity.ts';
 import type { InsightLinkInputRole } from './insightLinkInputRole.ts';
+import type { InsightLinkInputSource } from './insightLinkInputSource.ts';
 import type { InsightLinkInputState } from './insightLinkInputState.ts';
 import type { InsightLinkInputStatement } from './insightLinkInputStatement.ts';
 
@@ -20,6 +21,8 @@ export interface InsightLinkInput {
   fact: InsightLinkInputFact;
   studyId: string | null;
   sessionId: string | null;
+  source: InsightLinkInputSource;
+  respondents: number | null;
   /** @nullable */
   participant: string | null;
   version: number | null;

@@ -210,3 +210,20 @@ export const maskBilingual = <T extends { readonly en: string; readonly fr: stri
     en: withPlaceholders(text.en, names).text,
     fr: withPlaceholders(text.fr, names).text,
   }) as T
+
+const MARKS = /\[(?:Person \d+|email|link|phone|number)\]/g
+
+/**
+ * Spec 029, ADR-0012: an open answer as it may leave the app. Emails, web addresses, phone numbers
+ * (8 digits or more) and other runs of 6 digits or more become marks, names the team knows become
+ * `[Person N]`; null when nothing is left but marks and punctuation.
+ */
+export const maskAnswer = (text: string, names: readonly string[]): string | null => {
+  const marked = text
+    .replace(/[^\s@<>()]+@[^\s@<>()]+\.[^\s@<>().,;:!?]+/g, '[email]')
+    .replace(/\b(?:https?:\/\/|www\.)[^\s,;)]*[^\s,;.!?)]/gi, '[link]')
+    .replace(/\+?\d[\d\s().-]{6,}\d/g, (m) => (m.replace(/\D/g, '').length >= 8 ? '[phone]' : m))
+    .replace(/\d{6,}/g, '[number]')
+  const masked = withPlaceholders(marked, names).text.trim()
+  return masked.replace(MARKS, '').replace(/[\s\p{P}]/gu, '').length === 0 ? null : masked
+}

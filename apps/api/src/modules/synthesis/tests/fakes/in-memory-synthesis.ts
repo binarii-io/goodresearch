@@ -388,11 +388,12 @@ export const makeDeps = (input: { sources: SynthesisSources; ai: InsightsAi; clo
 export const sourceFact = (
   id: string,
   participant: string,
-  over: Partial<SourceFact> = {},
+  over: Partial<SourceFact> & { respondents?: number | null } = {},
 ): SourceFact => ({
   id,
   studyId: 'st',
   sessionId: `s-${participant}`,
+  source: 'interview',
   status: 'accepted',
   participants: [participant],
   polarity: 'negative',

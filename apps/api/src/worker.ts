@@ -27,6 +27,7 @@ await registerHandlers(boss, [
   ...modules.evidence.jobs,
   ...modules.quality.jobs,
   ...modules.synthesis.jobs,
+  ...modules.surveys.jobs,
 ])
 console.log('worker started')
 

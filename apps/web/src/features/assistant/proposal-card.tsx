@@ -50,6 +50,10 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   propose_opening_form: msg`Open the form to responses`,
   propose_closing_form: msg`Close the form`,
   propose_target_rule: msg`Target audience`,
+  survey_analysis_state: msg`Looked at the analysis`,
+  read_figures: msg`Read the figures`,
+  propose_survey_facts: msg`Facts from the figures`,
+  propose_theme_analysis: msg`Find themes in open answers`,
   report_guide_progress: msg`Guide design progress`,
   report_project_progress: msg`Project framing progress`,
   report_study_progress: msg`Study framing progress`,
@@ -137,6 +141,8 @@ export function ProposalCard({
     proposal.kind === 'read_file' ||
     proposal.kind === 'count_interviews' ||
     proposal.kind === 'count_responses' ||
+    proposal.kind === 'survey_analysis_state' ||
+    proposal.kind === 'read_figures' ||
     proposal.kind === 'list_interviews'
   )
     return <FolderLine proposal={proposal} />
@@ -155,6 +161,8 @@ export const isActivity = (proposal: Proposal) =>
   proposal.kind === 'find_files' ||
   proposal.kind === 'read_file' ||
   proposal.kind === 'count_interviews' ||
+  proposal.kind === 'survey_analysis_state' ||
+  proposal.kind === 'read_figures' ||
   proposal.kind === 'list_interviews'
 
 /** Spec 024: what the assistant looked at in the folder: a quiet line, nothing to decide. */
@@ -169,11 +177,15 @@ function FolderLine({ proposal }: { proposal: Proposal }) {
           ? t`Searched the folder`
           : proposal.kind === 'count_responses'
             ? t`Counted the responses`
-            : proposal.kind === 'count_interviews'
-              ? t`Counted the interviews`
-              : proposal.kind === 'list_interviews'
-                ? t`Looked at the interviews`
-                : t`Looked in the folder`}
+            : proposal.kind === 'read_figures'
+              ? t`Read the figures`
+              : proposal.kind === 'survey_analysis_state'
+                ? t`Looked at the analysis`
+                : proposal.kind === 'count_interviews'
+                  ? t`Counted the interviews`
+                  : proposal.kind === 'list_interviews'
+                    ? t`Looked at the interviews`
+                    : t`Looked in the folder`}
     </p>
   )
 }
@@ -479,6 +491,31 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
           <p className="text-muted-foreground text-xs">
             {t`Would set aside ${p.targetRule.setAside} of ${p.targetRule.total} responses. Nothing is deleted.`}
           </p>
+        </div>
+      ) : null}
+      {p.surveyFacts ? (
+        <div className="grid gap-2">
+          <ul className="ml-5 list-disc">
+            {p.surveyFacts.map((f) => (
+              <li key={`${f.item}|${f.figure}|${f.cross ?? ''}`}>
+                {f.item}: {f.figure}
+                {f.cross ? ` (${f.cross})` : ''} · {t`base ${f.base}`}
+                {f.smallBase ? ` · ${t`small base`}` : ''}
+              </li>
+            ))}
+          </ul>
+          <p className="text-muted-foreground text-xs">{t`The app writes each statement from the figure as it is today. You then decide each fact.`}</p>
+        </div>
+      ) : null}
+      {p.openItem ? (
+        <div className="grid gap-1">
+          <p>{t`${p.openItem.answers} answers to “${p.openItem.text}”, in ${p.openItem.parts} parts`}</p>
+          <p className="text-muted-foreground text-xs">
+            {p.estimatedCost === null || p.estimatedCost === undefined
+              ? t`The cost could not be estimated.`
+              : t`At most about $${estimatedCost}, on your AI provider.`}
+          </p>
+          <p className="text-muted-foreground text-xs">{t`The answers are masked before they are sent. The themes are proposals you decide in the Analysis tab.`}</p>
         </div>
       ) : null}
       {questionnaire ? (

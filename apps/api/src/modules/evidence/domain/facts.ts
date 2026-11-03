@@ -123,9 +123,9 @@ export const isRepeated = (
   )
 
 /** A person's statement: one language or both; the missing one is translated (research R9). */
-type GivenStatement = { readonly en?: string | undefined; readonly fr?: string | undefined }
+export type GivenStatement = { readonly en?: string | undefined; readonly fr?: string | undefined }
 
-const statementOf = (
+export const statementOf = (
   given: GivenStatement,
   current: Statement,
   names: readonly string[],

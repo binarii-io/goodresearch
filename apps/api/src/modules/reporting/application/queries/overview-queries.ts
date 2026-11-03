@@ -5,7 +5,9 @@ import type { ReportedStudy, ReportingDeps, ResponseCounts, StatusCount } from '
 const USES = ['analysis', 'lexicon', 'cleaning', 'quality', 'facts'] as const
 
 const counted = (counts: readonly StatusCount[]): StepCounts => {
-  const of = (status: string) => counts.find((c) => c.status === status)?.count ?? 0
+  // A status may come twice: interview and survey facts of one study are counted apart.
+  const of = (status: string) =>
+    counts.filter((c) => c.status === status).reduce((n, c) => n + c.count, 0)
   const total = counts.reduce((n, c) => n + c.count, 0) - of('rejected')
   return { total, validated: total - of('proposed'), toDecide: of('proposed') }
 }

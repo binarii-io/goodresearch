@@ -36,7 +36,10 @@ export type SurveyNextStep =
   | 'open-form'
   | 'collect'
   | 'close-form'
-  | 'analysis-later'
+  | 'theme-open-items'
+  | 'make-facts'
+  | 'decide-facts'
+  | 'analysis-done'
 
 export const surveyNextStep = (s: {
   hasQuestionnaire: boolean
@@ -47,11 +50,22 @@ export const surveyNextStep = (s: {
   accepting: boolean
   counted: number
   target: number | null
+  /** Spec 029: open items with 5 counted answers or more and no theme yet. */
+  openToTheme: number
+  facts: { total: number; toDecide: number }
 }): SurveyNextStep => {
   if (!s.hasQuestionnaire) return 'write-questionnaire'
   if (!s.hasFolder) return 'add-folder'
   if (!s.published.includes('questionnaire')) return 'publish-questionnaire'
   if (s.accepting) return s.target !== null && s.counted >= s.target ? 'close-form' : 'collect'
-  if (s.counted > 0) return 'analysis-later'
+  // Spec 029: once collected, the analysis: themes, then facts made and decided.
+  if (s.counted > 0)
+    return s.openToTheme > 0
+      ? 'theme-open-items'
+      : s.facts.total === 0
+        ? 'make-facts'
+        : s.facts.toDecide > 0
+          ? 'decide-facts'
+          : 'analysis-done'
   return s.checksDone ? 'open-form' : 'readiness'
 }

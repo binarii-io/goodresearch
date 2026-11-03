@@ -56,9 +56,14 @@ const factRow = (f: Fact) => ({
 })
 
 export const createEvidenceStore = (db: Db): EvidenceStore => {
+  /** Interview facts only: survey facts (spec 029) have their own store. */
   const factsWhere = async (where: ReturnType<typeof eq>): Promise<Fact[]> => {
     // Creation order (ids are UUID v7): a decision, which rewrites the row, never moves a fact.
-    const rows = await db.select().from(evidenceFacts).where(where).orderBy(evidenceFacts.id)
+    const rows = await db
+      .select()
+      .from(evidenceFacts)
+      .where(and(where, eq(evidenceFacts.source, 'interview')))
+      .orderBy(evidenceFacts.id)
     if (rows.length === 0) return []
     const links = await db
       .select()
@@ -73,7 +78,8 @@ export const createEvidenceStore = (db: Db): EvidenceStore => {
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
       .map((r) => ({
         id: r.id,
-        sessionId: r.sessionId,
+        // An interview fact always has its session (check `evidence_facts_session_source_check`).
+        sessionId: r.sessionId as string,
         studyId: r.studyId,
         statement: { en: r.statementEn, fr: r.statementFr },
         translation: r.translation as Translation,

@@ -24,6 +24,10 @@ export const QUEUES = {
   recommendations: 'synthesis.recommendations',
   /** One key takeaways draft per project at a time (spec 014). */
   takeaways: 'synthesis.takeaways',
+  /** One theme analysis of open answers per study at a time (spec 029, keyed by study id). */
+  themes: 'surveys.themes',
+  /** A theme's or a survey fact's texts translated after a person's edit (spec 029). */
+  surveyTranslate: 'surveys.translate',
 } as const
 
 export type JobQueue = {
@@ -68,6 +72,8 @@ const QUEUE_OPTIONS = {
   [QUEUES.insightTranslate]: retried,
   [QUEUES.recommendations]: run(30 * 60),
   [QUEUES.takeaways]: run(10 * 60),
+  [QUEUES.themes]: run(30 * 60),
+  [QUEUES.surveyTranslate]: retried,
 } satisfies Record<string, Omit<Queue, 'name'>>
 
 /** Creates missing queues and brings existing ones to the current settings (creation alone keeps old ones). */

@@ -6,6 +6,7 @@ import type {
   StoredResponse,
   SurveySection,
 } from '../domain/responses.ts'
+import type { ProposedTheme, SentAnswer } from '../domain/themes.ts'
 
 export type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
 
@@ -98,4 +99,56 @@ export type SurveysDeps = {
   >
   /** The study's published form; null when there is none. */
   readonly form: (studyId: string) => Promise<{ fileId: string; itemMap: ItemMap | null } | null>
+  /** Each ledger ref's cost, null without a known price (spec 029). */
+  readonly costs: (refs: readonly string[]) => Promise<ReadonlyMap<string, number | null>>
+}
+
+/** Spec 029: no AI provider set up for this person. */
+export class AiUnavailable extends Error {
+  override name = 'AiUnavailable'
+}
+/** The provider failed, or answered in a shape that does not fit. */
+export class AiFailed extends Error {
+  override name = 'AiFailed'
+  readonly invalid: boolean
+  constructor(invalid: boolean) {
+    super(invalid ? 'invalid answer' : 'provider failed')
+    this.invalid = invalid
+  }
+}
+
+/** Spec 029 research R6: themes of masked open answers, through the AI Gateway. */
+export type ThemesAi = {
+  themes(
+    accountId: string,
+    ref: string,
+    request: {
+      readonly item: string
+      readonly answers: readonly SentAnswer[]
+      readonly rejected: readonly string[]
+      /** On a run over new answers: the themes they may join. */
+      readonly existing: readonly { readonly id: string; readonly label: string }[]
+    },
+  ): Promise<readonly ProposedTheme[]>
+  merge(
+    accountId: string,
+    ref: string,
+    themes: readonly {
+      readonly ref: string
+      readonly label: string
+      readonly description: string
+    }[],
+  ): Promise<readonly { readonly keep: string; readonly merge: readonly string[] }[]>
+  translate(
+    accountId: string,
+    ref: string,
+    request: { text: string; from: 'en' | 'fr'; to: 'en' | 'fr' },
+  ): Promise<string>
+  providerOf(accountId: string): Promise<string | null>
+  estimate(
+    accountId: string,
+    inputChars: number,
+    outputTokens: number,
+    calls: number,
+  ): Promise<number | null>
 }

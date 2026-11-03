@@ -9,6 +9,7 @@ import type {
   FactsJob,
   Reading,
   StoredVerbatim,
+  SurveyFactAnswer,
   TranslateJob,
   VerbatimRequest,
 } from '../../application/ports.ts'
@@ -253,7 +254,9 @@ export const fakeFactsAi = (options: { names?: string[] } = {}) => {
     facts: FactAnswer[] | null
     /** Runs while the fact pass is in flight (a person acting meanwhile). */
     duringFacts: (() => Promise<void>) | null
-  } = { unavailable: false, failChunks: 0, facts: null, duringFacts: null }
+    /** Spec 029: what a survey's "Find facts" answers. */
+    surveyFacts: SurveyFactAnswer[]
+  } = { unavailable: false, failChunks: 0, facts: null, duringFacts: null, surveyFacts: [] }
   const ai: FactsAi = {
     verbatims: async (_accountId, ref, request: VerbatimRequest) => {
       requests.push({ kind: 'verbatims', ref, body: JSON.stringify(request) })
@@ -295,6 +298,12 @@ export const fakeFactsAi = (options: { names?: string[] } = {}) => {
       if (state.unavailable) throw new AiUnavailable()
       return `[${request.to}] ${request.text}`
     },
+    surveyFacts: async (_accountId, ref, request) => {
+      requests.push({ kind: 'survey-facts', ref, body: JSON.stringify(request) })
+      if (state.unavailable) throw new AiUnavailable()
+      return state.surveyFacts
+    },
+    surveyEstimate: async (_a, chars) => chars / 1_000_000,
     providerOf: async () => 'anthropic',
     estimate: async (_a, chars) => chars / 1_000_000,
     costs: async (refs) => new Map(refs.map((r) => [r, 0.01])),

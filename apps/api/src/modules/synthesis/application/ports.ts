@@ -6,8 +6,14 @@ import type { Bilingual, FactNow, Insight, InsightAnswer } from '../domain/insig
 import type { Recommendation, RecommendationAnswer } from '../domain/recommendations.ts'
 import type { Takeaways } from '../domain/takeaways.ts'
 
-/** A fact of the project as Evidence gives it (spec 013 research R1). */
-export type SourceFact = FactNow & { readonly sessionId: string }
+/**
+ * A fact of the project as Evidence gives it (spec 013 research R1): an interview's, or since
+ * spec 029 a survey's, with no session.
+ */
+export type SourceFact = FactNow & {
+  readonly sessionId: string | null
+  readonly source: 'interview' | 'survey'
+}
 
 /** A study of the project, with the person's own access to its folder (spec 002 FR-010a). */
 export type ProjectStudy = {

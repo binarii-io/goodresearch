@@ -24,12 +24,24 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  DecideSurveyThemeInput,
+  EstimateThemesRunParams,
+  GetSurveyAnalysisParams,
+  ListOpenAnswersParams,
   ListResponsesParams,
+  MergeSurveyThemesInput,
+  MoveOpenAnswerInput,
+  OpenAnswersPage,
   ReadResponsesInput,
   ResponseDetail,
   ResponsesPage,
   ResponsesSummary,
   SaveTargetRuleInput,
+  StartThemesRunInput,
+  SurveyAnalysis,
+  SurveyThemes,
+  ThemesEstimate,
+  ThemesRunStarted,
   VersionAck
 } from '../../model';
 
@@ -58,6 +70,787 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getListOpenAnswersUrl = (studyId: string,
+    itemId: string,
+    params?: ListOpenAnswersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/studies/${studyId}/open-items/${itemId}/answers?${stringifiedParams}` : `/api/studies/${studyId}/open-items/${itemId}/answers`
+}
+
+export const listOpenAnswers = async (studyId: string,
+    itemId: string,
+    params?: ListOpenAnswersParams, options?: Parameters<typeof apiFetch>[1]): Promise<OpenAnswersPage> => {
+
+  return apiFetch<OpenAnswersPage>(getListOpenAnswersUrl(studyId,itemId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOpenAnswersQueryKey = (studyId: string,
+    itemId: string,
+    params?: ListOpenAnswersParams,) => {
+    return [
+    `/api/studies/${studyId}/open-items/${itemId}/answers`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListOpenAnswersQueryOptions = <TData = Awaited<ReturnType<typeof listOpenAnswers>>, TError = unknown>(studyId: string,
+    itemId: string,
+    params?: ListOpenAnswersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenAnswers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOpenAnswersQueryKey(studyId,itemId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOpenAnswers>>> = ({ signal }) => listOpenAnswers(studyId,itemId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined && itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOpenAnswers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListOpenAnswersQueryResult = NonNullable<Awaited<ReturnType<typeof listOpenAnswers>>>
+export type ListOpenAnswersQueryError = unknown
+
+
+export function useListOpenAnswers<TData = Awaited<ReturnType<typeof listOpenAnswers>>, TError = unknown>(
+ studyId: string,
+    itemId: string,
+    params: undefined |  ListOpenAnswersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenAnswers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOpenAnswers>>,
+          TError,
+          Awaited<ReturnType<typeof listOpenAnswers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOpenAnswers<TData = Awaited<ReturnType<typeof listOpenAnswers>>, TError = unknown>(
+ studyId: string,
+    itemId: string,
+    params?: ListOpenAnswersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenAnswers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOpenAnswers>>,
+          TError,
+          Awaited<ReturnType<typeof listOpenAnswers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOpenAnswers<TData = Awaited<ReturnType<typeof listOpenAnswers>>, TError = unknown>(
+ studyId: string,
+    itemId: string,
+    params?: ListOpenAnswersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenAnswers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListOpenAnswers<TData = Awaited<ReturnType<typeof listOpenAnswers>>, TError = unknown>(
+ studyId: string,
+    itemId: string,
+    params?: ListOpenAnswersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenAnswers>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListOpenAnswersQueryOptions(studyId,itemId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getListSurveyThemesUrl = (studyId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/open-items/${itemId}/themes`
+}
+
+export const listSurveyThemes = async (studyId: string,
+    itemId: string, options?: Parameters<typeof apiFetch>[1]): Promise<SurveyThemes> => {
+
+  return apiFetch<SurveyThemes>(getListSurveyThemesUrl(studyId,itemId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSurveyThemesQueryKey = (studyId: string,
+    itemId: string,) => {
+    return [
+    `/api/studies/${studyId}/open-items/${itemId}/themes`
+    ] as const;
+    }
+
+
+export const getListSurveyThemesQueryOptions = <TData = Awaited<ReturnType<typeof listSurveyThemes>>, TError = unknown>(studyId: string,
+    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyThemes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSurveyThemesQueryKey(studyId,itemId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSurveyThemes>>> = ({ signal }) => listSurveyThemes(studyId,itemId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined && itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSurveyThemes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSurveyThemesQueryResult = NonNullable<Awaited<ReturnType<typeof listSurveyThemes>>>
+export type ListSurveyThemesQueryError = unknown
+
+
+export function useListSurveyThemes<TData = Awaited<ReturnType<typeof listSurveyThemes>>, TError = unknown>(
+ studyId: string,
+    itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyThemes>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSurveyThemes>>,
+          TError,
+          Awaited<ReturnType<typeof listSurveyThemes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSurveyThemes<TData = Awaited<ReturnType<typeof listSurveyThemes>>, TError = unknown>(
+ studyId: string,
+    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyThemes>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSurveyThemes>>,
+          TError,
+          Awaited<ReturnType<typeof listSurveyThemes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSurveyThemes<TData = Awaited<ReturnType<typeof listSurveyThemes>>, TError = unknown>(
+ studyId: string,
+    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyThemes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListSurveyThemes<TData = Awaited<ReturnType<typeof listSurveyThemes>>, TError = unknown>(
+ studyId: string,
+    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSurveyThemes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSurveyThemesQueryOptions(studyId,itemId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getEstimateThemesRunUrl = (studyId: string,
+    itemId: string,
+    params?: EstimateThemesRunParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/studies/${studyId}/open-items/${itemId}/themes/estimate?${stringifiedParams}` : `/api/studies/${studyId}/open-items/${itemId}/themes/estimate`
+}
+
+export const estimateThemesRun = async (studyId: string,
+    itemId: string,
+    params?: EstimateThemesRunParams, options?: Parameters<typeof apiFetch>[1]): Promise<ThemesEstimate> => {
+
+  return apiFetch<ThemesEstimate>(getEstimateThemesRunUrl(studyId,itemId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getEstimateThemesRunQueryKey = (studyId: string,
+    itemId: string,
+    params?: EstimateThemesRunParams,) => {
+    return [
+    `/api/studies/${studyId}/open-items/${itemId}/themes/estimate`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getEstimateThemesRunQueryOptions = <TData = Awaited<ReturnType<typeof estimateThemesRun>>, TError = unknown>(studyId: string,
+    itemId: string,
+    params?: EstimateThemesRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateThemesRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getEstimateThemesRunQueryKey(studyId,itemId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof estimateThemesRun>>> = ({ signal }) => estimateThemesRun(studyId,itemId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined && itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof estimateThemesRun>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type EstimateThemesRunQueryResult = NonNullable<Awaited<ReturnType<typeof estimateThemesRun>>>
+export type EstimateThemesRunQueryError = unknown
+
+
+export function useEstimateThemesRun<TData = Awaited<ReturnType<typeof estimateThemesRun>>, TError = unknown>(
+ studyId: string,
+    itemId: string,
+    params: undefined |  EstimateThemesRunParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateThemesRun>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof estimateThemesRun>>,
+          TError,
+          Awaited<ReturnType<typeof estimateThemesRun>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEstimateThemesRun<TData = Awaited<ReturnType<typeof estimateThemesRun>>, TError = unknown>(
+ studyId: string,
+    itemId: string,
+    params?: EstimateThemesRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateThemesRun>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof estimateThemesRun>>,
+          TError,
+          Awaited<ReturnType<typeof estimateThemesRun>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEstimateThemesRun<TData = Awaited<ReturnType<typeof estimateThemesRun>>, TError = unknown>(
+ studyId: string,
+    itemId: string,
+    params?: EstimateThemesRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateThemesRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useEstimateThemesRun<TData = Awaited<ReturnType<typeof estimateThemesRun>>, TError = unknown>(
+ studyId: string,
+    itemId: string,
+    params?: EstimateThemesRunParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof estimateThemesRun>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getEstimateThemesRunQueryOptions(studyId,itemId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getStartThemesRunUrl = (studyId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/open-items/${itemId}/themes/runs`
+}
+
+export const startThemesRun = async (studyId: string,
+    itemId: string,
+    startThemesRunInput: StartThemesRunInput, options?: Parameters<typeof apiFetch>[1]): Promise<ThemesRunStarted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<ThemesRunStarted>(getStartThemesRunUrl(studyId,itemId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(startThemesRunInput)
+  }
+);}
+
+
+
+
+
+export const getStartThemesRunMutationKey = () => ['startThemesRun'] as const;
+
+export const getStartThemesRunMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startThemesRun>>, TError,StartThemesRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startThemesRun>>, TError,StartThemesRunMutationVariables, TContext> => {
+
+const mutationKey = getStartThemesRunMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startThemesRun>>, StartThemesRunMutationVariables> = (props) => {
+          const {studyId,itemId,data} = props ?? {};
+
+          return  startThemesRun(studyId,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartThemesRunMutationResult = NonNullable<Awaited<ReturnType<typeof startThemesRun>>>
+    export type StartThemesRunMutationBody = StartThemesRunInput
+    export type StartThemesRunMutationError = unknown
+    export type StartThemesRunMutationVariables = {studyId: string;itemId: string;data: StartThemesRunInput}
+
+    export const useStartThemesRun = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startThemesRun>>, TError,StartThemesRunMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startThemesRun>>,
+        TError,
+        StartThemesRunMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartThemesRunMutationOptions(options), queryClient);
+    }
+    export const getMoveOpenAnswerUrl = (studyId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/open-items/${itemId}/move`
+}
+
+export const moveOpenAnswer = async (studyId: string,
+    itemId: string,
+    moveOpenAnswerInput: MoveOpenAnswerInput, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getMoveOpenAnswerUrl(studyId,itemId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(moveOpenAnswerInput)
+  }
+);}
+
+
+
+
+
+export const getMoveOpenAnswerMutationKey = () => ['moveOpenAnswer'] as const;
+
+export const getMoveOpenAnswerMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveOpenAnswer>>, TError,MoveOpenAnswerMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof moveOpenAnswer>>, TError,MoveOpenAnswerMutationVariables, TContext> => {
+
+const mutationKey = getMoveOpenAnswerMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof moveOpenAnswer>>, MoveOpenAnswerMutationVariables> = (props) => {
+          const {studyId,itemId,data} = props ?? {};
+
+          return  moveOpenAnswer(studyId,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MoveOpenAnswerMutationResult = NonNullable<Awaited<ReturnType<typeof moveOpenAnswer>>>
+    export type MoveOpenAnswerMutationBody = MoveOpenAnswerInput
+    export type MoveOpenAnswerMutationError = unknown
+    export type MoveOpenAnswerMutationVariables = {studyId: string;itemId: string;data: MoveOpenAnswerInput}
+
+    export const useMoveOpenAnswer = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveOpenAnswer>>, TError,MoveOpenAnswerMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof moveOpenAnswer>>,
+        TError,
+        MoveOpenAnswerMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMoveOpenAnswerMutationOptions(options), queryClient);
+    }
+    export const getDecideSurveyThemeUrl = (studyId: string,
+    themeId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/survey-themes/${themeId}/decide`
+}
+
+export const decideSurveyTheme = async (studyId: string,
+    themeId: string,
+    decideSurveyThemeInput: DecideSurveyThemeInput, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getDecideSurveyThemeUrl(studyId,themeId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(decideSurveyThemeInput)
+  }
+);}
+
+
+
+
+
+export const getDecideSurveyThemeMutationKey = () => ['decideSurveyTheme'] as const;
+
+export const getDecideSurveyThemeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideSurveyTheme>>, TError,DecideSurveyThemeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideSurveyTheme>>, TError,DecideSurveyThemeMutationVariables, TContext> => {
+
+const mutationKey = getDecideSurveyThemeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideSurveyTheme>>, DecideSurveyThemeMutationVariables> = (props) => {
+          const {studyId,themeId,data} = props ?? {};
+
+          return  decideSurveyTheme(studyId,themeId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideSurveyThemeMutationResult = NonNullable<Awaited<ReturnType<typeof decideSurveyTheme>>>
+    export type DecideSurveyThemeMutationBody = DecideSurveyThemeInput
+    export type DecideSurveyThemeMutationError = unknown
+    export type DecideSurveyThemeMutationVariables = {studyId: string;themeId: string;data: DecideSurveyThemeInput}
+
+    export const useDecideSurveyTheme = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideSurveyTheme>>, TError,DecideSurveyThemeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof decideSurveyTheme>>,
+        TError,
+        DecideSurveyThemeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideSurveyThemeMutationOptions(options), queryClient);
+    }
+    export const getMergeSurveyThemesUrl = (studyId: string,
+    themeId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/survey-themes/${themeId}/merge`
+}
+
+export const mergeSurveyThemes = async (studyId: string,
+    themeId: string,
+    mergeSurveyThemesInput: MergeSurveyThemesInput, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getMergeSurveyThemesUrl(studyId,themeId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(mergeSurveyThemesInput)
+  }
+);}
+
+
+
+
+
+export const getMergeSurveyThemesMutationKey = () => ['mergeSurveyThemes'] as const;
+
+export const getMergeSurveyThemesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mergeSurveyThemes>>, TError,MergeSurveyThemesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mergeSurveyThemes>>, TError,MergeSurveyThemesMutationVariables, TContext> => {
+
+const mutationKey = getMergeSurveyThemesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mergeSurveyThemes>>, MergeSurveyThemesMutationVariables> = (props) => {
+          const {studyId,themeId,data} = props ?? {};
+
+          return  mergeSurveyThemes(studyId,themeId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MergeSurveyThemesMutationResult = NonNullable<Awaited<ReturnType<typeof mergeSurveyThemes>>>
+    export type MergeSurveyThemesMutationBody = MergeSurveyThemesInput
+    export type MergeSurveyThemesMutationError = unknown
+    export type MergeSurveyThemesMutationVariables = {studyId: string;themeId: string;data: MergeSurveyThemesInput}
+
+    export const useMergeSurveyThemes = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mergeSurveyThemes>>, TError,MergeSurveyThemesMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mergeSurveyThemes>>,
+        TError,
+        MergeSurveyThemesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMergeSurveyThemesMutationOptions(options), queryClient);
+    }
+    export const getGetSurveyAnalysisUrl = (studyId: string,
+    params?: GetSurveyAnalysisParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/studies/${studyId}/survey-analysis?${stringifiedParams}` : `/api/studies/${studyId}/survey-analysis`
+}
+
+export const getSurveyAnalysis = async (studyId: string,
+    params?: GetSurveyAnalysisParams, options?: Parameters<typeof apiFetch>[1]): Promise<SurveyAnalysis> => {
+
+  return apiFetch<SurveyAnalysis>(getGetSurveyAnalysisUrl(studyId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSurveyAnalysisQueryKey = (studyId: string,
+    params?: GetSurveyAnalysisParams,) => {
+    return [
+    `/api/studies/${studyId}/survey-analysis`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSurveyAnalysisQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyAnalysis>>, TError = unknown>(studyId: string,
+    params?: GetSurveyAnalysisParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSurveyAnalysis>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSurveyAnalysisQueryKey(studyId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSurveyAnalysis>>> = ({ signal }) => getSurveyAnalysis(studyId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSurveyAnalysis>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSurveyAnalysisQueryResult = NonNullable<Awaited<ReturnType<typeof getSurveyAnalysis>>>
+export type GetSurveyAnalysisQueryError = unknown
+
+
+export function useGetSurveyAnalysis<TData = Awaited<ReturnType<typeof getSurveyAnalysis>>, TError = unknown>(
+ studyId: string,
+    params: undefined |  GetSurveyAnalysisParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSurveyAnalysis>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSurveyAnalysis>>,
+          TError,
+          Awaited<ReturnType<typeof getSurveyAnalysis>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSurveyAnalysis<TData = Awaited<ReturnType<typeof getSurveyAnalysis>>, TError = unknown>(
+ studyId: string,
+    params?: GetSurveyAnalysisParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSurveyAnalysis>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSurveyAnalysis>>,
+          TError,
+          Awaited<ReturnType<typeof getSurveyAnalysis>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSurveyAnalysis<TData = Awaited<ReturnType<typeof getSurveyAnalysis>>, TError = unknown>(
+ studyId: string,
+    params?: GetSurveyAnalysisParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSurveyAnalysis>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetSurveyAnalysis<TData = Awaited<ReturnType<typeof getSurveyAnalysis>>, TError = unknown>(
+ studyId: string,
+    params?: GetSurveyAnalysisParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSurveyAnalysis>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSurveyAnalysisQueryOptions(studyId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
 
 export const getGetResponsesSummaryUrl = (studyId: string,) => {
 

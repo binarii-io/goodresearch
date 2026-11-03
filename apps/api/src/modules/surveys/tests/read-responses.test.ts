@@ -97,6 +97,7 @@ const world = () => {
   const deps: SurveysDeps = {
     store,
     clock: { now: () => clock.value },
+    costs: async () => new Map(),
     files: async () => ok(files),
     questionnaire: async () =>
       ok({ version: 1, content: { framing: { targetResponses: 10 }, sections } }),

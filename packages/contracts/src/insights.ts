@@ -41,6 +41,8 @@ export const InsightConfidence = z
     level: ConfidenceLevel,
     /** Participants of the counted supporting and counter facts. */
     support: z.number().int(),
+    /** Spec 029: survey respondents behind the supporting facts, the largest base per study. */
+    respondents: z.number().int(),
     counter: z.number().int(),
     panel: z.number().int(),
     /** The supporting participants "high" needs. */
@@ -131,6 +133,9 @@ export const InsightLink = z
     fact: LinkedFactState,
     studyId: Id.nullable(),
     sessionId: Id.nullable(),
+    /** Spec 029: an interview's fact, or a survey's (no session, respondents instead). */
+    source: z.enum(['interview', 'survey']).nullable(),
+    respondents: z.number().int().nullable(),
     participant: z.string().nullable(),
     /** The fact's version, to decide it from here; null when deleted. */
     version: Version.nullable(),
@@ -227,7 +232,10 @@ export const ProjectFact = z
     version: Version,
     studyId: Id,
     studyName: z.string(),
-    sessionId: Id,
+    /** Null for a survey fact (spec 029). */
+    sessionId: Id.nullable(),
+    source: z.enum(['interview', 'survey']),
+    respondents: z.number().int().nullable(),
     participant: z.string().nullable(),
     /** Null when the viewer cannot open its study (FR-018). */
     statement: Bilingual.nullable(),

@@ -3,6 +3,7 @@ import type { StoredVerbatim } from '../application/ports.ts'
 import { makeSynthesisReads } from '../application/queries/synthesis-reads.ts'
 import type { Fact, FactStatus } from '../domain/facts.ts'
 import { inMemoryEvidenceStore } from './fakes/in-memory-evidence.ts'
+import { inMemorySurveyFacts } from './fakes/in-memory-survey-facts.ts'
 
 const at = new Date('2026-10-29T10:00:00Z')
 const verbatim = (id: string, participant: string | null, setAside = false): StoredVerbatim => ({
@@ -51,10 +52,52 @@ const setup = () => {
     fact('f5', 'accepted', ['v1'], 'other-study'),
   ])
     memory.facts.set(f.id, f)
-  return makeSynthesisReads(memory.store)
+  return makeSynthesisReads(memory.store, surveys.store)
 }
 
+const surveys = inMemorySurveyFacts()
+
 describe('Evidence reads for Synthesis (spec 013 research R1)', () => {
+  it('gives survey facts too, with no session, no participant and their base (spec 029)', async () => {
+    surveys.facts.set('sv1', {
+      id: 'sv1',
+      studyId: 'st',
+      statement: { en: '62 % of the 42 respondents…', fr: '62 % des 42 répondants…' },
+      translation: 'done',
+      polarity: 'neutral',
+      theme: null,
+      support: {
+        kind: 'figure',
+        itemId: 'i1',
+        figure: {
+          itemId: 'i1',
+          measure: 'agree',
+          value: 62,
+          base: 42,
+          smallBase: false,
+          ruleVersion: 0,
+        },
+      },
+      origin: 'person',
+      status: 'accepted',
+      decidedBy: 'alex',
+      decidedAt: new Date('2026-11-03T10:00:00Z'),
+      version: 2,
+      keptAt: null,
+    })
+    const reads = setup()
+    const facts = await reads.projectFacts(['st'])
+    expect(facts.find((f) => f.id === 'sv1')).toMatchObject({
+      source: 'survey',
+      sessionId: null,
+      respondents: 42,
+      participants: [],
+    })
+    expect((await reads.factsByIds(['sv1', 'f1'])).map((f) => f.id)).toEqual(['sv1', 'f1'])
+    expect(await reads.surveyCounts('st')).toEqual([{ status: 'accepted', count: 1 }])
+    surveys.facts.clear()
+  })
+
   it('gives the facts of the studies not rejected, with their participants', async () => {
     const facts = await setup().projectFacts(['st'])
     expect(facts.map((f) => f.id)).toEqual(['f1', 'f2', 'f3'])
@@ -90,7 +133,7 @@ describe('Evidence reads for Synthesis (spec 013 research R1)', () => {
     memory.store.factsOfStudy = async () => {
       throw new Error('facts read')
     }
-    const counts = await makeSynthesisReads(memory.store).studyCounts('st', ['s1'])
+    const counts = await makeSynthesisReads(memory.store, surveys.store).studyCounts('st', ['s1'])
     expect([...counts].sort((a, b) => a.status.localeCompare(b.status))).toEqual([
       { status: 'accepted', count: 1 },
       { status: 'edited', count: 1 },
@@ -110,7 +153,7 @@ describe('Evidence reads for Synthesis (spec 013 research R1)', () => {
   it('keeps in the costs the translations of a session read and deleted since', async () => {
     const memory = inMemoryEvidenceStore()
     memory.store.runsOf = async () => [{ id: 'r', sessions: [{ sessionId: 'gone' }] }] as never
-    const refs = await makeSynthesisReads(memory.store).studyCostRefs('st', ['s1'])
+    const refs = await makeSynthesisReads(memory.store, surveys.store).studyCostRefs('st', ['s1'])
     expect(refs).toHaveLength(3)
     expect(refs.filter((r) => r.includes('gone'))).toHaveLength(2)
   })

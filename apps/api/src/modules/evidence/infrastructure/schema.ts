@@ -84,12 +84,17 @@ export const evidenceVerbatims = pgTable(
   (t) => [index('evidence_verbatims_session_idx').on(t.sessionId, t.segmentId)],
 )
 
-/** A neutral statement supported by verbatims of one interview (context map Fact). */
+/**
+ * A neutral statement (context map Fact): supported by verbatims of one interview, or since spec
+ * 029 by a figure or a theme of a survey (`source`, `evidence_survey_supports`).
+ */
 export const evidenceFacts = pgTable(
   'evidence_facts',
   {
     id: text('id').primaryKey(),
-    sessionId: text('session_id').notNull(),
+    source: text('source').notNull().default('interview'),
+    /** Null for a survey fact. */
+    sessionId: text('session_id'),
     studyId: text('study_id').notNull(),
     statementEn: text('statement_en').notNull(),
     statementFr: text('statement_fr').notNull(),
@@ -108,8 +113,24 @@ export const evidenceFacts = pgTable(
   (t) => [
     index('evidence_facts_session_idx').on(t.sessionId),
     index('evidence_facts_study_idx').on(t.studyId, t.status),
+    index('evidence_facts_study_source_idx').on(t.studyId, t.source, t.status),
   ],
 )
+
+/** Spec 029: what a survey fact rests on, as it was when made (a snapshot). */
+export const evidenceSurveySupports = pgTable('evidence_survey_supports', {
+  factId: text('fact_id')
+    .primaryKey()
+    .references(() => evidenceFacts.id, { onDelete: 'cascade' }),
+  itemId: text('item_id').notNull(),
+  kind: text('kind').notNull(),
+  figure: jsonb('figure'),
+  /** No foreign key: a theme removed leaves the fact's snapshot. */
+  themeId: text('theme_id'),
+  themeShare: jsonb('theme_share'),
+  quotes: jsonb('quotes').notNull().default([]),
+  keptAt: timestamp('kept_at', { withTimezone: true }),
+})
 
 export const evidenceFactVerbatims = pgTable(
   'evidence_fact_verbatims',

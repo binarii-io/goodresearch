@@ -158,6 +158,30 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
           ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
           : r
       }
+      case 'propose_survey_facts': {
+        const r = await deps.actions.createSurveyFacts({
+          actor,
+          studyId: p.targetId ?? '',
+          facts: v.facts as Parameters<typeof deps.actions.createSurveyFacts>[0]['facts'],
+        })
+        return r.ok
+          ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
+          : r
+      }
+      case 'propose_theme_analysis': {
+        const studyId = p.targetId ?? ''
+        // What the person agreed to is what the card states: this provider.
+        const provider = await deps.research.aiProvider(actor.id)
+        if (!provider || provider !== p.preview.provider)
+          return { ok: false as const, error: 'AI_PROVIDER_REQUIRED' }
+        const r = await deps.actions.startThemes({
+          actor,
+          studyId,
+          itemId: String(v.itemId),
+          onlyNew: v.onlyNew === true,
+        })
+        return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: studyId } } : r
+      }
       case 'propose_target_rule': {
         const r = await deps.actions.saveTargetRule({
           actor,
@@ -201,6 +225,8 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       case 'report_questionnaire_progress':
       case 'check_questionnaire_items':
       case 'count_responses':
+      case 'survey_analysis_state':
+      case 'read_figures':
       case 'report_project_progress':
       case 'report_study_progress':
       case 'connect_source':

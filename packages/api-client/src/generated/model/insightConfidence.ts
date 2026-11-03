@@ -18,6 +18,11 @@ export interface InsightConfidence {
      * @minimum -9007199254740991
      * @maximum 9007199254740991
      */
+  respondents: number;
+  /**
+     * @minimum -9007199254740991
+     * @maximum 9007199254740991
+     */
   counter: number;
   /**
      * @minimum -9007199254740991

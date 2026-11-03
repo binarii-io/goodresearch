@@ -18,6 +18,8 @@ export type FactNow = {
   readonly theme: { readonly id: string; readonly title: string } | null
   readonly statement: Bilingual
   readonly version: number
+  /** Spec 029: the base of a survey fact; absent or null for an interview's. */
+  readonly respondents?: number | null
 }
 
 /** The fact as it was when linked or last reviewed (research R7). */

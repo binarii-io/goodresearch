@@ -8,6 +8,7 @@ import type { InsightLinkFact } from './insightLinkFact.ts';
 import type { InsightLinkOrigin } from './insightLinkOrigin.ts';
 import type { InsightLinkPolarity } from './insightLinkPolarity.ts';
 import type { InsightLinkRole } from './insightLinkRole.ts';
+import type { InsightLinkSource } from './insightLinkSource.ts';
 import type { InsightLinkState } from './insightLinkState.ts';
 import type { InsightLinkStatement } from './insightLinkStatement.ts';
 
@@ -20,6 +21,8 @@ export interface InsightLink {
   fact: InsightLinkFact;
   studyId: string | null;
   sessionId: string | null;
+  source: InsightLinkSource;
+  respondents: number | null;
   /** @nullable */
   participant: string | null;
   version: number | null;

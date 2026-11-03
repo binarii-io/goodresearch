@@ -5,9 +5,14 @@ export type SurveyItem = {
   readonly contact: boolean
   readonly kind: 'likert' | 'single-choice' | 'multiple-choice' | 'open'
   readonly options?: readonly string[]
+  /** A scale's points and the words of its ends (spec 029). */
+  readonly points?: number
+  readonly lowLabel?: string
+  readonly highLabel?: string
 }
 export type SurveySection = {
   readonly id: string
+  readonly title?: string
   readonly kind: 'introduction' | 'profiling' | 'theme' | 'closing'
   readonly items: readonly SurveyItem[]
 }

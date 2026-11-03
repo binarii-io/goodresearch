@@ -35,4 +35,4 @@ Option 3.
 
 - Each reading costs one full listing: at most once a minute when the tab opens.
 - Publishing and Surveys depend on each other through ports, bound in `compose.ts`.
-- Spec 029 reads answers per item from here; sending open answers to a provider will need its own decision and consent.
+- Spec 029 reads answers per item from here: figures in SQL, never stored, and themes of open answers; sending open answers to a provider is settled by [ADR-0012](0012-masked-open-answers-to-ai.md): masked, one item at a time, after a person confirms the cost.

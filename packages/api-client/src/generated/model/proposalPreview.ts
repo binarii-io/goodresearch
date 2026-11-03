@@ -13,10 +13,12 @@ import type { ProposalPreviewGuide } from './proposalPreviewGuide.ts';
 import type { ProposalPreviewInterviewLinesItem } from './proposalPreviewInterviewLinesItem.ts';
 import type { ProposalPreviewItemChecks } from './proposalPreviewItemChecks.ts';
 import type { ProposalPreviewLinesItem } from './proposalPreviewLinesItem.ts';
+import type { ProposalPreviewOpenItem } from './proposalPreviewOpenItem.ts';
 import type { ProposalPreviewOpensOn } from './proposalPreviewOpensOn.ts';
 import type { ProposalPreviewPhase } from './proposalPreviewPhase.ts';
 import type { ProposalPreviewQuestionnaire } from './proposalPreviewQuestionnaire.ts';
 import type { ProposalPreviewResponseCounts } from './proposalPreviewResponseCounts.ts';
+import type { ProposalPreviewSurveyFactsItem } from './proposalPreviewSurveyFactsItem.ts';
 import type { ProposalPreviewTargetRule } from './proposalPreviewTargetRule.ts';
 
 export interface ProposalPreview {
@@ -58,6 +60,8 @@ export interface ProposalPreview {
   replacesGuide?: boolean;
   responseCounts?: ProposalPreviewResponseCounts;
   targetRule?: ProposalPreviewTargetRule;
+  surveyFacts?: ProposalPreviewSurveyFactsItem[];
+  openItem?: ProposalPreviewOpenItem;
   type?: 'survey';
   questionnaire?: ProposalPreviewQuestionnaire;
   replacesQuestionnaire?: boolean;

@@ -4,7 +4,9 @@ import {
   AttributeSpeaker,
   Created,
   CreateFact,
+  CreateSurveyFact,
   DecideFact,
+  DecideSurveyFact,
   FactParams,
   FactsBulkResult,
   FactsEstimate,
@@ -20,6 +22,12 @@ import {
   ResizeVerbatim,
   StartFactsRun,
   StudyParams,
+  SurveyFact,
+  SurveyFactFigure,
+  SurveyFactsFindEstimate,
+  SurveyFactsFound,
+  SurveyFactsPage,
+  SurveyFactsQuery,
   VerbatimParams,
 } from '@goodresearch/contracts'
 import type { FastifyInstance, preHandlerAsyncHookHandler } from 'fastify'
@@ -27,12 +35,18 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { reply } from '#platform/http/result.ts'
 import type { AnalysisCommands } from '../application/commands/analysis-commands.ts'
 import type { FactCommands } from '../application/commands/fact-commands.ts'
+import type { SurveyFactCommands } from '../application/commands/survey-fact-commands.ts'
 import type { AnalysisQueries } from '../application/queries/analysis-queries.ts'
+import type { makeSurveyFactQueries } from '../application/queries/survey-fact-queries.ts'
+import type { SurveyFact as SurveyFactModel } from '../domain/survey-facts.ts'
 
 export type EvidenceHandlers = {
   analysis: AnalysisCommands
   facts: FactCommands
   queries: AnalysisQueries
+  /** Spec 029: facts of survey studies. */
+  surveyFacts: SurveyFactCommands
+  surveyFactQueries: ReturnType<typeof makeSurveyFactQueries>
 }
 
 /** Spec 012 routes: the Analysis tab, its runs, an interview's facts, the study's facts. */
@@ -339,4 +353,164 @@ export const registerEvidenceRoutes = (
         () => res.status(204).send(),
       ),
   )
+
+  // Spec 029: facts of a survey study, made from a figure or an accepted theme.
+  const { surveyFacts, surveyFactQueries } = deps.handlers
+
+  api.get(
+    '/api/studies/:studyId/survey-facts',
+    {
+      ...secured,
+      schema: {
+        operationId: 'listSurveyFacts',
+        tags,
+        params: StudyParams,
+        querystring: SurveyFactsQuery,
+        response: { 200: SurveyFactsPage },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await surveyFactQueries.page(request.account.id, request.params.studyId, request.query),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.post(
+    '/api/studies/:studyId/survey-facts',
+    {
+      ...secured,
+      schema: {
+        operationId: 'createSurveyFact',
+        tags,
+        params: StudyParams,
+        body: CreateSurveyFact,
+        response: { 201: Created },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await surveyFacts.create(request.account, request.params.studyId, request.body),
+        (v) => res.status(201).send({ id: v.id }),
+      ),
+  )
+
+  // FR-010a: "Find facts" of a survey study, as the interview one: an estimate, then the call.
+  api.get(
+    '/api/studies/:studyId/survey-facts/find/estimate',
+    {
+      ...secured,
+      schema: {
+        operationId: 'estimateSurveyFactsFind',
+        tags,
+        params: StudyParams,
+        response: { 200: SurveyFactsFindEstimate },
+      },
+    },
+    async (request, res) =>
+      reply(res, await surveyFacts.estimateFind(request.account, request.params.studyId), (v) =>
+        res.send(v),
+      ),
+  )
+
+  api.post(
+    '/api/studies/:studyId/survey-facts/find',
+    {
+      ...secured,
+      schema: {
+        operationId: 'findSurveyFacts',
+        tags,
+        params: StudyParams,
+        response: { 200: SurveyFactsFound },
+      },
+    },
+    async (request, res) =>
+      reply(res, await surveyFacts.find(request.account, request.params.studyId), (v) =>
+        res.send(v),
+      ),
+  )
+
+  api.patch(
+    '/api/studies/:studyId/survey-facts/:factId',
+    {
+      ...secured,
+      schema: {
+        operationId: 'decideSurveyFact',
+        tags,
+        params: FactParams,
+        body: DecideSurveyFact,
+        response: { 200: SurveyFact },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await surveyFacts.decide(
+          request.account,
+          request.params.studyId,
+          request.params.factId,
+          request.body,
+        ),
+        (v) => res.send(toView(v)),
+      ),
+  )
+
+  api.post(
+    '/api/studies/:studyId/survey-facts/:factId/figure',
+    {
+      ...secured,
+      schema: {
+        operationId: 'updateSurveyFactFigure',
+        tags,
+        params: FactParams,
+        body: SurveyFactFigure,
+        response: { 200: SurveyFact },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await surveyFacts.figure(
+          request.account,
+          request.params.studyId,
+          request.params.factId,
+          request.body,
+        ),
+        (v) => res.send(toView(v)),
+      ),
+  )
 }
+
+/** A survey fact as a decision returns it: today's figure is read again by the list. */
+const toView = (f: SurveyFactModel) => ({
+  id: f.id,
+  statement: f.statement,
+  translation: f.translation,
+  polarity: f.polarity,
+  theme: f.theme,
+  support:
+    f.support.kind === 'figure'
+      ? {
+          kind: 'figure' as const,
+          itemId: f.support.itemId,
+          itemText: '',
+          figure: f.support.figure,
+        }
+      : {
+          kind: 'theme' as const,
+          itemId: f.support.itemId,
+          itemText: '',
+          themeId: f.support.themeId,
+          share: f.support.share,
+          quotes: [...f.support.quotes],
+        },
+  figureChanged: null,
+  itemRemoved: false,
+  origin: f.origin,
+  status: f.status,
+  decidedBy: f.decidedBy ? { id: f.decidedBy, name: null } : null,
+  decidedAt: f.decidedAt?.toISOString() ?? null,
+  version: f.version,
+})

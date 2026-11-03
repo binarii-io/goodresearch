@@ -55,6 +55,29 @@ const INPUTS = {
     studyId: Id,
     accepted: z.record(z.string().max(64), z.array(z.string().min(1).max(600)).min(1).max(20)),
   }),
+  // Spec 029: figures computed by the app, never an answer of a response.
+  survey_analysis_state: z.object({ studyId: Id }),
+  read_figures: z.object({ studyId: Id, crossBy: Id.nullable().optional() }),
+  propose_survey_facts: z.object({
+    studyId: Id,
+    facts: z
+      .array(
+        z.object({
+          itemId: Id,
+          measure: z.enum(['option', 'agree', 'disagree', 'mean']),
+          option: z.string().min(1).max(600).optional(),
+          cross: z.object({ itemId: Id, option: z.string().min(1).max(600) }).optional(),
+          polarity: z.enum(['positive', 'negative', 'neutral']).default('neutral'),
+        }),
+      )
+      .min(1)
+      .max(10),
+  }),
+  propose_theme_analysis: z.object({
+    studyId: Id,
+    itemId: Id,
+    onlyNew: z.boolean().optional(),
+  }),
   report_guide_progress: z.object({
     studyId: Id,
     ...Object.fromEntries(GUIDE_CHECKLIST.map(([key]) => [key, z.enum(GUIDE_POINT_STATES)])),
@@ -221,6 +244,30 @@ export const QUESTIONNAIRE_TOOLS: readonly ToolSpec[] = [
     description:
       'Propose which answers of the profiling items belong to the target audience: `accepted` maps an item id of a profiling section with choices to its accepted options, word for word. A response must pass every item. The card shows how many responses it would set aside; nothing is deleted.',
     inputSchema: INPUTS.propose_target_rule,
+  },
+  {
+    name: 'survey_analysis_state',
+    description:
+      "Where the survey's analysis stands, as counts: counted and set-aside responses, each open item with its answers and themes, facts by status. Holds no answer.",
+    inputSchema: INPUTS.survey_analysis_state,
+  },
+  {
+    name: 'read_figures',
+    description:
+      "The figures the app computed over the counted responses: per choice item each option's share of the respondents, per scale the mean, median and shares of agreement and disagreement, each with its base (small under 30). With crossBy, a profiling choice item's id, each item per answer of it. Never compute a figure yourself: cite these.",
+    inputSchema: INPUTS.read_figures,
+  },
+  {
+    name: 'propose_survey_facts',
+    description:
+      'Propose facts from figures of read_figures (up to 10): the item id, the measure (option with its option word for word, agree, disagree or mean), optionally the cross (profiling item id and option), and a polarity. The app writes each statement from the figure as it is today; the person applies the card, then decides each fact.',
+    inputSchema: INPUTS.propose_survey_facts,
+  },
+  {
+    name: 'propose_theme_analysis',
+    description:
+      "Propose to find the themes of one open item's answers (onlyNew: only the answers in no theme yet). The app masks the answers before sending them; you never receive them. The card shows the cost; the run starts only when the person applies it.",
+    inputSchema: INPUTS.propose_theme_analysis,
   },
   {
     name: 'check_questionnaire_items',
@@ -711,6 +758,47 @@ export const prepareInterviewCard = async (
   }
 }
 
+/** Spec 029: the card of a theme analysis of an open item, or the reason. */
+export const prepareThemeAnalysis = async (
+  research: ResearchReads,
+  actor: Actor,
+  rawInput: unknown,
+): Promise<{ refused: string } | PreparedProposal> => {
+  const input = INPUTS.propose_theme_analysis.safeParse(rawInput)
+  if (!input.success)
+    return { refused: 'Refused: send the studyId and the itemId of an open item.' }
+  const { studyId, itemId, onlyNew = false } = input.data
+  const study = await research.getStudy(actor.id, studyId)
+  if (!study) return { refused: folderWorkRefusal('STUDY_NOT_FOUND') }
+  const estimate = await research.themesEstimate(actor, studyId, itemId, onlyNew)
+  if (!estimate.ok)
+    return {
+      refused:
+        estimate.error === 'TOO_FEW_ANSWERS'
+          ? 'Refused: fewer than 5 counted answers to theme.'
+          : estimate.error === 'ITEM_NOT_FOUND'
+            ? 'Refused: not an open item of this questionnaire.'
+            : folderWorkRefusal(estimate.error),
+    }
+  if (!estimate.aiConnected)
+    return {
+      refused: 'Refused: the person has no AI provider connected. They can add one in the app.',
+    }
+  return {
+    kind: 'propose_theme_analysis',
+    targetId: studyId,
+    targetVersion: null,
+    values: { itemId, onlyNew },
+    preview: {
+      studyId,
+      studyName: study.name,
+      openItem: { text: estimate.text, answers: estimate.answers, parts: estimate.parts },
+      estimatedCost: estimate.cost,
+      provider: (await research.aiProvider(actor.id)) ?? '',
+    },
+  }
+}
+
 /** Spec 025: the card of an analysis, or the reason. */
 export const prepareAnalysis = async (
   research: ResearchReads,
@@ -956,6 +1044,39 @@ export const prepareProposal = async (
         targetVersion: null,
         values: { publicationId: surveyStudy.publicationId },
         preview: { studyName: surveyStudy.name },
+      }
+    }
+    case 'propose_survey_facts': {
+      const input = INPUTS.propose_survey_facts.safeParse(call.input)
+      if (!input.success || input.data.studyId !== surveyStudy?.id) return null
+      const values = await research.surveyFigureValues(actor.id, surveyStudy.id, input.data.facts)
+      // A figure that does not exist is left out: the card shows only what the app computed.
+      const kept = input.data.facts.flatMap((f, i) => {
+        const v = values[i]
+        return v ? [{ f, v }] : []
+      })
+      if (kept.length === 0) return null
+      return {
+        kind: 'propose_survey_facts',
+        targetId: surveyStudy.id,
+        targetVersion: null,
+        values: { facts: kept.map((k) => k.f) },
+        preview: {
+          studyName: surveyStudy.name,
+          surveyFacts: kept.map(({ f, v }) => ({
+            item: v.item,
+            figure:
+              f.measure === 'option'
+                ? `${f.option ?? ''}: ${v.value} %`
+                : f.measure === 'mean'
+                  ? `mean ${v.value}`
+                  : `${f.measure} ${v.value} %`,
+            base: v.base,
+            smallBase: v.smallBase,
+            cross: v.cross,
+            polarity: f.polarity,
+          })),
+        },
       }
     }
     case 'propose_target_rule': {

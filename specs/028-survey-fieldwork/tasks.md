@@ -61,7 +61,7 @@
 - [X] T027 [P] Write docs/agent-journeys/10-survey-fieldwork.md and its line in docs/agent-journeys/README.md; update docs/adr/0010-forms-as-survey-collection.md with what is now built
 - [X] T028 Add to apps/web/e2e/questionnaire.spec.ts, or a new apps/web/e2e/survey-fieldwork.spec.ts: open, simulated responses, rule, update refused, with axe, light and dark; the reader sees "reserved to the team" (read-access test covers the routes)
 - [X] T029 Run `pnpm check`, `pnpm test`, `pnpm build`, and `pnpm e2e` on a fresh database
-- [ ] T030 Run quickstart.md scenario 4 with the real service, by hand, with the user
+- [X] T030 Run quickstart.md scenario 4 with the real service, by hand, with the user
 
 ## Dependencies
 

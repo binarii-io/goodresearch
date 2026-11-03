@@ -6,6 +6,7 @@
  */
 import type { InsightThemeInput } from './insightThemeInput.ts';
 import type { ProjectFactInputPolarity } from './projectFactInputPolarity.ts';
+import type { ProjectFactInputSource } from './projectFactInputSource.ts';
 import type { ProjectFactInputStatement } from './projectFactInputStatement.ts';
 import type { ProjectFactInputStatus } from './projectFactInputStatus.ts';
 
@@ -20,8 +21,9 @@ export interface ProjectFactInput {
   /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
   studyId: string;
   studyName: string;
-  /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
-  sessionId: string;
+  sessionId: string | null;
+  source: ProjectFactInputSource;
+  respondents: number | null;
   /** @nullable */
   participant: string | null;
   statement: ProjectFactInputStatement;

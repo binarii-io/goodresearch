@@ -34,11 +34,10 @@ export const stateSql = (accepted: Accepted): SQL<ResponseState> => {
     ELSE 'out-of-target' END`
 }
 
-/** What a person reads of a study's responses (spec 028); counts and pages are SQL. */
-export const makeResponseQueries = (deps: SurveysDeps & { db: Db }) => {
-  const { db } = deps
-
-  const context = async (accountId: string, studyId: string) => {
+/** The questionnaire, form and target rule of a study, with the person's access (spec 026). */
+export const makeSurveyContext =
+  (deps: SurveysDeps & { db: Db }) => async (accountId: string, studyId: string) => {
+    const { db } = deps
     const questionnaire = await deps.questionnaire(accountId, studyId)
     if (!questionnaire.ok) return questionnaire
     const form = await deps.form(studyId)
@@ -51,6 +50,11 @@ export const makeResponseQueries = (deps: SurveysDeps & { db: Db }) => {
     const { accepted, stale } = acceptedOf((row?.rule.accepted ?? {}) as Accepted, sections)
     return ok({ questionnaire: questionnaire.value, form, sections, accepted, stale, row })
   }
+
+/** What a person reads of a study's responses (spec 028); counts and pages are SQL. */
+export const makeResponseQueries = (deps: SurveysDeps & { db: Db }) => {
+  const { db } = deps
+  const context = makeSurveyContext(deps)
 
   const counts = async (studyId: string, fileId: string | null, accepted: Accepted) => {
     if (!fileId)

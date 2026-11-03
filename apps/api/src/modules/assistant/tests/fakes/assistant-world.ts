@@ -283,6 +283,32 @@ export const fakeResearch = () => {
     questionnaire: async (accountId, id) =>
       accountId === 'ada' && id === 's1' ? questionnaire.value : null,
     surveyProgress: async () => survey.progress,
+    // Spec 029: counts and figures only; the answers never reach this fake.
+    surveyAnalysisState: async () => ({
+      counted: 6,
+      setAside: 4,
+      openItems: [{ id: 'open-1', text: 'Tell us more', answers: 6, themes: 0, themed: 0 }],
+      facts: { total: 0, toDecide: 0, accepted: 0 },
+    }),
+    surveyFigures: async (_a, _s, crossBy) =>
+      `Counted responses: 6.\n- scale-1 "Planning is easy" (likert): base 6 (small); agree 50 %${crossBy ? ' (crossed)' : ''}`,
+    surveyFigureValues: async (_a, _s, refs) =>
+      refs.map((ref) =>
+        ref.itemId === 'scale-1'
+          ? { item: 'Planning is easy', cross: null, value: 50, base: 6, smallBase: true }
+          : null,
+      ),
+    themesEstimate: async (_actor, _s, itemId) =>
+      itemId === 'open-1'
+        ? {
+            ok: true as const,
+            text: 'Tell us more',
+            answers: 6,
+            parts: 1,
+            cost: 0.01,
+            aiConnected: true,
+          }
+        : { ok: false as const, error: 'ITEM_NOT_FOUND' },
     previewTargetRule: async (_a, _s, accepted) =>
       Object.keys(accepted).includes('job')
         ? {
@@ -340,6 +366,8 @@ export const fakeResearch = () => {
     saveQuestionnaire: async (c) => result('saveQuestionnaire', c, {}),
     setFormOpen: async (c) => result('setFormOpen', c, {}),
     saveTargetRule: async (c) => result('saveTargetRule', c, {}),
+    createSurveyFacts: async (c) => result('createSurveyFacts', c, { made: c.facts.length }),
+    startThemes: async (c) => result('startThemes', c, {}),
   }
   return {
     reads,

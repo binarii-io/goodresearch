@@ -61,6 +61,7 @@ import {
   preparePublication,
   prepareStudy,
   prepareStudyChange,
+  prepareThemeAnalysis,
   QUESTIONNAIRE_TOOLS,
   TOOL_INPUTS,
   TOOLS,
@@ -92,6 +93,7 @@ type NewCard =
   | 'publish_preparation'
   | 'propose_folder_changes'
   | 'propose_analysis'
+  | 'propose_theme_analysis'
   | 'propose_accepting_suggestions'
   | 'propose_validating_interviews'
   | 'propose_excluding_interviews'
@@ -177,6 +179,8 @@ const outcomeOf = (p: StoredProposal): string => {
     p.kind === 'read_file' ||
     p.kind === 'count_interviews' ||
     p.kind === 'count_responses' ||
+    p.kind === 'survey_analysis_state' ||
+    p.kind === 'read_figures' ||
     p.kind === 'list_interviews'
   )
     return p.state === 'applied'
@@ -470,26 +474,28 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           ? await prepareInterviewCard(deps.research, c.actor, kind, input)
           : kind === 'propose_analysis'
             ? await prepareAnalysis(deps.research, c.actor, input)
-            : kind === 'propose_folder_changes'
-              ? await prepareFolderChanges(deps.research, c.actor, input)
-              : kind === 'publish_preparation'
-                ? await preparePublication(deps.research, c.actor, input, c.language)
-                : kind === 'attach_folder'
-                  ? await prepareFolder(deps.research, c.actor, input)
-                  : kind === 'create_study'
-                    ? await prepareStudy(
-                        deps.research,
-                        c.actor,
-                        input,
-                        currentStudyFraming(proposals),
-                      )
-                    : await prepareProject(
-                        deps.research,
-                        c.actor,
-                        input,
-                        currentFraming(proposals),
-                        c.language,
-                      )
+            : kind === 'propose_theme_analysis'
+              ? await prepareThemeAnalysis(deps.research, c.actor, input)
+              : kind === 'propose_folder_changes'
+                ? await prepareFolderChanges(deps.research, c.actor, input)
+                : kind === 'publish_preparation'
+                  ? await preparePublication(deps.research, c.actor, input, c.language)
+                  : kind === 'attach_folder'
+                    ? await prepareFolder(deps.research, c.actor, input)
+                    : kind === 'create_study'
+                      ? await prepareStudy(
+                          deps.research,
+                          c.actor,
+                          input,
+                          currentStudyFraming(proposals),
+                        )
+                      : await prepareProject(
+                          deps.research,
+                          c.actor,
+                          input,
+                          currentFraming(proposals),
+                          c.language,
+                        )
       if ('refused' in prepared) {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         await record(callId, kind, raw, null, prepared.refused)
@@ -508,6 +514,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
             kind !== 'publish_preparation' &&
             kind !== 'propose_folder_changes' &&
             kind !== 'propose_analysis' &&
+            kind !== 'propose_theme_analysis' &&
             !isInterviewCard(kind)) ||
             open.targetId === prepared.targetId)
         )
@@ -692,7 +699,8 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           name === 'create_study' ||
           name === 'attach_folder' ||
           name === 'publish_preparation' ||
-          name === 'propose_analysis'
+          name === 'propose_analysis' ||
+          name === 'propose_theme_analysis'
         )
           return proposeNew(name, input, callId)
         if (isStudyChange(name as ProposalKind) || name === 'delete_project')
@@ -781,6 +789,29 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           return skill === 'study-framing'
             ? `${SKILLS[skill].instructions}\n\n${await reusableStudies(deps.research, c.actor, c.page)}`
             : SKILLS[skill].instructions
+        }
+        // Spec 029: counts and figures computed by the app; never an answer of a response.
+        if (name === 'survey_analysis_state' || name === 'read_figures') {
+          const parsed =
+            name === 'read_figures'
+              ? TOOL_INPUTS.read_figures.safeParse(input)
+              : TOOL_INPUTS.survey_analysis_state.safeParse(input)
+          const ours = parsed.success && surveyStudy && parsed.data.studyId === surveyStudy.id
+          const seen = !ours
+            ? null
+            : name === 'read_figures'
+              ? await deps.research.surveyFigures(
+                  c.actor.id,
+                  surveyStudy.id,
+                  (parsed.data as { crossBy?: string | null }).crossBy ?? null,
+                )
+              : JSON.stringify(await deps.research.surveyAnalysisState(c.actor.id, surveyStudy.id))
+          if (!seen || seen === 'null') {
+            await record(callId, name, raw, null)
+            return 'Invalid: use the Study id of the context, and a profiling choice item to cross by.'
+          }
+          await record(callId, name, raw, {})
+          return seen
         }
         if (name === 'count_responses') {
           const parsed = TOOL_INPUTS.count_responses.safeParse(input)

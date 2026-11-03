@@ -36,6 +36,10 @@ export const ProposalKind = z.enum([
   'propose_opening_form',
   'propose_closing_form',
   'propose_target_rule',
+  'survey_analysis_state',
+  'read_figures',
+  'propose_survey_facts',
+  'propose_theme_analysis',
   'attach_study',
   'detach_study',
   'update_study_goal',
@@ -192,6 +196,23 @@ export const ProposalPreview = z
         setAside: z.number().int(),
         total: z.number().int(),
       })
+      .optional(),
+    /** Spec 029: facts proposed from figures computed by the app, as they stand today. */
+    surveyFacts: z
+      .array(
+        z.object({
+          item: z.string(),
+          figure: z.string(),
+          base: z.number().int(),
+          smallBase: z.boolean(),
+          cross: z.string().nullable(),
+          polarity: z.enum(['positive', 'negative', 'neutral']),
+        }),
+      )
+      .optional(),
+    /** Spec 029: the open item a theme analysis would read, and its parts. */
+    openItem: z
+      .object({ text: z.string(), answers: z.number().int(), parts: z.number().int() })
       .optional(),
     /** A study created through the assistant: only said for a survey (spec 027). */
     type: z.literal('survey').optional(),

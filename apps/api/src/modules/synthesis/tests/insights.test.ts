@@ -62,6 +62,22 @@ describe('factLines (research R2, R3)', () => {
     expect(made.themes.get('t1')).toEqual({ key: 'finding data', title: 'Finding data' })
   })
 
+  it('writes a survey fact as "survey" with its base, after the interviews (spec 029)', () => {
+    const survey = {
+      ...fact('s', 'st1', 'a'),
+      sessionId: null,
+      participants: [],
+      respondents: 42,
+    }
+    const one = factLines([survey, fact('x', 'st1', 'a')], ['st1'], 'en')
+    expect(one.lines.map((l) => l.text)).toEqual([
+      'f1 | negative | t1 | P01 | Statement x',
+      'f2 | negative | t1 | survey n=42 | Statement s',
+    ])
+    const two = factLines([{ ...survey, studyId: 'st2' }], ['st1', 'st2'], 'en')
+    expect(two.lines[0]?.text).toBe('f1 | negative | t1 | S2-survey n=42 | Statement s')
+  })
+
   it('writes the bare code with one study, and "other" without theme', () => {
     const made = factLines([fact('x', 'st1', null)], ['st1'], 'en')
     expect(made.lines[0]?.text).toBe('f1 | negative | other | P01 | Statement x')

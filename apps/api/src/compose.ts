@@ -27,7 +27,12 @@ import {
 import { createPublishingModule, registerPublishingRoutes } from './modules/publishing/index.ts'
 import { createReportingModule, registerOverviewRoutes } from './modules/reporting/index.ts'
 import { createResearchModule, registerResearchRoutes } from './modules/research/index.ts'
-import { createSurveysModule, registerSurveysRoutes } from './modules/surveys/index.ts'
+import {
+  createSurveysModule,
+  createThemesAi,
+  figuresText,
+  registerSurveysRoutes,
+} from './modules/surveys/index.ts'
 import {
   createInsightsAi,
   createSynthesisModule,
@@ -284,6 +289,23 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       estimateCost: (...args) => bound(ai).estimateCost(...args),
       studyCosts: (refs) => bound(ai).studyCosts(refs),
     }),
+    // Spec 029: Surveys is built later; its figures and themes are bound at call time.
+    surveys: {
+      figures: async (accountId, studyId, refs) => {
+        const found = await bound(surveys).handlers.figures.figures(accountId, studyId, refs)
+        return found.ok
+          ? found
+          : { ok: false, error: found.error as 'STUDY_NOT_FOUND' | 'NOT_A_SURVEY_STUDY' }
+      },
+      theme: (accountId, studyId, themeId) =>
+        bound(surveys).handlers.themes.forFact(accountId, studyId, themeId),
+      findingInput: async (accountId, studyId) => {
+        const found = await bound(surveys).handlers.themes.forFinding(accountId, studyId)
+        return found.ok
+          ? found
+          : { ok: false, error: found.error as 'STUDY_NOT_FOUND' | 'NOT_A_SURVEY_STUDY' }
+      },
+    },
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
   })
   const facts = evidence
@@ -560,6 +582,31 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     },
     saveTargetRule: async (c) =>
       outcome(await bound(surveys).handlers.commands.saveRule({ ...c, origin: 'assistant' })),
+    // Spec 029: each fact checked against today's figure, as from the Analysis tab.
+    createSurveyFacts: async (c) => {
+      let made = 0
+      let first: string | null = null
+      for (const { polarity, ...figure } of c.facts) {
+        const done = await bound(evidence).handlers.surveyFacts.create(c.actor, c.studyId, {
+          from: { figure },
+          polarity,
+        })
+        if (done.ok) made++
+        else first ??= String(done.error)
+      }
+      return made > 0
+        ? { ok: true as const, made }
+        : { ok: false as const, error: first ?? 'FIGURE_NOT_FOUND' }
+    },
+    startThemes: async (c) => {
+      const done = await bound(surveys).handlers.themeCommands.start(
+        c.actor,
+        c.studyId,
+        c.itemId,
+        c.onlyNew,
+      )
+      return done.ok ? { ok: true as const } : { ok: false as const, error: String(done.error) }
+    },
     saveQuestionnaire: async (c) =>
       outcome(
         await r.questionnaires.saveQuestionnaire({
@@ -685,6 +732,62 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
           ...seen.value,
         }
       },
+      // Spec 029: what the assistant reads of a survey's analysis: counts and figures only.
+      surveyAnalysisState: async (accountId, studyId) => {
+        const seen = await bound(surveys).handlers.figures.analysis(accountId, studyId, null)
+        if (!seen.ok) return null
+        const counts = await evidenceReads.surveyCounts(studyId)
+        const of = (status: string) => counts.find((c) => c.status === status)?.count ?? 0
+        return {
+          counted: seen.value.counts.counted,
+          setAside: seen.value.counts.setAside,
+          openItems: seen.value.openItems.map(({ id, text, answers, themes, themed }) => ({
+            id,
+            text,
+            answers,
+            themes,
+            themed,
+          })),
+          facts: {
+            total: counts.reduce((n, c) => n + c.count, 0) - of('rejected'),
+            toDecide: of('proposed'),
+            accepted: of('accepted') + of('edited'),
+          },
+        }
+      },
+      surveyFigures: async (accountId, studyId, crossBy) => {
+        const seen = await bound(surveys).handlers.figures.analysis(accountId, studyId, crossBy)
+        return seen.ok ? figuresText(seen.value) : null
+      },
+      surveyFigureValues: async (accountId, studyId, refs) => {
+        const seen = await bound(surveys).handlers.figures.figures(accountId, studyId, refs)
+        if (!seen.ok) return refs.map(() => null)
+        return seen.value.map((f) =>
+          f
+            ? {
+                item: f.context.itemText,
+                cross: f.snapshot.cross
+                  ? `${f.context.crossItemText ?? ''}: ${f.snapshot.cross.option}`
+                  : null,
+                value: f.snapshot.value,
+                base: f.snapshot.base,
+                smallBase: f.snapshot.smallBase,
+              }
+            : null,
+        )
+      },
+      themesEstimate: async (actor, studyId, itemId, onlyNew) => {
+        const done = await bound(surveys).handlers.themeCommands.estimate(
+          actor,
+          studyId,
+          itemId,
+          onlyNew,
+        )
+        if (!done.ok) return { ok: false as const, error: String(done.error) }
+        const seen = await bound(surveys).handlers.figures.analysis(actor.id, studyId, null)
+        const text = seen.ok ? (seen.value.openItems.find((o) => o.id === itemId)?.text ?? '') : ''
+        return { ok: true as const, text, ...done.value }
+      },
       previewTargetRule: async (accountId, studyId, accepted) => {
         const done = await bound(surveys).handlers.queries.previewRule(accountId, studyId, accepted)
         return done.ok ? done.value : null
@@ -778,6 +881,13 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     files: (accountId, studyId) => bound(ingestion).studyFiles(accountId, studyId, 'write'),
     questionnaire: questionnaireOf,
     form: publishing.formOfStudy,
+    costs: (refs) => bound(ai).studyCosts(refs),
+    ai: createThemesAi({
+      gateway: () => bound(ai).gateway,
+      estimateCost: (...args) => bound(ai).estimateCost(...args),
+    }),
+    knownNames: (accountId, studyId) => teamKnownNames(accountId, studyId),
+    enqueue: (queue, data, options) => jobs.send(queue, data, options),
   })
 
   // Spec 017: read models across the modules, built after all of them.
@@ -817,7 +927,11 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
             excluded: interviews.excluded,
             participants: interviews.participants,
           },
-          facts: await evidenceReads.studyCounts(studyId, interviews.validatedSessionIds),
+          // Spec 029: a survey study's facts have no session; an interview study has none of them.
+          facts: [
+            ...(await evidenceReads.studyCounts(studyId, interviews.validatedSessionIds)),
+            ...(await evidenceReads.surveyCounts(studyId)),
+          ],
         }
       },
       studyCostRefs: async (studyId) => {
