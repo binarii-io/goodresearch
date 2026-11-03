@@ -14,6 +14,7 @@ import {
   tool,
 } from 'ai'
 import { OAuth2Client } from 'google-auth-library'
+import { classifyTokenRefusal } from '#platform/google/token-refusal.ts'
 import type {
   ChatMessage,
   ModelRequest,
@@ -62,10 +63,30 @@ const factsOf = (error: unknown): ProviderErrorFacts => {
   return { kind: 'other' }
 }
 
-const toProviderError = (error: unknown): ProviderCallError =>
-  error instanceof ProviderCallError
-    ? error
-    : new ProviderCallError(classifyFailure(factsOf(error)))
+/**
+ * Spec 030: google-auth-library failed to mint a token from the person's grant. Its error carries
+ * Google's token answer (`response.data`), read here only to tell why.
+ */
+const grantRefusalOf = (error: unknown) => {
+  if (!(error instanceof Error)) return null
+  const response = (error as { response?: { status?: number; data?: unknown } }).response
+  const data = response?.data as { error?: unknown } | undefined
+  if (data?.error !== 'invalid_grant' && !/invalid_grant/.test(error.message)) return null
+  return classifyTokenRefusal({
+    status: response?.status ?? 400,
+    body:
+      data?.error === 'invalid_grant'
+        ? data
+        : { error: 'invalid_grant', error_description: error.message },
+  })
+}
+
+const toProviderError = (error: unknown): ProviderCallError => {
+  if (error instanceof ProviderCallError) return error
+  const refusal = grantRefusalOf(error)
+  if (refusal) return new ProviderCallError('INVALID_CREDENTIAL', null, refusal)
+  return new ProviderCallError(classifyFailure(factsOf(error)))
+}
 
 const usageOf = (usage: {
   inputTokens: number | undefined

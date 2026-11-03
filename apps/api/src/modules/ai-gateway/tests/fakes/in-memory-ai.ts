@@ -7,6 +7,7 @@ import {
   type AiStore,
   type GoogleCloudApi,
   type GoogleGrant,
+  GrantScopeMissing,
   type ModelRunner,
   type OauthState,
   type PendingGrant,
@@ -16,6 +17,7 @@ import {
 } from '../../application/ports.ts'
 import { makeProviderQueries } from '../../application/queries/provider-queries.ts'
 import type { AiFailure } from '../../domain/failure.ts'
+import type { GrantProblem } from '../../domain/grant-problem.ts'
 import type { Credential, ProviderKind } from '../../domain/provider.ts'
 
 export const inMemoryAiStore = () => {
@@ -28,13 +30,14 @@ export const inMemoryAiStore = () => {
     saveConnection: async (c) => {
       connections.set(c.accountId, c)
     },
-    setStatus: async (id, status, failure, checkedAt) => {
+    setStatus: async (id, status, failure, checkedAt, grantProblem = null) => {
       const c = connections.get(id)
       if (c)
         connections.set(id, {
           ...c,
           status,
           lastFailure: failure,
+          grantProblem: status === 'needs-attention' ? grantProblem : null,
           ...(checkedAt ? { lastCheckedAt: checkedAt } : {}),
         })
     },
@@ -84,14 +87,17 @@ export const fakeRunner = () => {
   const timeouts: number[] = []
   let nextFailure: AiFailure | null = null
   let nextUsage: { inputTokens: number; outputTokens: number } | null = null
+  let nextProblem: GrantProblem | null = null
   const outcome = (credential: Credential) => {
     calls.push({ credential, model: '' })
     if (nextFailure) {
       const failure = nextFailure
       const billed = nextUsage
+      const problem = nextProblem
       nextFailure = null
       nextUsage = null
-      throw new ProviderCallError(failure, billed)
+      nextProblem = null
+      throw new ProviderCallError(failure, billed, problem)
     }
     if (credential.provider !== 'vertex' && credential.apiKey.startsWith('bad'))
       throw new ProviderCallError('INVALID_CREDENTIAL')
@@ -132,9 +138,15 @@ export const fakeRunner = () => {
     calls,
     timeouts,
     /** The next call fails; `usage`: tokens the provider still counted (an answer that did not fit). */
-    failNext: (failure: AiFailure, usage?: { inputTokens: number; outputTokens: number }) => {
+    failNext: (
+      failure: AiFailure,
+      usage?: { inputTokens: number; outputTokens: number },
+      /** Spec 030: Google refused the grant for this reason. */
+      grantProblem?: GrantProblem,
+    ) => {
       nextFailure = failure
       nextUsage = usage ?? null
+      nextProblem = grantProblem ?? null
     },
   }
 }
@@ -143,23 +155,34 @@ export const fakeGoogle = () => {
   const cloud = {
     state: 'enabled' as 'enabled' | 'disabled' | 'no-access' | 'not-found',
     predict: true as boolean | null,
-    revokedGrant: false,
+    /** `true` or a reason: Google refuses the grant (spec 030). */
+    revokedGrant: false as boolean | Exclude<GrantProblem, 'unreadable'>,
+    unreachable: false,
+    email: 'ada@example.org',
   }
   const oauth: GoogleGrant = {
-    authorizationUrl: ({ state }) => `https://accounts.example.test/auth?state=${state}`,
-    exchange: async ({ code }) => ({
-      accessToken: `access-${code}`,
-      refreshToken: `refresh-${code}`,
-    }),
+    authorizationUrl: ({ state, loginHint }) =>
+      `https://accounts.example.test/auth?state=${state}${loginHint ? `&login_hint=${encodeURIComponent(loginHint)}` : ''}`,
+    exchange: async ({ code }) => {
+      if (code === 'no-scope') throw new GrantScopeMissing()
+      if (code === 'boom') throw new Error('google consent exchange failed: 500')
+      return { accessToken: `access-${code}`, refreshToken: `refresh-${code}` }
+    },
   }
   const api: GoogleCloudApi = {
     accessToken: async () => {
-      if (cloud.revokedGrant) throw new ProviderCallError('INVALID_CREDENTIAL')
+      if (cloud.unreachable) throw new ProviderCallError('UNREACHABLE')
+      if (cloud.revokedGrant)
+        throw new ProviderCallError(
+          'INVALID_CREDENTIAL',
+          null,
+          cloud.revokedGrant === true ? 'refused' : cloud.revokedGrant,
+        )
       return 'access'
     },
     apiState: async () => cloud.state,
     canPredict: async () => cloud.predict,
-    accountEmail: async () => 'ada@example.org',
+    accountEmail: async () => cloud.email,
   }
   return { google: { oauth, cloud: api }, cloud }
 }

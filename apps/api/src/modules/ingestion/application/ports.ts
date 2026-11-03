@@ -1,7 +1,7 @@
 import type { Clock } from '@goodresearch/shared'
 import type { Analysis } from '../domain/analysis.ts'
 import type { FileKind } from '../domain/classify.ts'
-import type { DriveAuthorization, DriveGateway } from '../domain/drive-gateway.ts'
+import type { DriveAuthorization, DriveGateway, GrantProblem } from '../domain/drive-gateway.ts'
 import type { FolderAccessResult } from '../domain/folder-access.ts'
 import type { InventoryRun } from '../domain/inventory-run.ts'
 import type { InventoryFile, InventoryProgress } from '../domain/inventory-walk.ts'
@@ -124,6 +124,8 @@ export type SourceConnection = {
   readonly connectedAt: Date
   /** `write` once the person granted editing (spec 007); reading needs `read` or more. */
   readonly access: DriveAccess
+  /** Spec 030: why Google refuses the grant while `lost`. */
+  readonly lostReason: GrantProblem | null
 }
 
 export type DriveAccess = 'read' | 'write'
@@ -163,6 +165,10 @@ export type OauthState = {
   readonly returnTo: string
   /** What the consent asks for. */
   readonly access: DriveAccess
+  /** `reconnect` (spec 030): same account and access as the saved connection. */
+  readonly mode: 'setup' | 'reconnect'
+  /** Started in a pop-up window: the callback ends on `/google/done`. */
+  readonly popup: boolean
   readonly expiresAt: Date
 }
 
@@ -170,7 +176,7 @@ export type OauthState = {
 export interface IngestionStore {
   getConnection(accountId: string): Promise<SourceConnection | null>
   saveConnection(connection: SourceConnection): Promise<void>
-  markConnectionLost(accountId: string): Promise<void>
+  markConnectionLost(accountId: string, reason: GrantProblem): Promise<void>
   deleteConnection(accountId: string): Promise<void>
   /** Also purges expired states. */
   saveOauthState(state: OauthState, now: Date): Promise<void>

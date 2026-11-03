@@ -122,7 +122,7 @@ export const makeStudyFiles =
         return ok(await work())
       } catch (error) {
         if (error instanceof DriveConnectionLost) {
-          await deps.store.markConnectionLost(accountId)
+          await deps.store.markConnectionLost(accountId, error.reason)
           return err('DRIVE_NOT_CONNECTED')
         }
         if (error instanceof DriveCannotEdit) return err('DRIVE_CANNOT_EDIT')

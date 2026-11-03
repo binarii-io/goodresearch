@@ -16,7 +16,7 @@ export const readRefreshToken = async (
       { accountId: connection.accountId },
       'stored Drive permission unreadable; marked lost',
     )
-    await deps.store.markConnectionLost(connection.accountId)
+    await deps.store.markConnectionLost(connection.accountId, 'unreadable')
     return null
   }
 }

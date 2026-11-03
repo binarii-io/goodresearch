@@ -26,6 +26,13 @@ export const loadSignedIn = async (queryClient: QueryClient, href: string) => {
   }
 }
 
-/** Spec 004 FR-002: without a working AI provider, the provider step comes first. */
-export const needsAiProvider = (me: { aiProvider: { required: boolean; status: string } }) =>
-  me.aiProvider.required && me.aiProvider.status !== 'working'
+/**
+ * Spec 004 FR-002: without a working AI provider, the provider step comes first. Spec 030: not for
+ * a Google grant refused by Google; the person reconnects where they are.
+ */
+export const needsAiProvider = (me: {
+  aiProvider: { required: boolean; status: string; grantProblem: string | null }
+}) =>
+  me.aiProvider.required &&
+  me.aiProvider.status !== 'working' &&
+  me.aiProvider.grantProblem === null

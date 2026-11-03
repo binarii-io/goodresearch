@@ -1,3 +1,4 @@
+import { classifyTokenRefusal } from '#platform/google/token-refusal.ts'
 import type { GoogleCloudApi } from '../application/ports.ts'
 import { ProviderCallError } from '../application/ports.ts'
 
@@ -28,14 +29,12 @@ export const createGoogleCloudApi = (options: {
       } catch {
         throw new ProviderCallError('UNREACHABLE')
       }
-      const body = (await response.json().catch(() => ({}))) as {
-        access_token?: string
-        error?: string
-      }
-      if (response.ok && body.access_token) return body.access_token
-      // Revoked or expired grant: the person must consent again.
-      if (body.error === 'invalid_grant' || response.status === 400 || response.status === 401)
-        throw new ProviderCallError('INVALID_CREDENTIAL')
+      const body: unknown = await response.json().catch(() => null)
+      const token = (body as { access_token?: unknown } | null)?.access_token
+      if (response.ok && typeof token === 'string') return token
+      // Spec 030: a refused grant asks the person to reconnect, with the reason.
+      const refusal = classifyTokenRefusal({ status: response.status, body })
+      if (refusal) throw new ProviderCallError('INVALID_CREDENTIAL', null, refusal)
       throw new ProviderCallError('UNREACHABLE')
     },
 

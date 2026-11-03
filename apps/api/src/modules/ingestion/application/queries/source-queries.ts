@@ -1,5 +1,6 @@
 import { err, ok, type Result } from '@goodresearch/shared'
 import type { FileKind } from '../../domain/classify.ts'
+import type { GrantProblem } from '../../domain/drive-gateway.ts'
 import { isActiveRun } from '../../domain/inventory-run.ts'
 import type { InventoryFile } from '../../domain/inventory-walk.ts'
 import { resolveStudyAccess } from '../access.ts'
@@ -129,8 +130,26 @@ export const makeSourceQueries = (deps: IngestionDeps) => ({
         externalAccount: connection?.externalAccount ?? null,
         connectedAt: connection?.connectedAt.toISOString() ?? null,
         canWrite: connection?.access === 'write',
+        grantProblem: connection?.status === 'lost' ? connection.lostReason : null,
       },
     ]
+  },
+
+  /** For `Me` (spec 030): the person's Drive connection, for the reconnect notices. */
+  driveGate: async (
+    accountId: string,
+  ): Promise<{
+    status: 'none' | 'connected' | 'lost'
+    grantProblem: GrantProblem | null
+    account: string | null
+  }> => {
+    const connection = deps.drive ? await deps.store.getConnection(accountId) : null
+    if (!connection) return { status: 'none', grantProblem: null, account: null }
+    return {
+      status: connection.status,
+      grantProblem: connection.status === 'lost' ? connection.lostReason : null,
+      account: connection.externalAccount,
+    }
   },
 })
 

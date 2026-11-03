@@ -1,6 +1,12 @@
-import type { DriveAuthorization, DriveGateway, DriveItem } from '../../domain/drive-gateway.ts'
+import type {
+  DriveAuthorization,
+  DriveGateway,
+  DriveItem,
+  GrantProblem,
+} from '../../domain/drive-gateway.ts'
 import {
   DriveConnectionLost,
+  DriveScopeMissing,
   FOLDER_MIME,
   TranscriptUnreadable,
 } from '../../domain/drive-gateway.ts'
@@ -64,11 +70,28 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
     this.sharedWith.set(folderId, set)
   }
 
+  /** Spec 030: grants Google now refuses, with the reason. */
+  readonly refused = new Map<string, Exclude<GrantProblem, 'unreadable'>>()
+  /** Spec 030: the next consent comes back without the Drive right. */
+  untickNext = false
+
+  refuse(refreshToken: string, reason: Exclude<GrantProblem, 'unreadable'>): void {
+    this.refused.set(refreshToken, reason)
+  }
+
   #account(refreshToken: string): string {
     if (this.outage) throw new Error('Drive unavailable (503)')
+    const refusal = this.refused.get(refreshToken)
+    if (refusal) throw new DriveConnectionLost(refusal)
     const account = this.tokens.get(refreshToken)
     if (!account) throw new DriveConnectionLost()
     return account
+  }
+
+  async checkGrant(refreshToken: string): Promise<'ok' | 'unreachable'> {
+    if (this.outage) return 'unreachable'
+    this.#account(refreshToken)
+    return 'ok'
   }
 
   #canOpen(account: string, id: string): boolean {
@@ -127,8 +150,9 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
     )
   }
 
-  authorizationUrl(input: { state: string }): string {
-    return `https://accounts.google.test/consent?state=${input.state}`
+  authorizationUrl(input: { state: string; loginHint: string }): string {
+    const hint = input.loginHint ? `&login_hint=${encodeURIComponent(input.loginHint)}` : ''
+    return `https://accounts.google.test/consent?state=${input.state}${hint}`
   }
 
   /** Consents asked, in order (`read` or `write`). */
@@ -138,6 +162,10 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
     access: 'read' | 'write'
   }): Promise<{ refreshToken: string; externalAccount: string; access: 'read' | 'write' }> {
     this.consents.push(input.access)
+    if (this.untickNext) {
+      this.untickNext = false
+      throw new DriveScopeMissing()
+    }
     const refreshToken = `token-${this.tokens.size + 1}`
     this.tokens.set(refreshToken, this.nextConsentAccount)
     return { refreshToken, externalAccount: this.nextConsentAccount, access: input.access }

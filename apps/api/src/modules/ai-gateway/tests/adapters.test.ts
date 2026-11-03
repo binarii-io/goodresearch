@@ -119,6 +119,35 @@ describe('Google Cloud API (Vertex AI checklist)', () => {
     expect(await failureOf(revoked.accessToken('refresh'))).toBe('INVALID_CREDENTIAL')
   })
 
+  it('spec 030: tells a re-authentication required by the organisation, and an outage', async () => {
+    const problemOf = async (promise: Promise<unknown>) => {
+      try {
+        await promise
+      } catch (error) {
+        return error instanceof ProviderCallError ? [error.failure, error.grantProblem] : null
+      }
+      return null
+    }
+    const rapt = api(() =>
+      json(400, {
+        error: 'invalid_grant',
+        error_subtype: 'invalid_rapt',
+        error_description: 'reauth related error (invalid_rapt)',
+      }),
+    )
+    expect(await problemOf(rapt.accessToken('refresh'))).toEqual([
+      'INVALID_CREDENTIAL',
+      'reauth-required',
+    ])
+    expect(
+      await problemOf(api(() => json(400, { error: 'invalid_grant' })).accessToken('r')),
+    ).toEqual(['INVALID_CREDENTIAL', 'refused'])
+    expect(await problemOf(api(() => json(503, {})).accessToken('r'))).toEqual([
+      'UNREACHABLE',
+      null,
+    ])
+  })
+
   it('checks the predict permission, or says it cannot', async () => {
     expect(
       await api(() => json(200, { permissions: ['aiplatform.endpoints.predict'] })).canPredict(

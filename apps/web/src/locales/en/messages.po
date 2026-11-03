@@ -1586,6 +1586,18 @@ msgstr "Another date was found: {other}. Left unticked."
 msgid "Another folder replaces the inventory and discards the {interviews} interviews found, with their links and decisions. Nothing changes in Drive."
 msgstr "Another folder replaces the inventory and discards the {interviews} interviews found, with their links and decisions. Nothing changes in Drive."
 
+#: src/routes/setup.ai-provider.tsx
+msgid "Another Google account was chosen: check its project and region below."
+msgstr "Another Google account was chosen: check its project and region below."
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Another Google account was chosen. To use it, disconnect Google Drive in Connected sources, then connect again."
+msgstr "Another Google account was chosen. To use it, disconnect Google Drive in Connected sources, then connect again."
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Another Google account was chosen. To use it, go through the full setup."
+msgstr "Another Google account was chosen. To use it, go through the full setup."
+
 #: src/features/workspace/errors.ts
 msgid "Another term of the lexicon already has this form: merge them instead."
 msgstr "Another term of the lexicon already has this form: merge them instead."
@@ -2244,6 +2256,10 @@ msgstr "Close the menu"
 msgid "Close this message"
 msgstr "Close this message"
 
+#: src/routes/google.done.tsx
+msgid "Close this window"
+msgstr "Close this window"
+
 #: src/features/preparation/labels.ts
 msgid "closed (yes or no)"
 msgstr "closed (yes or no)"
@@ -2864,6 +2880,10 @@ msgstr "Document, no transcript"
 #: src/features/preparation/labels.ts
 msgid "Done"
 msgstr "Done"
+
+#: src/routes/google.done.tsx
+msgid "Done. You can close this window and go back to goodresearch."
+msgstr "Done. You can close this window and go back to goodresearch."
 
 #: src/features/preparation/schedule.tsx
 msgid "Download (CSV)"
@@ -3705,6 +3725,18 @@ msgstr "Google Cloud project"
 msgid "Google Cloud project ID"
 msgstr "Google Cloud project ID"
 
+#: src/features/google/reconnect-notice.tsx
+msgid "Google could not be opened. Try again in a moment."
+msgstr "Google could not be opened. Try again in a moment."
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Google did not finish. Try again in a moment."
+msgstr "Google did not finish. Try again in a moment."
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Google Drive"
+msgstr "Google Drive"
+
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Google Drive connected"
 msgstr "Google Drive connected"
@@ -3743,13 +3775,37 @@ msgstr "Google Drive returned an incomplete listing; try again later"
 msgid "Google Drive was not connected. You can try again."
 msgstr "Google Drive was not connected. You can try again."
 
+#: src/features/google/reconnect-notice.tsx
+msgid "Google gave access again, but your project no longer passes the checks."
+msgstr "Google gave access again, but your project no longer passes the checks."
+
+#: src/routes/setup.ai-provider.tsx
+msgid "Google gave access again, but your project no longer passes the checks. Check it below."
+msgstr "Google gave access again, but your project no longer passes the checks. Check it below."
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Google needs you to sign in again: your organisation asks for it regularly."
+msgstr "Google needs you to sign in again: your organisation asks for it regularly."
+
 #: src/features/ai/labels.ts
 msgid "Google no longer accepts goodresearch's access to Google Cloud."
 msgstr "Google no longer accepts goodresearch's access to Google Cloud."
 
+#: src/features/google/reconnect-notice.tsx
+msgid "Google no longer accepts goodresearch's access: it was withdrawn or has expired."
+msgstr "Google no longer accepts goodresearch's access: it was withdrawn or has expired."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Google refused the Drive access; use \"Reconnect Google\" at the top of the page"
+msgstr "Google refused the Drive access; use \"Reconnect Google\" at the top of the page"
+
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Google Slides presentation updated"
 msgstr "Google Slides presentation updated"
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Google was closed before the end. Nothing changed."
+msgstr "Google was closed before the end. Nothing changed."
 
 #: src/features/preparation/drive-publishing.tsx
 msgid "Google will ask you to let goodresearch edit the Drive files you can edit."
@@ -5630,6 +5686,10 @@ msgstr "Open a project"
 msgid "Open a study"
 msgstr "Open a study"
 
+#: src/features/google/reconnect-notice.tsx
+msgid "Open Connected sources"
+msgstr "Open Connected sources"
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Open Google account permissions"
 msgstr "Open Google account permissions"
@@ -5708,6 +5768,10 @@ msgstr "Open the project"
 #: src/features/preparation/drive-publishing.tsx
 msgid "Open the results spreadsheet"
 msgstr "Open the results spreadsheet"
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Open the setup"
+msgstr "Open the setup"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Open the study"
@@ -6395,10 +6459,22 @@ msgstr "Recommendations are already being found for this project."
 msgid "Recommendations validated"
 msgstr "Recommendations validated"
 
+#: src/features/google/reconnect-notice.tsx
+msgid "Reconnect {name} with {account}: one Google screen, you stay on this page."
+msgstr "Reconnect {name} with {account}: one Google screen, you stay on this page."
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Reconnect {name}: one Google screen, you stay on this page."
+msgstr "Reconnect {name}: one Google screen, you stay on this page."
+
 #: src/features/ai/provider-forms.tsx
-#: src/routes/_authenticated/ai-provider.tsx
+#: src/features/google/reconnect-notice.tsx
 msgid "Reconnect Google"
 msgstr "Reconnect Google"
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Reconnected. You can carry on."
+msgstr "Reconnected. You can carry on."
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Recordings"
@@ -7005,6 +7081,10 @@ msgstr "Select the words of the verbatim in the turn (3 to 120 words), then add 
 #: src/features/assistant/panel.tsx
 msgid "Send"
 msgstr "Send"
+
+#: src/features/assistant/panel.tsx
+msgid "Send again"
+msgstr "Send again"
 
 #: src/features/assistant/choices.tsx
 msgid "Send my choices"
@@ -7637,6 +7717,10 @@ msgstr "Thank you!"
 msgid "Thanks"
 msgstr "Thanks"
 
+#: src/features/google/reconnect-notice.tsx
+msgid "The access was not ticked on Google's screen. Try again and keep it ticked."
+msgstr "The access was not ticked on Google's screen. Try again and keep it ticked."
+
 #: src/features/ai/labels.ts
 msgid "The account has no credit or quota left."
 msgstr "The account has no credit or quota left."
@@ -7778,6 +7862,15 @@ msgstr "The best practices are not brought back: the next update replaces this."
 msgid "The check did not work for an unexpected reason."
 msgstr "The check did not work for an unexpected reason."
 
+#: src/features/google/reconnect-notice.tsx
+msgid "The checks made one short call to Vertex AI; it is counted in your AI provider usage."
+msgstr "The checks made one short call to Vertex AI; it is counted in your AI provider usage."
+
+#. placeholder {0}: money(cost)
+#: src/features/google/reconnect-notice.tsx
+msgid "The checks made one short call to Vertex AI: {0}."
+msgstr "The checks made one short call to Vertex AI: {0}."
+
 #: src/features/enrichment/labels.ts
 msgid "The cleaning was interrupted: clean the transcripts again."
 msgstr "The cleaning was interrupted: clean the transcripts again."
@@ -7861,10 +7954,6 @@ msgstr "The files changed in Drive since this analysis: analyze again to update 
 #: src/features/ingestion/source-panel.tsx
 msgid "the folder no longer exists or is no longer shared with the person who refreshed"
 msgstr "the folder no longer exists or is no longer shared with the person who refreshed"
-
-#: src/features/ingestion/source-panel.tsx
-msgid "the Google Drive permission was revoked; reconnect from Connected sources"
-msgstr "the Google Drive permission was revoked; reconnect from Connected sources"
 
 #: src/features/preparation/preparation-tab.tsx
 msgid "The guide holds the framing (objectives, hypotheses, audience, format) and the questions of the four phases: introduction, warm-up, one section per research theme, wrap-up. It is used during the interviews, then to check their coverage and to group the findings by theme."
@@ -7977,10 +8066,6 @@ msgstr "The other language is translated after you save."
 msgid "The permission is revoked at Google. You will need to connect again to see or refresh study folders."
 msgstr "The permission is revoked at Google. You will need to connect again to see or refresh study folders."
 
-#: src/routes/_authenticated/sources.tsx
-msgid "The permission no longer works (revoked or expired). Open a study to connect again."
-msgstr "The permission no longer works (revoked or expired). Open a study to connect again."
-
 #: src/features/workspace/errors.ts
 msgid "The presentation was changed in Google Slides since it was published."
 msgstr "The presentation was changed in Google Slides since it was published."
@@ -8044,6 +8129,10 @@ msgstr "The review was interrupted: review the interviews again."
 #: src/features/synthesis/labels.ts
 msgid "The run was interrupted: find insights again."
 msgstr "The run was interrupted: find insights again."
+
+#: src/features/google/reconnect-notice.tsx
+msgid "The saved Google access can no longer be read by goodresearch."
+msgstr "The saved Google access can no longer be read by goodresearch."
 
 #: src/features/preparation/labels.ts
 msgid "The scales do not all share one legend."
@@ -8822,6 +8911,10 @@ msgstr "Usability test sessions."
 msgid "Usage"
 msgstr "Usage"
 
+#: src/features/google/reconnect-notice.tsx
+msgid "Use another account"
+msgstr "Use another account"
+
 #: src/features/ai/provider-forms.tsx
 msgid "Use another Google account"
 msgstr "Use another Google account"
@@ -8941,6 +9034,10 @@ msgstr "Version {0} · edited by hand by {who} {when}"
 msgid "Version {0} · written with the assistant, applied by {who} {when}"
 msgstr "Version {0} · written with the assistant, applied by {who} {when}"
 
+#: src/features/google/reconnect-notice.tsx
+msgid "Vertex AI"
+msgstr "Vertex AI"
+
 #: src/features/quality/quality-tab.tsx
 #: src/features/synthesis/debrief-tab.tsx
 #: src/features/synthesis/recommendations-tab.tsx
@@ -8964,6 +9061,10 @@ msgstr "Waiting"
 #: src/features/fieldwork/labels.ts
 msgid "Waiting for analysis"
 msgstr "Waiting for analysis"
+
+#: src/features/google/reconnect-notice.tsx
+msgid "Waiting for Google…"
+msgstr "Waiting for Google…"
 
 #: src/features/analysis/analysis-tab.tsx
 msgid "Waiting for the analysis"
@@ -9262,6 +9363,14 @@ msgstr "Your account is not allowed to use this model."
 #: src/routes/setup.ai-provider.tsx
 msgid "Your AI provider needs your attention."
 msgstr "Your AI provider needs your attention."
+
+#: src/features/assistant/panel.tsx
+msgid "Your AI provider works again."
+msgstr "Your AI provider works again."
+
+#: src/features/ingestion/source-panel.tsx
+msgid "Your Google Drive access must be reconnected to see this study's folder: use \"Reconnect Google\" at the top of the page."
+msgstr "Your Google Drive access must be reconnected to see this study's folder: use \"Reconnect Google\" at the top of the page."
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Your key or Google access is deleted from goodresearch. You will be asked to choose a provider again before using the app."

@@ -4,6 +4,7 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
+import type { GrantProblem } from './grantProblem.ts';
 import type { MySourceStatus } from './mySourceStatus.ts';
 
 export interface MySource {
@@ -14,4 +15,5 @@ export interface MySource {
   externalAccount: string | null;
   connectedAt: string | null;
   canWrite: boolean;
+  grantProblem: GrantProblem | null;
 }

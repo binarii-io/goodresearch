@@ -10,10 +10,12 @@ import {
   EditSession,
   EstimateQuery,
   Fieldwork,
+  GrantCheck,
   InventoryFile,
   InventoryFilesQuery,
   LinkSession,
   MySource,
+  ReconnectStart,
   RenameFiles,
   RenamePlan,
   RenameResult,
@@ -60,6 +62,12 @@ const DevEdit = z.object({
     .array(z.object({ row: z.string(), key: z.string(), value: z.string().nullable() }))
     .optional(),
 })
+
+/** Spec 030: where a reconnection ends, the pop-up landing page or back where the person was. */
+const reconnectEnd = (back: { returnTo: string; popup: boolean }, result: string) =>
+  back.popup
+    ? `/google/done?connection=drive&result=${result}`
+    : withQuery(back.returnTo, 'drive', result)
 
 export const registerIngestionRoutes = (
   app: FastifyInstance,
@@ -443,6 +451,41 @@ export const registerIngestionRoutes = (
           : sendError(res, 'NOT_FOUND'),
     )
 
+  api.post(
+    '/api/sources/google-drive/reconnect',
+    {
+      ...secured,
+      schema: {
+        operationId: 'reconnectGoogleDrive',
+        tags,
+        body: ReconnectStart,
+        response: { 200: z.object({ url: z.string() }) },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await commands.startDriveReconnect({
+          actor: request.account,
+          returnTo: request.body.returnTo,
+          popup: request.body.popup,
+        }),
+        (value) => res.send(value),
+      ),
+  )
+
+  api.post(
+    '/api/sources/google-drive/grant/check',
+    {
+      ...secured,
+      schema: { operationId: 'checkGoogleDriveGrant', tags, response: { 200: GrantCheck } },
+    },
+    async (request, res) =>
+      reply(res, await commands.checkDriveGrant({ actor: request.account }), (value) =>
+        res.send(value),
+      ),
+  )
+
   // Browser navigations (not called by the API client): consent start and Google's redirect back.
   api.get(
     '/api/sources/google-drive/connect',
@@ -462,13 +505,23 @@ export const registerIngestionRoutes = (
     { ...secured, schema: { hide: true, querystring: CallbackQuery } },
     async (request, res) => {
       const { state, code, error } = request.query
-      if (error || !state || !code) return res.redirect(withQuery('/', 'drive', 'error'))
+      if (error || !state || !code) {
+        const back = state
+          ? await commands.abandonDriveConnection({ actor: request.account, state })
+          : null
+        return res.redirect(
+          back?.ok && back.value.mode === 'reconnect'
+            ? reconnectEnd(back.value, error === 'access_denied' ? 'cancelled' : 'error')
+            : withQuery('/', 'drive', 'error'),
+        )
+      }
       try {
         const done = await commands.completeDriveConnection({ actor: request.account, state, code })
+        if (!done.ok) return res.redirect(withQuery('/', 'drive', 'error'))
         return res.redirect(
-          done.ok
-            ? withQuery(done.value.returnTo, 'drive', 'connected')
-            : withQuery('/', 'drive', 'error'),
+          done.value.mode === 'reconnect'
+            ? reconnectEnd(done.value, done.value.result ?? 'error')
+            : withQuery(done.value.returnTo, 'drive', 'connected'),
         )
       } catch (failure) {
         request.log.warn({ err: failure }, 'drive consent failed')

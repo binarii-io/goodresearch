@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { MeAiProvider } from './meAiProvider.ts';
+import type { MeDrive } from './meDrive.ts';
 import type { MeLanguage } from './meLanguage.ts';
 import type { MeRole } from './meRole.ts';
 import type { TeamRef } from './teamRef.ts';
@@ -19,4 +20,5 @@ export interface Me {
   language: MeLanguage;
   teams: TeamRef[];
   aiProvider: MeAiProvider;
+  drive: MeDrive;
 }

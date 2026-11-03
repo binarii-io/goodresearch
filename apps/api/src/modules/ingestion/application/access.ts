@@ -65,7 +65,7 @@ export const resolveStudyAccess = async (
       result = folder && !folder.trashed ? 'granted' : 'denied'
     } catch (error) {
       if (error instanceof DriveConnectionLost) {
-        await deps.store.markConnectionLost(accountId)
+        await deps.store.markConnectionLost(accountId, error.reason)
         return { kind: 'drive-not-connected', role: visible.role, type: visible.type, source }
       }
       deps.log.warn({ err: error, studyId }, 'Drive access check failed')

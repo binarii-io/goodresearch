@@ -1,3 +1,4 @@
+import { classifyTokenRefusal } from '#platform/google/token-refusal.ts'
 import { DriveConnectionLost } from '../domain/drive-gateway.ts'
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
@@ -35,22 +36,32 @@ export const createGoogleRequests = (options: {
         client_secret: options.clientSecret,
       }),
     })
-    const body = (await response.json().catch(() => ({}))) as {
-      access_token?: string
-      expires_in?: number
-      error?: string
-    }
-    if (!response.ok || !body.access_token) {
+    const body: unknown = await response.json().catch(() => null)
+    const answer = (body ?? {}) as { access_token?: unknown; expires_in?: unknown }
+    if (!response.ok || typeof answer.access_token !== 'string') {
       tokens.delete(refreshToken)
-      if (body.error === 'invalid_grant' || response.status === 400 || response.status === 401)
-        throw new DriveConnectionLost()
+      // Spec 030: only a refused grant asks the person to reconnect, with the reason.
+      const refusal = classifyTokenRefusal({ status: response.status, body })
+      if (refusal) throw new DriveConnectionLost(refusal)
       throw new Error(`token refresh failed: ${response.status}`)
     }
     tokens.set(refreshToken, {
-      value: body.access_token,
-      expiresAt: Date.now() + (body.expires_in ?? 3600) * 1000,
+      value: answer.access_token,
+      expiresAt:
+        Date.now() + (typeof answer.expires_in === 'number' ? answer.expires_in : 3600) * 1000,
     })
-    return body.access_token
+    return answer.access_token
+  }
+
+  /** Spec 030: a fresh token from the grant, nothing else; Google not answering is not a refusal. */
+  const checkGrant = async (refreshToken: string): Promise<'ok' | 'unreachable'> => {
+    try {
+      await accessToken(refreshToken, true)
+      return 'ok'
+    } catch (error) {
+      if (error instanceof DriveConnectionLost) throw error
+      return 'unreachable'
+    }
   }
 
   /** One request; `json` is sent as the body. */
@@ -87,7 +98,7 @@ export const createGoogleRequests = (options: {
     }
   }
 
-  return { request }
+  return { request, checkGrant }
 }
 
 export type GoogleRequests = ReturnType<typeof createGoogleRequests>

@@ -1,6 +1,7 @@
 import type { Clock } from '@goodresearch/shared'
 import type { ZodType } from 'zod'
 import type { AiFailure } from '../domain/failure.ts'
+import type { GrantProblem } from '../domain/grant-problem.ts'
 import type { Price } from '../domain/pricing.ts'
 import type { Credential, ProviderKind } from '../domain/provider.ts'
 
@@ -68,10 +69,17 @@ export class ProviderCallError extends Error {
   readonly failure: AiFailure
   /** Tokens the provider counted before the call failed (an answer that does not fit): billed. */
   readonly usage: Usage | null
-  constructor(failure: AiFailure, usage: Usage | null = null) {
+  /** Spec 030: Google refused the person's grant (only with `INVALID_CREDENTIAL`). */
+  readonly grantProblem: GrantProblem | null
+  constructor(
+    failure: AiFailure,
+    usage: Usage | null = null,
+    grantProblem: GrantProblem | null = null,
+  ) {
     super(`provider call failed: ${failure}`)
     this.failure = failure
     this.usage = usage
+    this.grantProblem = grantProblem
   }
 }
 
@@ -103,16 +111,29 @@ export interface ModelRunner {
  * which would also cut the new token and Google Drive (spec 004 FR-008, research R2).
  */
 export interface GoogleGrant {
-  authorizationUrl(input: { state: string; codeChallenge: string }): string
+  /** `loginHint`: the saved Google account, when reconnecting (spec 030). */
+  authorizationUrl(input: { state: string; codeChallenge: string; loginHint?: string }): string
+  /** Throws `GrantScopeMissing` when the person unticked the needed right. */
   exchange(input: {
     code: string
     codeVerifier: string
   }): Promise<{ accessToken: string; refreshToken: string }>
 }
 
+/** The person unticked the needed right on Google's screen (granular consent). */
+export class GrantScopeMissing extends Error {
+  override name = 'GrantScopeMissing'
+  constructor() {
+    super('google scope not granted')
+  }
+}
+
 /** Google Cloud calls of the Vertex AI checklist (research R3), with the person's access. */
 export interface GoogleCloudApi {
-  /** Throws `ProviderCallError('INVALID_CREDENTIAL')` when the grant was revoked. */
+  /**
+   * Throws `ProviderCallError('INVALID_CREDENTIAL')` with its grant problem when Google refuses the
+   * grant, `ProviderCallError('UNREACHABLE')` otherwise.
+   */
   accessToken(refreshToken: string): Promise<string>
   apiState(
     accessToken: string,
@@ -136,6 +157,8 @@ export type StoredConnection = {
   readonly region: string | null
   readonly status: ConnectionStatus
   readonly lastFailure: AiFailure | null
+  /** Spec 030: set with `needs-attention` when Google refuses the Vertex AI grant. */
+  readonly grantProblem: GrantProblem | null
   readonly lastCheckedAt: Date
 }
 
@@ -151,6 +174,10 @@ export type OauthState = {
   readonly accountId: string
   readonly codeVerifier: string
   readonly returnTo: string
+  /** `reconnect` (spec 030): the saved project and region are checked again, no form. */
+  readonly mode: 'setup' | 'reconnect'
+  /** Started in a pop-up window: the callback ends on `/google/done`. */
+  readonly popup: boolean
   readonly expiresAt: Date
 }
 
@@ -180,6 +207,8 @@ export interface AiStore {
     status: ConnectionStatus,
     failure: AiFailure | null,
     checkedAt: Date | null,
+    /** Spec 030: kept with `needs-attention`, cleared otherwise. */
+    grantProblem?: GrantProblem | null,
   ): Promise<void>
   deleteConnection(accountId: string): Promise<void>
   savePendingGrant(grant: PendingGrant): Promise<void>

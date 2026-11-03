@@ -95,7 +95,14 @@ export const makeGateway = (deps: AiDeps) => {
     try {
       secret = deps.cipher.decrypt(connection.encryptedCredential, accountId)
     } catch {
-      await deps.store.setStatus(accountId, 'needs-attention', 'INVALID_CREDENTIAL', null)
+      // Spec 030: a Vertex AI grant is reconnected with its saved project and region.
+      await deps.store.setStatus(
+        accountId,
+        'needs-attention',
+        'INVALID_CREDENTIAL',
+        null,
+        connection.provider === 'vertex' ? 'unreadable' : null,
+      )
       throw new AiProviderRequired()
     }
     const credential: Credential =
@@ -111,10 +118,15 @@ export const makeGateway = (deps: AiDeps) => {
   }
 
   /** An authorisation failure on a real call brings back the provider step (FR-009). */
-  const noteFailure = async (accountId: string, error: unknown) => {
+  const noteFailure = async (accountId: string, error: unknown, provider: ProviderKind) => {
     const failure = failureOf(error)
-    if (isAuthorisationFailure(failure))
-      await deps.store.setStatus(accountId, 'needs-attention', failure, null)
+    if (!isAuthorisationFailure(failure)) return
+    // Spec 030: a refused Vertex AI access is always Google refusing the person's grant.
+    const grantProblem =
+      provider === 'vertex' && failure === 'INVALID_CREDENTIAL'
+        ? ((error instanceof ProviderCallError ? error.grantProblem : null) ?? 'refused')
+        : null
+    await deps.store.setStatus(accountId, 'needs-attention', failure, null, grantProblem)
   }
 
   return {
@@ -129,14 +141,21 @@ export const makeGateway = (deps: AiDeps) => {
     },
 
     /** Minimal real call proving a credential works (spec 004 FR-004, research R3 check 4). */
-    check: (accountId: string, credential: Credential, model: string) =>
-      callWith(accountId, 'provider-check', credential, model, () =>
-        deps.runner.generateText(
-          credential,
-          model,
-          { prompt: 'Reply with the single word OK.', maxOutputTokens: 16 },
-          deps.config.timeoutMs,
-        ),
+    /** `ref`: what the check was for, to show its cost (spec 030: a reconnection). */
+    check: (accountId: string, credential: Credential, model: string, ref: string | null = null) =>
+      callWith(
+        accountId,
+        'provider-check',
+        credential,
+        model,
+        () =>
+          deps.runner.generateText(
+            credential,
+            model,
+            { prompt: 'Reply with the single word OK.', maxOutputTokens: 16 },
+            deps.config.timeoutMs,
+          ),
+        ref,
       ),
 
     generateText: async (accountId: string, task: string, request: ModelRequest) => {
@@ -146,7 +165,7 @@ export const makeGateway = (deps: AiDeps) => {
           deps.runner.generateText(credential, model, request, deps.config.timeoutMs),
         )
       } catch (error) {
-        await noteFailure(accountId, error)
+        await noteFailure(accountId, error, credential.provider)
         throw error
       }
     },
@@ -171,7 +190,7 @@ export const makeGateway = (deps: AiDeps) => {
           options.ref ?? null,
         )
       } catch (error) {
-        await noteFailure(accountId, error)
+        await noteFailure(accountId, error, credential.provider)
         throw error
       }
     },
@@ -211,7 +230,7 @@ export const makeGateway = (deps: AiDeps) => {
         },
         async (error: unknown) => {
           await recordOnce(failureOf(error), NO_USAGE)
-          await noteFailure(accountId, error)
+          await noteFailure(accountId, error, credential.provider)
           throw error instanceof ProviderCallError ? error : new ProviderCallError('UNKNOWN')
         },
       )

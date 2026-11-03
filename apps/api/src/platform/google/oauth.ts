@@ -2,6 +2,11 @@
  * Google OAuth for consents that are separate from sign-in (Drive in spec 002, Vertex AI in spec
  * 004): code flow with PKCE, offline access, one scope set per consent, revocable on its own.
  */
+/** The person unticked the needed scope on Google's screen (granular consent). */
+export class GoogleScopeNotGranted extends Error {
+  override name = 'GoogleScopeNotGranted'
+}
+
 export type GoogleOAuth = {
   authorizationUrl(input: {
     scopes: readonly string[]
@@ -66,7 +71,8 @@ export const createGoogleOAuth = (options: {
         throw new Error(`google consent exchange failed: ${response.status}`)
       const scopes = body.scope?.split(' ') ?? []
       // People can untick scopes on Google's screen (granular consent).
-      if (!scopes.includes(requiredScope)) throw new Error('google scope not granted')
+      if (!scopes.includes(requiredScope))
+        throw new GoogleScopeNotGranted('google scope not granted')
       return { accessToken: body.access_token, refreshToken: body.refresh_token, scopes }
     },
 

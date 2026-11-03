@@ -32,7 +32,7 @@ describe('Drive connection and folder (US2)', () => {
   it('stores the Drive permission encrypted, separate from sign-in', async () => {
     expect(await connect(alice, 'alice@example.org')).toEqual({
       ok: true,
-      value: { returnTo: '/studies/study-1' },
+      value: { returnTo: '/studies/study-1', mode: 'setup', popup: false },
     })
     const stored = world.store.connections.get('alice')
     expect(stored?.externalAccount).toBe('alice@example.org')

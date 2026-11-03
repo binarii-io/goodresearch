@@ -16,6 +16,7 @@ import { Route as AuthenticatedAiProviderRouteImport } from './routes/_authentic
 import { Route as AuthenticatedSourcesRouteImport } from './routes/_authenticated/sources'
 import { Route as AuthenticatedTeamsRouteImport } from './routes/_authenticated/teams'
 import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
+import { Route as GoogleDoneRouteImport } from './routes/google.done'
 import { Route as SetupAiProviderRouteImport } from './routes/setup.ai-provider'
 import { Route as AuthenticatedMembersIndexRouteImport } from './routes/_authenticated/members/index'
 import { Route as AuthenticatedMembersMemberIdRouteImport } from './routes/_authenticated/members/$memberId'
@@ -56,6 +57,11 @@ const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const GoogleDoneRoute = GoogleDoneRouteImport.update({
+  id: '/google/done',
+  path: '/google/done',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SetupAiProviderRoute = SetupAiProviderRouteImport.update({
   id: '/setup/ai-provider',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/sources': typeof AuthenticatedSourcesRoute
   '/teams': typeof AuthenticatedTeamsRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/google/done': typeof GoogleDoneRoute
   '/setup/ai-provider': typeof SetupAiProviderRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/sources': typeof AuthenticatedSourcesRoute
   '/teams': typeof AuthenticatedTeamsRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/google/done': typeof GoogleDoneRoute
   '/setup/ai-provider': typeof SetupAiProviderRoute
   '/': typeof AuthenticatedIndexRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_authenticated/sources': typeof AuthenticatedSourcesRoute
   '/_authenticated/teams': typeof AuthenticatedTeamsRoute
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
+  '/google/done': typeof GoogleDoneRoute
   '/setup/ai-provider': typeof SetupAiProviderRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/sources'
     | '/teams'
     | '/welcome'
+    | '/google/done'
     | '/setup/ai-provider'
     | '/members/$memberId'
     | '/projects/$projectId'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/sources'
     | '/teams'
     | '/welcome'
+    | '/google/done'
     | '/setup/ai-provider'
     | '/'
     | '/members/$memberId'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sources'
     | '/_authenticated/teams'
     | '/_authenticated/welcome'
+    | '/google/done'
     | '/setup/ai-provider'
     | '/_authenticated/'
     | '/_authenticated/members/$memberId'
@@ -186,6 +198,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   SignInRoute: typeof SignInRoute
+  GoogleDoneRoute: typeof GoogleDoneRoute
   SetupAiProviderRoute: typeof SetupAiProviderRoute
 }
 
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/welcome'
       preLoaderRoute: typeof AuthenticatedWelcomeRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/google/done': {
+      id: '/google/done'
+      path: '/google/done'
+      fullPath: '/google/done'
+      preLoaderRoute: typeof GoogleDoneRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/setup/ai-provider': {
       id: '/setup/ai-provider'
@@ -318,6 +338,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   SignInRoute: SignInRoute,
+  GoogleDoneRoute: GoogleDoneRoute,
   SetupAiProviderRoute: SetupAiProviderRoute,
 }
 export const routeTree = rootRouteImport

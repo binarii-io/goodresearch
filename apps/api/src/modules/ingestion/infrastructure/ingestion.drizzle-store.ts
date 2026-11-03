@@ -24,6 +24,7 @@ import type {
 } from '../application/ports.ts'
 import type { Analysis } from '../domain/analysis.ts'
 import type { FileKind } from '../domain/classify.ts'
+import type { GrantProblem } from '../domain/drive-gateway.ts'
 import type { FolderAccessResult } from '../domain/folder-access.ts'
 import { type InventoryRun, STALE_RUN_MS } from '../domain/inventory-run.ts'
 import type { InventoryFile } from '../domain/inventory-walk.ts'
@@ -219,6 +220,8 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
           connector: CONNECTOR,
           status: row.status === 'lost' ? 'lost' : 'connected',
           access: row.access === 'write' ? 'write' : 'read',
+          lostReason:
+            row.status === 'lost' ? ((row.lostReason as GrantProblem | null) ?? 'refused') : null,
         }
       : null
   },
@@ -235,14 +238,15 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
           status: c.status,
           connectedAt: c.connectedAt,
           access: c.access,
+          lostReason: c.lostReason,
         },
       })
   },
 
-  markConnectionLost: async (accountId) => {
+  markConnectionLost: async (accountId, reason) => {
     await db
       .update(ingestionSourceConnections)
-      .set({ status: 'lost' })
+      .set({ status: 'lost', lostReason: reason })
       .where(eq(ingestionSourceConnections.accountId, accountId))
   },
 
@@ -264,7 +268,11 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
       .where(eq(ingestionOauthStates.state, state))
       .returning()
     return row && row.expiresAt > now
-      ? { ...row, access: row.access === 'write' ? ('write' as const) : ('read' as const) }
+      ? {
+          ...row,
+          access: row.access === 'write' ? ('write' as const) : ('read' as const),
+          mode: row.mode === 'reconnect' ? ('reconnect' as const) : ('setup' as const),
+        }
       : null
   },
 

@@ -2,6 +2,7 @@ import { and, eq, gt, inArray, lt, lte, sql } from 'drizzle-orm'
 import type { Db } from '#platform/db.ts'
 import type { AiStore, StoredConnection, UsageEntry } from '../application/ports.ts'
 import type { AiFailure } from '../domain/failure.ts'
+import type { GrantProblem } from '../domain/grant-problem.ts'
 import type { ProviderKind } from '../domain/provider.ts'
 import {
   aiOauthStates,
@@ -23,6 +24,7 @@ const toConnection = (row: ConnectionRow): StoredConnection => ({
   region: row.gcpRegion,
   status: row.status === 'working' ? 'working' : 'needs-attention',
   lastFailure: row.lastFailure as AiFailure | null,
+  grantProblem: row.grantProblem as GrantProblem | null,
   lastCheckedAt: row.lastCheckedAt,
 })
 
@@ -47,6 +49,7 @@ export const createAiStore = (db: Db): AiStore => ({
       gcpRegion: c.region,
       status: c.status,
       lastFailure: c.lastFailure,
+      grantProblem: c.grantProblem,
       lastCheckedAt: c.lastCheckedAt,
       updatedAt: c.lastCheckedAt,
     }
@@ -57,12 +60,13 @@ export const createAiStore = (db: Db): AiStore => ({
       .onConflictDoUpdate({ target: aiProviderConnections.accountId, set: update })
   },
 
-  setStatus: async (accountId, status, failure, checkedAt) => {
+  setStatus: async (accountId, status, failure, checkedAt, grantProblem = null) => {
     await db
       .update(aiProviderConnections)
       .set({
         status,
         lastFailure: failure,
+        grantProblem: status === 'needs-attention' ? grantProblem : null,
         updatedAt: sql`now()`,
         ...(checkedAt ? { lastCheckedAt: checkedAt } : {}),
       })
@@ -106,7 +110,9 @@ export const createAiStore = (db: Db): AiStore => ({
   takeOauthState: async (state, now) => {
     await db.delete(aiOauthStates).where(lt(aiOauthStates.expiresAt, now))
     const [row] = await db.delete(aiOauthStates).where(eq(aiOauthStates.state, state)).returning()
-    return row && row.expiresAt > now ? row : null
+    return row && row.expiresAt > now
+      ? { ...row, mode: row.mode === 'reconnect' ? 'reconnect' : 'setup' }
+      : null
   },
 
   appendUsage: async (entry) => {

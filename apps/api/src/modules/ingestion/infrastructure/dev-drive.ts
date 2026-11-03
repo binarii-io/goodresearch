@@ -154,11 +154,15 @@ export const createDevDrive = (appUrl: URL) => {
   // Any token this simulation issued works, in every process (the worker runs inventories with
   // tokens the server issued): no state to share.
   const known = (token: string) => {
-    if (!token.startsWith(TOKEN_PREFIX)) throw new DriveConnectionLost()
+    if (!token.startsWith(TOKEN_PREFIX)) throw new DriveConnectionLost('refused')
     return 'Drive user'
   }
 
   const gateway: DriveGateway = {
+    checkGrant: async (token) => {
+      known(token)
+      return 'ok'
+    },
     getItem: async (token, id) => {
       known(token)
       return items.get(id) ?? null

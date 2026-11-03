@@ -4,9 +4,11 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
+import type { GrantProblem } from './grantProblem.ts';
 import type { MeAiProviderStatus } from './meAiProviderStatus.ts';
 
 export type MeAiProvider = {
   required: boolean;
   status: MeAiProviderStatus;
+  grantProblem: GrantProblem | null;
 };

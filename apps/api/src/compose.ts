@@ -107,6 +107,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       countByTeams: bound(research).countProjectsByTeams,
     }),
     aiProvider: () => bound(ai).providerGate,
+    drive: () => bound(ingestion).handlers.queries.driveGate,
     onAccountDeleted: () => async (accountId: string) => {
       await bound(ai).forgetAccount(accountId)
       await bound(assistant).forgetAccount(accountId)

@@ -26,6 +26,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { PROVIDERS } from '../../features/ai/labels.ts'
 import { FailureNotice } from '../../features/ai/provider-forms.tsx'
+import { ReconnectNotice } from '../../features/google/reconnect-notice.tsx'
 import { useFormatDate } from '../../features/workspace/format.ts'
 
 /** "AI provider": see, test, change or remove one's own provider (spec 004 US3). */
@@ -111,7 +112,13 @@ function AiProviderPage() {
                 </a>
               </p>
             ) : null}
-            {connection.status !== 'working' && connection.lastFailure ? (
+            {connection.grantProblem ? (
+              <ReconnectNotice
+                connection="vertex"
+                problem={connection.grantProblem}
+                account={connection.googleAccount}
+              />
+            ) : connection.status !== 'working' && connection.lastFailure ? (
               <FailureNotice failure={connection.lastFailure} provider={connection.provider} />
             ) : null}
             {test.data ? (
@@ -119,7 +126,7 @@ function AiProviderPage() {
                 <p role="status" className="text-sm">
                   {t`The provider answered.`}
                 </p>
-              ) : test.data.failure ? (
+              ) : test.data.failure && !connection.grantProblem ? (
                 <FailureNotice failure={test.data.failure} provider={connection.provider} />
               ) : null
             ) : null}
@@ -136,13 +143,6 @@ function AiProviderPage() {
               >
                 {test.isPending ? t`Testing…` : t`Test again`}
               </Button>
-              {connection.provider === 'vertex' &&
-              connection.status === 'needs-attention' &&
-              connection.lastFailure === 'INVALID_CREDENTIAL' ? (
-                <Button render={<Link to="/setup/ai-provider" search={{ provider: 'vertex' }} />}>
-                  {t`Reconnect Google`}
-                </Button>
-              ) : null}
               <Button variant="outline" render={<Link to="/setup/ai-provider" />}>
                 {t`Change provider`}
               </Button>

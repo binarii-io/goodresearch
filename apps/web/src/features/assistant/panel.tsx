@@ -3,6 +3,7 @@ import {
   type AssistantMessage,
   getConversation,
   getGetConversationQueryKey,
+  getGetMeQueryKey,
   getListConversationsQueryKey,
   type Proposal,
   useCreateConversation,
@@ -44,9 +45,11 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { normalise } from '../../app/i18n.ts'
 import { FailureNotice } from '../ai/provider-forms.tsx'
+import { ReconnectNotice } from '../google/reconnect-notice.tsx'
 import { GUIDE_POINTS, POINT_STATES, QUESTIONNAIRE_POINTS } from '../preparation/labels.ts'
 import { errorCode, errorMessage } from '../workspace/errors.ts'
 import { useFormatRelative } from '../workspace/format.ts'
+import { useMe } from '../workspace/me.ts'
 import { ConversationCostIndicator } from './cost.tsx'
 import { FRAMING_POINTS, STUDY_FRAMING_POINTS } from './labels.ts'
 import { Markdown } from './markdown.tsx'
@@ -114,9 +117,11 @@ function Activity({ proposals }: { proposals: readonly Proposal[] }) {
 function Message({
   message,
   onReply,
+  onRetry,
 }: {
   message: AssistantMessage
   onReply?: ((text: string) => void) | undefined
+  onRetry?: (() => void) | undefined
 }) {
   const { t } = useLingui()
   if (message.role === 'person')
@@ -132,7 +137,7 @@ function Message({
       {message.status === 'stopped' ? (
         <p className="text-muted-foreground text-xs">{t`Stopped`}</p>
       ) : null}
-      {message.failure ? <Failure failure={message.failure} /> : null}
+      {message.failure ? <Failure failure={message.failure} onRetry={onRetry} /> : null}
       {message.proposals
         .filter((p) => !isActivity(p))
         .map((p) => (
@@ -142,9 +147,41 @@ function Message({
   )
 }
 
-function Failure({ failure }: { failure: AiFailure }) {
+function Failure({
+  failure,
+  onRetry,
+}: {
+  failure: AiFailure
+  /** Spec 030: sends the person's last message again once the provider works again. */
+  onRetry?: (() => void) | undefined
+}) {
   const { t } = useLingui()
   const { close } = useAssistant()
+  const me = useMe()
+  // Kept once seen: the notice stays to offer "Send again" once reconnected.
+  const seen = useRef(me.aiProvider.grantProblem)
+  if (me.aiProvider.grantProblem) seen.current = me.aiProvider.grantProblem
+  const current = me.aiProvider.grantProblem ?? seen.current
+  const sendAgain = onRetry ? (
+    <Button size="sm" className="justify-self-start" onClick={onRetry}>
+      {t`Send again`}
+    </Button>
+  ) : null
+  // Only the last answer offers the reconnection: older failures stay as they were.
+  if (failure === 'INVALID_CREDENTIAL' && current && onRetry)
+    return (
+      <ReconnectNotice connection="vertex" problem={current} account={null}>
+        {sendAgain}
+      </ReconnectNotice>
+    )
+  // Reconnected meanwhile (another tab, or back from Google's page): the message can go again.
+  if (failure === 'INVALID_CREDENTIAL' && onRetry && me.aiProvider.status === 'working')
+    return (
+      <div role="status" className="grid gap-2 text-sm">
+        <p>{t`Your AI provider works again.`}</p>
+        {sendAgain}
+      </div>
+    )
   return (
     <div className="grid gap-2">
       <FailureNotice failure={failure} />
@@ -407,6 +444,8 @@ export function AssistantPanel() {
   const liveLength = live?.text.length ?? 0
   const liveCards = live?.proposals.length ?? 0
   const sending = live?.personText
+  /** Spec 030: the person's last message, sent again after reconnecting Google. */
+  const retryText = conversation.data?.messages.findLast((m) => m.role === 'person')?.text ?? null
   useLayoutEffect(() => {
     const el = log.current
     if (!el) return
@@ -481,6 +520,9 @@ export function AssistantPanel() {
                 search: event.proposal.preview.phase ? { phase: event.proposal.preview.phase } : {},
               })
             : navigate({ to: '/projects/$projectId', params: { projectId: result.id } }))
+        // Spec 030: the server just recorded why Google refused; show the reconnection.
+        if (event.type === 'error' && event.failure === 'INVALID_CREDENTIAL')
+          void queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() })
         setLive((current) => {
           if (!current) return current
           if (event.type === 'text') return { ...current, text: current.text + event.delta }
@@ -627,17 +669,17 @@ export function AssistantPanel() {
             {!conversationId && !live ? (
               <p className="text-muted-foreground">{t`Ask anything about your research. The assistant sees the page you are on and can propose changes, which you apply or dismiss.`}</p>
             ) : null}
-            {conversation.data?.messages.slice(0, live ? live.shownBefore : undefined).map((m) => (
-              <Message
-                key={m.id}
-                message={m}
-                onReply={
-                  !live && !busy && m === conversation.data?.messages.at(-1)
-                    ? (text) => void submit({ text })
-                    : undefined
-                }
-              />
-            ))}
+            {conversation.data?.messages.slice(0, live ? live.shownBefore : undefined).map((m) => {
+              const last = !live && !busy && m === conversation.data?.messages.at(-1)
+              return (
+                <Message
+                  key={m.id}
+                  message={m}
+                  onReply={last ? (text) => void submit({ text }) : undefined}
+                  onRetry={last && retryText ? () => void submit({ text: retryText }) : undefined}
+                />
+              )
+            })}
             {live ? (
               <>
                 {live.personText !== null ? (

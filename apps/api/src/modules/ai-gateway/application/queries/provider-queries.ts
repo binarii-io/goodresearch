@@ -1,3 +1,4 @@
+import type { GrantProblem } from '../../domain/grant-problem.ts'
 import { VERTEX_REGIONS } from '../../domain/provider.ts'
 import type { AiDeps, StoredConnection } from '../ports.ts'
 
@@ -15,6 +16,7 @@ const toView = (c: StoredConnection, model: string) => ({
   region: c.region,
   lastCheckedAt: c.lastCheckedAt.toISOString(),
   lastFailure: c.lastFailure,
+  grantProblem: c.grantProblem,
 })
 
 export const makeProviderQueries = (deps: AiDeps) => ({
@@ -26,15 +28,10 @@ export const makeProviderQueries = (deps: AiDeps) => ({
     return {
       offered: [...deps.config.offered],
       regions: [...VERTEX_REGIONS],
-      // A Google grant refused by Google (withdrawn, expired, or a re-authentication required by
-      // the person's organisation) is not reused: the person is asked for a new consent.
+      // A Google grant refused by Google (withdrawn, expired, a re-authentication required by the
+      // person's organisation, unreadable) is not reused: the person reconnects (spec 030).
       googleGranted:
-        pending !== null ||
-        (connection?.provider === 'vertex' &&
-          !(
-            connection.status === 'needs-attention' &&
-            connection.lastFailure === 'INVALID_CREDENTIAL'
-          )),
+        pending !== null || (connection?.provider === 'vertex' && connection.grantProblem === null),
       connection: connection ? toView(connection, deps.config.models[connection.provider]) : null,
       usage: await deps.store.usageSummary(accountId),
     }
@@ -43,13 +40,18 @@ export const makeProviderQueries = (deps: AiDeps) => ({
   /** For `Me`: is the mandatory provider step needed (FR-002)? */
   gate: async (
     accountId: string,
-  ): Promise<{ required: boolean; status: 'none' | 'working' | 'needs-attention' }> => {
+  ): Promise<{
+    required: boolean
+    status: 'none' | 'working' | 'needs-attention'
+    /** Spec 030: a refused Vertex AI grant is reconnected where the person is, not in the setup. */
+    grantProblem: GrantProblem | null
+  }> => {
     const required = deps.config.offered.length > 0
     const connection = await deps.store.getConnection(accountId)
     // A provider the deployer no longer offers counts as none: the person chooses again.
     if (!connection || !deps.config.offered.includes(connection.provider))
-      return { required, status: 'none' }
-    return { required, status: connection.status }
+      return { required, status: 'none', grantProblem: null }
+    return { required, status: connection.status, grantProblem: connection.grantProblem }
   },
 })
 

@@ -107,6 +107,7 @@ export const createDriveFetchGateway = (options: {
   const get = (refreshToken: string, url: URL) => google.request(refreshToken, url)
 
   return {
+    checkGrant: (refreshToken) => google.checkGrant(refreshToken),
     getItem: async (refreshToken, id) => {
       const url = new URL(`${API}/files/${encodeURIComponent(id)}`)
       url.searchParams.set('fields', ITEM_FIELDS)

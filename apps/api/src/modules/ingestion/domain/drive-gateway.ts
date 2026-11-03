@@ -17,9 +17,29 @@ export type DriveItem = {
   readonly shortcutTargetMimeType?: string
 }
 
+/**
+ * Why a stored Google grant can no longer be used (spec 030): withdrawn or expired (`refused`), a
+ * new sign-in required by the person's organisation (`reauth-required`), or a stored grant the app
+ * cannot decrypt any more (`unreadable`).
+ */
+export type GrantProblem = 'refused' | 'reauth-required' | 'unreadable'
+
 /** The person's Drive authorization is unusable (revoked, expired): they must reconnect. */
 export class DriveConnectionLost extends Error {
   override name = 'DriveConnectionLost'
+  readonly reason: GrantProblem
+  constructor(reason: GrantProblem = 'refused') {
+    super(`drive connection lost: ${reason}`)
+    this.reason = reason
+  }
+}
+
+/** The person unticked the Drive right on Google's screen (granular consent). */
+export class DriveScopeMissing extends Error {
+  override name = 'DriveScopeMissing'
+  constructor() {
+    super('google scope not granted')
+  }
 }
 
 /** Drive refused to list a folder for this person (no longer shared, domain policy). */
@@ -42,6 +62,11 @@ export class TranscriptUnreadable extends Error {
  * that person's refresh token; implementations never write to Drive.
  */
 export interface DriveGateway {
+  /**
+   * Spec 030: asks Google for a token from the grant, nothing else. Throws `DriveConnectionLost`
+   * with its reason when Google refuses it; `unreachable` when Google did not answer.
+   */
+  checkGrant(refreshToken: string): Promise<'ok' | 'unreachable'>
   /** The item, or null when it does not exist or the person cannot open it. */
   getItem(refreshToken: string, id: string): Promise<DriveItem | null>
   /** Children of the given folders (not trashed), page by page. */
@@ -83,7 +108,7 @@ export interface DriveAuthorization {
     loginHint: string
     access: 'read' | 'write'
   }): string
-  /** Exchanges the callback code; fails when the scope asked was not granted. */
+  /** Exchanges the callback code; throws `DriveScopeMissing` when the scope asked was not granted. */
   exchange(input: {
     code: string
     codeVerifier: string

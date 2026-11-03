@@ -93,7 +93,7 @@ Every person connects their own AI provider at their first sign-in: the costs an
   3. Each person's own Google Cloud project needs the Vertex AI API enabled and billing.
   4. Do not set `GOOGLE_VERTEX_API_KEY` (refused at start): it would bill every call to the deployer.
 
-  Organisations that require signing in to Google again for Google Cloud access (Google Workspace *Google Cloud session control*) make the access expire after that time: people then see "Reconnect Google" on their AI provider page. Workspace admins can exempt trusted apps from this re-authentication.
+  Organisations that require signing in to Google again for Google Cloud access (Google Workspace *Google Cloud session control*) make the access expire after that time. People are not sent back to the setup: wherever they are, a notice says why and offers "Reconnect Google", which opens Google in a small window on their saved account, checks their saved project and region again and keeps them on their page (the same goes for Google Drive, with the same access as before). The access is also checked once per browser session, without any AI call. Workspace admins can avoid these re-authentications by marking goodresearch as a trusted app (*API controls → App access control*) and ticking *Exempt trusted apps* in *Google Cloud session control*.
 
   Google withdraws access per app and person: disconnecting Google Drive also withdraws Vertex AI access (the AI provider then asks for a new consent). Removing the AI provider only deletes it from goodresearch; people withdraw Google access from their Google account permissions.
 

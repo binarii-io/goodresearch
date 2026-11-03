@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { MeInputAiProvider } from './meInputAiProvider.ts';
+import type { MeInputDrive } from './meInputDrive.ts';
 import type { MeInputLanguage } from './meInputLanguage.ts';
 import type { MeInputRole } from './meInputRole.ts';
 import type { TeamRefInput } from './teamRefInput.ts';
@@ -19,4 +20,5 @@ export interface MeInput {
   language: MeInputLanguage;
   teams: TeamRefInput[];
   aiProvider: MeInputAiProvider;
+  drive: MeInputDrive;
 }

@@ -166,3 +166,21 @@ Deployers want to run goodresearch on managed container platforms (Cloud Run fir
 
 - Good: deploy by version tag and roll back by changing it; pools fit small managed databases.
 - Bad: after a worker dies, people wait up to the stale delay before starting the run again; the proxy range of a managed platform must be checked by the deployer; the worker does not scale on queue depth on request-driven platforms.
+
+## Update spec 030 — reconnecting Google grants
+
+### Context
+
+A person's Google grants (Vertex AI, spec 004; Drive, spec 002) can be refused by Google: withdrawn, expired, or because the person's organisation requires a new sign-in to Google at a set interval for the `cloud-platform` scope (`invalid_rapt`). The app then sent the person back to the full Vertex AI setup and lost what they were doing.
+
+### Decision
+
+- **Grant problems are classified** from Google's token answer by one function in `platform/google/token-refusal.ts`: `reauth-required` (`invalid_rapt`), `refused` (any other `invalid_grant`), nothing for 5xx or network errors. A stored grant that cannot be decrypted is `unreadable`. The problem is kept on the connection; usage entries keep `INVALID_CREDENTIAL`.
+- **Reconnect in a pop-up.** Google opens in a window started by the click, with `login_hint` = the saved account and the saved scopes. The callback, in reconnect mode, reuses the saved project and region (Vertex AI) or access (Drive), runs the existing checks, replaces the grant only when they pass, and redirects the window to `/google/done`, which posts the result on a `BroadcastChannel` and closes. The page that opened it never navigates. `BroadcastChannel` is used because Google's opener policy cuts `window.opener` after the round trip. A blocked pop-up falls back to a full-page round trip.
+- **No silent re-consent.** `prompt=none` returns no refresh token and `invalid_rapt` needs the person's password: `prompt=consent` stays.
+- **Another Google account** is never accepted on the reconnect path; it goes through the full setup.
+
+### Consequences
+
+- Good: one click and one Google screen when a grant dies; the person stays on their page; the reason is precise.
+- Bad: how often grants die depends on the organisation's Google settings, outside the app; a blocked pop-up keeps only a typed assistant message.

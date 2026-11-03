@@ -1,2 +1,3 @@
+- ✅ Process de questionnaire
+- ✅ reconnexion silencieuse à tous les assets google (spec 030)
 - accepter le markdown dans les descriptions ou autres
-- reconnexion silencieuse à tous les assets google

@@ -1,4 +1,4 @@
-import type { Me } from '@goodresearch/contracts'
+import type { GrantProblem, Me } from '@goodresearch/contracts'
 import { asc, eq } from 'drizzle-orm'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 import type { Db } from '#platform/db.ts'
@@ -12,15 +12,29 @@ const httpsUrl = (value: string | null): string | null => {
 
 /** The signed-in account and the teams it can work in (admins: all teams). */
 /** Whether the person must set up an AI provider first (AI Gateway port, spec 004). */
-export type AiProviderGate = (
-  accountId: string,
-) => Promise<{ required: boolean; status: 'none' | 'working' | 'needs-attention' }>
+export type AiProviderGate = (accountId: string) => Promise<{
+  required: boolean
+  status: 'none' | 'working' | 'needs-attention'
+  grantProblem: GrantProblem | null
+}>
+
+/** The person's Drive connection, for the reconnect notices (Ingestion port, spec 030). */
+export type DriveGate = (accountId: string) => Promise<{
+  status: 'none' | 'connected' | 'lost'
+  grantProblem: GrantProblem | null
+  account: string | null
+}>
 
 export const makeGetMe =
-  (db: Db, aiProvider: AiProviderGate) =>
+  (db: Db, aiProvider: AiProviderGate, drive: DriveGate) =>
   async (accountId: string): Promise<Me | null> => {
     const [account] = await db.select().from(auth_users).where(eq(auth_users.id, accountId))
     if (!account) return null
+    // Independent lookups of two modules: read together.
+    const [aiProviderGate, driveConnection] = await Promise.all([
+      aiProvider(account.id),
+      drive(account.id),
+    ])
     const role = account.role === 'admin' ? 'admin' : 'member'
     const teams =
       role === 'admin'
@@ -42,6 +56,7 @@ export const makeGetMe =
       role,
       language: account.language === 'fr' ? 'fr' : 'en',
       teams,
-      aiProvider: await aiProvider(account.id),
+      aiProvider: aiProviderGate,
+      drive: driveConnection,
     }
   }

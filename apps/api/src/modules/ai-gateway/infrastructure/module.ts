@@ -2,10 +2,15 @@ import type { AppConfig } from '@goodresearch/config'
 import { type Clock, newId } from '@goodresearch/shared'
 import { CIPHER_PURPOSES, createTokenCipher } from '#platform/crypto/token-cipher.ts'
 import type { Db } from '#platform/db.ts'
-import { createGoogleOAuth } from '#platform/google/oauth.ts'
+import { createGoogleOAuth, GoogleScopeNotGranted } from '#platform/google/oauth.ts'
 import { makeProviderCommands } from '../application/commands/provider-commands.ts'
 import { makeGateway } from '../application/gateway.ts'
-import type { AiDeps, GoogleCloudApi, ModelRunner } from '../application/ports.ts'
+import {
+  type AiDeps,
+  type GoogleCloudApi,
+  GrantScopeMissing,
+  type ModelRunner,
+} from '../application/ports.ts'
 import { makeProviderQueries } from '../application/queries/provider-queries.ts'
 import {
   makeEstimateCost,
@@ -46,10 +51,15 @@ export const createAiGatewayModule = (deps: {
     config.google && oauth
       ? {
           oauth: {
-            authorizationUrl: (input: { state: string; codeChallenge: string }) =>
-              oauth.authorizationUrl({ ...input, scopes: GRANT_SCOPES }),
+            authorizationUrl: (input: {
+              state: string
+              codeChallenge: string
+              loginHint?: string
+            }) => oauth.authorizationUrl({ ...input, scopes: GRANT_SCOPES }),
             exchange: (input: { code: string; codeVerifier: string }) =>
-              oauth.exchange({ ...input, requiredScope: CLOUD_SCOPE }),
+              oauth.exchange({ ...input, requiredScope: CLOUD_SCOPE }).catch((error: unknown) => {
+                throw error instanceof GoogleScopeNotGranted ? new GrantScopeMissing() : error
+              }),
           },
           cloud:
             deps.googleCloud ??

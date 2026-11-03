@@ -1,5 +1,5 @@
-import { createGoogleOAuth } from '#platform/google/oauth.ts'
-import type { DriveAuthorization } from '../domain/drive-gateway.ts'
+import { createGoogleOAuth, GoogleScopeNotGranted } from '#platform/google/oauth.ts'
+import { type DriveAuthorization, DriveScopeMissing } from '../domain/drive-gateway.ts'
 
 export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly'
 /** Edit the files the person can edit in Drive (spec 007); includes reading. */
@@ -27,15 +27,19 @@ export const createGoogleDriveAuthorization = (options: {
         scopes: [access === 'write' ? DRIVE_WRITE_SCOPE : DRIVE_SCOPE],
         state,
         codeChallenge,
-        loginHint,
+        ...(loginHint ? { loginHint } : {}),
       }),
 
     exchange: async ({ code, codeVerifier, access }) => {
-      const granted = await google.exchange({
-        code,
-        codeVerifier,
-        requiredScope: access === 'write' ? DRIVE_WRITE_SCOPE : DRIVE_SCOPE,
-      })
+      const granted = await google
+        .exchange({
+          code,
+          codeVerifier,
+          requiredScope: access === 'write' ? DRIVE_WRITE_SCOPE : DRIVE_SCOPE,
+        })
+        .catch((error: unknown) => {
+          throw error instanceof GoogleScopeNotGranted ? new DriveScopeMissing() : error
+        })
       const about = await http(
         'https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',
         { headers: { authorization: `Bearer ${granted.accessToken}` } },

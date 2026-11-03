@@ -3,7 +3,9 @@ import {
   AiProviderView,
   CallbackQuery,
   ConnectApiKey,
+  GrantCheck,
   ProviderTestResult,
+  ReconnectStart,
   StartGoogleGrant,
   VertexCheckRequest,
   VertexCheckResult,
@@ -23,6 +25,27 @@ export type AiHandlers = {
 
 /** Where the Google consent comes back when it failed: the provider step. */
 const SETUP_PATH = '/setup/ai-provider'
+
+/** Spec 030: the pop-up landing page tells the page that opened it, then closes. */
+const donePath = (result: string, cost: number | null | undefined) =>
+  `/google/done?connection=vertex&result=${result}${typeof cost === 'number' ? `&cost=${cost}` : ''}`
+
+/**
+ * Where a reconnection ends: the pop-up page, the setup form, or back where the person was. The
+ * cost of the reconnection's real call goes along, to be shown where it was asked (AGENTS.md).
+ */
+const reconnectEnd = (
+  back: { returnTo: string; popup: boolean },
+  result: string,
+  cost?: number | null,
+) => {
+  if (back.popup) return donePath(result, cost)
+  const page =
+    result === 'checks-failed' || result === 'other-account'
+      ? withQuery(`${SETUP_PATH}?provider=vertex`, 'google', result)
+      : withQuery(back.returnTo, 'google', result)
+  return typeof cost === 'number' ? withQuery(page, 'googleCost', String(cost)) : page
+}
 
 export const registerAiRoutes = (
   app: FastifyInstance,
@@ -92,19 +115,62 @@ export const registerAiRoutes = (
     { ...secured, schema: { hide: true, querystring: CallbackQuery } },
     async (request, res) => {
       const { state, code, error } = request.query
-      if (error || !state || !code) return res.redirect(withQuery(SETUP_PATH, 'google', 'error'))
+      if (error || !state || !code) {
+        const back = state
+          ? await commands.abandonGoogleGrant({ actor: request.account, state })
+          : null
+        return res.redirect(
+          back?.ok && back.value.mode === 'reconnect'
+            ? reconnectEnd(back.value, error === 'access_denied' ? 'cancelled' : 'error')
+            : withQuery(SETUP_PATH, 'google', 'error'),
+        )
+      }
       try {
         const done = await commands.completeGoogleGrant({ actor: request.account, state, code })
+        if (!done.ok) return res.redirect(withQuery(SETUP_PATH, 'google', 'error'))
         return res.redirect(
-          done.ok
-            ? withQuery(done.value.returnTo, 'google', 'granted')
-            : withQuery(SETUP_PATH, 'google', 'error'),
+          done.value.mode === 'reconnect'
+            ? reconnectEnd(done.value, done.value.result ?? 'error', done.value.cost)
+            : withQuery(done.value.returnTo, 'google', 'granted'),
         )
       } catch (failure) {
         request.log.warn({ err: failure }, 'Google Cloud consent failed')
         return res.redirect(withQuery(SETUP_PATH, 'google', 'error'))
       }
     },
+  )
+
+  api.post(
+    '/api/ai-provider/google/reconnect',
+    {
+      ...secured,
+      schema: {
+        operationId: 'reconnectAiGoogleGrant',
+        tags,
+        body: ReconnectStart,
+        response: { 200: z.object({ url: z.string() }) },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await commands.startGoogleReconnect({
+          actor: request.account,
+          returnTo: request.body.returnTo,
+          popup: request.body.popup,
+        }),
+        (value) => res.send(value),
+      ),
+  )
+
+  api.post(
+    '/api/ai-provider/grant/check',
+    {
+      ...secured,
+      schema: { operationId: 'checkAiGoogleGrant', tags, response: { 200: GrantCheck } },
+    },
+    async (request, res) =>
+      reply(res, await commands.checkGrant({ actor: request.account }), (value) => res.send(value)),
   )
 
   api.post(

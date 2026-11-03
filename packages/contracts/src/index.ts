@@ -112,6 +112,13 @@ export {
   VerbatimParams,
 } from './facts.ts'
 export {
+  GoogleConnection,
+  GrantCheck,
+  GrantProblem,
+  ReconnectResult,
+  ReconnectStart,
+} from './google-grants.ts'
+export {
   AttachFolder,
   CallbackQuery,
   ConnectQuery,

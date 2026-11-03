@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { Id, Language } from './common.ts'
+import { GrantProblem } from './google-grants.ts'
 
 export const Role = z.enum(['admin', 'member'])
 
@@ -23,6 +24,14 @@ export const Me = z
     aiProvider: z.object({
       required: z.boolean(),
       status: z.enum(['none', 'working', 'needs-attention']),
+      /** Spec 030: set when Google refuses the Vertex AI grant; no redirect to the setup then. */
+      grantProblem: GrantProblem.nullable(),
+    }),
+    /** Spec 030: the person's Google Drive connection, for the reconnect notices. */
+    drive: z.object({
+      status: z.enum(['none', 'connected', 'lost']),
+      grantProblem: GrantProblem.nullable(),
+      account: z.string().nullable(),
     }),
   })
   .meta({ id: 'Me' })

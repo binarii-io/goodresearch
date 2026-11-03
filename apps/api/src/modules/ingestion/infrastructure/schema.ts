@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   bigint,
   boolean,
+  check,
   date,
   index,
   integer,
@@ -31,8 +32,16 @@ export const ingestionSourceConnections = pgTable(
     connectedAt: timestamp('connected_at', { withTimezone: true }).notNull(),
     /** `write`: the person also lets goodresearch edit the files they can edit (spec 007). */
     access: text('access').notNull().default('read'),
+    /** Why the source refuses the grant while `lost` (spec 030): `refused | reauth-required | unreadable`. */
+    lostReason: text('lost_reason'),
   },
-  (t) => [primaryKey({ columns: [t.accountId, t.connector] })],
+  (t) => [
+    primaryKey({ columns: [t.accountId, t.connector] }),
+    check(
+      'ingestion_source_connections_lost_reason_check',
+      sql`${t.lostReason} in ('refused', 'reauth-required', 'unreadable')`,
+    ),
+  ],
 )
 
 /** The folder attached to a study and the state of its last inventory. */
@@ -90,15 +99,23 @@ export const ingestionFolderAccess = pgTable(
 )
 
 /** Short-lived OAuth state (PKCE verifier) between "connect" and the callback. */
-export const ingestionOauthStates = pgTable('ingestion_oauth_states', {
-  state: text('state').primaryKey(),
-  accountId: text('account_id').notNull(),
-  connector: text('connector').notNull(),
-  codeVerifier: text('code_verifier').notNull(),
-  returnTo: text('return_to').notNull(),
-  access: text('access').notNull().default('read'),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-})
+export const ingestionOauthStates = pgTable(
+  'ingestion_oauth_states',
+  {
+    state: text('state').primaryKey(),
+    accountId: text('account_id').notNull(),
+    connector: text('connector').notNull(),
+    codeVerifier: text('code_verifier').notNull(),
+    returnTo: text('return_to').notNull(),
+    access: text('access').notNull().default('read'),
+    /** `reconnect` (spec 030): same account and access as the saved connection. */
+    mode: text('mode').notNull().default('setup'),
+    /** Started in a pop-up: the callback ends on `/google/done` (spec 030). */
+    popup: boolean('popup').notNull().default(false),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [check('ingestion_oauth_states_mode_check', sql`${t.mode} in ('setup', 'reconnect')`)],
+)
 
 /** The interviews (sessions) of a study, built from its inventory (spec 008). */
 export const ingestionSessions = pgTable(

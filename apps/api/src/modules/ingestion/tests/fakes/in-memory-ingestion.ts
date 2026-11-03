@@ -26,6 +26,7 @@ import { makeSessionQueries } from '../../application/queries/session-queries.ts
 import { makeSourceQueries, makeStudyActionGate } from '../../application/queries/source-queries.ts'
 import { makeStudyFiles } from '../../application/study-files.ts'
 import type { Analysis } from '../../domain/analysis.ts'
+import type { GrantProblem } from '../../domain/drive-gateway.ts'
 import type { FolderAccessResult } from '../../domain/folder-access.ts'
 import { type InventoryRun, isActiveRun } from '../../domain/inventory-run.ts'
 import type { InventoryFile } from '../../domain/inventory-walk.ts'
@@ -90,9 +91,9 @@ export class InMemoryIngestionStore implements IngestionStore {
   async saveConnection(c: SourceConnection) {
     this.connections.set(c.accountId, c)
   }
-  async markConnectionLost(id: string) {
+  async markConnectionLost(id: string, reason: GrantProblem) {
     const c = this.connections.get(id)
-    if (c) this.connections.set(id, { ...c, status: 'lost' })
+    if (c) this.connections.set(id, { ...c, status: 'lost', lostReason: reason })
   }
   async deleteConnection(id: string) {
     this.connections.delete(id)

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { Timestamp } from './common.ts'
+import { GrantProblem } from './google-grants.ts'
 
 /** Providers a person can connect (spec 004); `fake` exists only in dev and test stacks. */
 export const AiProvider = z
@@ -35,6 +36,8 @@ export const AiProviderView = z
     region: z.string().nullable(),
     lastCheckedAt: Timestamp,
     lastFailure: AiFailure.nullable(),
+    /** Spec 030: why Google refuses the Vertex AI grant. */
+    grantProblem: GrantProblem.nullable(),
   })
   .meta({ id: 'AiProviderView' })
 

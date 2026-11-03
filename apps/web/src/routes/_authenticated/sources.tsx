@@ -21,6 +21,7 @@ import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import { ReconnectNotice } from '../../features/google/reconnect-notice.tsx'
 import { useFormatDate } from '../../features/workspace/format.ts'
 
 /** "Connected sources": each person's own permissions to read sources (spec 002 FR-009). */
@@ -37,6 +38,35 @@ function Sources() {
   const drive = sources.data?.find((s) => s.connector === 'google-drive')
   const account = drive?.externalAccount ?? ''
   const since = formatDate(drive?.connectedAt)
+
+  // Also offered while the access is lost: the way to switch to another Google account (spec 030).
+  const disconnectDialog = (
+    <AlertDialog>
+      <AlertDialogTrigger
+        render={<Button variant="outline" className="justify-self-start" />}
+      >{t`Disconnect`}</AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t`Disconnect Google Drive?`}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t`The permission is revoked at Google. You will need to connect again to see or refresh study folders.`}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() =>
+              void disconnect
+                .mutateAsync()
+                .then(() => queryClient.invalidateQueries({ queryKey: getListMySourcesQueryKey() }))
+            }
+          >
+            {t`Disconnect`}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
 
   return (
     <div className="grid max-w-2xl gap-6">
@@ -60,40 +90,19 @@ function Sources() {
                   ? t`Connected as ${account} since ${since}. Can edit the Drive files you can edit, to publish study preparations.`
                   : t`Connected as ${account} since ${since}. Read-only.`}
               </p>
-              <AlertDialog>
-                <AlertDialogTrigger
-                  render={<Button variant="outline" className="justify-self-start" />}
-                >{t`Disconnect`}</AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t`Disconnect Google Drive?`}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t`The permission is revoked at Google. You will need to connect again to see or refresh study folders.`}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() =>
-                        void disconnect
-                          .mutateAsync()
-                          .then(() =>
-                            queryClient.invalidateQueries({ queryKey: getListMySourcesQueryKey() }),
-                          )
-                      }
-                    >
-                      {t`Disconnect`}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              {disconnectDialog}
+            </>
+          ) : drive.status === 'lost' ? (
+            <>
+              <ReconnectNotice
+                connection="drive"
+                problem={drive.grantProblem ?? 'refused'}
+                account={drive.externalAccount}
+              />
+              {disconnectDialog}
             </>
           ) : (
-            <p>
-              {drive.status === 'lost'
-                ? t`The permission no longer works (revoked or expired). Open a study to connect again.`
-                : t`Not connected. You will be asked to connect when you attach a folder to a study.`}
-            </p>
+            <p>{t`Not connected. You will be asked to connect when you attach a folder to a study.`}</p>
           )}
         </CardContent>
       </Card>

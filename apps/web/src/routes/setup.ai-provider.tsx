@@ -25,8 +25,11 @@ const Provider = z.enum(['vertex', 'anthropic', 'openai', 'fake'])
 export const Route = createFileRoute('/setup/ai-provider')({
   validateSearch: z.object({
     provider: Provider.optional().catch(undefined),
-    // Set by the Google consent callback.
-    google: z.enum(['granted', 'error']).optional().catch(undefined),
+    // Set by the Google consent callback; spec 030: a reconnection that needs the full setup.
+    google: z
+      .enum(['granted', 'error', 'checks-failed', 'other-account'])
+      .optional()
+      .catch(undefined),
   }),
   beforeLoad: async ({ context, location }) => ({
     me: await loadSignedIn(context.queryClient, location.href),
@@ -52,6 +55,17 @@ function Setup() {
     announced.current = true
     if (search.google === 'error')
       toast.error(t`Google Cloud access was not granted. You can try again.`, {
+        id: 'google-consent',
+      })
+    if (search.google === 'checks-failed')
+      toast.error(
+        t`Google gave access again, but your project no longer passes the checks. Check it below.`,
+        {
+          id: 'google-consent',
+        },
+      )
+    if (search.google === 'other-account')
+      toast(t`Another Google account was chosen: check its project and region below.`, {
         id: 'google-consent',
       })
     void navigate({ search: (previous) => ({ ...previous, google: undefined }), replace: true })

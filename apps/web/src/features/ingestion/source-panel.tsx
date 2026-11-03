@@ -1,4 +1,5 @@
 import {
+  getGetMeQueryKey,
   getGetStudySourceQueryKey,
   getListInventoryFilesQueryKey,
   type StudySourceView,
@@ -41,9 +42,10 @@ import {
 } from '@goodresearch/ui/components/table'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { type FormEvent, useId, useState } from 'react'
+import { type FormEvent, useEffect, useId, useState } from 'react'
 import { errorMessage } from '../workspace/errors.ts'
 import { useFormatDate } from '../workspace/format.ts'
+import { useMe } from '../workspace/me.ts'
 
 type Inventory = NonNullable<StudySourceView['source']>['inventory']
 
@@ -131,6 +133,19 @@ export function ReaderSourceNotice({ studyId }: { studyId: string }) {
 
 function ConnectDrive({ studyId, attached }: { studyId: string; attached: boolean }) {
   const { t } = useLingui()
+  const me = useMe()
+  const queryClient = useQueryClient()
+  // The server may have just found the Drive access refused: read `Me` again for the notice.
+  useEffect(() => {
+    void queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() })
+  }, [queryClient])
+  // Spec 030: a refused grant is reconnected from the notice above the page, same account.
+  if (me.drive.status === 'lost')
+    return (
+      <p role="status" className="text-sm">
+        {t`Your Google Drive access must be reconnected to see this study's folder: use "Reconnect Google" at the top of the page.`}
+      </p>
+    )
   return (
     <div className="grid max-w-2xl gap-3 rounded-md border p-4">
       <h3 className="font-medium">{t`Connect your Google Drive`}</h3>
@@ -369,7 +384,7 @@ function InventoryStatus({
   const who = inventory.runBy?.name ?? '—'
   const reasons: Record<string, string> = {
     FOLDER_NOT_FOUND: t`the folder no longer exists or is no longer shared with the person who refreshed`,
-    ACCESS_LOST: t`the Google Drive permission was revoked; reconnect from Connected sources`,
+    ACCESS_LOST: t`Google refused the Drive access; use "Reconnect Google" at the top of the page`,
     INCOMPLETE: t`Google Drive returned an incomplete listing; try again later`,
     DRIVE_ERROR: t`Google Drive did not answer; try again later`,
     NOT_STARTED: t`it could not be started; try again in a moment`,

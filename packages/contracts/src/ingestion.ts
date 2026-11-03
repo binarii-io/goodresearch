@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { Id, Timestamp } from './common.ts'
+import { GrantProblem } from './google-grants.ts'
 
 export const FileKind = z.enum(['transcript', 'media', 'other'])
 const Person = z.object({ id: Id, name: z.string().nullable() })
@@ -72,6 +73,8 @@ export const MySource = z
     connectedAt: Timestamp.nullable(),
     /** Whether the person let goodresearch edit their Drive files (spec 007). */
     canWrite: z.boolean(),
+    /** Spec 030: why Google refuses the grant while `lost`. */
+    grantProblem: GrantProblem.nullable(),
   })
   .meta({ id: 'MySource' })
 export const ConnectQuery = z.object({

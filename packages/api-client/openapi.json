@@ -35,6 +35,84 @@
           "id"
         ]
       },
+      "GrantProblemInput": {
+        "type": "string",
+        "enum": [
+          "refused",
+          "reauth-required",
+          "unreadable"
+        ]
+      },
+      "ReconnectStartInput": {
+        "type": "object",
+        "properties": {
+          "returnTo": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "popup": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "returnTo",
+          "popup"
+        ]
+      },
+      "ReconnectResultInput": {
+        "type": "string",
+        "enum": [
+          "reconnected",
+          "checks-failed",
+          "other-account",
+          "missing-right",
+          "cancelled",
+          "error"
+        ]
+      },
+      "GoogleConnectionInput": {
+        "type": "string",
+        "enum": [
+          "vertex",
+          "drive"
+        ]
+      },
+      "GrantCheckInput": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "ok",
+                  "unreachable"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "const": "problem"
+              },
+              "grantProblem": {
+                "$ref": "#/components/schemas/GrantProblemInput"
+              }
+            },
+            "required": [
+              "state",
+              "grantProblem"
+            ]
+          }
+        ]
+      },
       "AiProviderInput": {
         "type": "string",
         "enum": [
@@ -112,6 +190,16 @@
                 "type": "null"
               }
             ]
+          },
+          "grantProblem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrantProblemInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -123,7 +211,8 @@
           "project",
           "region",
           "lastCheckedAt",
-          "lastFailure"
+          "lastFailure",
+          "grantProblem"
         ]
       },
       "AiProviderPageInput": {
@@ -8696,6 +8785,16 @@
           },
           "canWrite": {
             "type": "boolean"
+          },
+          "grantProblem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrantProblemInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -8704,7 +8803,8 @@
           "status",
           "externalAccount",
           "connectedAt",
-          "canWrite"
+          "canWrite",
+          "grantProblem"
         ]
       },
       "InsightThemeInput": {
@@ -11407,11 +11507,56 @@
                   "working",
                   "needs-attention"
                 ]
+              },
+              "grantProblem": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/GrantProblemInput"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
               "required",
-              "status"
+              "status",
+              "grantProblem"
+            ]
+          },
+          "drive": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "connected",
+                  "lost"
+                ]
+              },
+              "grantProblem": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/GrantProblemInput"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "account": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "grantProblem",
+              "account"
             ]
           }
         },
@@ -11423,7 +11568,8 @@
           "role",
           "language",
           "teams",
-          "aiProvider"
+          "aiProvider",
+          "drive"
         ]
       },
       "UpdateLanguageInput": {
@@ -16417,6 +16563,87 @@
         ],
         "additionalProperties": false
       },
+      "GrantProblem": {
+        "type": "string",
+        "enum": [
+          "refused",
+          "reauth-required",
+          "unreadable"
+        ]
+      },
+      "ReconnectStart": {
+        "type": "object",
+        "properties": {
+          "returnTo": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "popup": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "returnTo",
+          "popup"
+        ],
+        "additionalProperties": false
+      },
+      "ReconnectResult": {
+        "type": "string",
+        "enum": [
+          "reconnected",
+          "checks-failed",
+          "other-account",
+          "missing-right",
+          "cancelled",
+          "error"
+        ]
+      },
+      "GoogleConnection": {
+        "type": "string",
+        "enum": [
+          "vertex",
+          "drive"
+        ]
+      },
+      "GrantCheck": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "ok",
+                  "unreachable"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "const": "problem"
+              },
+              "grantProblem": {
+                "$ref": "#/components/schemas/GrantProblem"
+              }
+            },
+            "required": [
+              "state",
+              "grantProblem"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
       "AiProvider": {
         "type": "string",
         "enum": [
@@ -16494,6 +16721,16 @@
                 "type": "null"
               }
             ]
+          },
+          "grantProblem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrantProblem"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -16505,7 +16742,8 @@
           "project",
           "region",
           "lastCheckedAt",
-          "lastFailure"
+          "lastFailure",
+          "grantProblem"
         ],
         "additionalProperties": false
       },
@@ -25335,6 +25573,16 @@
           },
           "canWrite": {
             "type": "boolean"
+          },
+          "grantProblem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GrantProblem"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -25343,7 +25591,8 @@
           "status",
           "externalAccount",
           "connectedAt",
-          "canWrite"
+          "canWrite",
+          "grantProblem"
         ],
         "additionalProperties": false
       },
@@ -28130,11 +28379,57 @@
                   "working",
                   "needs-attention"
                 ]
+              },
+              "grantProblem": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/GrantProblem"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
               "required",
-              "status"
+              "status",
+              "grantProblem"
+            ],
+            "additionalProperties": false
+          },
+          "drive": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "connected",
+                  "lost"
+                ]
+              },
+              "grantProblem": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/GrantProblem"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "account": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "grantProblem",
+              "account"
             ],
             "additionalProperties": false
           }
@@ -28147,7 +28442,8 @@
           "role",
           "language",
           "teams",
-          "aiProvider"
+          "aiProvider",
+          "drive"
         ],
         "additionalProperties": false
       },
@@ -35446,6 +35742,65 @@
         }
       }
     },
+    "/api/sources/google-drive/reconnect": {
+      "post": {
+        "operationId": "reconnectGoogleDrive",
+        "tags": [
+          "sources"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconnectStartInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sources/google-drive/grant/check": {
+      "post": {
+        "operationId": "checkGoogleDriveGrant",
+        "tags": [
+          "sources"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantCheck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ai-provider": {
       "get": {
         "operationId": "getAiProvider",
@@ -35539,6 +35894,65 @@
                     "url"
                   ],
                   "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-provider/google/reconnect": {
+      "post": {
+        "operationId": "reconnectAiGoogleGrant",
+        "tags": [
+          "ai-provider"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconnectStartInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-provider/grant/check": {
+      "post": {
+        "operationId": "checkAiGoogleGrant",
+        "tags": [
+          "ai-provider"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantCheck"
                 }
               }
             }

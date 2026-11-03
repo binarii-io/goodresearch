@@ -88,7 +88,7 @@ export const makeRunInventory =
     } catch (error) {
       await progressWrite
       if (error instanceof DriveConnectionLost) {
-        await deps.store.markConnectionLost(job.accountId)
+        await deps.store.markConnectionLost(job.accountId, error.reason)
         return fail('ACCESS_LOST')
       }
       if (error instanceof DriveAccessDenied) return fail('FOLDER_NOT_FOUND')

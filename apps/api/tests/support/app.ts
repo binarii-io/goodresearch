@@ -2,7 +2,7 @@ import { type AppConfig, loadConfig } from '@goodresearch/config'
 import { fixedClock } from '@goodresearch/shared'
 import type { FastifyInstance, LightMyRequestResponse } from 'fastify'
 import { composeApp } from '../../src/compose.ts'
-import type { ModelRunner } from '../../src/modules/ai-gateway/application/ports.ts'
+import type { GoogleCloudApi, ModelRunner } from '../../src/modules/ai-gateway/application/ports.ts'
 import type { InMemoryDrive } from '../../src/modules/ingestion/tests/fakes/in-memory-drive.ts'
 import type { Db } from '../../src/platform/db.ts'
 
@@ -29,7 +29,13 @@ export const testConfig = (issuer: string, overrides: Record<string, string> = {
 export const startTestApp = async (
   config: AppConfig,
   db: Db,
-  options: { rateLimit?: boolean; drive?: InMemoryDrive; runner?: ModelRunner } = {},
+  options: {
+    rateLimit?: boolean
+    drive?: InMemoryDrive
+    runner?: ModelRunner
+    googleCloud?: GoogleCloudApi
+    googleFetch?: typeof fetch
+  } = {},
 ) => {
   const clock = fixedClock(new Date())
   const queued: { queue: string; data: object }[] = []
@@ -54,7 +60,11 @@ export const startTestApp = async (
             },
           }
         : {}),
-      ...(options.runner ? { ai: { runner: options.runner } } : {}),
+      ai: {
+        ...(options.runner ? { runner: options.runner } : {}),
+        ...(options.googleCloud ? { googleCloud: options.googleCloud } : {}),
+        ...(options.googleFetch ? { googleFetch: options.googleFetch } : {}),
+      },
     },
     { logger: false, rateLimit: options.rateLimit ?? false },
   )
