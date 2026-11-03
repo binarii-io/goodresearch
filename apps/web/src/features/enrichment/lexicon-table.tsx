@@ -124,14 +124,12 @@ export function LexiconTable({
   const page = useListLexicon(studyId, params)
   const decide = useDecideTerm()
   const decideAll = useDecideTerms()
-  // A decision changes the list: back to its first page, nothing skipped (review of PR #10).
-  const refresh = () => {
-    setCursor(undefined)
-    return Promise.all([
+  // A decision keeps the page a person is on; a page it empties falls back to the last one (below).
+  const refresh = () =>
+    Promise.all([
       queryClient.invalidateQueries({ queryKey: getListLexiconQueryKey(studyId) }),
       queryClient.invalidateQueries({ queryKey: getGetEnrichmentQueryKey(studyId) }),
     ])
-  }
   const busy = decide.isPending || decideAll.isPending
   const filtered = (change: () => void) => {
     change()
@@ -147,7 +145,8 @@ export function LexiconTable({
   const terms = page.data?.terms ?? []
   const size = page.data?.pageSize ?? 50
   const pages = Math.max(1, Math.ceil((page.data?.total ?? 0) / size))
-  // A page emptied meanwhile (its last terms decided elsewhere): back to the last page there is.
+  // A page emptied by its last decisions (the person's or a teammate's): back to the last page
+  // there is, the skeleton shown meanwhile rather than an empty list.
   const emptied = !!cursor && !!page.data && page.data.terms.length === 0
   useEffect(() => {
     if (emptied) setCursor(pages > 1 ? String((pages - 1) * size) : undefined)
@@ -275,7 +274,7 @@ export function LexiconTable({
         </p>
       ) : null}
 
-      {page.isPending ? (
+      {page.isPending || emptied ? (
         <Skeleton className="h-32 w-full" />
       ) : terms.length === 0 ? (
         <p className="text-muted-foreground text-sm">
@@ -424,7 +423,7 @@ export function LexiconTable({
           </TableBody>
         </Table>
       )}
-      {page.data && (cursor || page.data.next) ? (
+      {page.data && !emptied && (cursor || page.data.next) ? (
         <nav aria-label={t`Pages of the lexicon`} className="flex items-center gap-2">
           <Button
             variant="outline"

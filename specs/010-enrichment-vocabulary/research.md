@@ -144,4 +144,4 @@ Pure domain functions over the segments of the study's validated interviews:
 - **Runs**: a run the queue refuses is closed at once (`LEXICON_RUNNING`). A finished run is never written again, so a slow worker of a replaced run stops.
 - **Stable ids**: the unchanged beginning and end of a transcript are kept first; a very large changed middle is matched in order by text (bounded memory).
 - **Estimate**: shown as "about", the instructions counted per call.
-- **Lexicon pages**: back to the first page after a decision.
+- **Lexicon pages**: a decision keeps the page a person is on (the page is an offset: the terms after a decided one move up by one); a page left empty falls back to the last page there is. Update #41: before it, a decision went back to the first page.
