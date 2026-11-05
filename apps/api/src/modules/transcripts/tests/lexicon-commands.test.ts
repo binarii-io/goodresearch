@@ -333,6 +333,75 @@ describe('decisions', () => {
     })
   })
 
+  it('recounts only the edited term, the other terms keep their counts', async () => {
+    const s = setup()
+    await readAll(s)
+    const byForm = (form: string) => [...s.memory.terms.values()].find((t) => t.form === form)
+    const nps = byForm('NPS')
+    const good = byForm('Goodresearch')
+    if (!nps || !good) throw new Error('terms missing')
+    // A row the edit must not touch: a recount of the whole study would drop it.
+    const kept = { termId: good.id, spelling: 'kept', sessionId: 'a', count: 7, anchors: [] }
+    s.memory.occurrences.set('study', [...(s.memory.occurrences.get('study') ?? []), kept])
+    const fields = {
+      form: 'Net Promoter',
+      kind: nps.kind,
+      correction: null,
+      category: nps.category,
+      definition: null,
+    }
+    value(
+      await s.commands.decide(ACTOR, 'study', nps.id, nps.version, { decision: 'edit', fields }),
+    )
+    const rows = s.memory.occurrences.get('study') ?? []
+    expect(rows).toContainEqual(kept)
+    // The edited term's rows are those a recount of the whole study gives.
+    const edited = rows.filter((r) => r.termId === nps.id)
+    await s.commands.recount('study', nps.teamId, ACTOR.id)
+    const full = (s.memory.occurrences.get('study') ?? []).filter((r) => r.termId === nps.id)
+    expect(edited).toEqual(full)
+    expect(edited.length).toBeGreaterThan(0)
+  })
+
+  it('a variant rejected with an accept is no longer counted', async () => {
+    const s = setup()
+    await readAll(s)
+    const term = [...s.memory.terms.values()].find((t) =>
+      t.variants.some((v) => v.status === 'proposed'),
+    )
+    const variant = term?.variants.find((v) => v.status === 'proposed')
+    if (!term || !variant) throw new Error('no term with a proposed variant')
+    value(
+      await s.commands.decide(ACTOR, 'study', term.id, term.version, {
+        decision: 'accept',
+        variants: [{ spelling: variant.spelling, status: 'rejected' }],
+      }),
+    )
+    const rows = (s.memory.occurrences.get('study') ?? []).filter((r) => r.termId === term.id)
+    expect(rows.map((r) => r.spelling)).not.toContain(variant.spelling)
+  })
+
+  it('a merge recounts only the two terms', async () => {
+    const s = setup()
+    await readAll(s)
+    const [a, b, other] = [...s.memory.terms.values()]
+    if (!a || !b || !other) throw new Error('terms missing')
+    const kept = { termId: other.id, spelling: 'kept', sessionId: 'a', count: 7, anchors: [] }
+    s.memory.occurrences.set('study', [...(s.memory.occurrences.get('study') ?? []), kept])
+    value(
+      await s.commands.merge(ACTOR, 'study', b.id, b.version, { termId: a.id, version: a.version }),
+    )
+    const rows = s.memory.occurrences.get('study') ?? []
+    expect(rows).toContainEqual(kept)
+    expect(rows.some((r) => r.termId === b.id)).toBe(false)
+    // The target's rows are those a recount of the whole study gives.
+    const target = rows.filter((r) => r.termId === a.id)
+    await s.commands.recount('study', a.teamId, ACTOR.id)
+    expect(target).toEqual(
+      (s.memory.occurrences.get('study') ?? []).filter((r) => r.termId === a.id),
+    )
+  })
+
   it('refuses an edited form another term has', async () => {
     const s = setup()
     await readAll(s)

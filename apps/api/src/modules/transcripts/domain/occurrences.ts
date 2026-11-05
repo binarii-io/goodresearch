@@ -55,12 +55,16 @@ export const countOccurrences = (
         const wanted = words(spelling).map((w) => w.text)
         const first = wanted[0]
         if (!first) continue
-        const same = (w: string, found: Indexed | undefined) =>
-          found !== undefined && (isAcronym(w) ? w === found.text : fold(w) === found.folded)
+        // Folded once per spelling, not once per turn (the hot loop of a large study).
+        const firstKey = fold(first)
+        const keys = wanted.map((w) => (isAcronym(w) ? null : fold(w)))
+        const same = (k: number, found: Indexed | undefined) =>
+          found !== undefined &&
+          (keys[k] === null ? wanted[k] === found.text : keys[k] === found.folded)
         segments.forEach((s, seg) => {
           let after = -1
-          for (const i of s.byWord.get(fold(first)) ?? []) {
-            if (i <= after || !wanted.every((w, k) => same(w, s.all[i + k]))) continue
+          for (const i of s.byWord.get(firstKey) ?? []) {
+            if (i <= after || !wanted.every((_, k) => same(k, s.all[i + k]))) continue
             after = i + wanted.length - 1
             matches.push({ spelling, seg, word: i, words: wanted.length })
           }

@@ -83,8 +83,11 @@ export const createInMemoryStore = () => {
       }
       return 'ok'
     },
-    replaceOccurrences: async (studyId, rows) => {
-      occurrences.set(studyId, [...rows])
+    replaceOccurrences: async (studyId, rows, termIds) => {
+      const others = termIds
+        ? (occurrences.get(studyId) ?? []).filter((o) => !termIds.includes(o.termId))
+        : []
+      occurrences.set(studyId, [...others, ...rows])
     },
     createRun: async (run) => {
       if ([...runs.values()].some((r) => r.studyId === run.studyId && r.finishedAt === null))

@@ -232,22 +232,46 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
       }
     },
 
-    replaceOccurrences: async (studyId, rows) => {
+    replaceOccurrences: async (studyId, rows, termIds) => {
       await db.transaction(async (tx) => {
-        await tx.delete(transcriptsOccurrences).where(eq(transcriptsOccurrences.studyId, studyId))
+        await tx
+          .delete(transcriptsOccurrences)
+          .where(
+            termIds
+              ? and(
+                  eq(transcriptsOccurrences.studyId, studyId),
+                  inArray(transcriptsOccurrences.termId, [...termIds]),
+                )
+              : eq(transcriptsOccurrences.studyId, studyId),
+          )
         for (let i = 0; i < rows.length; i += 500) {
           const chunk = rows.slice(i, i + 500)
           if (chunk.length)
-            await tx.insert(transcriptsOccurrences).values(
-              chunk.map((o) => ({
-                termId: o.termId,
-                spelling: o.spelling,
-                sessionId: o.sessionId,
-                studyId,
-                count: o.count,
-                anchors: [...o.anchors],
-              })),
-            )
+            await tx
+              .insert(transcriptsOccurrences)
+              .values(
+                chunk.map((o) => ({
+                  termId: o.termId,
+                  spelling: o.spelling,
+                  sessionId: o.sessionId,
+                  studyId,
+                  count: o.count,
+                  anchors: [...o.anchors],
+                })),
+              )
+              // Another recount of the same term may have written its rows meanwhile: the last wins.
+              .onConflictDoUpdate({
+                target: [
+                  transcriptsOccurrences.termId,
+                  transcriptsOccurrences.spelling,
+                  transcriptsOccurrences.sessionId,
+                ],
+                set: {
+                  studyId: sql`excluded.study_id`,
+                  count: sql`excluded.count`,
+                  anchors: sql`excluded.anchors`,
+                },
+              })
         }
       })
     },

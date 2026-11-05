@@ -37,6 +37,7 @@ import {
 import {
   absorb,
   attachTo,
+  countedSpellings,
   decideTerm,
   type LexiconTerm,
   mergeTerms,
@@ -374,8 +375,17 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     }
   }
 
-  /** Recounts the occurrences of the team's terms in every imported transcript of the study. */
-  const recount = async (studyId: string, teamId: string, accountId: string) => {
+  /**
+   * Recounts the occurrences of the team's terms in every imported transcript of the study. With
+   * `termIds`, only those terms: each term is counted on its own, so their rows come out the same
+   * as in a full recount, and a decision on one term stays quick on a large study.
+   */
+  const recount = async (
+    studyId: string,
+    teamId: string,
+    accountId: string,
+    termIds?: readonly string[],
+  ) => {
     const found = await deps.sources.enrichmentSessions(accountId, studyId)
     // Without the list of validated interviews (Drive unavailable, no access), nothing is replaced.
     if (!found) return
@@ -383,8 +393,14 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     const transcripts = (await deps.store.transcriptsOf(studyId)).filter((t) =>
       validated.has(t.sessionId),
     )
-    const terms = await deps.store.teamTerms(teamId)
-    await deps.store.replaceOccurrences(studyId, countOccurrences(interviewsOf(transcripts), terms))
+    const terms = (await deps.store.teamTerms(teamId)).filter(
+      (t) => !termIds || termIds.includes(t.id),
+    )
+    await deps.store.replaceOccurrences(
+      studyId,
+      countOccurrences(interviewsOf(transcripts), terms),
+      termIds,
+    )
   }
 
   /** The worker side of a run (research R8): import, candidates, AI batches, counting. */
@@ -583,8 +599,10 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
     const saved = await deps.store.saveTerm(next.value, version)
     if (saved === 'stale') return err('VERSION_CONFLICT')
     if (saved === 'exists') return err('TERM_EXISTS')
-    // A new form or spelling is counted at once in this study.
-    if (decision.decision === 'edit') await recount(studyId, term.teamId, actor.id)
+    // A new form, or a spelling added or rejected, is counted at once in this study.
+    const before = countedSpellings(term).join('\n')
+    if (countedSpellings(next.value).join('\n') !== before)
+      await recount(studyId, term.teamId, actor.id, [term.id])
     return ok(next.value)
   }
 
@@ -610,7 +628,8 @@ export const makeLexiconCommands = (deps: TranscriptsDeps) => {
       into.version,
     )
     if (saved !== 'ok') return err('VERSION_CONFLICT')
-    await recount(studyId, from.value.teamId, actor.id)
+    // The merged term's rows go, the target's are counted with its new spellings.
+    await recount(studyId, from.value.teamId, actor.id, [from.value.term.id, target.value.term.id])
     return ok(merged.value.into)
   }
 

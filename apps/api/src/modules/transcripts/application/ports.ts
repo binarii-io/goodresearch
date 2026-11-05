@@ -119,8 +119,15 @@ export type TranscriptsStore = {
     into: LexiconTerm,
     intoExpected: number,
   ): Promise<SaveOutcome>
-  /** Replaces every occurrence of the study at once. */
-  replaceOccurrences(studyId: string, rows: readonly Occurrence[]): Promise<void>
+  /**
+   * Replaces the study's occurrences; with `termIds`, only those terms' rows (a decision on one
+   * term: the other terms' counts do not change).
+   */
+  replaceOccurrences(
+    studyId: string,
+    rows: readonly Occurrence[],
+    termIds?: readonly string[],
+  ): Promise<void>
 
   /** Creates the run; false when the study already has one not finished. */
   createRun(run: LexiconRun): Promise<boolean>
