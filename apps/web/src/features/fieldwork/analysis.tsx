@@ -49,7 +49,7 @@ function ConsentText() {
   const { t } = useLingui()
   return (
     <AlertDialogDescription className="grid gap-2">
-      <span>{t`To find who took part and when, the beginning of each transcript (about 4,000 characters) is sent to your AI provider, with your own connection. This text may contain names of people.`}</span>
+      <span>{t`To find who took part and when, the beginning of each transcript (about 4,000 characters) is sent to your AI provider. This text may contain names of people.`}</span>
       <span>{t`The app adds neither the schedule nor the list of your team. With anonymisation on, the names it knows are replaced before sending; other names in the text stay.`}</span>
       <span>{t`What the AI proposes stays a proposal until you accept it.`}</span>
     </AlertDialogDescription>

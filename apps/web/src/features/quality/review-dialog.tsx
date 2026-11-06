@@ -77,7 +77,7 @@ export function ReviewDialog({
         </div>
         {e?.consentNeeded && e.aiConnected ? (
           <AlertDialogDescription className="grid gap-2">
-            <span>{t`To review them, the text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns.`}</span>
+            <span>{t`To review them, the text of each transcript is sent to your AI provider, in parts of about 60 turns.`}</span>
             <span>{t`The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending.`}</span>
           </AlertDialogDescription>
         ) : null}

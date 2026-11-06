@@ -34,3 +34,8 @@
 - **Finding** (2026-11-06, on the billing project): `gemini-3.8-flash` answers on `global` and on the EU multi-region endpoint (`aiplatform.eu.rep.googleapis.com`, location `eu`), not on `europe-west1`, `europe-west4` or `europe-west9` (nor `gemini-2.5-flash` there).
 - **Decision**: `eu` and `us` are accepted regions (settings and a person's own Vertex AI); the AI SDK already routes them to the multi-region endpoints.
 - **Not covered**: prices are per model, not per region; whether Google bills the `eu` multi-region at the `global` rate is not verified (to check on the billing report). No automated test of the SDK's routing of `eu` to the `.rep.` host (it needs Google's token exchange); a real call on 2026-11-06 confirmed it. The settings accept any single region by pattern, while a person's own connection uses the domain's list.
+
+## R8 — The shared provider only (after merge)
+
+- **Decision**: with `AI_PROVIDERS` empty and a shared provider, the AI provider page shows the instance's provider without "Connect your own provider"; the setup page says connecting one's own is not offered; a connection saved earlier, its provider no longer offered, is not shown as serving. The shared provider's failure no longer suggests connecting one's own.
+- **Review**: a saved connection is shown as serving only when `serving` is `own`; otherwise it is shown as no longer used, with a way to remove it. The setup page, with the shared provider only, says so in its heading and text, and ignores a connection whose provider is not offered. The consent texts no longer say "with your own connection" (the provider serving the person may be the instance's). An e2e test fakes the shared-only answer of `GET /api/ai-provider`.

@@ -234,7 +234,7 @@ function ConsentText() {
   const { t } = useLingui()
   return (
     <AlertDialogDescription className="grid gap-2">
-      <span>{t`To find the terms, the app first reads the transcripts itself. Only the unusual words it finds are sent to your AI provider, with your own connection, each with up to three short excerpts (200 characters).`}</span>
+      <span>{t`To find the terms, the app first reads the transcripts itself. Only the unusual words it finds are sent to your AI provider, each with up to three short excerpts (200 characters).`}</span>
       <span>{t`The names the app knows (the people of the interviews, the schedule and your team) are replaced before sending. No transcript is sent in full.`}</span>
       <span>{t`What the AI proposes stays a proposal until a person accepts it.`}</span>
     </AlertDialogDescription>

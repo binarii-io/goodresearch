@@ -148,7 +148,7 @@ export function InsightRunDialog({
         </div>
         {e?.consentNeeded && e.aiConnected ? (
           <AlertDialogDescription className="grid gap-2">
-            <span>{t`To find insights, the statements of the accepted facts are sent to your AI provider, with your own connection, with their polarity, theme and participant code.`}</span>
+            <span>{t`To find insights, the statements of the accepted facts are sent to your AI provider, with their polarity, theme and participant code.`}</span>
             <span>{t`No name, no verbatim and no interview title is sent.`}</span>
             <span>{t`Every insight the AI proposes waits for a person's decision.`}</span>
           </AlertDialogDescription>

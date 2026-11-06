@@ -56,18 +56,26 @@ function AiProviderPage() {
   // Spec 035: the instance's shared provider, when the deployer set one.
   const shared = page.data?.shared ?? null
   const sharedOpen = shared?.open === true
+  // Spec 035: the deployer may offer no provider of one's own (AI_PROVIDERS empty): the shared one only.
+  const ownOffered = (page.data?.offered.length ?? 0) > 0
+  const servedByShared = page.data?.serving === 'shared'
+  // A saved connection serves only while its provider is offered (`serving` says so); otherwise
+  // it is shown as no longer used, still removable (spec 035).
+  const servedByOwn = page.data?.serving === 'own'
 
   return (
     <div className="grid max-w-3xl gap-6">
       <PageTitle
         title={t`AI provider`}
         description={
-          page.data?.serving === 'shared'
-            ? t`goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch. You can connect your own instead.`
+          servedByShared
+            ? ownOffered
+              ? t`goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch. You can connect your own instead.`
+              : t`goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch.`
             : t`goodresearch's assistants use your own provider account. Costs and data processing are yours.`
         }
       />
-      {connection ? (
+      {connection && servedByOwn ? (
         <Card>
           <CardContent className="grid gap-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -208,9 +216,11 @@ function AiProviderPage() {
               <dd>{t`${calls} calls · ${tokens} tokens`}</dd>
             </dl>
             <p className="text-muted-foreground text-sm">{t`Your calls are recorded with your name and their cost shows in each screen, as with your own provider.`}</p>
-            <Button className="w-fit" variant="outline" render={<Link to="/setup/ai-provider" />}>
-              {t`Connect your own provider`}
-            </Button>
+            {ownOffered ? (
+              <Button className="w-fit" variant="outline" render={<Link to="/setup/ai-provider" />}>
+                {t`Connect your own provider`}
+              </Button>
+            ) : null}
           </CardContent>
         </Card>
       ) : (
@@ -225,6 +235,23 @@ function AiProviderPage() {
           </p>
         </div>
       )}
+      {connection && !servedByOwn ? (
+        <Card>
+          <CardContent className="grid gap-3">
+            <p className="text-sm">
+              {t`Your saved ${PROVIDERS[connection.provider].name} connection is no longer offered on this instance and is not used.`}
+            </p>
+            <Button
+              className="w-fit text-destructive hover:text-destructive"
+              variant="ghost"
+              disabled={remove.isPending}
+              onClick={() => void remove.mutateAsync().then(refresh)}
+            >
+              {t`Remove it`}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   )
 }

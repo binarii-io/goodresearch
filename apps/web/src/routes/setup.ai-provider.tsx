@@ -78,8 +78,12 @@ function Setup() {
   }
 
   const offered = page.data?.offered ?? []
-  const connection = page.data?.connection ?? null
+  // A connection whose provider is no longer offered is neither chosen nor to fix here (spec 035).
+  const saved = page.data?.connection ?? null
+  const connection = saved && offered.includes(saved.provider) ? saved : null
   const selected = choice ?? connection?.provider ?? offered[0]
+  // Spec 035: the instance's shared provider only, nothing of one's own to connect.
+  const sharedOnly = offered.length === 0 && page.data?.shared?.open === true
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -95,11 +99,17 @@ function Setup() {
       <main id="main" className="flex flex-1 justify-center px-4 pt-6 pb-16">
         <div className="grid w-full max-w-2xl content-start gap-6">
           <div className="grid gap-2">
-            <h1 className="text-[1.75rem] leading-tight">{t`Choose your AI provider`}</h1>
-            <p className="text-muted-foreground">{t`goodresearch's assistants run on your own provider account: the costs and the processing of what you send to the AI are yours. Your key or Google access is stored encrypted, used only for your own actions, and you can remove it at any time.`}</p>
+            <h1 className="text-[1.75rem] leading-tight">
+              {sharedOnly ? t`AI provider` : t`Choose your AI provider`}
+            </h1>
+            <p className="text-muted-foreground">
+              {sharedOnly
+                ? t`This instance provides the AI for everyone; connecting your own provider is not offered.`
+                : t`goodresearch's assistants run on your own provider account: the costs and the processing of what you send to the AI are yours. Your key or Google access is stored encrypted, used only for your own actions, and you can remove it at any time.`}
+            </p>
           </div>
 
-          {page.data?.shared?.open && !connection ? (
+          {page.data?.shared?.open && !connection && offered.length > 0 ? (
             <p role="status" className="text-sm">
               {t`This instance already provides an AI provider for you: connecting your own is optional.`}{' '}
               <Link to="/" className="underline">
@@ -117,7 +127,7 @@ function Setup() {
 
           {page.isPending ? (
             <Skeleton className="h-64 w-full" />
-          ) : offered.length === 0 ? (
+          ) : sharedOnly ? null : offered.length === 0 ? (
             <p>{t`AI is not configured on this instance.`}</p>
           ) : (
             <Card>

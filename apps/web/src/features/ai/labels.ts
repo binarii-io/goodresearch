@@ -72,7 +72,7 @@ export const FAILURES: Record<AiFailure, { reason: MessageDescriptor; action: Me
     },
     SHARED_PROVIDER_UNAVAILABLE: {
       reason: msg`The AI of this instance is unavailable right now.`,
-      action: msg`Contact the person who deployed goodresearch. You can also connect your own AI provider.`,
+      action: msg`Contact the person who deployed goodresearch, or try again later. If this instance lets you, you can also connect your own AI provider.`,
     },
     UNKNOWN: {
       reason: msg`The check did not work for an unexpected reason.`,

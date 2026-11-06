@@ -1293,6 +1293,7 @@ msgstr "AI is not configured on this instance."
 
 #: src/features/workspace/account-menu.tsx
 #: src/routes/_authenticated/ai-provider.tsx
+#: src/routes/setup.ai-provider.tsx
 msgid "AI provider"
 msgstr "AI provider"
 
@@ -2387,8 +2388,8 @@ msgid "Contact item: optional, never imported by the app. Deleting the addresses
 msgstr "Contact item: optional, never imported by the app. Deleting the addresses in the form and its spreadsheet is up to your team."
 
 #: src/features/ai/labels.ts
-msgid "Contact the person who deployed goodresearch. You can also connect your own AI provider."
-msgstr "Contact the person who deployed goodresearch. You can also connect your own AI provider."
+msgid "Contact the person who deployed goodresearch, or try again later. If this instance lets you, you can also connect your own AI provider."
+msgstr "Contact the person who deployed goodresearch, or try again later. If this instance lets you, you can also connect your own AI provider."
 
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/synthesis/deck-slide.tsx
@@ -3721,6 +3722,10 @@ msgstr "goodresearch will ask Google for access to Google Cloud on your behalf. 
 #: src/routes/setup.ai-provider.tsx
 msgid "goodresearch's assistants run on your own provider account: the costs and the processing of what you send to the AI are yours. Your key or Google access is stored encrypted, used only for your own actions, and you can remove it at any time."
 msgstr "goodresearch's assistants run on your own provider account: the costs and the processing of what you send to the AI are yours. Your key or Google access is stored encrypted, used only for your own actions, and you can remove it at any time."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch."
+msgstr "goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch."
 
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch. You can connect your own instead."
@@ -6636,6 +6641,10 @@ msgstr "Remarks"
 msgid "Remove"
 msgstr "Remove"
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Remove it"
+msgstr "Remove it"
+
 #. placeholder {0}: ii + 1
 #: src/features/preparation/questionnaire-editor.tsx
 msgid "Remove item {0}"
@@ -8002,8 +8011,8 @@ msgid "The guide holds the framing (objectives, hypotheses, audience, format) an
 msgstr "The guide holds the framing (objectives, hypotheses, audience, format) and the questions of the four phases: introduction, warm-up, one section per research theme, wrap-up. It is used during the interviews, then to check their coverage and to group the findings by theme."
 
 #: src/features/synthesis/takeaways.tsx
-msgid "The insights and recommendations are sent to your AI provider, with your own connection: their statements, theme, confidence and participant counts."
-msgstr "The insights and recommendations are sent to your AI provider, with your own connection: their statements, theme, confidence and participant counts."
+msgid "The insights and recommendations are sent to your AI provider: their statements, theme, confidence and participant counts."
+msgstr "The insights and recommendations are sent to your AI provider: their statements, theme, confidence and participant counts."
 
 #: src/features/synthesis/deck-slide.tsx
 msgid "The interviews in numbers"
@@ -8201,8 +8210,8 @@ msgid "The state of the research could not be loaded."
 msgstr "The state of the research could not be loaded."
 
 #: src/features/synthesis/recommendation-run-dialog.tsx
-msgid "The statements of the insights are sent to your AI provider, with your own connection, with their theme, confidence and number of participants."
-msgstr "The statements of the insights are sent to your AI provider, with your own connection, with their theme, confidence and number of participants."
+msgid "The statements of the insights are sent to your AI provider, with their theme, confidence and number of participants."
+msgstr "The statements of the insights are sent to your AI provider, with their theme, confidence and number of participants."
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study, its inventory and its interviews are removed from goodresearch, and from all the projects it feeds: {others}. Nothing changes in Drive."
@@ -8427,6 +8436,10 @@ msgstr "This insight was rejected or is no longer in the project."
 #: src/routes/setup.ai-provider.tsx
 msgid "This instance already provides an AI provider for you: connecting your own is optional."
 msgstr "This instance already provides an AI provider for you: connecting your own is optional."
+
+#: src/routes/setup.ai-provider.tsx
+msgid "This instance provides the AI for everyone; connecting your own provider is not offered."
+msgstr "This instance provides the AI for everyone; connecting your own provider is not offered."
 
 #: src/features/workspace/errors.ts
 msgid "This interview can no longer be taken out of the reading: stop the whole reading instead."
@@ -8694,8 +8707,8 @@ msgid "To clean again"
 msgstr "To clean again"
 
 #: src/features/enrichment/cleaning-table.tsx
-msgid "To clean with the AI, the full text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
-msgstr "To clean with the AI, the full text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
+msgid "To clean with the AI, the full text of each transcript is sent to your AI provider, in parts of about 60 turns."
+msgstr "To clean with the AI, the full text of each transcript is sent to your AI provider, in parts of about 60 turns."
 
 #: src/features/preparation/labels.ts
 msgid "To contact"
@@ -8733,20 +8746,20 @@ msgid "To decide ({waiting})"
 msgstr "To decide ({waiting})"
 
 #: src/features/synthesis/insight-run-dialog.tsx
-msgid "To find insights, the statements of the accepted facts are sent to your AI provider, with your own connection, with their polarity, theme and participant code."
-msgstr "To find insights, the statements of the accepted facts are sent to your AI provider, with your own connection, with their polarity, theme and participant code."
+msgid "To find insights, the statements of the accepted facts are sent to your AI provider, with their polarity, theme and participant code."
+msgstr "To find insights, the statements of the accepted facts are sent to your AI provider, with their polarity, theme and participant code."
 
 #: src/features/analysis/find-facts.tsx
-msgid "To find the facts, the text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
-msgstr "To find the facts, the text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
+msgid "To find the facts, the text of each transcript is sent to your AI provider, in parts of about 60 turns."
+msgstr "To find the facts, the text of each transcript is sent to your AI provider, in parts of about 60 turns."
 
 #: src/features/enrichment/enrichment-tab.tsx
-msgid "To find the terms, the app first reads the transcripts itself. Only the unusual words it finds are sent to your AI provider, with your own connection, each with up to three short excerpts (200 characters)."
-msgstr "To find the terms, the app first reads the transcripts itself. Only the unusual words it finds are sent to your AI provider, with your own connection, each with up to three short excerpts (200 characters)."
+msgid "To find the terms, the app first reads the transcripts itself. Only the unusual words it finds are sent to your AI provider, each with up to three short excerpts (200 characters)."
+msgstr "To find the terms, the app first reads the transcripts itself. Only the unusual words it finds are sent to your AI provider, each with up to three short excerpts (200 characters)."
 
 #: src/features/fieldwork/analysis.tsx
-msgid "To find who took part and when, the beginning of each transcript (about 4,000 characters) is sent to your AI provider, with your own connection. This text may contain names of people."
-msgstr "To find who took part and when, the beginning of each transcript (about 4,000 characters) is sent to your AI provider, with your own connection. This text may contain names of people."
+msgid "To find who took part and when, the beginning of each transcript (about 4,000 characters) is sent to your AI provider. This text may contain names of people."
+msgstr "To find who took part and when, the beginning of each transcript (about 4,000 characters) is sent to your AI provider. This text may contain names of people."
 
 #: src/features/preparation/questionnaire-editor.tsx
 msgid "To finish"
@@ -8765,8 +8778,8 @@ msgid "To review on the whole"
 msgstr "To review on the whole"
 
 #: src/features/quality/review-dialog.tsx
-msgid "To review them, the text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
-msgstr "To review them, the text of each transcript is sent to your AI provider, with your own connection, in parts of about 60 turns."
+msgid "To review them, the text of each transcript is sent to your AI provider, in parts of about 60 turns."
+msgstr "To review them, the text of each transcript is sent to your AI provider, in parts of about 60 turns."
 
 #. placeholder {0}: flagged .map((code) => { const label = ITEM_FLAGS[code] return label ? i18n._(label) : code }) .join(', ')
 #: src/features/preparation/questionnaire-view.tsx
@@ -9437,6 +9450,11 @@ msgstr "Your key or Google access is deleted from goodresearch. You will be aske
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Your key or Google access is deleted from goodresearch. Your calls then use the AI provider of this instance."
 msgstr "Your key or Google access is deleted from goodresearch. Your calls then use the AI provider of this instance."
+
+#. placeholder {0}: PROVIDERS[connection.provider].name
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Your saved {0} connection is no longer offered on this instance and is not used."
+msgstr "Your saved {0} connection is no longer offered on this instance and is not used."
 
 #: src/features/enrichment/labels.ts
 msgid "Yours"

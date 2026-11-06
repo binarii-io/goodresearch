@@ -197,7 +197,7 @@ export function Takeaways({
               </span>
               {e?.consentNeeded ? (
                 <>
-                  <span>{t`The insights and recommendations are sent to your AI provider, with your own connection: their statements, theme, confidence and participant counts.`}</span>
+                  <span>{t`The insights and recommendations are sent to your AI provider: their statements, theme, confidence and participant counts.`}</span>
                   <span>{t`No fact, no verbatim, no name and no study is sent.`}</span>
                 </>
               ) : null}

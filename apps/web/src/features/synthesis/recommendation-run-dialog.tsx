@@ -81,7 +81,7 @@ export function RecommendationRunDialog({
         </div>
         {e?.consentNeeded && e.aiConnected ? (
           <AlertDialogDescription className="grid gap-2">
-            <span>{t`The statements of the insights are sent to your AI provider, with your own connection, with their theme, confidence and number of participants.`}</span>
+            <span>{t`The statements of the insights are sent to your AI provider, with their theme, confidence and number of participants.`}</span>
             <span>{t`No fact, no verbatim, no name and no study is sent.`}</span>
             <span>{t`Every recommendation the AI proposes waits for a person's decision.`}</span>
           </AlertDialogDescription>
