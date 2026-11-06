@@ -11,9 +11,10 @@ import {
   type Confidence,
   type CorrectionKind,
   type CorrectionSource,
-  type CorrectionStatus,
   effectiveOf,
   fingerprint,
+  isEffective,
+  isToDecide,
   type Resolved,
   resolveCorrections,
   toDecideAmong,
@@ -81,12 +82,16 @@ const turnsView = (
       }),
   }))
 
-const statusMatches = (s: CorrectionStatus, f: CorrectionFilter['status']) =>
+/**
+ * What a status filter shows: "to decide" and "accepted" are exactly what their counts take (the
+ * same domain rules); a correction set aside at its place shows under "all", marked (spec 034).
+ */
+const statusMatches = (c: Resolved, f: CorrectionFilter['status']) =>
   !f ||
   f === 'all' ||
-  (f === 'to-decide' && s === 'proposed') ||
-  (f === 'accepted' && (s === 'accepted' || s === 'edited')) ||
-  (f === 'rejected' && s === 'rejected')
+  (f === 'to-decide' && isToDecide(c)) ||
+  (f === 'accepted' && isEffective(c)) ||
+  (f === 'rejected' && c.status === 'rejected')
 
 /** Spec 011: the Cleaning view of the Enrichment tab and the review of one interview. */
 export const makeCleaningQueries = (deps: CleaningDeps) => {
@@ -279,7 +284,7 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
     const shown = resolved.filter(
       (c) =>
         !c.duplicate &&
-        statusMatches(c.status, filter.status) &&
+        statusMatches(c, filter.status) &&
         (!filter.source || c.source === filter.source) &&
         (!filter.kind || c.kind === filter.kind) &&
         (!filter.confidence || c.confidence === filter.confidence),

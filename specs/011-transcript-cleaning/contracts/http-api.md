@@ -53,7 +53,7 @@ Body: `{ mode: 'lexicon' | 'ai', all: boolean, consent: boolean, sessionIds?: st
 
 ### `GET /api/studies/:studyId/cleaning/:sessionId` → `InterviewCleaning`
 
-Query: `status?` (`to-decide | accepted | rejected | all`), `source?`, `kind?`, `confidence?`, `onlyCorrected?` (default true).
+Query: `status?` (`to-decide | accepted | rejected | all`), `source?`, `kind?`, `confidence?`, `onlyCorrected?` (default true). `to-decide`: proposed and not set aside by the correction applying at its place; `accepted`: what the clean version applies; a set-aside correction shows under `all` (spec 034).
 
 ```
 {

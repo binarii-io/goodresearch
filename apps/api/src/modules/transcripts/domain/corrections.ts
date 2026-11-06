@@ -465,10 +465,15 @@ export const resolveCorrections = (all: readonly Correction[]): Resolved[] => {
 const strip = ({ overridden: _, duplicate: __, ...c }: Resolved): Correction => c
 
 /** What the clean version applies: accepted or edited, not overridden. */
+/** Applied in the clean version: accepted or edited, not set aside (spec 034: also the "accepted" filter). */
+export const isEffective = (c: Resolved): boolean =>
+  !c.overridden && (c.status === 'accepted' || c.status === 'edited')
+
+/** Left to decide: proposed, not set aside (spec 034: also the "to decide" filter). */
+export const isToDecide = (c: Resolved): boolean => !c.overridden && c.status === 'proposed'
+
 export const effectiveOf = (resolved: readonly Resolved[]): Correction[] =>
-  resolved
-    .filter((c) => !c.overridden && (c.status === 'accepted' || c.status === 'edited'))
-    .map(strip)
+  resolved.filter(isEffective).map(strip)
 
 export const effectiveCorrections = (all: readonly Correction[]): Correction[] =>
   effectiveOf(resolveCorrections(all))
@@ -484,7 +489,7 @@ export const analysedCorrections = (all: readonly Correction[]): Correction[] =>
 
 /** What is left to decide: proposed and not overridden. */
 export const toDecideAmong = (resolved: readonly Resolved[]): Correction[] =>
-  resolved.filter((c) => !c.overridden && c.status === 'proposed').map(strip)
+  resolved.filter(isToDecide).map(strip)
 
 export const toDecideOf = (all: readonly Correction[]): Correction[] =>
   toDecideAmong(resolveCorrections(all))

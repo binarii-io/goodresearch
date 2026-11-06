@@ -326,6 +326,60 @@ describe('spec 034: one proposal per change, and the conversation around a turn'
     expect(after.counts.rejected).toBe(1)
   })
 
+  it('"to decide" lists what the count takes: a correction set aside shows under "all" only', async () => {
+    const s = setup()
+    await s.run('ai')
+    const before = await s.review()
+    const mps = all(before).find((c) => c.original === 'MPS')
+    const turn = before.turns.find((t) => t.id === mps?.segmentId)
+    if (!mps || !turn) throw new Error('missing')
+    const wider = turn.text.indexOf('The MPS')
+    expect(wider).toBeGreaterThanOrEqual(0)
+    expect(wider).toBeLessThan(mps.offset)
+    // Another change around it, from the AI on its own: set aside by the lexicon-guided one.
+    await s.clean.store.insertCorrection(
+      {
+        key: 'ai-wider',
+        sessionId: 'a',
+        segmentId: mps.segmentId,
+        target: 'text',
+        offset: wider,
+        length: 'The MPS'.length,
+        original: 'The MPS',
+        replacement: 'The NPS score',
+        edited: null,
+        kind: 'transcription',
+        source: 'ai-other',
+        reason: null,
+        confidence: 'high',
+        termId: null,
+        status: 'proposed',
+        decidedBy: null,
+        decidedAt: null,
+        version: 1,
+      },
+      'study',
+      null,
+      NOW,
+    )
+    const view = async (status: 'to-decide' | 'all') => {
+      const r = await s.queries.interviewCleaning('p1', 'study', 'a', {
+        status,
+        onlyCorrected: true,
+      })
+      if (!r.ok) throw new Error(r.error)
+      return r.value
+    }
+    const toDecide = await view('to-decide')
+    expect(all(toDecide).map((c) => c.key)).not.toContain('ai-wider')
+    expect(all(toDecide).every((c) => c.status === 'proposed' && !c.overridden)).toBe(true)
+    expect(all(toDecide)).toHaveLength(toDecide.counts.toDecide)
+    expect(all(await view('all')).find((c) => c.key === 'ai-wider')).toMatchObject({
+      overridden: true,
+      status: 'proposed',
+    })
+  })
+
   it('gives a turn with up to two turns before and after, corrections not rejected in place', async () => {
     const s = setup()
     await s.run('ai')

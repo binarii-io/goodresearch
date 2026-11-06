@@ -27,7 +27,7 @@ A researcher reviews an interview where the lexicon and the AI both propose "dé
 1. **Given** two sources proposing the same change at the same place, **When** the interview is shown, **Then** one correction is listed (the one that applies there) and the count to decide counts it once.
 2. **Given** that correction accepted, **When** the view is shown again, **Then** no other proposal of that change remains at that place.
 3. **Given** that correction rejected, **When** the view is shown again, **Then** the same change does not come back from the other source, and the analysed and clean texts do not apply it.
-4. **Given** two sources proposing different changes at the same place, **When** the interview is shown, **Then** both stay listed as today, the one set aside marked as such.
+4. **Given** two sources proposing different changes at the same place, **When** the interview is shown, **Then** the one that applies is listed under "To decide" and the one set aside is listed under "All", marked as such (update: "To decide" shows what its count takes).
 
 ---
 
@@ -77,7 +77,7 @@ A researcher hesitates on "pertes → perfs". They open the context of that turn
 
 - **FR-001**: A correction set aside at a place where another correction makes exactly the same change (same place, same words, same replacement) MUST NOT be listed, counted or decided separately.
 - **FR-002**: A decision on the listed correction MUST settle that change at that place for every source: once rejected, the same change from another source MUST NOT be listed nor applied to the analysed or clean texts.
-- **FR-003**: A set-aside correction making a different change MUST stay listed as today.
+- **FR-003**: A set-aside correction making a different change MUST stay listed under "All", marked as set aside; the "To decide" and "Accepted" filters MUST show exactly what their counts take (update after merge, research R4).
 - **FR-004**: After a decision is clicked, the decision buttons of the view MUST stay disabled until the view shows the result, or until the decision is refused.
 - **FR-005**: Each turn MUST offer to show the conversation around it: up to two turns before and after, with speakers, times and text as the view shows it, the turn marked; read only when asked and closed at will.
 - **FR-006**: The context MUST follow the study's masking (anonymised names).
