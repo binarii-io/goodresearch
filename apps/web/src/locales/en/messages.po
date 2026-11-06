@@ -2382,6 +2382,7 @@ msgstr "contact item, never imported"
 msgid "Contact item: optional, never imported by the app. Deleting the addresses in the form and its spreadsheet is up to your team."
 msgstr "Contact item: optional, never imported by the app. Deleting the addresses in the form and its spreadsheet is up to your team."
 
+#: src/features/enrichment/interview-cleaning.tsx
 #: src/features/synthesis/deck-slide.tsx
 msgid "Context"
 msgstr "Context"
@@ -2403,6 +2404,10 @@ msgstr "Continue with the assistant"
 #: src/features/assistant/panel.tsx
 msgid "Conversation"
 msgstr "Conversation"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Conversation around this turn"
+msgstr "Conversation around this turn"
 
 #: src/features/assistant/panel.tsx
 msgid "Conversation title"
@@ -3859,6 +3864,10 @@ msgstr "Hidden by another correction here"
 #: src/features/surveys/open-item.tsx
 msgid "Hide"
 msgstr "Hide"
+
+#: src/features/enrichment/interview-cleaning.tsx
+msgid "Hide the context"
+msgstr "Hide the context"
 
 #: src/features/synthesis/insight-panel.tsx
 msgid "Hide the facts"
@@ -8612,6 +8621,10 @@ msgstr "This theme no longer exists."
 #: src/features/enrichment/labels.ts
 msgid "This transcript is too long to be read (more than 400,000 characters)."
 msgstr "This transcript is too long to be read (more than 400,000 characters)."
+
+#: src/features/workspace/errors.ts
+msgid "This turn is no longer in the transcript. Show the interview again."
+msgstr "This turn is no longer in the transcript. Show the interview again."
 
 #: src/features/surveys/target-rule.tsx
 msgid "Tick the answers that belong to the target. A response must pass every item with something ticked. Nothing is deleted: changing this brings responses back."

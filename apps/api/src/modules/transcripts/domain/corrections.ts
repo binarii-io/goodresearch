@@ -417,20 +417,37 @@ const PRIORITY: Record<CorrectionSource, number> = {
   'ai-other': 4,
 }
 
-export type Resolved = Correction & { readonly overridden: boolean }
+export type Resolved = Correction & {
+  readonly overridden: boolean
+  /** Spec 034: the same change at the same place as a correction of higher priority. */
+  readonly duplicate: boolean
+}
+
+/** Spec 034: what a correction changes, where; an edit counts as its replacement. */
+const changeOf = (c: Correction) =>
+  [c.segmentId, c.target, c.offset, c.length, c.edited ?? c.replacement].join('|')
 
 /**
  * Research R3: at each place one correction applies — person > lexicon > name > ai-lexicon >
- * ai-other, then the longest. Rejected corrections take no place.
+ * ai-other, then the longest. Rejected corrections take no place. Spec 034: corrections making the
+ * same change at the same place are one: the one a person decided stands for them (else the one of
+ * highest priority) and the others are duplicates, overridden, so the change is decided once for
+ * every source.
  */
 export const resolveCorrections = (all: readonly Correction[]): Resolved[] => {
   const order = [...all].sort(
     (a, b) => PRIORITY[a.source] - PRIORITY[b.source] || b.length - a.length,
   )
-  const taken = new Map<string, Span[]>()
-  const overridden = new Set<string>()
+  const standing = new Map<string, Correction>()
   for (const c of order) {
-    if (c.status === 'rejected') continue
+    const first = standing.get(changeOf(c))
+    if (!first || (first.decidedBy === null && c.decidedBy !== null)) standing.set(changeOf(c), c)
+  }
+  const duplicates = new Set(order.filter((c) => standing.get(changeOf(c)) !== c).map((c) => c.key))
+  const taken = new Map<string, Span[]>()
+  const overridden = new Set<string>(duplicates)
+  for (const c of order) {
+    if (duplicates.has(c.key) || c.status === 'rejected') continue
     const where = `${c.segmentId}|${c.target}`
     const spans = taken.get(where) ?? []
     const span =
@@ -438,14 +455,23 @@ export const resolveCorrections = (all: readonly Correction[]): Resolved[] => {
     if (spans.some((s) => span.start < s.end && s.start < span.end)) overridden.add(c.key)
     else taken.set(where, [...spans, span])
   }
-  return all.map((c) => ({ ...c, overridden: overridden.has(c.key) }))
+  return all.map((c) => ({
+    ...c,
+    overridden: overridden.has(c.key),
+    duplicate: duplicates.has(c.key),
+  }))
 }
 
+const strip = ({ overridden: _, duplicate: __, ...c }: Resolved): Correction => c
+
 /** What the clean version applies: accepted or edited, not overridden. */
-export const effectiveCorrections = (all: readonly Correction[]): Correction[] =>
-  resolveCorrections(all)
+export const effectiveOf = (resolved: readonly Resolved[]): Correction[] =>
+  resolved
     .filter((c) => !c.overridden && (c.status === 'accepted' || c.status === 'edited'))
-    .map(({ overridden: _, ...c }) => c)
+    .map(strip)
+
+export const effectiveCorrections = (all: readonly Correction[]): Correction[] =>
+  effectiveOf(resolveCorrections(all))
 
 /**
  * Spec 012 research R2: what the text analysed applies by default — every correction not rejected
@@ -454,13 +480,14 @@ export const effectiveCorrections = (all: readonly Correction[]): Correction[] =
 export const analysedCorrections = (all: readonly Correction[]): Correction[] =>
   resolveCorrections(all)
     .filter((c) => !c.overridden && c.status !== 'rejected')
-    .map(({ overridden: _, ...c }) => c)
+    .map(strip)
 
 /** What is left to decide: proposed and not overridden. */
+export const toDecideAmong = (resolved: readonly Resolved[]): Correction[] =>
+  resolved.filter((c) => !c.overridden && c.status === 'proposed').map(strip)
+
 export const toDecideOf = (all: readonly Correction[]): Correction[] =>
-  resolveCorrections(all)
-    .filter((c) => !c.overridden && c.status === 'proposed')
-    .map(({ overridden: _, ...c }) => c)
+  toDecideAmong(resolveCorrections(all))
 
 /** One replaced span of a turn: where it was in the raw text and where it is in the clean one. */
 export type OffsetMap = readonly {

@@ -305,6 +305,53 @@ describe('review (US2, FR-009–FR-011)', () => {
   })
 })
 
+describe('spec 034: one proposal per change, and the conversation around a turn', () => {
+  it('lists and counts once a change two sources propose at the same place; decided once', async () => {
+    const s = setup()
+    await s.run('ai')
+    const view = await s.review()
+    const mps = all(view).filter((c) => c.original === 'MPS')
+    expect(mps.map((c) => [c.source, c.status])).toEqual([['ai-lexicon', 'proposed']])
+    const proposed = all(view).filter((c) => c.status === 'proposed' && !c.overridden)
+    expect(view.counts.toDecide).toBe(proposed.length)
+    const [listed] = mps
+    if (!listed) throw new Error('missing')
+    await s.cleaning.decideCorrection(ACTOR, 'study', 'a', listed.key, { decision: 'reject' })
+    const after = await s.review()
+    expect(
+      all(after)
+        .filter((c) => c.original === 'MPS')
+        .map((c) => c.status),
+    ).toEqual(['rejected'])
+    expect(after.counts.rejected).toBe(1)
+  })
+
+  it('gives a turn with up to two turns before and after, corrections not rejected in place', async () => {
+    const s = setup()
+    await s.run('ai')
+    const turns = (await s.review()).turns
+    const around = async (id: string) => {
+      const r = await s.queries.turnContext('p1', 'study', 'a', id)
+      if (!r.ok) throw new Error(r.error)
+      return r.value.turns
+    }
+    const ids = turns.map((t) => t.id)
+    expect((await around(ids[0] ?? '')).map((t) => t.id)).toEqual(ids.slice(0, 3))
+    expect((await around(ids[2] ?? '')).map((t) => t.id)).toEqual(ids.slice(0, 5))
+    // Every correction not rejected shows in place, the accepted lexicon one included.
+    expect(
+      (await around(ids[1] ?? '')).flatMap((t) => t.corrections.map((c) => c.original)),
+    ).toContain('Gooresearch')
+    expect(await s.queries.turnContext('p1', 'study', 'a', 'unknown')).toMatchObject({
+      ok: false,
+      error: 'TURN_NOT_FOUND',
+    })
+    expect(await s.queries.turnContext('p1', 'other-team', 'a', ids[0] ?? '')).toMatchObject({
+      ok: false,
+    })
+  })
+})
+
 describe('names under anonymisation (US3, FR-012)', () => {
   it('gives pseudonyms and interviewer labels, and redoes when the setting changes', async () => {
     const s = setup({ anonymised: true })

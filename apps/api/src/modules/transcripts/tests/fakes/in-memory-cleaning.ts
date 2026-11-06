@@ -218,6 +218,18 @@ export const fakeCleaningAi = (options: { fail?: 'unavailable' | 'failed' | 'onc
             confidence: 'high',
           })
       }
+      // Spec 034: the same change as the lexicon-guided one, from the AI on its own.
+      for (const t of request.chunk.turns)
+        if (!t.context && /\bMPS\b/.test(t.sent))
+          corrections.push({
+            turn: t.id,
+            kind: 'transcription',
+            original: 'MPS',
+            before: null,
+            replacement: 'NPS',
+            reason: 'the score is meant',
+            confidence: 'high',
+          })
       const first = request.chunk.turns.find((t) => !t.context)
       if (first) {
         corrections.push({

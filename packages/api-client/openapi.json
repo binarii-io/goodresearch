@@ -6087,6 +6087,20 @@
           "versionNumber"
         ]
       },
+      "TurnContextInput": {
+        "type": "object",
+        "properties": {
+          "turns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleaningTurnInput"
+            }
+          }
+        },
+        "required": [
+          "turns"
+        ]
+      },
       "DeckSlideInput": {
         "oneOf": [
           {
@@ -7113,6 +7127,7 @@
               "FORMS_DISABLED",
               "PUBLICATION_NOT_FOUND",
               "SESSION_NOT_FOUND",
+              "TURN_NOT_FOUND",
               "SESSION_DECIDED",
               "INVALID_TRANSITION",
               "PLANNED_INTERVIEW_LINKED",
@@ -22836,6 +22851,21 @@
         ],
         "additionalProperties": false
       },
+      "TurnContext": {
+        "type": "object",
+        "properties": {
+          "turns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CleaningTurn"
+            }
+          }
+        },
+        "required": [
+          "turns"
+        ],
+        "additionalProperties": false
+      },
       "DeckSlide": {
         "oneOf": [
           {
@@ -23895,6 +23925,7 @@
               "FORMS_DISABLED",
               "PUBLICATION_NOT_FOUND",
               "SESSION_NOT_FOUND",
+              "TURN_NOT_FOUND",
               "SESSION_DECIDED",
               "INVALID_TRANSITION",
               "PLANNED_INTERVIEW_LINKED",
@@ -37755,6 +37786,58 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InterviewCleaning"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/cleaning/{sessionId}/turns/{turnId}/context": {
+      "get": {
+        "operationId": "getTurnContext",
+        "tags": [
+          "enrichment"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "in": "path",
+            "name": "turnId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnContext"
                 }
               }
             }

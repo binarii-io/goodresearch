@@ -100,6 +100,18 @@ test.describe('spec 011 — Cleaning the transcripts', () => {
       .click()
     const turns = main.getByRole('list', { name: 'Turns of the transcript' })
     await expect(turns.getByRole('button', { name: 'Accept “eating” → “meeting”' })).toBeVisible()
+    // Spec 034: the conversation around that turn, read on demand, then closed.
+    const eatingTurn = turns
+      .getByRole('listitem')
+      .filter({ has: page.getByRole('button', { name: 'Accept “eating” → “meeting”' }) })
+      .first()
+    await eatingTurn.getByRole('button', { name: 'Context', exact: true }).click()
+    const around = eatingTurn.getByRole('region', { name: 'Conversation around this turn' })
+    await expect(around.getByRole('listitem').nth(1)).toBeVisible()
+    await expect(around.locator('[aria-current="true"]')).toContainText('eating')
+    await expectAccessible(page)
+    await around.getByRole('button', { name: 'Hide the context' }).click()
+    await expect(around).toHaveCount(0)
     await main.getByRole('combobox', { name: 'Status' }).click()
     await page.getByRole('option', { name: 'All', exact: true }).click()
     // The lexicon's correction, accepted by default.

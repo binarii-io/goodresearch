@@ -53,6 +53,7 @@ import type {
   StartCleaningRunInput,
   StartLexiconRunInput,
   TermOccurrences,
+  TurnContext,
   ValidateCleanInput
 } from '../../model';
 
@@ -542,6 +543,116 @@ export function useGetInterviewCleaning<TData = Awaited<ReturnType<typeof getInt
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetInterviewCleaningQueryOptions(studyId,sessionId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getGetTurnContextUrl = (studyId: string,
+    sessionId: string,
+    turnId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/cleaning/${sessionId}/turns/${turnId}/context`
+}
+
+export const getTurnContext = async (studyId: string,
+    sessionId: string,
+    turnId: string, options?: Parameters<typeof apiFetch>[1]): Promise<TurnContext> => {
+
+  return apiFetch<TurnContext>(getGetTurnContextUrl(studyId,sessionId,turnId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTurnContextQueryKey = (studyId: string,
+    sessionId: string,
+    turnId: string,) => {
+    return [
+    `/api/studies/${studyId}/cleaning/${sessionId}/turns/${turnId}/context`
+    ] as const;
+    }
+
+
+export const getGetTurnContextQueryOptions = <TData = Awaited<ReturnType<typeof getTurnContext>>, TError = unknown>(studyId: string,
+    sessionId: string,
+    turnId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTurnContext>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTurnContextQueryKey(studyId,sessionId,turnId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTurnContext>>> = ({ signal }) => getTurnContext(studyId,sessionId,turnId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined && sessionId !== null && sessionId !== undefined && turnId !== null && turnId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTurnContext>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTurnContextQueryResult = NonNullable<Awaited<ReturnType<typeof getTurnContext>>>
+export type GetTurnContextQueryError = unknown
+
+
+export function useGetTurnContext<TData = Awaited<ReturnType<typeof getTurnContext>>, TError = unknown>(
+ studyId: string,
+    sessionId: string,
+    turnId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTurnContext>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTurnContext>>,
+          TError,
+          Awaited<ReturnType<typeof getTurnContext>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTurnContext<TData = Awaited<ReturnType<typeof getTurnContext>>, TError = unknown>(
+ studyId: string,
+    sessionId: string,
+    turnId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTurnContext>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTurnContext>>,
+          TError,
+          Awaited<ReturnType<typeof getTurnContext>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTurnContext<TData = Awaited<ReturnType<typeof getTurnContext>>, TError = unknown>(
+ studyId: string,
+    sessionId: string,
+    turnId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTurnContext>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTurnContext<TData = Awaited<ReturnType<typeof getTurnContext>>, TError = unknown>(
+ studyId: string,
+    sessionId: string,
+    turnId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTurnContext>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTurnContextQueryOptions(studyId,sessionId,turnId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -49,6 +49,7 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   DRIVE_CANNOT_EDIT: msg`You can view this file in Drive but not edit it.`,
   PUBLICATION_NOT_FOUND: msg`This published file is no longer known.`,
   SESSION_NOT_FOUND: msg`This interview is no longer in the folder's list.`,
+  TURN_NOT_FOUND: msg`This turn is no longer in the transcript. Show the interview again.`,
   SESSION_DECIDED: msg`This interview was already validated or excluded. Reopen it first.`,
   INVALID_TRANSITION: msg`This interview was already decided. Reload to see where it stands.`,
   PLANNED_INTERVIEW_LINKED: msg`This planned interview is already linked to another interview.`,

@@ -8,6 +8,7 @@ import {
   useDecideCorrection,
   useDecideCorrections,
   useGetInterviewCleaning,
+  useGetTurnContext,
   usePublishClean,
   useValidateClean,
 } from '@goodresearch/api-client'
@@ -36,6 +37,7 @@ import {
   CheckIcon,
   FolderOpenIcon,
   LoaderCircleIcon,
+  MessagesSquareIcon,
   PencilIcon,
   PlusIcon,
   Undo2Icon,
@@ -121,6 +123,60 @@ function Filter({
         </SelectContent>
       </Select>
     </div>
+  )
+}
+
+/**
+ * Spec 034: the conversation around a turn — up to two turns before and after, as the view shows
+ * them — read when opened.
+ */
+function TurnContext({
+  studyId,
+  sessionId,
+  turnId,
+  onClose,
+}: {
+  studyId: string
+  sessionId: string
+  turnId: string
+  onClose: () => void
+}) {
+  const { t, i18n } = useLingui()
+  const around = useGetTurnContext(studyId, sessionId, turnId)
+  return (
+    <section
+      className="grid gap-2 rounded-md bg-muted/50 p-3"
+      aria-label={t`Conversation around this turn`}
+    >
+      {around.isPending ? (
+        <Skeleton className="h-24 w-full" />
+      ) : around.isError ? (
+        <p role="alert" className="text-destructive text-sm">
+          {errorMessage(i18n, around.error)}
+        </p>
+      ) : (
+        <ol className="grid gap-2">
+          {around.data.turns.map((x) => (
+            <li
+              key={x.id}
+              aria-current={x.id === turnId ? 'true' : undefined}
+              className={`grid gap-0.5 text-sm ${
+                x.id === turnId ? 'border-l-2 border-primary pl-2' : 'pl-2.5 text-muted-foreground'
+              }`}
+            >
+              <span className="text-xs">
+                {x.start !== null ? `[${time(x.start)}] ` : ''}
+                <span className="font-medium">{x.speaker ?? t`No speaker`}</span>
+              </span>
+              <TurnText turn={x} />
+            </li>
+          ))}
+        </ol>
+      )}
+      <Button variant="ghost" size="xs" className="w-fit" onClick={onClose}>
+        {t`Hide the context`}
+      </Button>
+    </section>
   )
 }
 
@@ -261,6 +317,10 @@ export function InterviewCleaningView({
   const [editing, setEditing] = useState<Correction | null>(null)
   const [adding, setAdding] = useState<CleaningTurn | null>(null)
   const [overwrite, setOverwrite] = useState(false)
+  // Spec 034: a decision keeps the buttons off until the view shows it (or it is refused).
+  const [settling, setSettling] = useState(false)
+  // Spec 034: the turn whose conversation around is open.
+  const [context, setContext] = useState<string | null>(null)
   const onlyId = useId()
   const params: GetInterviewCleaningParams = {
     ...(status !== ALL ? { status: status as Status } : { status: 'all' }),
@@ -285,18 +345,32 @@ export function InterviewCleaningView({
       queryClient.invalidateQueries({ queryKey: getGetCleaningQueryKey(studyId) }),
     ])
   const fail = (failure: unknown) => toast.error(errorMessage(i18n, failure))
-  const busy = decide.isPending || decideAll.isPending
+  const busy = decide.isPending || decideAll.isPending || settling
+  // A refused decision reads the view again too: the row shows as it is now (another reviewer).
+  const settled = (decision: Promise<unknown>, done?: () => void) => {
+    setSettling(true)
+    return decision
+      .then(() => {
+        done?.()
+        return refresh()
+      })
+      .catch((failure: unknown) => {
+        fail(failure)
+        return refresh()
+      })
+      .finally(() => setSettling(false))
+  }
+  const settle = (decision: Promise<unknown>) => void settled(decision)
 
   const act = (c: Correction, decision: 'accept' | 'reject' | 'reopen') =>
-    void decide
-      .mutateAsync({
+    settle(
+      decide.mutateAsync({
         studyId,
         sessionId,
         key: c.key,
         data: { decision, ...(c.version !== null ? { version: c.version } : {}) },
-      })
-      .then(refresh)
-      .catch(fail)
+      }),
+    )
 
   const data = view.data
   if (!data) return <Skeleton className="h-60 w-full" />
@@ -350,7 +424,7 @@ export function InterviewCleaningView({
           <p className="text-sm">{t`Every correction is decided. One step left: validate the clean version, the one Analysis will read.`}</p>
           <Button
             className="ml-auto"
-            disabled={validate.isPending}
+            disabled={validate.isPending || busy}
             onClick={() =>
               void validate
                 .mutateAsync({ studyId, sessionId, data: { fingerprint: data.fingerprint } })
@@ -407,14 +481,13 @@ export function InterviewCleaningView({
           className="ml-auto"
           disabled={shown.length === 0 || busy}
           onClick={() =>
-            void decideAll
-              .mutateAsync({
+            settle(
+              decideAll.mutateAsync({
                 studyId,
                 sessionId,
                 data: { decision: 'accept', keys: shown.slice(0, 500).map((c) => c.key) },
-              })
-              .then(refresh)
-              .catch(fail)
+              }),
+            )
           }
         >
           <CheckIcon aria-hidden />
@@ -434,12 +507,25 @@ export function InterviewCleaningView({
                   variant="ghost"
                   size="xs"
                   className="ml-auto"
-                  onClick={() => setAdding(turn)}
+                  aria-expanded={context === turn.id}
+                  onClick={() => setContext(context === turn.id ? null : turn.id)}
                 >
+                  <MessagesSquareIcon aria-hidden />
+                  {context === turn.id ? t`Hide the context` : t`Context`}
+                </Button>
+                <Button variant="ghost" size="xs" onClick={() => setAdding(turn)}>
                   <PlusIcon aria-hidden />
                   {t`Add a correction`}
                 </Button>
               </div>
+              {context === turn.id ? (
+                <TurnContext
+                  studyId={studyId}
+                  sessionId={sessionId}
+                  turnId={turn.id}
+                  onClose={() => setContext(null)}
+                />
+              ) : null}
               <TurnText turn={turn} />
               {turn.corrections.length ? (
                 <ul className="grid gap-1.5" aria-label={t`Corrections of this turn`}>
@@ -483,6 +569,7 @@ export function InterviewCleaningView({
               disabled={
                 data.counts.toDecide > 0 ||
                 validate.isPending ||
+                busy ||
                 data.state === 'clean' ||
                 data.state === 'published' ||
                 data.state === 'out-of-date'
@@ -528,8 +615,8 @@ export function InterviewCleaningView({
           correction={editing}
           onClose={() => setEditing(null)}
           onSave={(replacement) =>
-            decide
-              .mutateAsync({
+            settled(
+              decide.mutateAsync({
                 studyId,
                 sessionId,
                 key: editing.key,
@@ -538,12 +625,9 @@ export function InterviewCleaningView({
                   replacement,
                   ...(editing.version !== null ? { version: editing.version } : {}),
                 },
-              })
-              .then(() => {
-                setEditing(null)
-                return refresh()
-              })
-              .catch(fail)
+              }),
+              () => setEditing(null),
+            )
           }
         />
       ) : null}
@@ -553,13 +637,7 @@ export function InterviewCleaningView({
           onClose={() => setAdding(null)}
           speakers={data.speakers}
           onAdd={(input) =>
-            add
-              .mutateAsync({ studyId, sessionId, data: input })
-              .then(() => {
-                setAdding(null)
-                return refresh()
-              })
-              .catch(fail)
+            settled(add.mutateAsync({ studyId, sessionId, data: input }), () => setAdding(null))
           }
         />
       ) : null}

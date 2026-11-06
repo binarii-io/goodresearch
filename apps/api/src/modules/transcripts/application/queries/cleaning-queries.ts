@@ -12,11 +12,14 @@ import {
   type CorrectionKind,
   type CorrectionSource,
   type CorrectionStatus,
-  effectiveCorrections,
+  effectiveOf,
   fingerprint,
+  type Resolved,
   resolveCorrections,
-  toDecideOf,
+  toDecideAmong,
 } from '../../domain/corrections.ts'
+import type { LexiconTerm } from '../../domain/lexicon-term.ts'
+import type { Segment } from '../../domain/segments.ts'
 import { loadCorrections } from '../cleaning-corrections.ts'
 import type { CleaningDeps } from '../ports.ts'
 
@@ -28,6 +31,55 @@ export type CorrectionFilter = {
   /** Only the turns with a correction shown (default). */
   readonly onlyCorrected?: boolean | undefined
 }
+
+/** Spec 034: turns shown before and after a turn whose context is asked. */
+const AROUND = 2
+
+const byTurn = (shown: readonly Resolved[]) => {
+  const out = new Map<string, Resolved[]>()
+  for (const c of shown) out.set(c.segmentId, [...(out.get(c.segmentId) ?? []), c])
+  return out
+}
+
+/** Turns as the review shows them, each with its corrections (speaker first, then in order). */
+const turnsView = (
+  segments: readonly Segment[],
+  bySegment: ReadonlyMap<string, readonly Resolved[]>,
+  terms: ReadonlyMap<string, LexiconTerm>,
+  names: ReadonlyMap<string, string>,
+) =>
+  segments.map((s) => ({
+    id: s.id,
+    speaker: s.speaker,
+    start: s.start,
+    text: s.text,
+    corrections: [...(bySegment.get(s.id) ?? [])]
+      .sort((a, b) =>
+        a.target === b.target ? a.offset - b.offset : a.target === 'speaker' ? -1 : 1,
+      )
+      .map((c) => {
+        const term = c.termId ? terms.get(c.termId) : undefined
+        return {
+          key: c.key,
+          segmentId: c.segmentId,
+          target: c.target,
+          offset: c.offset,
+          length: c.length,
+          original: c.original,
+          replacement: c.edited ?? c.replacement,
+          kind: c.kind,
+          source: c.source,
+          reason: c.reason,
+          confidence: c.confidence,
+          status: c.status,
+          term: term ? { id: term.id, form: term.form } : null,
+          decidedBy: c.decidedBy ? { id: c.decidedBy, name: names.get(c.decidedBy) ?? null } : null,
+          decidedAt: c.decidedAt?.toISOString() ?? null,
+          version: c.version,
+          overridden: c.overridden,
+        }
+      }),
+  }))
 
 const statusMatches = (s: CorrectionStatus, f: CorrectionFilter['status']) =>
   !f ||
@@ -147,8 +199,9 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
             },
           },
         })
-        const effective = effectiveCorrections(all)
-        const toDecide = toDecideOf(all).length
+        const resolved = resolveCorrections(all)
+        const effective = effectiveOf(resolved)
+        const toDecide = toDecideAmong(resolved).length
         const version = latest.get(s.id) ?? null
         return {
           ...base,
@@ -216,21 +269,22 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
     const costs = await deps.ai.costs(refs)
     const terms = new Map((await deps.store.teamTerms(access.teamId)).map((x) => [x.id, x]))
     const resolved = resolveCorrections(all)
-    const effective = effectiveCorrections(all)
-    const toDecide = toDecideOf(all).length
+    const effective = effectiveOf(resolved)
+    const toDecide = toDecideAmong(resolved).length
     const names = await deps.store.accountNames([
       ...resolved.flatMap((c) => (c.decidedBy ? [c.decidedBy] : [])),
       ...versions.map((v) => v.createdBy),
     ])
+    // A duplicate (spec 034: the same change as the one listed there) is never shown.
     const shown = resolved.filter(
       (c) =>
+        !c.duplicate &&
         statusMatches(c.status, filter.status) &&
         (!filter.source || c.source === filter.source) &&
         (!filter.kind || c.kind === filter.kind) &&
         (!filter.confidence || c.confidence === filter.confidence),
     )
-    const bySegment = new Map<string, typeof shown>()
-    for (const c of shown) bySegment.set(c.segmentId, [...(bySegment.get(c.segmentId) ?? []), c])
+    const bySegment = byTurn(shown)
     const latest = versions[0]
     const cleaning = cleanings.find((c) => c.sessionId === sessionId) ?? null
     return ok({
@@ -251,46 +305,16 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
       /** What this interview's cleanings cost (USD, every account). */
       cost: sumCosts(refs.map((ref) => costs.get(ref))),
       speakers: [...new Set(t.segments.flatMap((s) => (s.speaker ? [s.speaker] : [])))],
-      turns: t.segments
-        .filter((s) => filter.onlyCorrected === false || bySegment.has(s.id))
-        .map((s) => ({
-          id: s.id,
-          speaker: s.speaker,
-          start: s.start,
-          text: s.text,
-          corrections: (bySegment.get(s.id) ?? [])
-            .sort((a, b) =>
-              a.target === b.target ? a.offset - b.offset : a.target === 'speaker' ? -1 : 1,
-            )
-            .map((c) => {
-              const term = c.termId ? terms.get(c.termId) : undefined
-              return {
-                key: c.key,
-                segmentId: c.segmentId,
-                target: c.target,
-                offset: c.offset,
-                length: c.length,
-                original: c.original,
-                replacement: c.edited ?? c.replacement,
-                kind: c.kind,
-                source: c.source,
-                reason: c.reason,
-                confidence: c.confidence,
-                status: c.status,
-                term: term ? { id: term.id, form: term.form } : null,
-                decidedBy: c.decidedBy
-                  ? { id: c.decidedBy, name: names.get(c.decidedBy) ?? null }
-                  : null,
-                decidedAt: c.decidedAt?.toISOString() ?? null,
-                version: c.version,
-                overridden: c.overridden,
-              }
-            }),
-        })),
+      turns: turnsView(
+        t.segments.filter((s) => filter.onlyCorrected === false || bySegment.has(s.id)),
+        bySegment,
+        terms,
+        names,
+      ),
       counts: {
         toDecide,
         accepted: effective.length,
-        rejected: resolved.filter((c) => c.status === 'rejected').length,
+        rejected: resolved.filter((c) => c.status === 'rejected' && !c.duplicate).length,
       },
       versions: versions.map((v) => ({
         number: v.number,
@@ -303,11 +327,53 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
     })
   }
 
+  /**
+   * Spec 034: the conversation around one turn — it and up to two turns before and after, as the
+   * review shows them, every correction not rejected in place. Reads the interview's corrections
+   * (names and lexicon need the whole transcript), nothing about its versions, runs or costs.
+   */
+  const turnContext = async (
+    accountId: string,
+    studyId: string,
+    sessionId: string,
+    turnId: string,
+  ) => {
+    const study = await studyOf(accountId, studyId)
+    if (!study.ok) return study
+    const { access, sessions } = study.value
+    const t = sessions.some((s) => s.id === sessionId)
+      ? await deps.store.getTranscript(sessionId)
+      : null
+    if (!t || t.studyId !== studyId) return err('SESSION_NOT_FOUND' as const)
+    const at = t.segments.findIndex((x) => x.id === turnId)
+    if (at < 0) return err('TURN_NOT_FOUND' as const)
+    const near = t.segments.slice(Math.max(0, at - AROUND), at + AROUND + 1)
+    const ids = new Set(near.map((x) => x.id))
+    const [{ all }, teamTerms] = await Promise.all([
+      loadCorrections(deps, {
+        accountId,
+        studyId,
+        teamId: access.teamId,
+        anonymised: access.anonymised,
+        transcript: t,
+      }),
+      deps.store.teamTerms(access.teamId),
+    ])
+    const shown = resolveCorrections(all).filter(
+      (c) => ids.has(c.segmentId) && !c.duplicate && c.status !== 'rejected',
+    )
+    const names = await deps.store.accountNames(
+      shown.flatMap((c) => (c.decidedBy ? [c.decidedBy] : [])),
+    )
+    const terms = new Map(teamTerms.map((x) => [x.id, x]))
+    return ok({ turns: turnsView(near, byTurn(shown), terms, names) })
+  }
+
   /** The latest clean version of an interview, for later phases (plan: `latestClean`). */
   const latestClean = async (sessionId: string) =>
     (await deps.cleaning.versionsOf(sessionId))[0] ?? null
 
-  return { cleaningList, interviewCleaning, latestClean }
+  return { cleaningList, interviewCleaning, turnContext, latestClean }
 }
 
 export type CleaningQueries = ReturnType<typeof makeCleaningQueries>

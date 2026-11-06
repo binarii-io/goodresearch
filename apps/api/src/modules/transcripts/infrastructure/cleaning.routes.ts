@@ -18,6 +18,8 @@ import {
   PublishClean,
   StartCleaningRun,
   StudyParams,
+  TurnContext,
+  TurnContextParams,
   ValidateClean,
 } from '@goodresearch/contracts'
 import type { FastifyInstance, preHandlerAsyncHookHandler } from 'fastify'
@@ -134,6 +136,31 @@ export const registerCleaningRoutes = (
           request.params.studyId,
           request.params.sessionId,
           request.query,
+        ),
+        (v) => res.send(v),
+      ),
+  )
+
+  // Spec 034: the conversation around a turn, read when a person opens it.
+  api.get(
+    '/api/studies/:studyId/cleaning/:sessionId/turns/:turnId/context',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getTurnContext',
+        tags,
+        params: TurnContextParams,
+        response: { 200: TurnContext },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await queries.turnContext(
+          request.account.id,
+          request.params.studyId,
+          request.params.sessionId,
+          request.params.turnId,
         ),
         (v) => res.send(v),
       ),

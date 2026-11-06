@@ -334,6 +334,7 @@ describe('resolve, apply, fingerprint (FR-008, FR-011)', () => {
         offset: 4,
         length: 6,
         original: 'eating',
+        replacement: 'something else',
         source: 'person',
         status: 'rejected',
       }),
@@ -341,6 +342,51 @@ describe('resolve, apply, fingerprint (FR-008, FR-011)', () => {
     const resolved = resolveCorrections(all)
     expect(resolved.filter((c) => c.overridden).map((c) => c.key)).toEqual(['ai'])
     expect(effectiveCorrections(all).map((c) => c.key)).toEqual(['lex'])
+  })
+
+  it('spec 034: the same change at the same place from another source is a duplicate, never applied', () => {
+    const same = { offset: 4, length: 9, original: 'décathlon', replacement: 'Decathlon' }
+    const all = [
+      stored({ key: 'lex', ...same, source: 'lexicon' }),
+      stored({ key: 'ai', ...same, source: 'ai-other' }),
+      stored({ key: 'ai-lex', ...same, source: 'ai-lexicon' }),
+      // A different change at the same place stays a proposal set aside.
+      stored({ key: 'other', ...same, replacement: 'Décathlon', source: 'ai-other' }),
+    ]
+    const resolved = resolveCorrections(all)
+    expect(resolved.map((c) => [c.key, c.overridden, c.duplicate])).toEqual([
+      ['lex', false, false],
+      ['ai', true, true],
+      ['ai-lex', true, true],
+      ['other', true, false],
+    ])
+    // Accepted or rejected, the change is settled for every source.
+    const accepted = all.map((c) => (c.key === 'lex' ? { ...c, status: 'accepted' as const } : c))
+    expect(effectiveCorrections(accepted).map((c) => c.key)).toEqual(['lex'])
+    const rejected = all.map((c) => (c.key === 'lex' ? { ...c, status: 'rejected' as const } : c))
+    expect(resolveCorrections(rejected).map((c) => [c.key, c.overridden, c.duplicate])).toEqual([
+      ['lex', false, false],
+      ['ai', true, true],
+      ['ai-lex', true, true],
+      ['other', false, false],
+    ])
+    expect(analysedCorrections(rejected).map((c) => c.key)).toEqual(['other'])
+    // A person's decision stands for the change, whatever the source's priority.
+    const decided = [
+      stored({ key: 'lex', ...same, source: 'lexicon' }),
+      stored({ key: 'ai', ...same, source: 'ai-lexicon', status: 'accepted', decidedBy: 'p1' }),
+    ]
+    expect(resolveCorrections(decided).map((c) => [c.key, c.duplicate])).toEqual([
+      ['lex', true],
+      ['ai', false],
+    ])
+    expect(effectiveCorrections(decided).map((c) => c.key)).toEqual(['ai'])
+    // A person's edit compares as edited.
+    const edited = [
+      stored({ key: 'lex', ...same, source: 'lexicon', status: 'edited', edited: 'DECATHLON' }),
+      stored({ key: 'ai', ...same, source: 'ai-other' }),
+    ]
+    expect(resolveCorrections(edited).map((c) => c.duplicate)).toEqual([false, false])
   })
 
   it('spec 012: the text analysed applies every correction not rejected, proposed ones included', () => {

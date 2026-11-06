@@ -24,6 +24,7 @@ export {
   LoaderCircleIcon,
   LogOutIcon,
   MergeIcon,
+  MessagesSquareIcon,
   MicIcon,
   PaperclipIcon,
   PencilIcon,

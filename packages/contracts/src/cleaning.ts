@@ -117,6 +117,12 @@ export const StartCleaningRun = z
 export const CleaningRunStarted = z.object({ runId: Id }).meta({ id: 'CleaningRunStarted' })
 export const CleaningRunParams = z.object({ studyId: Id, runId: Id })
 export const InterviewCleaningParams = z.object({ studyId: Id, sessionId: Id })
+/** Spec 034: one turn of an interview, for the conversation around it. */
+export const TurnContextParams = z.object({
+  studyId: Id,
+  sessionId: Id,
+  turnId: z.string().min(1).max(200),
+})
 export const CorrectionKey = z.string().min(1).max(200)
 export const CorrectionParams = z.object({ studyId: Id, sessionId: Id, key: CorrectionKey })
 
@@ -238,3 +244,6 @@ export const PublishClean = z
   .meta({ id: 'PublishClean' })
 
 export const CleanPublished = Published.meta({ id: 'CleanPublished' })
+
+/** Spec 034: a turn and up to two turns before and after, their corrections not rejected in place. */
+export const TurnContext = z.object({ turns: z.array(CleaningTurn) }).meta({ id: 'TurnContext' })
