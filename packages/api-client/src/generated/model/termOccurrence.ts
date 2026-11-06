@@ -4,6 +4,7 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
+import type { TermOccurrenceSpellingsItem } from './termOccurrenceSpellingsItem.ts';
 import type { TermQuote } from './termQuote.ts';
 
 export interface TermOccurrence {
@@ -31,4 +32,5 @@ export interface TermOccurrence {
      */
   unsure: number;
   quotes: TermQuote[];
+  spellings?: TermOccurrenceSpellingsItem[];
 }

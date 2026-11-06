@@ -114,6 +114,8 @@ export const TermQuote = z
     segmentId: z.string(),
     offset: z.number().int(),
     verdict: Verdict.nullable(),
+    /** Spec 033: the spelling this place is counted for. */
+    spelling: z.string(),
   })
   .meta({ id: 'TermQuote' })
 
@@ -128,6 +130,21 @@ export const TermOccurrence = z
     no: z.number().int(),
     unsure: z.number().int(),
     quotes: z.array(TermQuote),
+    /**
+     * Spec 033: the occurrences per spelling, so the term dialog follows the spellings kept; given
+     * with the term's quotes, not in the lexicon list (it shows counts only).
+     */
+    spellings: z
+      .array(
+        z.object({
+          spelling: z.string(),
+          count: z.number().int(),
+          yes: z.number().int(),
+          no: z.number().int(),
+          unsure: z.number().int(),
+        }),
+      )
+      .optional(),
   })
   .meta({ id: 'TermOccurrence' })
 

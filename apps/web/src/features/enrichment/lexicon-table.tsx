@@ -49,7 +49,7 @@ import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useId, useState } from 'react'
 import { toast } from 'sonner'
-import { errorMessage } from '../workspace/errors.ts'
+import { errorCode, errorMessage } from '../workspace/errors.ts'
 import { LANGUAGES, TERM_CATEGORIES, TERM_KINDS, TERM_SCOPES, TERM_STATUSES } from './labels.ts'
 import { MergeDialog, TermDialog } from './term-dialogs.tsx'
 
@@ -140,7 +140,11 @@ export function LexiconTable({
     void decide
       .mutateAsync({ studyId, termId: term.id, data: { version: term.version, decision } })
       .then(refresh)
-      .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
+      .catch((failure: unknown) => {
+        toast.error(errorMessage(i18n, failure))
+        // Spec 033: the term changed meanwhile; show it as it is now so the next click works.
+        if (errorCode(failure) === 'VERSION_CONFLICT') void refresh()
+      })
 
   const terms = page.data?.terms ?? []
   const size = page.data?.pageSize ?? 50
@@ -487,7 +491,8 @@ export function LexiconTable({
       {editing ? (
         <TermDialog
           studyId={studyId}
-          term={editing}
+          // Spec 033: after a refused save the list is read again; the dialog takes the new version.
+          term={terms.find((x) => x.id === editing.id) ?? editing}
           onClose={() => setEditing(null)}
           onSaved={() => void refresh()}
         />
@@ -495,7 +500,7 @@ export function LexiconTable({
       {merging ? (
         <MergeDialog
           studyId={studyId}
-          term={merging}
+          term={terms.find((x) => x.id === merging.id) ?? merging}
           onClose={() => setMerging(null)}
           onMerged={() => void refresh()}
         />

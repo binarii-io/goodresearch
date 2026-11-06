@@ -80,8 +80,36 @@ test.describe('spec 010 — the Enrichment phase and the team lexicon', () => {
     await expectAccessible(page)
     await page.emulateMedia({ colorScheme: 'light' })
 
+    // Spec 033: a term changed in another tab meanwhile: the accept is refused with a message and
+    // the list is read again, showing the term as it is now (decided there, so no longer here).
+    const other = await signedInPage(browser, ADMIN)
+    await other.goto(page.url())
+    await other.getByRole('tab', { name: '3 · Lexicon' }).click()
+    await other
+      .getByRole('main')
+      .getByRole('row', { name: /Goodresearch/ })
+      .getByRole('button', { name: 'Change: Goodresearch' })
+      .click()
+    const elsewhere = other.getByRole('dialog', { name: 'Term: Goodresearch' })
+    // Spec 033: a spelling switched off leaves its excerpts at once; switched on, they are back.
+    const misspelt = elsewhere.getByRole('button', { name: /^This is the term: .*Gooresearch/ })
+    await expect(misspelt.first()).toBeVisible()
+    const shown = await misspelt.count()
+    const spelling = elsewhere.getByRole('switch', { name: /Gooresearch/ })
+    await spelling.click()
+    await expect(misspelt).toHaveCount(0)
+    await spelling.click()
+    await expect(misspelt).toHaveCount(shown)
+    await elsewhere.getByLabel('Definition').fill('The research app')
+    await elsewhere.getByRole('button', { name: 'Save' }).click()
+    await expect(elsewhere).toHaveCount(0)
+    await other.close()
+
     // US2: accept one, change the other.
     await good.getByRole('button', { name: 'Accept: Goodresearch' }).click()
+    await expect(
+      page.getByText('Someone changed this in the meantime.', { exact: false }),
+    ).toBeVisible()
     await expect(good).toHaveCount(0)
     await lexicon
       .getByRole('row', { name: /NPS/ })

@@ -17,4 +17,5 @@ export interface TermQuoteInput {
      */
   offset: number;
   verdict: TermQuoteInputVerdict;
+  spelling: string;
 }

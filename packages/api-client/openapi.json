@@ -10435,6 +10435,9 @@
                 "type": "null"
               }
             ]
+          },
+          "spelling": {
+            "type": "string"
           }
         },
         "required": [
@@ -10443,7 +10446,8 @@
           "after",
           "segmentId",
           "offset",
-          "verdict"
+          "verdict",
+          "spelling"
         ]
       },
       "TermOccurrenceInput": {
@@ -10481,6 +10485,44 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TermQuoteInput"
+            }
+          },
+          "spellings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "spelling": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "yes": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "no": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "unsure": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "spelling",
+                "count",
+                "yes",
+                "no",
+                "unsure"
+              ]
             }
           }
         },
@@ -27273,6 +27315,9 @@
                 "type": "null"
               }
             ]
+          },
+          "spelling": {
+            "type": "string"
           }
         },
         "required": [
@@ -27281,7 +27326,8 @@
           "after",
           "segmentId",
           "offset",
-          "verdict"
+          "verdict",
+          "spelling"
         ],
         "additionalProperties": false
       },
@@ -27320,6 +27366,45 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TermQuote"
+            }
+          },
+          "spellings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "spelling": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "yes": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "no": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "unsure": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "spelling",
+                "count",
+                "yes",
+                "no",
+                "unsure"
+              ],
+              "additionalProperties": false
             }
           }
         },

@@ -11,6 +11,7 @@ import {
   useListTermQuotes,
   useMergeTerms,
 } from '@goodresearch/api-client'
+import { keptOccurrences } from '@goodresearch/shared'
 import { Button } from '@goodresearch/ui/components/button'
 import {
   Dialog,
@@ -35,9 +36,9 @@ import { Switch } from '@goodresearch/ui/components/switch'
 import { Textarea } from '@goodresearch/ui/components/textarea'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { useId, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { errorMessage } from '../workspace/errors.ts'
+import { errorCode, errorMessage } from '../workspace/errors.ts'
 import { TERM_CATEGORIES, TERM_KINDS, TERM_SCOPES } from './labels.ts'
 
 type Kind = LexiconTerm['kind']
@@ -67,6 +68,10 @@ export function TermDialog({
   // Each spelling kept or not; a proposed one counts as kept.
   const [kept, setKept] = useState<Record<string, boolean>>(
     Object.fromEntries(term.variants.map((v) => [v.spelling, v.status !== 'rejected'])),
+  )
+  const keptSpellings = useMemo(
+    () => term.variants.filter((v) => kept[v.spelling] ?? true).map((v) => v.spelling),
+    [term.variants, kept],
   )
   const ids = {
     form: useId(),
@@ -105,7 +110,12 @@ export function TermDialog({
         onSaved()
         onClose()
       })
-      .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
+      .catch((failure: unknown) => {
+        toast.error(errorMessage(i18n, failure))
+        // Spec 033: the term changed meanwhile; the list is read again and this dialog takes its
+        // new version, the person's changes kept.
+        if (errorCode(failure) === 'VERSION_CONFLICT') onSaved()
+      })
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -214,7 +224,12 @@ export function TermDialog({
             </fieldset>
           ) : null}
           {term.occurrences.length ? (
-            <Occurrences studyId={studyId} term={term} headingId={`${ids.form}-found`} />
+            <Occurrences
+              studyId={studyId}
+              term={term}
+              kept={keptSpellings}
+              headingId={`${ids.form}-found`}
+            />
           ) : null}
         </div>
         <DialogFooter>
@@ -231,6 +246,9 @@ export function TermDialog({
 }
 
 type Verdict = NonNullable<TermQuote['verdict']>
+
+/** Excerpts an interview shown when a term is opened (the API gives up to three per spelling). */
+const QUOTES_FIRST = 3
 
 /** One excerpt, the term as written marked in it, with the person's yes / no / unsure on it. */
 function Quote({
@@ -304,10 +322,13 @@ function Quote({
 function Occurrences({
   studyId,
   term,
+  kept,
   headingId,
 }: {
   studyId: string
   term: LexiconTerm
+  /** Spec 033: the spellings switched on; the places and counts of the others are left out. */
+  kept: readonly string[]
   headingId: string
 }) {
   const { t, i18n } = useLingui()
@@ -322,7 +343,16 @@ function Occurrences({
   // Verdicts given here, shown at once (the lists are read again behind).
   const [given, setGiven] = useState<Record<string, Verdict | null>>({})
   const placeOf = (q: TermQuote) => `${q.segmentId}/${q.offset}`
-  const occurrences = (all && full.data ? full.data.occurrences : shownOccurrences).map((o) => {
+  // Spec 033: what the spellings kept take into account; three excerpts an interview first.
+  const source = all && full.data ? full.data.occurrences : shownOccurrences
+  const keptList = useMemo(
+    () =>
+      keptOccurrences(source, term.form, kept).map((o) =>
+        all ? o : { ...o, quotes: o.quotes.slice(0, QUOTES_FIRST) },
+      ),
+    [source, term.form, kept, all],
+  )
+  const occurrences = keptList.map((o) => {
     const quotes = o.quotes.map((q) => {
       const key = placeOf(q)
       return key in given ? { ...q, verdict: given[key] ?? null } : q
@@ -361,8 +391,8 @@ function Occurrences({
         toast.error(errorMessage(i18n, failure))
       })
   }
-  const total = term.occurrences.reduce((a, o) => a + o.count, 0)
-  const shown = shownOccurrences.reduce((a, o) => a + o.quotes.length, 0)
+  const total = keptList.reduce((a, o) => a + o.count, 0)
+  const shown = keptList.reduce((a, o) => a + o.quotes.length, 0)
   return (
     <section className="grid gap-2" aria-labelledby={headingId}>
       <h3 id={headingId} className="font-medium text-sm">
@@ -528,7 +558,11 @@ export function MergeDialog({
                   onMerged()
                   onClose()
                 })
-                .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
+                .catch((failure: unknown) => {
+                  toast.error(errorMessage(i18n, failure))
+                  // Spec 033: a term changed meanwhile; the list is read again, with the new versions.
+                  if (errorCode(failure) === 'VERSION_CONFLICT') onMerged()
+                })
             }
           >
             {t`Merge`}

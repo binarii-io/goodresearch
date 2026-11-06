@@ -12,6 +12,7 @@ export { REGISTERS, WRITING_STYLE } from './content/writing-style.ts'
 export { anyCostUnknown, sumCosts, sumKnownCosts } from './costs.ts'
 export { ConcurrencyError } from './errors.ts'
 export { newId } from './id.ts'
+export { keptOccurrences } from './kept-occurrences.ts'
 export { err, ok, type Result } from './result.ts'
 export { safeReturnPath, withQuery } from './return-path.ts'
 export {

@@ -27,8 +27,9 @@ export type LexiconFilter = {
 }
 
 const PAGE = 50
+/** Quotes per spelling and interview when a term is opened (the dialog shows three of those kept). */
 const QUOTES_SHOWN = 3
-/** Quotes per interview when every occurrence is asked for. */
+/** Quotes per spelling and interview when every occurrence is asked for. */
 const ALL_QUOTES = 500
 
 const matches = (t: LexiconTerm, f: LexiconFilter) => {
@@ -45,7 +46,10 @@ const matches = (t: LexiconTerm, f: LexiconFilter) => {
 
 /**
  * The occurrences of a term per interview, with their excerpts: places of several spellings that
- * overlap (a phrase and one of its words) show once, the longer match kept; `limit` quotes each.
+ * overlap (a phrase and one of its words, stored by older versions) show once, the longer match
+ * kept; up to `limit` quotes per spelling, in the order of the text. With `bySpelling` (spec 033),
+ * each interview also gives its counts and verdicts per spelling, so the term dialog can follow the
+ * spellings kept; the lexicon list (`limit` 0) carries neither quotes nor that breakdown.
  */
 const perInterview = (
   rows: readonly Occurrence[],
@@ -54,12 +58,20 @@ const perInterview = (
   limit: number,
   /** The term's verdicts in the study. */
   verdicts: readonly Verdict[],
+  bySpelling = false,
 ) => {
   const bySession = new Map<string, Occurrence[]>()
   for (const o of rows) bySession.set(o.sessionId, [...(bySession.get(o.sessionId) ?? []), o])
   return [...bySession].map(([sessionId, list]) => {
     const places = list
-      .flatMap((o) => o.anchors.map((a) => ({ ...a, length: a.length ?? o.spelling.length })))
+      .flatMap((o) =>
+        o.anchors.map((a) => ({
+          segmentId: a.segmentId,
+          offset: a.offset,
+          length: a.length ?? o.spelling.length,
+          spelling: o.spelling,
+        })),
+      )
       .sort(
         (a, b) =>
           a.segmentId.localeCompare(b.segmentId) || a.offset - b.offset || b.length - a.length,
@@ -71,36 +83,53 @@ const perInterview = (
       kept.push(p)
     }
     // Only verdicts on places that still hold the term (a changed turn leaves its verdicts behind).
-    const here = new Set(kept.map((p) => `${p.segmentId}/${p.offset}`))
+    const spellingAt = new Map(kept.map((p) => [`${p.segmentId}/${p.offset}`, p.spelling]))
     const mine = verdicts.filter(
-      (v) => v.sessionId === sessionId && here.has(`${v.segmentId}/${v.offset}`),
+      (v) => v.sessionId === sessionId && spellingAt.has(`${v.segmentId}/${v.offset}`),
     )
     const verdictAt = (segmentId: string, offset: number) =>
       mine.find((v) => v.segmentId === segmentId && v.offset === offset)?.verdict ?? null
+    const tally = (of: readonly Verdict[]) => ({
+      yes: of.filter((v) => v.verdict === 'yes').length,
+      no: of.filter((v) => v.verdict === 'no').length,
+      unsure: of.filter((v) => v.verdict === 'unsure').length,
+    })
     const quotes: (ExcerptParts & {
       segmentId: string
       offset: number
       verdict: Verdict['verdict'] | null
+      spelling: string
     })[] = []
+    const quoted = new Map<string, number>()
     for (const p of kept) {
-      if (quotes.length >= limit) break
+      if ((quoted.get(p.spelling) ?? 0) >= limit) continue
       const text = segments.get(p.segmentId)
-      if (text)
-        quotes.push({
-          ...excerptParts(text, p.offset, p.offset + p.length),
-          segmentId: p.segmentId,
-          offset: p.offset,
-          verdict: verdictAt(p.segmentId, p.offset),
-        })
+      if (!text) continue
+      quoted.set(p.spelling, (quoted.get(p.spelling) ?? 0) + 1)
+      quotes.push({
+        ...excerptParts(text, p.offset, p.offset + p.length),
+        segmentId: p.segmentId,
+        offset: p.offset,
+        verdict: verdictAt(p.segmentId, p.offset),
+        spelling: p.spelling,
+      })
+    }
+    const spellings = () => {
+      const counts = new Map<string, number>()
+      for (const o of list) counts.set(o.spelling, (counts.get(o.spelling) ?? 0) + o.count)
+      return [...counts].map(([spelling, count]) => ({
+        spelling,
+        count,
+        ...tally(mine.filter((v) => spellingAt.get(`${v.segmentId}/${v.offset}`) === spelling)),
+      }))
     }
     return {
       sessionId,
       title: titles.get(sessionId) ?? '',
       count: list.reduce((a, o) => a + o.count, 0),
-      yes: mine.filter((v) => v.verdict === 'yes').length,
-      no: mine.filter((v) => v.verdict === 'no').length,
-      unsure: mine.filter((v) => v.verdict === 'unsure').length,
+      ...tally(mine),
       quotes,
+      ...(bySpelling ? { spellings: spellings() } : {}),
     }
   })
 }
@@ -310,7 +339,7 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
         .flatMap((t) => t.segments.map((s) => [s.id, s.text])),
     )
     return ok({
-      occurrences: perInterview(rows, segments, titles, QUOTES_SHOWN, verdicts),
+      occurrences: perInterview(rows, segments, titles, QUOTES_SHOWN, verdicts, true),
     })
   }
 
@@ -340,7 +369,7 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
     )
     const segments = new Map(transcripts.flatMap((t) => t.segments.map((s) => [s.id, s.text])))
     const verdicts = (await deps.store.verdictsOf(studyId)).filter((v) => v.termId === termId)
-    return ok({ occurrences: perInterview(rows, segments, titles, ALL_QUOTES, verdicts) })
+    return ok({ occurrences: perInterview(rows, segments, titles, ALL_QUOTES, verdicts, true) })
   }
 
   return { enrichment, lexicon, termQuotes, occurrences }
