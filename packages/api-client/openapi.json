@@ -133,7 +133,8 @@
           "API_DISABLED",
           "PROJECT_NOT_FOUND",
           "UNREACHABLE",
-          "UNKNOWN"
+          "UNKNOWN",
+          "SHARED_PROVIDER_UNAVAILABLE"
         ]
       },
       "AiProviderViewInput": {
@@ -267,6 +268,46 @@
               "inputTokens",
               "outputTokens"
             ]
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "$ref": "#/components/schemas/AiProviderInput"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "open": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "provider",
+                  "model",
+                  "open"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "serving": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "own",
+                  "shared"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -274,7 +315,9 @@
           "regions",
           "googleGranted",
           "connection",
-          "usage"
+          "usage",
+          "shared",
+          "serving"
         ]
       },
       "ConnectApiKeyInput": {
@@ -16721,7 +16764,8 @@
           "API_DISABLED",
           "PROJECT_NOT_FOUND",
           "UNREACHABLE",
-          "UNKNOWN"
+          "UNKNOWN",
+          "SHARED_PROVIDER_UNAVAILABLE"
         ]
       },
       "AiProviderView": {
@@ -16857,6 +16901,47 @@
               "outputTokens"
             ],
             "additionalProperties": false
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "$ref": "#/components/schemas/AiProvider"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "open": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "provider",
+                  "model",
+                  "open"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "serving": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "own",
+                  "shared"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -16864,7 +16949,9 @@
           "regions",
           "googleGranted",
           "connection",
-          "usage"
+          "usage",
+          "shared",
+          "serving"
         ],
         "additionalProperties": false
       },

@@ -68,8 +68,10 @@ export const inMemoryAiStore = () => {
     usageByRefs: async (id, refs) =>
       usage.filter((e) => e.accountId === id && e.ref !== null && refs.includes(e.ref)),
     usageByRefsAll: async (refs) => usage.filter((e) => e.ref !== null && refs.includes(e.ref)),
-    usageSummary: async (id) => {
-      const mine = usage.filter((e) => e.accountId === id)
+    usageSummary: async (id, shared) => {
+      const mine = usage.filter(
+        (e) => e.accountId === id && (shared === undefined || e.shared === shared),
+      )
       return {
         calls: mine.length,
         inputTokens: mine.reduce((n, e) => n + (e.inputTokens ?? 0), 0),
@@ -187,7 +189,16 @@ export const fakeGoogle = () => {
   return { google: { oauth, cloud: api }, cloud }
 }
 
-export const aiWorld = (options: { offered?: ProviderKind[] } = {}) => {
+export const aiWorld = (
+  options: {
+    offered?: ProviderKind[]
+    /** Spec 035: the instance's shared provider. */
+    shared?: NonNullable<AiDeps['config']['shared']>
+    /** Spec 035: each account's teams. */
+    teams?: Record<string, readonly string[]>
+  } = {},
+) => {
+  const warnings: { object: object; message: string }[] = []
   const clock = fixedClock(new Date('2026-10-24T10:00:00Z'))
   const memory = inMemoryAiStore()
   const model = fakeRunner()
@@ -205,10 +216,12 @@ export const aiWorld = (options: { offered?: ProviderKind[] } = {}) => {
       models: { vertex: 'v-model', anthropic: 'a-model', openai: 'o-model', fake: 'f' },
       timeoutMs: 1000,
       prices: [],
+      shared: options.shared ?? null,
     },
     clock,
     newId,
-    log: { warn: () => {} },
+    log: { warn: (object, message) => warnings.push({ object, message }) },
+    teamIdsOf: async (accountId) => options.teams?.[accountId] ?? [],
   }
   const gateway = makeGateway(deps)
   return {
@@ -218,6 +231,7 @@ export const aiWorld = (options: { offered?: ProviderKind[] } = {}) => {
     model,
     google: g,
     gateway,
+    warnings,
     commands: makeProviderCommands(deps, gateway),
     queries: makeProviderQueries(deps),
   }

@@ -19,6 +19,8 @@ export const AiFailure = z
     'PROJECT_NOT_FOUND',
     'UNREACHABLE',
     'UNKNOWN',
+    /** Spec 035: the instance's shared provider refused the call; only the deployer can fix it. */
+    'SHARED_PROVIDER_UNAVAILABLE',
   ])
   .meta({ id: 'AiFailure' })
 
@@ -52,6 +54,10 @@ export const AiProviderPage = z
       inputTokens: z.number().int(),
       outputTokens: z.number().int(),
     }),
+    /** Spec 035: the instance's shared provider (never its credentials), and whether it serves this person. */
+    shared: z.object({ provider: AiProvider, model: z.string(), open: z.boolean() }).nullable(),
+    /** What the person's calls use now: their own provider, the shared one, or none. */
+    serving: z.enum(['own', 'shared']).nullable(),
   })
   .meta({ id: 'AiProviderPage' })
 

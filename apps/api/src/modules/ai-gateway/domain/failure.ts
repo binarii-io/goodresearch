@@ -9,6 +9,8 @@ export type AiFailure =
   | 'PROJECT_NOT_FOUND'
   | 'UNREACHABLE'
   | 'UNKNOWN'
+  /** Spec 035: the instance's shared provider refused the call; only the deployer can fix it. */
+  | 'SHARED_PROVIDER_UNAVAILABLE'
 
 /**
  * What an adapter saw, reduced to what classification needs. `message` and `code` are read here
@@ -47,3 +49,10 @@ export const classifyFailure = (facts: ProviderErrorFacts): AiFailure => {
 /** Failures only the person can fix: the connection then needs attention (FR-009). */
 export const isAuthorisationFailure = (failure: AiFailure): boolean =>
   failure === 'INVALID_CREDENTIAL' || failure === 'PERMISSION_DENIED' || failure === 'API_DISABLED'
+
+/** Spec 035: failures of the shared provider only the deployer can fix (credentials, quota, API). */
+export const isDeployerFailure = (failure: AiFailure): boolean =>
+  isAuthorisationFailure(failure) ||
+  failure === 'NO_CREDIT_OR_QUOTA' ||
+  failure === 'PROJECT_NOT_FOUND' ||
+  failure === 'MODEL_UNAVAILABLE'

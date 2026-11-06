@@ -5,6 +5,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AiProviderInput } from './aiProviderInput.ts';
+import type { AiProviderPageInputServing } from './aiProviderPageInputServing.ts';
+import type { AiProviderPageInputShared } from './aiProviderPageInputShared.ts';
 import type { AiProviderPageInputUsage } from './aiProviderPageInputUsage.ts';
 import type { AiProviderViewInput } from './aiProviderViewInput.ts';
 
@@ -14,4 +16,6 @@ export interface AiProviderPageInput {
   googleGranted: boolean;
   connection: AiProviderViewInput | null;
   usage: AiProviderPageInputUsage;
+  shared: AiProviderPageInputShared;
+  serving: AiProviderPageInputServing;
 }

@@ -42,10 +42,17 @@ describe('dated prices', () => {
       durationMs: 1,
       outcome: outcome as 'cancelled',
       ref,
+      shared: false,
       createdAt: new Date('2026-10-24'),
     })
     const costs = makeUsageCosts({
-      config: { offered: [], models: {} as never, timeoutMs: 1, prices: DEFAULT_PRICES },
+      config: {
+        offered: [],
+        models: {} as never,
+        timeoutMs: 1,
+        prices: DEFAULT_PRICES,
+        shared: null,
+      },
       store: {
         usageByRefs: async () => [
           entry('RATE_LIMITED', 'a'),

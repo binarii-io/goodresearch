@@ -145,7 +145,7 @@ export const createAiStore = (db: Db): AiStore => ({
     }))
   },
 
-  usageSummary: async (accountId) => {
+  usageSummary: async (accountId, shared) => {
     const [row] = await db
       .select({
         calls: sql<number>`count(*)::int`,
@@ -153,7 +153,11 @@ export const createAiStore = (db: Db): AiStore => ({
         outputTokens: sql<number>`coalesce(sum(${aiUsageEntries.outputTokens}), 0)::int`,
       })
       .from(aiUsageEntries)
-      .where(eq(aiUsageEntries.accountId, accountId))
+      .where(
+        shared === undefined
+          ? eq(aiUsageEntries.accountId, accountId)
+          : and(eq(aiUsageEntries.accountId, accountId), eq(aiUsageEntries.shared, shared)),
+      )
     return row ?? { calls: 0, inputTokens: 0, outputTokens: 0 }
   },
 })

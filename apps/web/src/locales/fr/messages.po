@@ -2339,6 +2339,10 @@ msgstr "Connectez votre Google Drive"
 msgid "Connect your Google Drive first."
 msgstr "Connectez d'abord votre Google Drive."
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Connect your own provider"
+msgstr "Connecter votre propre fournisseur"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Connected"
 msgstr "Connecté"
@@ -2381,6 +2385,10 @@ msgstr "item de contact, jamais importé"
 #: src/features/preparation/questionnaire-editor.tsx
 msgid "Contact item: optional, never imported by the app. Deleting the addresses in the form and its spreadsheet is up to your team."
 msgstr "Item de contact : facultatif, jamais importé par l’application. Supprimer les adresses du formulaire et de sa feuille revient à votre équipe."
+
+#: src/features/ai/labels.ts
+msgid "Contact the person who deployed goodresearch. You can also connect your own AI provider."
+msgstr "Contactez la personne qui a déployé goodresearch. Vous pouvez aussi connecter votre propre fournisseur IA."
 
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/synthesis/deck-slide.tsx
@@ -3711,6 +3719,10 @@ msgid "goodresearch's assistants run on your own provider account: the costs and
 msgstr "Les assistants de goodresearch fonctionnent sur votre propre compte de fournisseur : les coûts et le traitement de ce que vous envoyez à l'IA sont les vôtres. Votre clé ou votre accès Google est stocké chiffré, utilisé uniquement pour vos propres actions, et vous pouvez le retirer à tout moment."
 
 #: src/routes/_authenticated/ai-provider.tsx
+msgid "goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch. You can connect your own instead."
+msgstr "Les assistants de goodresearch utilisent le fournisseur IA de cette instance, configuré par la personne qui a déployé goodresearch. Vous pouvez connecter le vôtre à la place."
+
+#: src/routes/_authenticated/ai-provider.tsx
 msgid "goodresearch's assistants use your own provider account. Costs and data processing are yours."
 msgstr "Les assistants de goodresearch utilisent votre propre compte de fournisseur. Les coûts et le traitement des données sont les vôtres."
 
@@ -4454,6 +4466,10 @@ msgstr "Gardez au moins une section."
 #: src/features/preparation/drive-review.tsx
 msgid "Keep the app's"
 msgstr "Garder la version de l’app"
+
+#: src/routes/setup.ai-provider.tsx
+msgid "Keep the instance's provider"
+msgstr "Garder le fournisseur de l’instance"
 
 #: src/features/surveys/target-rule.tsx
 msgid "Keeps only the responses of the people you are looking for, from their answers to the profiling items. The others are set aside, never deleted, and the analysis counts only the kept ones. Without a target, every response counts."
@@ -6232,6 +6248,10 @@ msgstr "Proposés, ou avec de nouvelles graphies"
 msgid "Provider"
 msgstr "Fournisseur"
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Provider of this instance"
+msgstr "Fournisseur de l’instance"
+
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Publish"
 msgstr "Publier"
@@ -7758,9 +7778,17 @@ msgstr "Le coût IA n'a pas pu être chargé."
 msgid "The AI cost includes studies shared with other projects: it counts in each of them."
 msgstr "Le coût d’IA inclut des études partagées avec d’autres projets : il compte dans chacun d’eux."
 
+#: src/features/ai/labels.ts
+msgid "The AI of this instance is unavailable right now."
+msgstr "L’IA de cette instance est indisponible pour le moment."
+
 #: src/features/workspace/errors.ts
 msgid "The AI provider did not answer. Try again in a moment."
 msgstr "Le fournisseur d'IA n'a pas répondu. Réessayez dans un moment."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "The AI provider of this instance is not open to your teams."
+msgstr "Le fournisseur IA de cette instance n’est pas ouvert à vos équipes."
 
 #: src/features/enrichment/labels.ts
 msgid "The AI provider returned an error or took too long: some corrections may be missing, try again."
@@ -8391,6 +8419,10 @@ msgstr "Cet insight a été supprimé."
 #: src/features/workspace/errors.ts
 msgid "This insight was rejected or is no longer in the project."
 msgstr "Cet insight a été refusé ou n'est plus dans le projet."
+
+#: src/routes/setup.ai-provider.tsx
+msgid "This instance already provides an AI provider for you: connecting your own is optional."
+msgstr "Cette instance vous fournit déjà un fournisseur IA : connecter le vôtre est facultatif."
 
 #: src/features/workspace/errors.ts
 msgid "This interview can no longer be taken out of the reading: stop the whole reading instead."
@@ -9382,6 +9414,10 @@ msgstr "Votre fournisseur IA demande votre attention."
 msgid "Your AI provider works again."
 msgstr "Votre fournisseur IA fonctionne à nouveau."
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Your calls are recorded with your name and their cost shows in each screen, as with your own provider."
+msgstr "Vos appels sont enregistrés à votre nom et leur coût s’affiche dans chaque écran, comme avec votre propre fournisseur."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Your Google Drive access must be reconnected to see this study's folder: use \"Reconnect Google\" at the top of the page."
 msgstr "Votre accès Google Drive doit être reconnecté pour voir le dossier de cette étude : utilisez « Reconnecter Google » en haut de la page."
@@ -9389,6 +9425,10 @@ msgstr "Votre accès Google Drive doit être reconnecté pour voir le dossier de
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Your key or Google access is deleted from goodresearch. You will be asked to choose a provider again before using the app."
 msgstr "Votre clé ou votre accès Google est supprimé de goodresearch. Il vous sera demandé de choisir à nouveau un fournisseur avant d'utiliser l'app."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Your key or Google access is deleted from goodresearch. Your calls then use the AI provider of this instance."
+msgstr "Votre clé ou votre accès Google est supprimé de goodresearch. Vos appels utilisent alors le fournisseur IA de l’instance."
 
 #: src/features/enrichment/labels.ts
 msgid "Yours"

@@ -1,5 +1,5 @@
 import type { ZodType } from 'zod'
-import { type AiFailure, isAuthorisationFailure } from '../domain/failure.ts'
+import { type AiFailure, isAuthorisationFailure, isDeployerFailure } from '../domain/failure.ts'
 import type { Credential, ProviderKind } from '../domain/provider.ts'
 import {
   type AiDeps,
@@ -7,6 +7,7 @@ import {
   type ModelRequest,
   ProviderCallError,
   type StreamPart,
+  servingOf,
   type Usage,
 } from './ports.ts'
 
@@ -31,6 +32,7 @@ export const makeGateway = (deps: AiDeps) => {
     outcome: 'success' | 'cancelled' | AiFailure,
     usage: Usage,
     ref: string | null = null,
+    shared = false,
   ) => {
     await deps.store.appendUsage({
       id: deps.newId(),
@@ -43,6 +45,7 @@ export const makeGateway = (deps: AiDeps) => {
       durationMs: Math.max(0, deps.clock.now().getTime() - startedAt),
       outcome,
       ref,
+      shared,
       createdAt: deps.clock.now(),
     })
   }
@@ -55,6 +58,8 @@ export const makeGateway = (deps: AiDeps) => {
     model: string,
     call: () => Promise<T>,
     ref: string | null = null,
+    /** Spec 035: served by the instance's shared provider. */
+    shared = false,
   ): Promise<T> => {
     const startedAt = deps.clock.now().getTime()
     try {
@@ -68,6 +73,7 @@ export const makeGateway = (deps: AiDeps) => {
         'success',
         result.usage,
         ref,
+        shared,
       )
       return result
     } catch (error) {
@@ -81,16 +87,24 @@ export const makeGateway = (deps: AiDeps) => {
         // A failed call can still be billed (spec 009: every AI cost is shown).
         error instanceof ProviderCallError && error.usage ? error.usage : NO_USAGE,
         ref,
+        shared,
       )
       throw error instanceof ProviderCallError ? error : new ProviderCallError('UNKNOWN')
     }
   }
 
-  /** The person's saved credential, decrypted; only theirs, never someone else's (FR-012). */
-  const resolve = async (accountId: string) => {
-    const connection = await deps.store.getConnection(accountId)
-    if (!connection || !deps.config.offered.includes(connection.provider))
-      throw new AiProviderRequired()
+  /**
+   * The credential a person's calls use: their own, decrypted, never someone else's (FR-012), even
+   * when it needs attention; else the instance's shared provider when it is open to them (spec 035).
+   */
+  const resolve = async (
+    accountId: string,
+  ): Promise<{ credential: Credential; model: string; shared: boolean }> => {
+    const serving = await servingOf(deps, accountId)
+    if (!serving) throw new AiProviderRequired()
+    if (serving.kind === 'shared')
+      return { credential: serving.credential, model: serving.model, shared: true }
+    const connection = serving.connection
     let secret: string
     try {
       secret = deps.cipher.decrypt(connection.encryptedCredential, accountId)
@@ -114,7 +128,37 @@ export const makeGateway = (deps: AiDeps) => {
             region: connection.region ?? 'global',
           }
         : { provider: connection.provider, apiKey: secret }
-    return { connection, credential, model: deps.config.models[connection.provider] }
+    return { credential, model: deps.config.models[connection.provider], shared: false }
+  }
+
+  /**
+   * Spec 035: a failure of the shared provider is the deployer's to fix: logged (never its
+   * credential), never stored on the person; the caller hears that the instance's AI is unavailable.
+   */
+  const sharedFailure = (accountId: string, task: string, error: unknown) => {
+    const failure = failureOf(error)
+    deps.log.warn(
+      { failure, provider: deps.config.shared?.credential.provider, task, accountId },
+      'the shared AI provider refused a call',
+    )
+    return isDeployerFailure(failure)
+      ? new ProviderCallError(
+          'SHARED_PROVIDER_UNAVAILABLE',
+          error instanceof ProviderCallError ? error.usage : null,
+        )
+      : error
+  }
+
+  /** What a failed call becomes for the caller: the person's step back, or the deployer's log. */
+  const onFailure = async (
+    accountId: string,
+    task: string,
+    error: unknown,
+    resolved: { credential: Credential; shared: boolean },
+  ) => {
+    if (resolved.shared) return sharedFailure(accountId, task, error)
+    await noteFailure(accountId, error, resolved.credential.provider)
+    return error
   }
 
   /** An authorisation failure on a real call brings back the provider step (FR-009). */
@@ -132,13 +176,12 @@ export const makeGateway = (deps: AiDeps) => {
   return {
     callWith,
 
-    /** The provider a person's calls go to now, or null without a working one (spec 009 FR-011). */
-    providerOf: async (accountId: string): Promise<ProviderKind | null> => {
-      const connection = await deps.store.getConnection(accountId)
-      return connection && deps.config.offered.includes(connection.provider)
-        ? connection.provider
-        : null
-    },
+    /**
+     * The provider a person's calls go to now, or null without a working one (spec 009 FR-011):
+     * their own, else the shared one open to them (spec 035; consents stay per provider kind).
+     */
+    providerOf: async (accountId: string): Promise<ProviderKind | null> =>
+      (await servingOf(deps, accountId))?.provider ?? null,
 
     /** Minimal real call proving a credential works (spec 004 FR-004, research R3 check 4). */
     /** `ref`: what the check was for, to show its cost (spec 030: a reconnection). */
@@ -159,14 +202,20 @@ export const makeGateway = (deps: AiDeps) => {
       ),
 
     generateText: async (accountId: string, task: string, request: ModelRequest) => {
-      const { credential, model } = await resolve(accountId)
+      const resolved = await resolve(accountId)
+      const { credential, model } = resolved
       try {
-        return await callWith(accountId, task, credential, model, () =>
-          deps.runner.generateText(credential, model, request, deps.config.timeoutMs),
+        return await callWith(
+          accountId,
+          task,
+          credential,
+          model,
+          () => deps.runner.generateText(credential, model, request, deps.config.timeoutMs),
+          null,
+          resolved.shared,
         )
       } catch (error) {
-        await noteFailure(accountId, error, credential.provider)
-        throw error
+        throw await onFailure(accountId, task, error, resolved)
       }
     },
 
@@ -178,7 +227,8 @@ export const makeGateway = (deps: AiDeps) => {
       /** `timeoutMs`: a longer limit for calls run in the worker (spec 010 lexicon readings). */
       options: { ref?: string; timeoutMs?: number } = {},
     ) => {
-      const { credential, model } = await resolve(accountId)
+      const resolved = await resolve(accountId)
+      const { credential, model } = resolved
       const timeoutMs = options.timeoutMs ?? deps.config.timeoutMs
       try {
         return await callWith(
@@ -188,10 +238,10 @@ export const makeGateway = (deps: AiDeps) => {
           model,
           () => deps.runner.generateObject(credential, model, request, timeoutMs),
           options.ref ?? null,
+          resolved.shared,
         )
       } catch (error) {
-        await noteFailure(accountId, error, credential.provider)
-        throw error
+        throw await onFailure(accountId, task, error, resolved)
       }
     },
 
@@ -205,10 +255,20 @@ export const makeGateway = (deps: AiDeps) => {
       request: ModelRequest,
       options: { ref?: string } = {},
     ) => {
-      const { credential, model } = await resolve(accountId)
+      const resolved = await resolve(accountId)
+      const { credential, model } = resolved
       const startedAt = deps.clock.now().getTime()
       const inner = deps.runner.stream(credential, model, request, deps.config.timeoutMs)
       let recorded = false
+      // What the caller hears of a failure, the same whether read from `parts` or `done`, made once
+      // (spec 035: a shared provider's failure is the instance's, logged once).
+      let reported: Promise<ProviderCallError> | null = null
+      const report = (error: unknown) => {
+        reported ??= onFailure(accountId, task, error, resolved).then((e) =>
+          e instanceof ProviderCallError ? e : new ProviderCallError('UNKNOWN'),
+        )
+        return reported
+      }
       const recordOnce = async (outcome: 'success' | 'cancelled' | AiFailure, usage: Usage) => {
         if (recorded) return
         recorded = true
@@ -221,6 +281,7 @@ export const makeGateway = (deps: AiDeps) => {
           outcome,
           usage,
           options.ref ?? null,
+          resolved.shared,
         )
       }
       const done = inner.done.then(
@@ -230,8 +291,7 @@ export const makeGateway = (deps: AiDeps) => {
         },
         async (error: unknown) => {
           await recordOnce(failureOf(error), NO_USAGE)
-          await noteFailure(accountId, error, credential.provider)
-          throw error instanceof ProviderCallError ? error : new ProviderCallError('UNKNOWN')
+          throw await report(error)
         },
       )
       // Callers that only read the text must not leave a rejection unhandled.
@@ -244,7 +304,7 @@ export const makeGateway = (deps: AiDeps) => {
           finished = true
         } catch (error) {
           failed = true
-          throw error
+          throw await report(error)
         } finally {
           if (!finished && !failed) await recordOnce('cancelled', NO_USAGE)
         }

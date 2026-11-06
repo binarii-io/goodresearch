@@ -99,6 +99,15 @@ function Setup() {
             <p className="text-muted-foreground">{t`goodresearch's assistants run on your own provider account: the costs and the processing of what you send to the AI are yours. Your key or Google access is stored encrypted, used only for your own actions, and you can remove it at any time.`}</p>
           </div>
 
+          {page.data?.shared?.open && !connection ? (
+            <p role="status" className="text-sm">
+              {t`This instance already provides an AI provider for you: connecting your own is optional.`}{' '}
+              <Link to="/" className="underline">
+                {t`Keep the instance's provider`}
+              </Link>
+            </p>
+          ) : null}
+
           {connection?.status === 'needs-attention' && connection.lastFailure ? (
             <div className="grid gap-2">
               <p className="font-medium">{t`Your AI provider needs your attention.`}</p>

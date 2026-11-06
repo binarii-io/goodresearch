@@ -52,12 +52,19 @@ function AiProviderPage() {
   const checked = formatDate(connection?.lastCheckedAt)
   const calls = usage?.calls ?? 0
   const tokens = (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0)
+  // Spec 035: the instance's shared provider, when the deployer set one.
+  const shared = page.data?.shared ?? null
+  const sharedOpen = shared?.open === true
 
   return (
     <div className="grid max-w-3xl gap-6">
       <PageTitle
         title={t`AI provider`}
-        description={t`goodresearch's assistants use your own provider account. Costs and data processing are yours.`}
+        description={
+          page.data?.serving === 'shared'
+            ? t`goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch. You can connect your own instead.`
+            : t`goodresearch's assistants use your own provider account. Costs and data processing are yours.`
+        }
       />
       {connection ? (
         <Card>
@@ -157,7 +164,11 @@ function AiProviderPage() {
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>{t`Remove your AI provider?`}</AlertDialogTitle>
-                    <AlertDialogDescription>{t`Your key or Google access is deleted from goodresearch. You will be asked to choose a provider again before using the app.`}</AlertDialogDescription>
+                    <AlertDialogDescription>
+                      {sharedOpen
+                        ? t`Your key or Google access is deleted from goodresearch. Your calls then use the AI provider of this instance.`
+                        : t`Your key or Google access is deleted from goodresearch. You will be asked to choose a provider again before using the app.`}
+                    </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
@@ -166,7 +177,9 @@ function AiProviderPage() {
                         void remove
                           .mutateAsync()
                           .then(refresh)
-                          .then(() => navigate({ to: '/setup/ai-provider' }))
+                          .then(() =>
+                            sharedOpen ? undefined : navigate({ to: '/setup/ai-provider' }),
+                          )
                       }
                     >
                       {t`Remove`}
@@ -177,12 +190,36 @@ function AiProviderPage() {
             </div>
           </CardContent>
         </Card>
+      ) : shared && sharedOpen ? (
+        <Card>
+          <CardContent className="grid gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg">{PROVIDERS[shared.provider].name}</h2>
+              <Badge variant="secondary">{t`Provider of this instance`}</Badge>
+            </div>
+            <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[max-content_1fr]">
+              <dt className="text-muted-foreground">{t`Model`}</dt>
+              <dd>{shared.model}</dd>
+              <dt className="text-muted-foreground">{t`Usage`}</dt>
+              <dd>{t`${calls} calls · ${tokens} tokens`}</dd>
+            </dl>
+            <p className="text-muted-foreground text-sm">{t`Your calls are recorded with your name and their cost shows in each screen, as with your own provider.`}</p>
+            <Button className="w-fit" variant="outline" render={<Link to="/setup/ai-provider" />}>
+              {t`Connect your own provider`}
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
-        <p>
-          <Link to="/setup/ai-provider" className="underline">
-            {t`Choose your AI provider`}
-          </Link>
-        </p>
+        <div className="grid gap-2">
+          {shared ? (
+            <p className="text-muted-foreground text-sm">{t`The AI provider of this instance is not open to your teams.`}</p>
+          ) : null}
+          <p>
+            <Link to="/setup/ai-provider" className="underline">
+              {t`Choose your AI provider`}
+            </Link>
+          </p>
+        </div>
       )}
     </div>
   )

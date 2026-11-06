@@ -139,6 +139,88 @@ describe('loadConfig', () => {
     expect(errorOf({ ...valid, AI_PROVIDERS: 'mistral' })).toContain('AI_PROVIDERS')
   })
 
+  it('spec 035: reads a shared AI provider, and refuses an incomplete one', () => {
+    expect(loadConfig(valid).ai.shared).toBeNull()
+    const key = JSON.stringify({
+      type: 'service_account',
+      client_email: 'ai@example-project.iam.gserviceaccount.com',
+      private_key: '-----BEGIN PRIVATE KEY-----\\nmade-up\\n-----END PRIVATE KEY-----\\n',
+    })
+    expect(
+      loadConfig({
+        ...valid,
+        AI_SHARED_PROVIDER: 'vertex',
+        AI_SHARED_VERTEX_PROJECT: 'example-project',
+        AI_SHARED_VERTEX_KEY: key,
+        AI_SHARED_TEAMS: 'team-a, team-b',
+      }).ai.shared,
+    ).toEqual({
+      provider: 'vertex',
+      project: 'example-project',
+      region: 'global',
+      key: JSON.parse(key),
+      teams: ['team-a', 'team-b'],
+    })
+    // The key names its project.
+    const keyWithProject = JSON.stringify({ ...JSON.parse(key), project_id: 'example-from-key' })
+    expect(
+      loadConfig({ ...valid, AI_SHARED_PROVIDER: 'vertex', AI_SHARED_VERTEX_KEY: keyWithProject })
+        .ai.shared,
+    ).toMatchObject({ provider: 'vertex', project: 'example-from-key' })
+    // Without a key: the instance's own Google Cloud identity.
+    expect(
+      loadConfig({
+        ...valid,
+        AI_SHARED_PROVIDER: 'vertex',
+        AI_SHARED_VERTEX_PROJECT: 'example-project',
+        AI_SHARED_VERTEX_REGION: 'europe-west1',
+      }).ai.shared,
+    ).toEqual({
+      provider: 'vertex',
+      project: 'example-project',
+      region: 'europe-west1',
+      key: null,
+      teams: null,
+    })
+    expect(
+      loadConfig({ ...valid, AI_SHARED_PROVIDER: 'anthropic', AI_SHARED_API_KEY: 'sk-made-up-key' })
+        .ai.shared,
+    ).toEqual({ provider: 'anthropic', apiKey: 'sk-made-up-key', teams: null })
+    expect(errorOf({ ...valid, AI_SHARED_PROVIDER: 'vertex' })).toContain(
+      'AI_SHARED_VERTEX_PROJECT',
+    )
+    expect(
+      errorOf({
+        ...valid,
+        AI_SHARED_PROVIDER: 'vertex',
+        AI_SHARED_VERTEX_PROJECT: 'example-project',
+        AI_SHARED_VERTEX_KEY: '{"type":"service_account"}',
+      }),
+    ).toContain('AI_SHARED_VERTEX_KEY')
+    expect(
+      errorOf({
+        ...valid,
+        AI_SHARED_PROVIDER: 'vertex',
+        AI_SHARED_VERTEX_PROJECT: 'example-project',
+        AI_SHARED_VERTEX_KEY: JSON.stringify({ ...JSON.parse(key), private_key: '' }),
+      }),
+    ).toContain('AI_SHARED_VERTEX_KEY')
+    expect(
+      errorOf({
+        ...valid,
+        AI_SHARED_PROVIDER: 'vertex',
+        AI_SHARED_VERTEX_PROJECT: 'example-project',
+        AI_SHARED_VERTEX_REGION: 'europe-west',
+      }),
+    ).toContain('AI_SHARED_VERTEX_REGION')
+    expect(errorOf({ ...valid, AI_SHARED_PROVIDER: 'openai' })).toContain('AI_SHARED_API_KEY')
+    expect(errorOf({ ...valid, AI_SHARED_PROVIDER: 'mistral' })).toContain('AI_SHARED_PROVIDER')
+    expect(errorOf({ ...valid, AI_SHARED_PROVIDER: 'fake' })).toContain('AI_SHARED_PROVIDER')
+    expect(
+      loadConfig({ ...valid, AI_FAKE_PROVIDER: 'true', AI_SHARED_PROVIDER: 'fake' }).ai.shared,
+    ).toEqual({ provider: 'fake', apiKey: 'fake', teams: null })
+  })
+
   it('lets the deployer change the model of each provider', () => {
     const config = loadConfig({ ...valid, AI_MODEL_ANTHROPIC: 'a-model' })
     expect(config.ai.models.anthropic).toBe('a-model')

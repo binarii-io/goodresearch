@@ -194,6 +194,8 @@ export type UsageEntry = {
   readonly outcome: 'success' | 'cancelled' | AiFailure
   /** What the call was for (e.g. an assistant message id), to sum costs per conversation. */
   readonly ref: string | null
+  /** Spec 035: served by the instance's shared provider, not the person's own. */
+  readonly shared: boolean
   readonly createdAt: Date
 }
 
@@ -220,8 +222,10 @@ export interface AiStore {
   /** Returns and deletes the state, or null if unknown or expired. */
   takeOauthState(state: string, now: Date): Promise<OauthState | null>
   appendUsage(entry: UsageEntry): Promise<void>
+  /** `shared`: only the calls the instance's shared provider served (spec 035). */
   usageSummary(
     accountId: string,
+    shared?: boolean,
   ): Promise<{ calls: number; inputTokens: number; outputTokens: number }>
   /** The person's entries made for these refs. */
   usageByRefs(accountId: string, refs: readonly string[]): Promise<UsageEntry[]>
@@ -244,8 +248,75 @@ export type AiDeps = {
     readonly timeoutMs: number
     /** Deployer prices, added to or replacing the built-in dated catalog. */
     readonly prices: readonly Price[]
+    /**
+     * Spec 035: the instance's shared provider, for people without their own; `teams`: the teams
+     * it is open to, `null` for everyone with access. Its credential never leaves the server.
+     */
+    readonly shared: {
+      readonly credential: Credential
+      readonly model: string
+      readonly teams: readonly string[] | null
+    } | null
   }
   readonly clock: Clock
   readonly newId: () => string
   readonly log: { warn(object: object, message: string): void }
+  /** Spec 035: the teams an account belongs to (Workspace), for a shared provider limited to some. */
+  readonly teamIdsOf: (accountId: string) => Promise<readonly string[]>
+}
+
+/** Spec 035: whether the instance's shared provider serves this person. */
+export const sharedOpenTo = async (
+  deps: Pick<AiDeps, 'config' | 'teamIdsOf'>,
+  accountId: string,
+): Promise<boolean> => {
+  const shared = deps.config.shared
+  if (!shared) return false
+  if (!shared.teams) return true
+  const teams = shared.teams
+  return (await deps.teamIdsOf(accountId)).some((t) => teams.includes(t))
+}
+
+/**
+ * Spec 035: what serves a person's calls — their own connection while its provider is offered
+ * (even when it needs attention: never a silent switch), else the instance's shared provider when
+ * it is open to them, else nothing. The one place this order is written. `loaded`: the connection
+ * already read by the caller.
+ */
+export type Serving =
+  | {
+      readonly kind: 'own'
+      readonly connection: StoredConnection
+      readonly provider: ProviderKind
+      readonly model: string
+    }
+  | {
+      readonly kind: 'shared'
+      readonly credential: Credential
+      readonly provider: ProviderKind
+      readonly model: string
+    }
+
+export const servingOf = async (
+  deps: Pick<AiDeps, 'store' | 'config' | 'teamIdsOf'>,
+  accountId: string,
+  loaded?: StoredConnection | null,
+): Promise<Serving | null> => {
+  const connection = loaded === undefined ? await deps.store.getConnection(accountId) : loaded
+  if (connection && deps.config.offered.includes(connection.provider))
+    return {
+      kind: 'own',
+      connection,
+      provider: connection.provider,
+      model: deps.config.models[connection.provider],
+    }
+  const shared = deps.config.shared
+  if (shared && (await sharedOpenTo(deps, accountId)))
+    return {
+      kind: 'shared',
+      credential: shared.credential,
+      provider: shared.credential.provider,
+      model: shared.model,
+    }
+  return null
 }

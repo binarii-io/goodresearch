@@ -70,6 +70,8 @@ export const aiUsageEntries = pgTable(
     durationMs: integer('duration_ms').notNull(),
     outcome: text('outcome').notNull(),
     ref: text('ref'),
+    /** Spec 035: served by the instance's shared provider. */
+    shared: boolean('shared').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
   },
   (t) => [

@@ -158,8 +158,11 @@ const promptOf = (request: ModelRequest) => ({
 
 /**
  * Model calls through the Vercel AI SDK (ADR-0005, research R1). Vertex AI runs with the person's
- * own Google grant (an OAuth client holding their refresh token), never with server credentials.
+ * own Google grant (an OAuth client holding their refresh token), or, for the instance's shared
+ * provider the deployer configured (spec 035), with its service account or its own identity.
  */
+const CLOUD_PLATFORM = 'https://www.googleapis.com/auth/cloud-platform'
+
 export const createAiSdkRunner = (options: {
   google: { clientId: string; clientSecret: string } | null
   /** Tests: replaces the network. */
@@ -185,6 +188,34 @@ export const createAiSdkRunner = (options: {
     return client
   }
 
+  // One provider for the shared Vertex AI, so its access tokens are reused until they expire.
+  let sharedVertex: { key: string; provider: ReturnType<typeof createVertex> } | null = null
+  const sharedVertexFor = (
+    credential: Extract<Credential, { serviceAccount: unknown }>,
+  ): ReturnType<typeof createVertex> => {
+    const key = [
+      credential.project,
+      credential.region,
+      credential.serviceAccount === 'instance'
+        ? 'instance'
+        : credential.serviceAccount.client_email,
+    ].join('|')
+    if (sharedVertex?.key !== key)
+      sharedVertex = {
+        key,
+        provider: createVertex({
+          project: credential.project,
+          location: credential.region,
+          googleAuthOptions:
+            credential.serviceAccount === 'instance'
+              ? { scopes: [CLOUD_PLATFORM] }
+              : { credentials: credential.serviceAccount, scopes: [CLOUD_PLATFORM] },
+          ...fetchOption,
+        }),
+      }
+    return sharedVertex.provider
+  }
+
   const modelFor = (credential: Credential, model: string): LanguageModel => {
     switch (credential.provider) {
       case 'anthropic':
@@ -192,6 +223,8 @@ export const createAiSdkRunner = (options: {
       case 'openai':
         return createOpenAI({ apiKey: credential.apiKey, ...fetchOption })(model)
       case 'vertex': {
+        // Spec 035: the instance's shared Vertex AI, with its service account or its own identity.
+        if ('serviceAccount' in credential) return sharedVertexFor(credential)(model)
         if (!options.google) throw new ProviderCallError('INVALID_CREDENTIAL')
         const authClient = authClientFor(options.google, credential.refreshToken)
         return createVertex({

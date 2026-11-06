@@ -181,6 +181,7 @@ Spec 016: how the interviews were conducted, as facts to read: no score, no verd
 ### 9. AI Gateway
 
 - **AI provider connection** (spec 004) — one per person: Vertex AI with the person's own Google account (project and region), or an Anthropic or OpenAI API key. Checked by a real call before saving, encrypted, used only for that person's own actions. The deployer chooses which providers are offered and the model of each. A Vertex AI connection whose Google grant is refused keeps its project and region and carries the same **grant problem** as a source connection; the person is not sent back to the setup: **Reconnect Google** (a Google window on the saved account) checks the saved project and region again and replaces the grant only when the checks pass; another Google account goes through the full setup (spec 030).
+- **Shared AI provider** (spec 035) — one AI provider of the instance, set by the deployer in the configuration (Vertex AI with a service account or the instance's own Google Cloud identity, or an Anthropic or OpenAI key), optionally open to some teams only. It serves people without a provider of their own; a person's own connection always comes first, even when it needs attention. Its credentials never leave the server; its failures are the deployer's (logged), never a reconnection for the person. Every call is still a **UsageEntry** of the person, marked `shared`.
 - **Gateway** (`runTask`: structured output validated by a schema, or streamed text) — resolves the caller's connection, runs the call, classifies failures into a closed set (invalid credential, permission, no credit or quota, rate limit, model unavailable, API disabled, unreachable). Adapters per provider via the Vercel AI SDK.
 - Concurrency cap per provider credential, retries with backoff on transient errors.
 - **UsageEntry** — **single append-only ledger**: person, task, provider, model, tokens in and out, duration, outcome, `ref` (what the call was for, e.g. an assistant message); never prompt or answer text (spec 004). Cost is computed at read time from a dated **PricingCatalog**; a failed call without counted tokens costs nothing, a stopped answer stays unknown (built-in prices for the default models, deployer prices with `AI_PRICES`; spec 005).
@@ -350,6 +351,7 @@ Code, API and docs use the English term. The UI ships in English and French; tra
 | Job | Traitement | Background job |
 | Usage ledger | Journal de consommation | |
 | AI provider | Fournisseur IA | Each person's own Vertex AI, Anthropic or OpenAI account |
+| Shared AI provider | Fournisseur IA de l’instance | The instance's AI provider set by the deployer, used by people without their own (spec 035) |
 | Reconnect Google | Reconnecter Google | One click when Google refuses a saved grant (spec 030) |
 | Google needs you to sign in again | Google vous demande de vous reconnecter | |
 | Use another account | Utiliser un autre compte | Full setup |

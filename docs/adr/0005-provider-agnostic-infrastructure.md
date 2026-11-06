@@ -184,3 +184,22 @@ A person's Google grants (Vertex AI, spec 004; Drive, spec 002) can be refused b
 
 - Good: one click and one Google screen when a grant dies; the person stays on their page; the reason is precise.
 - Bad: how often grants die depends on the organisation's Google settings, outside the app; a blocked pop-up keeps only a typed assistant message.
+
+## Update spec 035 — a shared AI provider for the instance
+
+### Context
+
+The spec 004 update chose "no shared instance key": each person connects their own AI provider. Organisations that pay one AI account for everyone found it costly for newcomers (a Google Cloud project or a key to get) and Vertex AI grants that die with the organisation's Google settings (spec 030).
+
+### Decision
+
+- **One optional shared provider per instance**, in the configuration only (`AI_SHARED_*`): Vertex AI with a service account key or the instance's own Google Cloud identity (Application Default Credentials), or an Anthropic or OpenAI key. Its credentials never reach the database, the browser or the logs. `GOOGLE_VERTEX_API_KEY` stays refused: the shared Vertex AI is explicit.
+- **Resolution order in the AI Gateway**: the person's own connection (even when it needs attention: never a silent switch), else the shared provider when it is open to them (`AI_SHARED_TEAMS`, read through Workspace), else the provider step.
+- **Who spends what stays visible**: every call is still a usage entry of the person, now with `shared`; costs show in each screen as before. No spending caps yet.
+- **Failures of the shared provider are the deployer's**: logged with the classified failure, never stored on the person; callers get `SHARED_PROVIDER_UNAVAILABLE` for credential, quota and API failures (rate limits and timeouts keep theirs).
+- Consents to send study data to an AI provider stay per provider kind: a shared Vertex AI and a person's own Vertex AI are the same kind of processor for that consent.
+
+### Consequences
+
+- Good: no setup and no Google reconnection for the AI when the deployer provides it; costs still per person.
+- Bad: the deployer pays and holds a powerful credential; one shared provider only; a misconfigured identity is known at the first call, not at startup.

@@ -10,6 +10,15 @@ export type Credential =
       readonly project: string
       readonly region: string
     }
+  /** Spec 035: the instance's shared Vertex AI, by a service account key or its own identity. */
+  | {
+      readonly provider: 'vertex'
+      readonly serviceAccount:
+        | Readonly<{ client_email: string; private_key: string } & Record<string, unknown>>
+        | 'instance'
+      readonly project: string
+      readonly region: string
+    }
 
 /** Shown instead of a key (FR-006). */
 export const credentialHint = (apiKey: string): string => apiKey.slice(-4)

@@ -1,6 +1,6 @@
 import type { GrantProblem } from '../../domain/grant-problem.ts'
 import { VERTEX_REGIONS } from '../../domain/provider.ts'
-import type { AiDeps, StoredConnection } from '../ports.ts'
+import { type AiDeps, type StoredConnection, servingOf, sharedOpenTo } from '../ports.ts'
 
 /**
  * What the person sees of their connection: never the credential (FR-006). The model shown is the
@@ -23,8 +23,13 @@ export const makeProviderQueries = (deps: AiDeps) => ({
   view: (c: StoredConnection) => toView(c, deps.config.models[c.provider]),
 
   page: async (accountId: string) => {
-    const connection = await deps.store.getConnection(accountId)
-    const pending = await deps.store.getPendingGrant(accountId, deps.clock.now())
+    const [connection, pending, open] = await Promise.all([
+      deps.store.getConnection(accountId),
+      deps.store.getPendingGrant(accountId, deps.clock.now()),
+      sharedOpenTo(deps, accountId),
+    ])
+    const serving = await servingOf(deps, accountId, connection)
+    const shared = deps.config.shared
     return {
       offered: [...deps.config.offered],
       regions: [...VERTEX_REGIONS],
@@ -33,7 +38,14 @@ export const makeProviderQueries = (deps: AiDeps) => ({
       googleGranted:
         pending !== null || (connection?.provider === 'vertex' && connection.grantProblem === null),
       connection: connection ? toView(connection, deps.config.models[connection.provider]) : null,
-      usage: await deps.store.usageSummary(accountId),
+      // Spec 035: the usage of what serves the person now (the shared provider's calls only).
+      usage: await deps.store.usageSummary(
+        accountId,
+        serving?.kind === 'shared' ? true : undefined,
+      ),
+      // Spec 035: the shared provider as the person may know it, never its credential.
+      shared: shared ? { provider: shared.credential.provider, model: shared.model, open } : null,
+      serving: serving?.kind ?? null,
     }
   },
 
@@ -46,12 +58,20 @@ export const makeProviderQueries = (deps: AiDeps) => ({
     /** Spec 030: a refused Vertex AI grant is reconnected where the person is, not in the setup. */
     grantProblem: GrantProblem | null
   }> => {
-    const required = deps.config.offered.length > 0
-    const connection = await deps.store.getConnection(accountId)
-    // A provider the deployer no longer offers counts as none: the person chooses again.
-    if (!connection || !deps.config.offered.includes(connection.provider))
-      return { required, status: 'none', grantProblem: null }
-    return { required, status: connection.status, grantProblem: connection.grantProblem }
+    // A provider the deployer no longer offers counts as none: the person chooses again, unless
+    // the instance's shared provider serves them (spec 035).
+    const serving = await servingOf(deps, accountId)
+    if (serving?.kind === 'own')
+      return {
+        required: deps.config.offered.length > 0,
+        status: serving.connection.status,
+        grantProblem: serving.connection.grantProblem,
+      }
+    return {
+      required: deps.config.offered.length > 0 && serving === null,
+      status: 'none',
+      grantProblem: null,
+    }
   },
 })
 

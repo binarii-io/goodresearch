@@ -171,7 +171,14 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
     ...(infra.drive !== undefined ? { drive: infra.drive } : {}),
   })
-  ai = createAiGatewayModule({ db: infra.db, clock, config, ...(infra.ai ?? {}) })
+  ai = createAiGatewayModule({
+    db: infra.db,
+    clock,
+    config,
+    ...(infra.ai ?? {}),
+    // Spec 035: a shared provider limited to some teams reads the person's memberships.
+    teamIdsOf: async (accountId) => (await workspace.getAccessContext(accountId))?.teamIds ?? [],
+  })
   const enrichment = ingestion.enrichment
   const transcripts = createTranscriptsModule({
     db: infra.db,

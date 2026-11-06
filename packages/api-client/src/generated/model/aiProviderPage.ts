@@ -5,6 +5,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AiProvider } from './aiProvider.ts';
+import type { AiProviderPageServing } from './aiProviderPageServing.ts';
+import type { AiProviderPageShared } from './aiProviderPageShared.ts';
 import type { AiProviderPageUsage } from './aiProviderPageUsage.ts';
 import type { AiProviderView } from './aiProviderView.ts';
 
@@ -14,4 +16,6 @@ export interface AiProviderPage {
   googleGranted: boolean;
   connection: AiProviderView | null;
   usage: AiProviderPageUsage;
+  shared: AiProviderPageShared;
+  serving: AiProviderPageServing;
 }

@@ -8,4 +8,5 @@ export {
   ConfigError,
   type Env,
   loadConfig,
+  type SharedAiProvider,
 } from './env.ts'

@@ -2339,6 +2339,10 @@ msgstr "Connect your Google Drive"
 msgid "Connect your Google Drive first."
 msgstr "Connect your Google Drive first."
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Connect your own provider"
+msgstr "Connect your own provider"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Connected"
 msgstr "Connected"
@@ -2381,6 +2385,10 @@ msgstr "contact item, never imported"
 #: src/features/preparation/questionnaire-editor.tsx
 msgid "Contact item: optional, never imported by the app. Deleting the addresses in the form and its spreadsheet is up to your team."
 msgstr "Contact item: optional, never imported by the app. Deleting the addresses in the form and its spreadsheet is up to your team."
+
+#: src/features/ai/labels.ts
+msgid "Contact the person who deployed goodresearch. You can also connect your own AI provider."
+msgstr "Contact the person who deployed goodresearch. You can also connect your own AI provider."
 
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/synthesis/deck-slide.tsx
@@ -3711,6 +3719,10 @@ msgid "goodresearch's assistants run on your own provider account: the costs and
 msgstr "goodresearch's assistants run on your own provider account: the costs and the processing of what you send to the AI are yours. Your key or Google access is stored encrypted, used only for your own actions, and you can remove it at any time."
 
 #: src/routes/_authenticated/ai-provider.tsx
+msgid "goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch. You can connect your own instead."
+msgstr "goodresearch's assistants use the AI provider of this instance, set up by the person who deployed goodresearch. You can connect your own instead."
+
+#: src/routes/_authenticated/ai-provider.tsx
 msgid "goodresearch's assistants use your own provider account. Costs and data processing are yours."
 msgstr "goodresearch's assistants use your own provider account. Costs and data processing are yours."
 
@@ -4454,6 +4466,10 @@ msgstr "Keep at least one section."
 #: src/features/preparation/drive-review.tsx
 msgid "Keep the app's"
 msgstr "Keep the app's"
+
+#: src/routes/setup.ai-provider.tsx
+msgid "Keep the instance's provider"
+msgstr "Keep the instance's provider"
 
 #: src/features/surveys/target-rule.tsx
 msgid "Keeps only the responses of the people you are looking for, from their answers to the profiling items. The others are set aside, never deleted, and the analysis counts only the kept ones. Without a target, every response counts."
@@ -6232,6 +6248,10 @@ msgstr "Proposed, or with new spellings"
 msgid "Provider"
 msgstr "Provider"
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Provider of this instance"
+msgstr "Provider of this instance"
+
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Publish"
 msgstr "Publish"
@@ -7758,9 +7778,17 @@ msgstr "The AI cost could not be loaded."
 msgid "The AI cost includes studies shared with other projects: it counts in each of them."
 msgstr "The AI cost includes studies shared with other projects: it counts in each of them."
 
+#: src/features/ai/labels.ts
+msgid "The AI of this instance is unavailable right now."
+msgstr "The AI of this instance is unavailable right now."
+
 #: src/features/workspace/errors.ts
 msgid "The AI provider did not answer. Try again in a moment."
 msgstr "The AI provider did not answer. Try again in a moment."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "The AI provider of this instance is not open to your teams."
+msgstr "The AI provider of this instance is not open to your teams."
 
 #: src/features/enrichment/labels.ts
 msgid "The AI provider returned an error or took too long: some corrections may be missing, try again."
@@ -8391,6 +8419,10 @@ msgstr "This insight was deleted."
 #: src/features/workspace/errors.ts
 msgid "This insight was rejected or is no longer in the project."
 msgstr "This insight was rejected or is no longer in the project."
+
+#: src/routes/setup.ai-provider.tsx
+msgid "This instance already provides an AI provider for you: connecting your own is optional."
+msgstr "This instance already provides an AI provider for you: connecting your own is optional."
 
 #: src/features/workspace/errors.ts
 msgid "This interview can no longer be taken out of the reading: stop the whole reading instead."
@@ -9382,6 +9414,10 @@ msgstr "Your AI provider needs your attention."
 msgid "Your AI provider works again."
 msgstr "Your AI provider works again."
 
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Your calls are recorded with your name and their cost shows in each screen, as with your own provider."
+msgstr "Your calls are recorded with your name and their cost shows in each screen, as with your own provider."
+
 #: src/features/ingestion/source-panel.tsx
 msgid "Your Google Drive access must be reconnected to see this study's folder: use \"Reconnect Google\" at the top of the page."
 msgstr "Your Google Drive access must be reconnected to see this study's folder: use \"Reconnect Google\" at the top of the page."
@@ -9389,6 +9425,10 @@ msgstr "Your Google Drive access must be reconnected to see this study's folder:
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "Your key or Google access is deleted from goodresearch. You will be asked to choose a provider again before using the app."
 msgstr "Your key or Google access is deleted from goodresearch. You will be asked to choose a provider again before using the app."
+
+#: src/routes/_authenticated/ai-provider.tsx
+msgid "Your key or Google access is deleted from goodresearch. Your calls then use the AI provider of this instance."
+msgstr "Your key or Google access is deleted from goodresearch. Your calls then use the AI provider of this instance."
 
 #: src/features/enrichment/labels.ts
 msgid "Yours"

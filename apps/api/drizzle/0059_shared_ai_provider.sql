@@ -1,0 +1,1 @@
+ALTER TABLE "ai_usage_entries" ADD COLUMN "shared" boolean DEFAULT false NOT NULL;

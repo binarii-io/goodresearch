@@ -1,5 +1,5 @@
 import { costOf, type Price, priceAt } from '../../domain/pricing.ts'
-import type { AiDeps, UsageEntry } from '../ports.ts'
+import { type AiDeps, servingOf, type UsageEntry } from '../ports.ts'
 
 /** A dated catalog with other prices added, replacing those of the same model and date. */
 export const priceCatalog = (base: readonly Price[], overrides: readonly Price[]): Price[] => [
@@ -54,15 +54,16 @@ export const makeStudyCosts =
     costsOf(deps.config.prices, refs, await deps.store.usageByRefsAll(refs))
 
 /**
- * What a call would cost with the person's model today, from the characters sent and the tokens
+ * What a call would cost with the model serving the person today, from the characters sent and the tokens
  * expected back; null without a provider or a price.
  */
 export const makeEstimateCost =
-  (deps: Pick<AiDeps, 'store' | 'config' | 'clock'>) =>
+  (deps: Pick<AiDeps, 'store' | 'config' | 'clock' | 'teamIdsOf'>) =>
   async (accountId: string, inputChars: number, outputTokens: number): Promise<number | null> => {
-    const connection = await deps.store.getConnection(accountId)
-    if (!connection || !deps.config.offered.includes(connection.provider)) return null
-    const model = deps.config.models[connection.provider]
+    // The model of what serves the person: their own provider, or the shared one (spec 035).
+    const serving = await servingOf(deps, accountId)
+    if (!serving) return null
+    const model = serving.model
     const price = priceAt(deps.config.prices, model, deps.clock.now())
     if (!price) return null
     const input = Math.ceil(inputChars / CHARS_PER_TOKEN)

@@ -80,12 +80,35 @@ export type AppConfig = {
     readonly timeoutMs: number
     /** Extra or replacing dated prices (USD per million tokens), on top of the built-in catalog. */
     readonly prices: readonly AiPrice[]
+    /** Spec 035: the instance's shared AI provider, for people without their own; `null` when none. */
+    readonly shared: SharedAiProvider | null
   }
   readonly logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
   readonly port: number
   /** `PORT` when it is set: the worker then answers health checks on it. */
   readonly workerHealthPort: number | null
 }
+
+/**
+ * Spec 035: one AI provider of the instance. Vertex AI authenticates with a service account key, or
+ * with the instance's own Google Cloud identity when `key` is null. `teams`: the teams it is open
+ * to, `null` for everyone with access. Secrets stay in the configuration, never stored or sent.
+ */
+export type SharedAiProvider =
+  | {
+      readonly provider: 'vertex'
+      readonly project: string
+      readonly region: string
+      readonly key: Readonly<
+        { client_email: string; private_key: string } & Record<string, unknown>
+      > | null
+      readonly teams: readonly string[] | null
+    }
+  | {
+      readonly provider: 'anthropic' | 'openai' | 'fake'
+      readonly apiKey: string
+      readonly teams: readonly string[] | null
+    }
 
 /** Raised when the environment is invalid; the message names every faulty variable. */
 export class ConfigError extends Error {
@@ -109,6 +132,13 @@ const optionalText = z.preprocess((v) => (v === '' ? undefined : v), z.string().
 const email = z.email()
 const domain = z.string().regex(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/, 'invalid domain')
 const providerKey = z.string().regex(/^[a-z][a-z0-9-]*$/, 'lower-case letters, digits and dashes')
+
+/** Spec 035: a Google Cloud service account key, the fields Vertex AI needs (others kept). */
+const serviceAccountKeySchema = z.looseObject({
+  client_email: z.email(),
+  private_key: z.string().min(1),
+  project_id: z.string().optional(),
+})
 
 /** Reads `NAME`, or the content of the file at `NAME_FILE` (Docker secrets). */
 const resolveFileVariants = (env: Env): Record<string, string | undefined> => {
@@ -152,6 +182,12 @@ const baseSchema = z.object({
   AI_FAKE_PROVIDER: bool,
   DRIVE_FAKE: bool,
   AI_PRICES: optionalText,
+  AI_SHARED_PROVIDER: optionalText,
+  AI_SHARED_VERTEX_PROJECT: optionalText,
+  AI_SHARED_VERTEX_REGION: optionalText,
+  AI_SHARED_VERTEX_KEY: optionalText,
+  AI_SHARED_API_KEY: optionalText,
+  AI_SHARED_TEAMS: optionalText,
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   PORT: z.coerce.number().int().positive().default(3000),
 })
@@ -276,6 +312,60 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     }
   }
 
+  // Spec 035: the shared AI provider.
+  let shared: SharedAiProvider | null = null
+  const teamList = values.AI_SHARED_TEAMS
+    ? values.AI_SHARED_TEAMS.split(',')
+        .map((x) => x.trim())
+        .filter((x) => x.length > 0)
+    : []
+  const teams = teamList.length ? teamList : null
+  const sharedKind = values.AI_SHARED_PROVIDER?.trim().toLowerCase()
+  if (sharedKind === 'vertex') {
+    type ServiceAccountKey = NonNullable<Extract<SharedAiProvider, { provider: 'vertex' }>['key']>
+    let key: ServiceAccountKey | null = null
+    if (values.AI_SHARED_VERTEX_KEY) {
+      try {
+        const parsed = serviceAccountKeySchema.safeParse(JSON.parse(values.AI_SHARED_VERTEX_KEY))
+        if (parsed.success) key = parsed.data as ServiceAccountKey
+        else
+          issues.push(
+            'AI_SHARED_VERTEX_KEY: a service account key needs client_email and private_key',
+          )
+      } catch {
+        issues.push('AI_SHARED_VERTEX_KEY: must be the JSON of a service account key')
+      }
+    }
+    const region = values.AI_SHARED_VERTEX_REGION ?? 'global'
+    if (!/^(global|[a-z]+-[a-z]+\d+)$/.test(region))
+      issues.push('AI_SHARED_VERTEX_REGION: a Vertex AI region such as global or europe-west1')
+    // The key names its project; AI_SHARED_VERTEX_PROJECT is needed without a key, or for another.
+    const fromKey = typeof key?.project_id === 'string' ? key.project_id : undefined
+    const project = values.AI_SHARED_VERTEX_PROJECT ?? fromKey
+    if (!project || !/^[a-z][a-z0-9-]{4,28}[a-z0-9]$/.test(project))
+      issues.push(
+        'AI_SHARED_VERTEX_PROJECT: a Google Cloud project id is required for vertex (or a key with project_id)',
+      )
+    else
+      shared = {
+        provider: 'vertex',
+        project,
+        region,
+        key,
+        teams,
+      }
+  } else if (sharedKind === 'anthropic' || sharedKind === 'openai') {
+    if (!values.AI_SHARED_API_KEY)
+      issues.push(`AI_SHARED_API_KEY: required for the shared ${sharedKind} provider`)
+    else shared = { provider: sharedKind, apiKey: values.AI_SHARED_API_KEY, teams }
+  } else if (sharedKind === 'fake' && values.AI_FAKE_PROVIDER && appUrl.protocol !== 'https:') {
+    shared = { provider: 'fake', apiKey: 'fake', teams }
+  } else if (sharedKind) {
+    issues.push(
+      `AI_SHARED_PROVIDER: "${sharedKind}" is not one of vertex, anthropic, openai (fake only with AI_FAKE_PROVIDER)`,
+    )
+  }
+
   if (issues.length > 0) return fail(issues)
 
   return {
@@ -309,6 +399,7 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
       },
       timeoutMs: values.AI_CALL_TIMEOUT_MS,
       prices,
+      shared,
     },
     logLevel: values.LOG_LEVEL,
     port: values.PORT,

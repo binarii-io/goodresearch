@@ -414,6 +414,13 @@
       "when": 1793975922206,
       "tag": "0058_google_grant_reconnect",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1793975923206,
+      "tag": "0059_shared_ai_provider",
+      "breakpoints": true
     }
   ]
 }
