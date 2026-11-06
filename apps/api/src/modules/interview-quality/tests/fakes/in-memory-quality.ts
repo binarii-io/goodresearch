@@ -164,6 +164,12 @@ export const fakeSources = (input: {
         : null,
     people: async () => Object.fromEntries(input.interviews.map((i) => [i.id, i.people])),
     knownNames: async () => input.names ?? [],
+    analysedTexts: async (a, s, ids, mode) =>
+      new Map(
+        await Promise.all(
+          ids.map(async (id) => [id, await sources.analysedText(a, s, id, mode)] as const),
+        ),
+      ),
     analysedText: async (_a, _s, sessionId) => {
       const found = input.interviews.find((i) => i.id === sessionId)
       if (!found?.turns) return 'no-transcript'
@@ -174,6 +180,10 @@ export const fakeSources = (input: {
       return state.importFailures
     },
     context: async () => ({ goal: input.goal ?? 'Understand exports', guide: input.guide ?? [] }),
+    speakerAttributionsOf: async (ids) =>
+      new Map(
+        ids.map((id) => [id, input.interviews.find((i) => i.id === id)?.attributions ?? new Map()]),
+      ),
     speakerAttributions: async (sessionId) =>
       input.interviews.find((i) => i.id === sessionId)?.attributions ?? new Map(),
     enrichmentLive: async () => state.enrichmentLive,

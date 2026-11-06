@@ -1509,7 +1509,109 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getStopLexiconReadingMutationOptions(options), queryClient);
     }
-    export const getListTermOccurrencesUrl = (studyId: string,
+    export const getListTermQuotesUrl = (studyId: string,
+    termId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/lexicon/terms/${termId}/quotes`
+}
+
+export const listTermQuotes = async (studyId: string,
+    termId: string, options?: Parameters<typeof apiFetch>[1]): Promise<TermOccurrences> => {
+
+  return apiFetch<TermOccurrences>(getListTermQuotesUrl(studyId,termId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTermQuotesQueryKey = (studyId: string,
+    termId: string,) => {
+    return [
+    `/api/studies/${studyId}/lexicon/terms/${termId}/quotes`
+    ] as const;
+    }
+
+
+export const getListTermQuotesQueryOptions = <TData = Awaited<ReturnType<typeof listTermQuotes>>, TError = unknown>(studyId: string,
+    termId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTermQuotes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTermQuotesQueryKey(studyId,termId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTermQuotes>>> = ({ signal }) => listTermQuotes(studyId,termId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined && termId !== null && termId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTermQuotes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListTermQuotesQueryResult = NonNullable<Awaited<ReturnType<typeof listTermQuotes>>>
+export type ListTermQuotesQueryError = unknown
+
+
+export function useListTermQuotes<TData = Awaited<ReturnType<typeof listTermQuotes>>, TError = unknown>(
+ studyId: string,
+    termId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTermQuotes>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTermQuotes>>,
+          TError,
+          Awaited<ReturnType<typeof listTermQuotes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTermQuotes<TData = Awaited<ReturnType<typeof listTermQuotes>>, TError = unknown>(
+ studyId: string,
+    termId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTermQuotes>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listTermQuotes>>,
+          TError,
+          Awaited<ReturnType<typeof listTermQuotes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListTermQuotes<TData = Awaited<ReturnType<typeof listTermQuotes>>, TError = unknown>(
+ studyId: string,
+    termId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTermQuotes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListTermQuotes<TData = Awaited<ReturnType<typeof listTermQuotes>>, TError = unknown>(
+ studyId: string,
+    termId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTermQuotes>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListTermQuotesQueryOptions(studyId,termId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getListTermOccurrencesUrl = (studyId: string,
     termId: string,) => {
 
 

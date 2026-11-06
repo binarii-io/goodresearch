@@ -236,8 +236,9 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
       .sort((a, b) => total(b) - total(a) || a.form.localeCompare(b.form))
     const from = Math.max(0, Number(filter.cursor ?? 0) || 0)
     const page = all.slice(from, from + PAGE)
-    const [transcripts, others, names, verdicts] = await Promise.all([
-      deps.store.transcriptsOf(studyId),
+    // Spec 032: the table shows counts; the quotes come with the term when it is opened, so the
+    // list reads no transcript.
+    const [others, names, verdicts] = await Promise.all([
       deps.store.otherStudies(
         page.map((t) => t.id),
         studyId,
@@ -245,13 +246,12 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
       deps.store.accountNames(page.flatMap((t) => (t.decidedBy ? [t.decidedBy] : []))),
       deps.store.verdictsOf(studyId),
     ])
-    const segments = new Map(transcripts.flatMap((t) => t.segments.map((s) => [s.id, s.text])))
     const view = (t: LexiconTerm) => {
       const occurrences = perInterview(
         byTerm.get(t.id) ?? [],
-        segments,
+        new Map(),
         titles,
-        QUOTES_SHOWN,
+        0,
         verdicts.filter((v) => v.termId === t.id),
       )
       return {
@@ -286,6 +286,35 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
   }
 
   /**
+   * Spec 032: one term's stored occurrences with up to three quotes an interview, what the list
+   * carried before; read when the term is opened, from the transcripts it occurs in only.
+   */
+  const termQuotes = async (accountId: string, studyId: string, termId: string) => {
+    const study = await studyOf(accountId, studyId)
+    if (!study.ok) return study
+    const { access, sessions } = study.value
+    const term = await deps.store.getTerm(termId)
+    if (!term || term.teamId !== access.teamId || term.status === 'merged')
+      return err('TERM_NOT_FOUND' as const)
+    const titles = new Map(sessions.map((s) => [s.id, s.title]))
+    const rows = (await deps.store.occurrencesOfTerm(studyId, termId)).filter((o) =>
+      titles.has(o.sessionId),
+    )
+    const [transcripts, verdicts] = await Promise.all([
+      deps.store.transcriptsOfSessions([...new Set(rows.map((o) => o.sessionId))]),
+      deps.store.verdictsOfTerm(studyId, termId),
+    ])
+    const segments = new Map(
+      transcripts
+        .filter((t) => t.studyId === studyId)
+        .flatMap((t) => t.segments.map((s) => [s.id, s.text])),
+    )
+    return ok({
+      occurrences: perInterview(rows, segments, titles, QUOTES_SHOWN, verdicts),
+    })
+  }
+
+  /**
    * Every occurrence of one term in the study, counted now in the imported text (never stale), up
    * to 500 quotes per interview.
    */
@@ -314,7 +343,7 @@ export const makeEnrichmentQueries = (deps: TranscriptsDeps) => {
     return ok({ occurrences: perInterview(rows, segments, titles, ALL_QUOTES, verdicts) })
   }
 
-  return { enrichment, lexicon, occurrences }
+  return { enrichment, lexicon, termQuotes, occurrences }
 }
 
 export type EnrichmentQueries = ReturnType<typeof makeEnrichmentQueries>

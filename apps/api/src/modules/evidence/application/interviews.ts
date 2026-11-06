@@ -69,14 +69,16 @@ export const interviewsNow = async (
     deps.store.verbatimsOfStudy(studyId),
     deps.store.factsOfStudy(studyId),
   ])
+  // Spec 032: every analysed text in one pass, not one read of the study per interview.
+  const texts = await deps.sources.analysedTexts(
+    accountId,
+    studyId,
+    sessions.map((s) => s.id),
+    access.textAnalysed,
+  )
   return Promise.all(
     sessions.map(async (session) => {
-      const found = await deps.sources.analysedText(
-        accountId,
-        studyId,
-        session.id,
-        access.textAnalysed,
-      )
+      const found = texts.get(session.id) ?? 'no-transcript'
       const text = typeof found === 'string' ? null : found
       const mine = verbatims.filter((v) => v.sessionId === session.id)
       const places = placesOf(mine, text)

@@ -46,6 +46,16 @@ export type QualitySources = {
   ): Promise<Readonly<Record<string, readonly Person[]>> | null>
   /** Every name the app knows for the study: never sent to the AI (FR-014). */
   knownNames(accountId: string, studyId: string): Promise<readonly string[]>
+  /**
+   * Spec 032: the analysed texts of many interviews of the study at once, each as
+   * `analysedText` gives it (what the study shares is read once).
+   */
+  analysedTexts(
+    accountId: string,
+    studyId: string,
+    sessionIds: readonly string[],
+    mode: TextAnalysed,
+  ): Promise<ReadonlyMap<string, AnalysedText | 'no-transcript' | 'not-clean'>>
   analysedText(
     accountId: string,
     studyId: string,
@@ -63,6 +73,10 @@ export type QualitySources = {
   context(accountId: string, studyId: string): Promise<{ goal: string; guide: readonly string[] }>
   /** A person's attributions of an interview's speaker labels, kept by Evidence (research R5). */
   speakerAttributions(sessionId: string): Promise<ReadonlyMap<string, string>>
+  /** Spec 032: the attributions of many interviews in one read. */
+  speakerAttributionsOf(
+    sessionIds: readonly string[],
+  ): Promise<ReadonlyMap<string, ReadonlyMap<string, string>>>
   /** A lexicon reading or a cleaning of the study runs (FR-013). */
   enrichmentLive(studyId: string): Promise<boolean>
   /** A facts reading of the study runs (FR-013). */

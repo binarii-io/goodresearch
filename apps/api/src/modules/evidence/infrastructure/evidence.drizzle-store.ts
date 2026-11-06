@@ -388,6 +388,20 @@ export const createEvidenceStore = (db: Db): EvidenceStore => {
         ).map((r) => [r.speaker, r.participant]),
       ),
 
+    speakersOfSessions: async (sessionIds) => {
+      const out = new Map<string, Map<string, string>>()
+      if (!sessionIds.length) return out
+      for (const r of await db
+        .select()
+        .from(evidenceSpeakers)
+        .where(inArray(evidenceSpeakers.sessionId, [...sessionIds]))) {
+        const mine = out.get(r.sessionId) ?? new Map<string, string>()
+        mine.set(r.speaker, r.participant)
+        out.set(r.sessionId, mine)
+      }
+      return out
+    },
+
     hasConsent: async (accountId, studyId, provider) => {
       const [row] = await db
         .select()

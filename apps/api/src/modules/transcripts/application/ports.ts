@@ -98,6 +98,10 @@ export type ConsentPurpose = 'lexicon' | 'cleaning'
 
 export type TranscriptsStore = {
   transcriptsOf(studyId: string): Promise<Transcript[]>
+  /** Spec 032: which interviews of the study have a transcript, without their text. */
+  transcriptIdsOf(studyId: string): Promise<ReadonlySet<string>>
+  /** Spec 032: only these interviews' transcripts (a term opened in the lexicon). */
+  transcriptsOfSessions(sessionIds: readonly string[]): Promise<Transcript[]>
   getTranscript(sessionId: string): Promise<Transcript | null>
   saveTranscript(t: Transcript): Promise<void>
   /** The reading of these sessions went through to the end. */
@@ -148,6 +152,8 @@ export type TranscriptsStore = {
 
   /** The verdicts given on the study's occurrences. */
   verdictsOf(studyId: string): Promise<Verdict[]>
+  /** Spec 032: one term's verdicts in the study. */
+  verdictsOfTerm(studyId: string, termId: string): Promise<Verdict[]>
   /** Sets one verdict, or clears it (null). */
   saveVerdict(
     place: Omit<Verdict, 'verdict' | 'decidedBy' | 'decidedAt'> & { studyId: string },
@@ -155,6 +161,8 @@ export type TranscriptsStore = {
   ): Promise<void>
   /** Every occurrence counted in the study. */
   occurrencesOf(studyId: string): Promise<Occurrence[]>
+  /** Spec 032: one term's occurrences in the study. */
+  occurrencesOfTerm(studyId: string, termId: string): Promise<Occurrence[]>
   /** For each term, the number of the team's other studies where it was found. */
   otherStudies(termIds: readonly string[], studyId: string): Promise<ReadonlyMap<string, number>>
   /** The study's runs, the latest first. */
@@ -350,6 +358,17 @@ export type CleaningStore = {
   }): Promise<void>
   suggestionsOf(sessionId: string): Promise<Suggestion[]>
   decisionsOf(sessionId: string): Promise<Map<string, NameDecision>>
+  /**
+   * Spec 032: the same reads for many interviews at once (a page showing a whole study), one query
+   * each; an interview without rows has none in the map.
+   */
+  suggestionsOfSessions(sessionIds: readonly string[]): Promise<Map<string, Suggestion[]>>
+  correctionsOfSessions(sessionIds: readonly string[]): Promise<Map<string, Correction[]>>
+  decisionsOfSessions(
+    sessionIds: readonly string[],
+  ): Promise<Map<string, Map<string, NameDecision>>>
+  /** Spec 032: the latest version of each interview of the study, with its turns. */
+  latestVersionsWithText(studyId: string): Promise<Map<string, CleanVersion>>
   saveDecision(sessionId: string, key: string, decision: NameDecision | null): Promise<void>
   cleaningsOf(studyId: string): Promise<CleaningRow[]>
   /** Every version of an interview, the latest first, without their turns. */

@@ -60,6 +60,16 @@ export type AnalysisSources = {
   ): Promise<Readonly<Record<string, readonly Person[]>> | null>
   /** Every name the app knows for the study: never sent to the AI (FR-007). */
   knownNames(accountId: string, studyId: string): Promise<readonly string[]>
+  /**
+   * Spec 032: the analysed texts of many interviews of the study at once, each as
+   * `analysedText` gives it (what the study shares is read once).
+   */
+  analysedTexts(
+    accountId: string,
+    studyId: string,
+    sessionIds: readonly string[],
+    mode: TextAnalysed,
+  ): Promise<ReadonlyMap<string, AnalysedText | 'no-transcript' | 'not-clean'>>
   analysedText(
     accountId: string,
     studyId: string,
@@ -308,6 +318,10 @@ export type EvidenceStore = {
     at: Date
   }): Promise<void>
   speakersOf(sessionId: string): Promise<ReadonlyMap<string, string>>
+  /** Spec 032: the same for many interviews, one read; an interview without any is absent. */
+  speakersOfSessions(
+    sessionIds: readonly string[],
+  ): Promise<ReadonlyMap<string, ReadonlyMap<string, string>>>
 
   hasConsent(accountId: string, studyId: string, provider: string): Promise<boolean>
   giveConsent(accountId: string, studyId: string, provider: string, at: Date): Promise<void>

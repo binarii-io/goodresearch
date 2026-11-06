@@ -76,12 +76,16 @@ export const interviewsNow = async (
     deps.sources.people(accountId, studyId, { assign: false }),
   ])
   const live = runs.find((r) => isReviewLive(r, deps.clock.now())) ?? null
+  // Spec 032: every analysed text in one pass, not one read of the study per interview.
+  const ids = sessions.map((s) => s.id)
+  const [texts, attributionsOf] = await Promise.all([
+    deps.sources.analysedTexts(accountId, studyId, ids, access.textAnalysed),
+    deps.sources.speakerAttributionsOf(ids),
+  ])
   return Promise.all(
     sessions.map(async (session) => {
-      const [found, attributions] = await Promise.all([
-        deps.sources.analysedText(accountId, studyId, session.id, access.textAnalysed),
-        deps.sources.speakerAttributions(session.id),
-      ])
+      const found = texts.get(session.id) ?? 'no-transcript'
+      const attributions = attributionsOf.get(session.id) ?? new Map<string, string>()
       const text = typeof found === 'string' ? null : found
       const mine = people?.[session.id] ?? []
       const roles = conductRoles(text?.turns.map((t) => t.speaker) ?? [], mine, attributions)

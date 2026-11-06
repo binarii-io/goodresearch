@@ -1,12 +1,14 @@
 import {
   getListLexiconQueryKey,
   getListTermOccurrencesQueryKey,
+  getListTermQuotesQueryKey,
   type LexiconTerm,
   type TermQuote,
   useDecideTerm,
   useJudgeOccurrence,
   useListLexicon,
   useListTermOccurrences,
+  useListTermQuotes,
   useMergeTerms,
 } from '@goodresearch/api-client'
 import { Button } from '@goodresearch/ui/components/button'
@@ -28,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@goodresearch/ui/components/select'
+import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { Switch } from '@goodresearch/ui/components/switch'
 import { Textarea } from '@goodresearch/ui/components/textarea'
 import { useLingui } from '@lingui/react/macro'
@@ -311,11 +314,15 @@ function Occurrences({
   const queryClient = useQueryClient()
   const [all, setAll] = useState(false)
   const full = useListTermOccurrences(studyId, term.id, { query: { enabled: all } })
+  // Spec 032: the list carries counts; the quotes are read when the term is opened.
+  // Read again at each opening: a merge, a decision or a reading may have changed them.
+  const opened = useListTermQuotes(studyId, term.id, { query: { staleTime: 0 } })
+  const shownOccurrences = opened.data?.occurrences ?? term.occurrences
   const judge = useJudgeOccurrence()
   // Verdicts given here, shown at once (the lists are read again behind).
   const [given, setGiven] = useState<Record<string, Verdict | null>>({})
   const placeOf = (q: TermQuote) => `${q.segmentId}/${q.offset}`
-  const occurrences = (all && full.data ? full.data.occurrences : term.occurrences).map((o) => {
+  const occurrences = (all && full.data ? full.data.occurrences : shownOccurrences).map((o) => {
     const quotes = o.quotes.map((q) => {
       const key = placeOf(q)
       return key in given ? { ...q, verdict: given[key] ?? null } : q
@@ -344,6 +351,9 @@ function Occurrences({
           queryClient.invalidateQueries({
             queryKey: getListTermOccurrencesQueryKey(studyId, term.id),
           }),
+          queryClient.invalidateQueries({
+            queryKey: getListTermQuotesQueryKey(studyId, term.id),
+          }),
         ]),
       )
       .catch((failure: unknown) => {
@@ -352,7 +362,7 @@ function Occurrences({
       })
   }
   const total = term.occurrences.reduce((a, o) => a + o.count, 0)
-  const shown = term.occurrences.reduce((a, o) => a + o.quotes.length, 0)
+  const shown = shownOccurrences.reduce((a, o) => a + o.quotes.length, 0)
   return (
     <section className="grid gap-2" aria-labelledby={headingId}>
       <h3 id={headingId} className="font-medium text-sm">
@@ -363,33 +373,49 @@ function Occurrences({
           ? t`Case by case: say for each excerpt whether it is this term. Cleaning corrects only those you confirm; those you can't tell yet are left to decide there.`
           : t`Everywhere: Cleaning corrects every occurrence, except those you mark as not this term; those you can't tell yet are left to decide there.`}
       </p>
-      <ul className="grid gap-3">
-        {occurrences.map((o) => (
-          <li key={o.sessionId} className="grid gap-1 text-sm">
-            <span className="font-medium">
-              {o.quotes.length < o.count
-                ? t`${o.title} (${o.count} times, ${o.quotes.length} excerpts shown)`
-                : t`${o.title} (${o.count} times)`}
-            </span>
-            {o.yes || o.no || o.unsure ? (
-              <span className="text-muted-foreground text-xs">
-                {o.unsure
-                  ? t`${o.yes} confirmed · ${o.no} not this term · ${o.unsure} can't tell`
-                  : t`${o.yes} confirmed · ${o.no} not this term`}
+      {opened.isPending ? (
+        <Skeleton className="h-24 w-full" />
+      ) : opened.isError ? (
+        <div role="alert" className="grid gap-2 text-sm">
+          <p className="text-destructive">{errorMessage(i18n, opened.error)}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-fit"
+            onClick={() => void opened.refetch()}
+          >
+            {t`Retry`}
+          </Button>
+        </div>
+      ) : (
+        <ul className="grid gap-3">
+          {occurrences.map((o) => (
+            <li key={o.sessionId} className="grid gap-1 text-sm">
+              <span className="font-medium">
+                {o.quotes.length < o.count
+                  ? t`${o.title} (${o.count} times, ${o.quotes.length} excerpts shown)`
+                  : t`${o.title} (${o.count} times)`}
               </span>
-            ) : null}
-            {o.quotes.map((quote) => (
-              <Quote
-                key={placeOf(quote)}
-                quote={quote}
-                busy={judge.isPending}
-                onVerdict={(verdict) => decide(o.sessionId, quote, verdict)}
-              />
-            ))}
-          </li>
-        ))}
-      </ul>
-      {!all && shown < total ? (
+              {o.yes || o.no || o.unsure ? (
+                <span className="text-muted-foreground text-xs">
+                  {o.unsure
+                    ? t`${o.yes} confirmed · ${o.no} not this term · ${o.unsure} can't tell`
+                    : t`${o.yes} confirmed · ${o.no} not this term`}
+                </span>
+              ) : null}
+              {o.quotes.map((quote) => (
+                <Quote
+                  key={placeOf(quote)}
+                  quote={quote}
+                  busy={judge.isPending}
+                  onVerdict={(verdict) => decide(o.sessionId, quote, verdict)}
+                />
+              ))}
+            </li>
+          ))}
+        </ul>
+      )}
+      {!all && opened.isSuccess && shown < total ? (
         <Button variant="outline" size="sm" className="w-fit" onClick={() => setAll(true)}>
           {t`Show every occurrence (${total})`}
         </Button>

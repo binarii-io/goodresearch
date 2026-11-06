@@ -20,7 +20,7 @@ export const startWorld = async (
 ) => {
   const oidc: { issuer: string; container: StartedTestContainer } = await startMockOidc()
   const database = await createTestDatabase()
-  const { app, clock, runJobs } = await startTestApp(
+  const { app, clock, runJobs, modules } = await startTestApp(
     testConfig(oidc.issuer, options.config),
     database.db,
     {
@@ -61,7 +61,7 @@ export const startWorld = async (
     await oidc.container.stop()
   }
 
-  return { app, db, clock, runJobs, session, team, addMember, close }
+  return { app, db, clock, runJobs, modules, session, team, addMember, close }
 }
 
 export type World = Awaited<ReturnType<typeof startWorld>>

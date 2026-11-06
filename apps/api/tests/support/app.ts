@@ -83,7 +83,7 @@ export const startTestApp = async (
       if (job && handler) await handler.handle(job.data)
     }
   }
-  return { app, clock, runJobs }
+  return { app, clock, runJobs, modules }
 }
 
 const cookiesOf = (response: { headers: Record<string, unknown> }): string[] => {

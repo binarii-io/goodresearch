@@ -158,6 +158,8 @@ export const inMemoryEvidenceStore = () => {
           })
     },
     speakersOf: async (sessionId) => speakers.get(sessionId) ?? new Map(),
+    speakersOfSessions: async (ids) =>
+      new Map(ids.flatMap((id) => (speakers.has(id) ? [[id, speakers.get(id) ?? new Map()]] : []))),
     hasConsent: async (a, s, p) => consents.has(`${a}|${s}|${p}`),
     giveConsent: async (a, s, p) => {
       consents.add(`${a}|${s}|${p}`)
@@ -220,6 +222,12 @@ export const fakeSources = (input: {
       ...(input.names ?? []),
       ...input.interviews.flatMap((i) => i.people.map((p) => p.name)),
     ],
+    analysedTexts: async (a, s, ids, mode) =>
+      new Map(
+        await Promise.all(
+          ids.map(async (id) => [id, await sources.analysedText(a, s, id, mode)] as const),
+        ),
+      ),
     analysedText: async (_a, _s, sessionId, mode) => {
       const i = input.interviews.find((x) => x.id === sessionId)
       if (!i?.turns) return 'no-transcript'

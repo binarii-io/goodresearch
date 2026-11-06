@@ -87,6 +87,13 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
       ? await deps.cleaningNames(accountId, studyId, { assign: false })
       : null
     const byId = new Map(transcripts.map((t) => [t.sessionId, t]))
+    // Spec 032: each interview's own rows, read once for the whole list.
+    const ids = sessions.filter((s) => byId.has(s.id)).map((s) => s.id)
+    const [suggestions, stored, decisions] = await Promise.all([
+      deps.cleaning.suggestionsOfSessions(ids),
+      deps.cleaning.correctionsOfSessions(ids),
+      deps.cleaning.decisionsOfSessions(ids),
+    ])
     const cleaned = new Map(cleanings.map((c) => [c.sessionId, c]))
     const lastRun = runs[0]
     // What each run cost, and each interview of it (FR-016, as an analysis per interview).
@@ -129,7 +136,16 @@ export const makeCleaningQueries = (deps: CleaningDeps) => {
           teamId: access.teamId,
           anonymised: access.anonymised,
           transcript: t,
-          preloaded: { terms, verdicts, people: names?.people ?? null },
+          preloaded: {
+            terms,
+            verdicts,
+            people: names?.people ?? null,
+            interview: {
+              suggestions: suggestions.get(s.id) ?? [],
+              stored: stored.get(s.id) ?? [],
+              decisions: decisions.get(s.id) ?? new Map(),
+            },
+          },
         })
         const effective = effectiveCorrections(all)
         const toDecide = toDecideOf(all).length

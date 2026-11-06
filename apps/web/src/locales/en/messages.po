@@ -6786,6 +6786,7 @@ msgstr "Responses received"
 msgid "Rests on {0} items to validate"
 msgstr "Rests on {0} items to validate"
 
+#: src/features/enrichment/term-dialogs.tsx
 #: src/features/research/project-journey.tsx
 #: src/features/research/study-list.tsx
 msgid "Retry"

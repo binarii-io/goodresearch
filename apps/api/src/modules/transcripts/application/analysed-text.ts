@@ -75,6 +75,93 @@ export const makeAnalysedText = (
   }
 
   /**
+   * Spec 032: the analysed texts of many interviews of a study, as `analysedText` gives them one by
+   * one, with what the study shares read once (access, transcripts, terms, verdicts, pseudonyms)
+   * and each interview's own rows read together: a page of the whole study no longer sends a read
+   * per interview.
+   */
+  const analysedTexts = async (
+    accountId: string,
+    studyId: string,
+    sessionIds: readonly string[],
+    mode: TextAnalysed,
+  ): Promise<Map<string, AnalysedText | 'no-transcript' | 'not-clean'>> => {
+    const out = new Map<string, AnalysedText | 'no-transcript' | 'not-clean'>()
+    if (mode === 'clean-only') {
+      // The clean versions carry their text: the raw ones are only checked to exist.
+      const [imported, latest] = await Promise.all([
+        deps.store.transcriptIdsOf(studyId),
+        deps.cleaning.latestVersionsWithText(studyId),
+      ])
+      for (const id of sessionIds) {
+        const version = latest.get(id)
+        out.set(
+          id,
+          !imported.has(id)
+            ? 'no-transcript'
+            : version
+              ? {
+                  turns: version.segments,
+                  rawImportedAt: version.rawImportedAt,
+                  fingerprint: `clean:${version.number}`,
+                }
+              : 'not-clean',
+        )
+      }
+      return out
+    }
+    const [list, access] = await Promise.all([
+      deps.store.transcriptsOf(studyId),
+      deps.studies.getStudyAccess(accountId, studyId),
+    ])
+    const transcripts = new Map(list.map((t) => [t.sessionId, t]))
+    const ids = sessionIds.filter((id) => transcripts.has(id))
+    for (const id of sessionIds) if (!transcripts.has(id)) out.set(id, 'no-transcript')
+    if (!access) {
+      for (const id of ids) out.set(id, 'no-transcript')
+      return out
+    }
+    const [terms, verdicts, people, suggestions, stored, decisions] = await Promise.all([
+      deps.store.teamTerms(access.teamId),
+      deps.store.verdictsOf(studyId),
+      access.anonymised
+        ? deps.cleaningNames(accountId, studyId, { assign: false }).then((n) => n?.people ?? null)
+        : Promise.resolve(null),
+      deps.cleaning.suggestionsOfSessions(ids),
+      deps.cleaning.correctionsOfSessions(ids),
+      deps.cleaning.decisionsOfSessions(ids),
+    ])
+    for (const id of ids) {
+      const transcript = transcripts.get(id)
+      if (!transcript) continue
+      const { all } = await loadCorrections(deps, {
+        accountId,
+        studyId,
+        teamId: access.teamId,
+        anonymised: access.anonymised,
+        transcript,
+        preloaded: {
+          terms,
+          verdicts,
+          people,
+          interview: {
+            suggestions: suggestions.get(id) ?? [],
+            stored: stored.get(id) ?? [],
+            decisions: decisions.get(id) ?? new Map(),
+          },
+        },
+      })
+      const applied = analysedCorrections(all)
+      out.set(id, {
+        turns: applyCorrections(transcript.segments, applied).segments,
+        rawImportedAt: transcript.importedAt,
+        fingerprint: fingerprintOf(applied),
+      })
+    }
+    return out
+  }
+
+  /**
    * Imports the raw versions missing or changed in Drive, as a cleaning run does (spec 012
    * FR-003). Returns the interviews that could not be imported, with their reason.
    */
@@ -119,5 +206,12 @@ export const makeAnalysedText = (
   const enrichmentLive = async (studyId: string) =>
     (await lexicon.liveRun(studyId)) || (await cleaningLive(studyId))
 
-  return { analysedText, importTranscripts, personNames, teamPersonNames, enrichmentLive }
+  return {
+    analysedText,
+    analysedTexts,
+    importTranscripts,
+    personNames,
+    teamPersonNames,
+    enrichmentLive,
+  }
 }

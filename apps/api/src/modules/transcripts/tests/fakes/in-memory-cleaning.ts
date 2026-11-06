@@ -84,6 +84,38 @@ export const createInMemoryCleaning = () => {
         cleanedAt: input.at,
       })
     },
+    suggestionsOfSessions: async (ids) => {
+      const out = new Map<string, Suggestion[]>()
+      for (const id of ids) {
+        const mine = [...suggestions.values()].filter((s) => s.sessionId === id)
+        if (mine.length) out.set(id, mine)
+      }
+      return out
+    },
+    correctionsOfSessions: async (ids) => {
+      const out = new Map<string, Correction[]>()
+      for (const id of ids) {
+        const mine = [...corrections.values()]
+          .filter((c) => c.sessionId === id)
+          .map(({ studyId: _, ...c }) => c)
+        if (mine.length) out.set(id, mine)
+      }
+      return out
+    },
+    decisionsOfSessions: async (ids) => {
+      const out = new Map<string, Map<string, NameDecision>>()
+      for (const id of ids) {
+        const mine = decisions.get(id)
+        if (mine?.size) out.set(id, new Map(mine))
+      }
+      return out
+    },
+    latestVersionsWithText: async () => {
+      const out = new Map<string, CleanVersion>()
+      for (const v of versions)
+        if ((out.get(v.sessionId)?.number ?? 0) < v.number) out.set(v.sessionId, v)
+      return out
+    },
     suggestionsOf: async (sessionId) =>
       [...suggestions.values()].filter((s) => s.sessionId === sessionId),
     decisionsOf: async (sessionId) => new Map(decisions.get(sessionId) ?? []),

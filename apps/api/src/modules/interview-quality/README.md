@@ -11,4 +11,4 @@ How the interviews of a study were conducted (spec 016, context map #5). Everyth
 - **Reference set** (`tests/reference/`, `scripts/quality-reference.ts`): synthetic excerpts to measure the AI's judgement on a real provider, by hand, since it costs money.
 - Tables (migration `0040_interview_quality.sql`): `quality_runs`, `quality_evaluations`, `quality_speaker_counts`, `quality_reformulations`, `quality_remarks`, `quality_consents`; cascade with the session and the study.
 
-Other modules through `compose.ts` only: transcripts (analysed text, imports), ingestion (sessions, people, names), research (access, goal, guide), evidence (speaker attributions, `factsLive`), ai-gateway.
+Other modules through `compose.ts` only: transcripts (analysed text, imports), ingestion (sessions, people, names), research (access, goal, guide), evidence (speaker attributions, `factsLive`), ai-gateway. The Quality tab reads the analysed texts and the speaker attributions of all its interviews at once (`analysedTexts`, `speakerAttributionsOf`, spec 032): its reads do not grow with the number of interviews.

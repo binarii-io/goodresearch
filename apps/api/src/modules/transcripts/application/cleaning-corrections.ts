@@ -1,8 +1,10 @@
 import {
   type Correction,
   lexiconCorrections,
+  type NameDecision,
   nameCorrections,
   type Person,
+  type Suggestion,
 } from '../domain/corrections.ts'
 import type { Transcript } from '../domain/lexicon-run.ts'
 import type { LexiconTerm } from '../domain/lexicon-term.ts'
@@ -47,6 +49,14 @@ export const loadCorrections = async (
           terms: LexiconTerm[]
           verdicts: Verdict[]
           people: Readonly<Record<string, readonly Person[]>> | null
+          /** Spec 032: this interview's own rows, read with the others of the page. */
+          interview?:
+            | {
+                suggestions: readonly Suggestion[]
+                stored: readonly Correction[]
+                decisions: ReadonlyMap<string, NameDecision>
+              }
+            | undefined
         }
       | undefined
     /** A run or a validation gives the missing codes; a read only reads them. */
@@ -57,9 +67,9 @@ export const loadCorrections = async (
   const [terms, verdicts, suggestions, stored, decisions, names] = await Promise.all([
     input.preloaded?.terms ?? deps.store.teamTerms(input.teamId),
     input.preloaded?.verdicts ?? deps.store.verdictsOf(input.studyId),
-    deps.cleaning.suggestionsOf(t.sessionId),
-    deps.cleaning.storedCorrections(t.sessionId),
-    deps.cleaning.decisionsOf(t.sessionId),
+    input.preloaded?.interview?.suggestions ?? deps.cleaning.suggestionsOf(t.sessionId),
+    input.preloaded?.interview?.stored ?? deps.cleaning.storedCorrections(t.sessionId),
+    input.preloaded?.interview?.decisions ?? deps.cleaning.decisionsOf(t.sessionId),
     !input.anonymised
       ? Promise.resolve(null)
       : input.preloaded

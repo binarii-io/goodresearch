@@ -241,6 +241,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       ],
       analysedText: (accountId, studyId, sessionId, mode, options) =>
         transcripts.analysedText(accountId, studyId, sessionId, mode, options),
+      analysedTexts: (accountId, studyId, sessionIds, mode) =>
+        transcripts.analysedTexts(accountId, studyId, sessionIds, mode),
       importTranscripts: (accountId, studyId, sessionIds) =>
         transcripts.importTranscripts(accountId, studyId, sessionIds),
       // The study's research goal (spec 019) and the guide's theme sections (spec 012 research R12).
@@ -327,6 +329,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       ],
       analysedText: (accountId, studyId, sessionId, mode, options) =>
         transcripts.analysedText(accountId, studyId, sessionId, mode, options),
+      analysedTexts: (accountId, studyId, sessionIds, mode) =>
+        transcripts.analysedTexts(accountId, studyId, sessionIds, mode),
       importTranscripts: (accountId, studyId, sessionIds) =>
         transcripts.importTranscripts(accountId, studyId, sessionIds),
       context: async (accountId, studyId) => {
@@ -339,6 +343,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         }
       },
       speakerAttributions: (sessionId) => facts.speakerAttributions(sessionId),
+      speakerAttributionsOf: (sessionIds) => facts.speakerAttributionsOf(sessionIds),
       enrichmentLive: (studyId) => transcripts.enrichmentLive(studyId),
       factsLive: (studyId) => facts.factsLive(studyId),
     },

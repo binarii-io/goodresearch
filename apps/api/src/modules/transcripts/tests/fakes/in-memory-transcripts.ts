@@ -37,6 +37,12 @@ export const createInMemoryStore = () => {
         fold(o.form) === fold(t.form),
     )
   const store: TranscriptsStore = {
+    transcriptIdsOf: async (studyId) =>
+      new Set(
+        [...transcripts.values()].filter((t) => t.studyId === studyId).map((t) => t.sessionId),
+      ),
+    transcriptsOfSessions: async (ids) =>
+      [...transcripts.values()].filter((t) => ids.includes(t.sessionId)),
     transcriptsOf: async (studyId) =>
       [...transcripts.values()].filter((t) => t.studyId === studyId),
     getTranscript: async (id) => transcripts.get(id) ?? null,
@@ -126,12 +132,16 @@ export const createInMemoryStore = () => {
         runs.set(id, { ...r, stoppedSessions: [...r.stoppedSessions, sessionId] })
       return true
     },
+    verdictsOfTerm: async (studyId, termId) =>
+      [...verdicts.values()].filter((v) => v.studyId === studyId && v.termId === termId),
     verdictsOf: async (studyId) => [...verdicts.values()].filter((v) => v.studyId === studyId),
     saveVerdict: async (place, verdict) => {
       if (verdict) verdicts.set(placeKey(place), { ...place, ...verdict })
       else verdicts.delete(placeKey(place))
     },
     occurrencesOf: async (studyId) => occurrences.get(studyId) ?? [],
+    occurrencesOfTerm: async (studyId, termId) =>
+      (occurrences.get(studyId) ?? []).filter((o) => o.termId === termId),
     otherStudies: async (termIds, studyId) =>
       new Map(
         termIds.map((id) => [

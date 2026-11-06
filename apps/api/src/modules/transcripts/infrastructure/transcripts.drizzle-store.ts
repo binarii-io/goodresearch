@@ -126,6 +126,26 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
           .where(eq(transcriptsTranscripts.studyId, studyId))
       ).map(toTranscript),
 
+    transcriptIdsOf: async (studyId) =>
+      new Set(
+        (
+          await db
+            .select({ sessionId: transcriptsTranscripts.sessionId })
+            .from(transcriptsTranscripts)
+            .where(eq(transcriptsTranscripts.studyId, studyId))
+        ).map((r) => r.sessionId),
+      ),
+
+    transcriptsOfSessions: async (sessionIds) =>
+      sessionIds.length
+        ? (
+            await db
+              .select()
+              .from(transcriptsTranscripts)
+              .where(inArray(transcriptsTranscripts.sessionId, [...sessionIds]))
+          ).map(toTranscript)
+        : [],
+
     getTranscript: async (sessionId) => {
       const [row] = await db
         .select()
@@ -276,6 +296,16 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
       })
     },
 
+    verdictsOfTerm: async (studyId, termId) =>
+      (
+        await db
+          .select()
+          .from(transcriptsVerdicts)
+          .where(
+            and(eq(transcriptsVerdicts.studyId, studyId), eq(transcriptsVerdicts.termId, termId)),
+          )
+      ).map((r) => ({ ...r, verdict: r.verdict as Verdict['verdict'] })),
+
     verdictsOf: async (studyId) =>
       (
         await db.select().from(transcriptsVerdicts).where(eq(transcriptsVerdicts.studyId, studyId))
@@ -303,6 +333,23 @@ export const createTranscriptsStore = (db: Db): TranscriptsStore => {
           set: verdict,
         })
     },
+
+    occurrencesOfTerm: async (studyId, termId) =>
+      db
+        .select({
+          termId: transcriptsOccurrences.termId,
+          spelling: transcriptsOccurrences.spelling,
+          sessionId: transcriptsOccurrences.sessionId,
+          count: transcriptsOccurrences.count,
+          anchors: transcriptsOccurrences.anchors,
+        })
+        .from(transcriptsOccurrences)
+        .where(
+          and(
+            eq(transcriptsOccurrences.studyId, studyId),
+            eq(transcriptsOccurrences.termId, termId),
+          ),
+        ),
 
     occurrencesOf: async (studyId) =>
       db

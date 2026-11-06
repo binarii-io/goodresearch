@@ -103,5 +103,7 @@ export const createEvidenceModule = (deps: {
   const reads = makeSynthesisReads(store, surveyDeps.store)
   /** A person's attributions of an interview's speaker labels (spec 016 research R5). */
   const speakerAttributions = (sessionId: string) => store.speakersOf(sessionId)
-  return { handlers, jobs, factsLive, reads, speakerAttributions }
+  const speakerAttributionsOf = (sessionIds: readonly string[]) =>
+    store.speakersOfSessions(sessionIds)
+  return { handlers, jobs, factsLive, reads, speakerAttributions, speakerAttributionsOf }
 }

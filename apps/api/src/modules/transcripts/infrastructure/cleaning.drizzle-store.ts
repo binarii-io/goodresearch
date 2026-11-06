@@ -9,6 +9,7 @@ import type {
   CorrectionSource,
   CorrectionStatus,
   NameDecision,
+  Suggestion,
   Target,
 } from '../domain/corrections.ts'
 import {
@@ -238,6 +239,60 @@ export const createCleaningStore = (db: Db): CleaningStore => ({
         target: transcriptsCleanings.sessionId,
         set: { anonymised: input.anonymised, lastRunId: input.runId, cleanedAt: input.at },
       })
+  },
+
+  suggestionsOfSessions: async (sessionIds) => {
+    const out = new Map<string, Suggestion[]>()
+    if (!sessionIds.length) return out
+    for (const { runId: _, ...s } of await db
+      .select()
+      .from(transcriptsAiSuggestions)
+      .where(inArray(transcriptsAiSuggestions.sessionId, [...sessionIds])))
+      out.set(s.sessionId, [...(out.get(s.sessionId) ?? []), s])
+    return out
+  },
+
+  correctionsOfSessions: async (sessionIds) => {
+    const out = new Map<string, Correction[]>()
+    if (!sessionIds.length) return out
+    for (const row of await db
+      .select()
+      .from(transcriptsCorrections)
+      .where(inArray(transcriptsCorrections.sessionId, [...sessionIds]))) {
+      const c = toCorrection(row)
+      out.set(c.sessionId, [...(out.get(c.sessionId) ?? []), c])
+    }
+    return out
+  },
+
+  decisionsOfSessions: async (sessionIds) => {
+    const out = new Map<string, Map<string, NameDecision>>()
+    if (!sessionIds.length) return out
+    for (const r of await db
+      .select()
+      .from(transcriptsCorrectionDecisions)
+      .where(inArray(transcriptsCorrectionDecisions.sessionId, [...sessionIds]))) {
+      const mine = out.get(r.sessionId) ?? new Map<string, NameDecision>()
+      mine.set(r.key, {
+        status: r.status as NameDecision['status'],
+        edited: r.edited,
+        decidedBy: r.decidedBy,
+        decidedAt: r.decidedAt,
+      })
+      out.set(r.sessionId, mine)
+    }
+    return out
+  },
+
+  latestVersionsWithText: async (studyId) => {
+    const rows = await db
+      .selectDistinctOn([transcriptsCleanVersions.sessionId])
+      .from(transcriptsCleanVersions)
+      .where(
+        sql`${transcriptsCleanVersions.sessionId} in (select session_id from transcripts_transcripts where study_id = ${studyId})`,
+      )
+      .orderBy(transcriptsCleanVersions.sessionId, desc(transcriptsCleanVersions.number))
+    return new Map(rows.map((r): [string, CleanVersion] => [r.sessionId, r]))
   },
 
   suggestionsOf: async (sessionId) =>

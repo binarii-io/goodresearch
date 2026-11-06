@@ -151,7 +151,7 @@ export const LexiconTerm = z
     origin: TermOrigin,
     quote: z.string().nullable(),
     variants: z.array(TermVariant),
-    /** In this study's validated interviews, with up to 3 quotes each. */
+    /** In this study's validated interviews: counts, no quotes (spec 032, read with the term). */
     occurrences: z.array(TermOccurrence),
     /** The team's other studies where it was found: a count only (FR-017). */
     otherStudies: z.number().int(),

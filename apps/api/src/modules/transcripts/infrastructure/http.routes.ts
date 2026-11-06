@@ -178,6 +178,26 @@ export const registerTranscriptsRoutes = (
       ),
   )
 
+  // Spec 032: the quotes of one term, read when it is opened (the list carries counts only).
+  api.get(
+    '/api/studies/:studyId/lexicon/terms/:termId/quotes',
+    {
+      ...secured,
+      schema: {
+        operationId: 'listTermQuotes',
+        tags,
+        params: TermParams,
+        response: { 200: TermOccurrences },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await queries.termQuotes(request.account.id, request.params.studyId, request.params.termId),
+        (v) => res.send(v),
+      ),
+  )
+
   api.get(
     '/api/studies/:studyId/lexicon/terms/:termId/occurrences',
     {

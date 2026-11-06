@@ -50,3 +50,43 @@ describe('every occurrence of a term (spec 010)', () => {
     })
   })
 })
+
+describe('the lexicon list carries what the table shows (spec 032)', () => {
+  it('gives counts without quotes; a term gives its quotes when it is opened', async () => {
+    const sources = fakeSources({
+      sessions: [
+        session('a', `Lee: ${'We use Goodresearch daily. '.repeat(10)}`),
+        session('b', 'Lee: Goodresearch again, and Goodresearch once more.'),
+      ],
+    })
+    const { deps, memory } = testDeps({ sources: sources.sources })
+    const commands = makeLexiconCommands(deps)
+    const queries = makeEnrichmentQueries(deps)
+    const started = await commands.startRun(ACTOR, 'study', { consent: true })
+    if (!started.ok) throw new Error(started.error)
+    await commands.runJob({ runId: started.value.runId, studyId: 'study' })
+    const term = [...memory.terms.values()].find((t) => t.form === 'Goodresearch')
+    if (!term) throw new Error('no term')
+
+    const page = await queries.lexicon('p1', 'study', { status: 'all' })
+    if (!page.ok) throw new Error(page.error)
+    const listed = page.value.terms.find((t) => t.id === term.id)
+    expect(listed?.occurrences.map((o) => [o.sessionId, o.count, o.quotes])).toEqual([
+      ['a', 10, []],
+      ['b', 2, []],
+    ])
+
+    const opened = await queries.termQuotes('p1', 'study', term.id)
+    if (!opened.ok) throw new Error(opened.error)
+    const every = await queries.occurrences('p1', 'study', term.id)
+    if (!every.ok) throw new Error(every.error)
+    // Three quotes an interview, as the list carried them before.
+    expect(opened.value.occurrences).toEqual(
+      every.value.occurrences.map((o) => ({ ...o, quotes: o.quotes.slice(0, 3) })),
+    )
+    expect(await queries.termQuotes('p1', 'other-team', term.id)).toMatchObject({
+      ok: false,
+      error: 'TERM_NOT_FOUND',
+    })
+  })
+})
