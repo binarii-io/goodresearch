@@ -23,7 +23,7 @@ Run in order; a failed blocking check stops the rest.
 | 3 | Permission to call models | `POST cloudresourcemanager.googleapis.com/v3/projects/{p}:testIamPermissions` with `aiplatform.endpoints.predict` | no ("not checkable" when it cannot be verified) |
 | 4 | Real minimal call | gateway `generate` "Reply OK", max 8 output tokens, configured model, chosen region | yes (proves API, permission, billing, model in region) |
 
-Regions: a fixed list in the domain (`global`, `europe-west1`, `europe-west4`, `us-central1`, `us-east4`, `asia-northeast1`…), default `global` when the model supports it.
+Regions: a fixed list in the domain (`global`, `europe-west1`, `europe-west4`, `us-central1`, `us-east4`, `asia-northeast1`…), default `global` when the model supports it. Update (spec 035 research R7): the multi-regions `eu` and `us` (`aiplatform.<eu|us>.rep.googleapis.com`) follow `global`: processing stays in that area, and recent models are served there when single regions do not have them.
 
 ## R4. Failure classification
 

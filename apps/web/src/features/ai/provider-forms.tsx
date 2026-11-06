@@ -31,7 +31,7 @@ import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { type FormEvent, useId, useState } from 'react'
 import { errorMessage } from '../workspace/errors.ts'
-import { FAILURES, PROVIDERS, VERTEX_ACCESS_REFUSED } from './labels.ts'
+import { FAILURES, PROVIDERS, REGION_LABELS, VERTEX_ACCESS_REFUSED } from './labels.ts'
 
 /** The reason and the action for a failed check, in plain words (FR-007). */
 export function FailureNotice({
@@ -162,6 +162,10 @@ export function VertexForm({ page, onSaved }: { page: AiProviderPage; onSaved: (
   const check = useCheckVertexProject()
   const refresh = useRefresh()
   const [project, setProject] = useState(page.connection?.project ?? '')
+  const regionLabel = (r: string) => {
+    const label = REGION_LABELS[r]
+    return label ? i18n._(label) : r
+  }
   const [region, setRegion] = useState(page.connection?.region ?? page.regions[0] ?? 'global')
   const ids = { project: useId(), region: useId() }
 
@@ -219,12 +223,12 @@ export function VertexForm({ page, onSaved }: { page: AiProviderPage; onSaved: (
           <Label id={ids.region}>{t`Region`}</Label>
           <Select value={region} onValueChange={(value) => value && setRegion(value)}>
             <SelectTrigger aria-labelledby={ids.region} className="w-full">
-              <SelectValue />
+              <SelectValue>{(v: string) => regionLabel(v)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {page.regions.map((r) => (
                 <SelectItem key={r} value={r}>
-                  {r}
+                  {regionLabel(r)}
                 </SelectItem>
               ))}
             </SelectContent>

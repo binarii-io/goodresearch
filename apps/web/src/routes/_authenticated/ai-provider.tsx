@@ -21,10 +21,11 @@ import { Button } from '@goodresearch/ui/components/button'
 import { Card, CardContent } from '@goodresearch/ui/components/card'
 import { PageTitle } from '@goodresearch/ui/components/page-header'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
+import type { MessageDescriptor } from '@lingui/core'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { PROVIDERS } from '../../features/ai/labels.ts'
+import { PROVIDERS, REGION_LABELS } from '../../features/ai/labels.ts'
 import { FailureNotice } from '../../features/ai/provider-forms.tsx'
 import { ReconnectNotice } from '../../features/google/reconnect-notice.tsx'
 import { useFormatDate } from '../../features/workspace/format.ts'
@@ -33,7 +34,7 @@ import { useFormatDate } from '../../features/workspace/format.ts'
 export const Route = createFileRoute('/_authenticated/ai-provider')({ component: AiProviderPage })
 
 function AiProviderPage() {
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
   const page = useGetAiProvider()
   const test = useTestAiProvider()
   const remove = useRemoveAiProvider()
@@ -91,7 +92,10 @@ function AiProviderPage() {
                 <>
                   <dt className="text-muted-foreground">{t`Google Cloud project`}</dt>
                   <dd>
-                    {connection.project} · {connection.region}
+                    {connection.project} ·{' '}
+                    {connection.region && REGION_LABELS[connection.region]
+                      ? i18n._(REGION_LABELS[connection.region] as MessageDescriptor)
+                      : connection.region}
                   </dd>
                 </>
               ) : null}

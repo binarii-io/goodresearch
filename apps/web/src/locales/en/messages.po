@@ -3060,6 +3060,10 @@ msgstr "Enter who you will interview."
 msgid "Estimated time to answer: about {minutes} min"
 msgstr "Estimated time to answer: about {minutes} min"
 
+#: src/features/ai/labels.ts
+msgid "eu (European Union, multi-region)"
+msgstr "eu (European Union, multi-region)"
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Every correction is decided. One step left: validate the clean version, the one Analysis will read."
 msgstr "Every correction is decided. One step left: validate the clean version, the one Analysis will read."
@@ -8942,6 +8946,10 @@ msgstr "Updated {updated}"
 #: src/features/preparation/drive-publishing.tsx
 msgid "Updated in Drive"
 msgstr "Updated in Drive"
+
+#: src/features/ai/labels.ts
+msgid "us (United States, multi-region)"
+msgstr "us (United States, multi-region)"
 
 #: src/features/research/study-list.tsx
 #: src/features/synthesis/deck-slide.tsx

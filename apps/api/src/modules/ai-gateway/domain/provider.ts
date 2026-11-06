@@ -27,9 +27,15 @@ export const credentialHint = (apiKey: string): string => apiKey.slice(-4)
 export const isValidProjectId = (value: string): boolean =>
   /^[a-z][a-z0-9-]{4,28}[a-z0-9]$/.test(value)
 
-/** Regions offered for Vertex AI; `global` first, as recent models are served there. */
+/**
+ * Regions offered for Vertex AI; `global` first, as recent models are served there. `eu` and `us`
+ * are the multi-region endpoints (`aiplatform.<eu|us>.rep.googleapis.com`): processing stays in
+ * that area, and recent models are served there when a single region does not have them.
+ */
 export const VERTEX_REGIONS = [
   'global',
+  'eu',
+  'us',
   'europe-west1',
   'europe-west4',
   'europe-west9',

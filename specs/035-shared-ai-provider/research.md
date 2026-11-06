@@ -28,3 +28,9 @@
 
 - **Decision**: both Vertex AI modes stay. On Google Cloud (the planned host), no key: the service account of the Cloud Run service or VM with "Vertex AI User", plus `AI_SHARED_VERTEX_PROJECT`. Elsewhere, a service account key as a mounted secret (`AI_SHARED_VERTEX_KEY_FILE`), its project read from the key.
 - **Rationale**: no long-lived secret where the platform gives an identity; the project stays deployable anywhere.
+
+## R7 — Processing in the EU (after merge)
+
+- **Finding** (2026-11-06, on the billing project): `gemini-3.8-flash` answers on `global` and on the EU multi-region endpoint (`aiplatform.eu.rep.googleapis.com`, location `eu`), not on `europe-west1`, `europe-west4` or `europe-west9` (nor `gemini-2.5-flash` there).
+- **Decision**: `eu` and `us` are accepted regions (settings and a person's own Vertex AI); the AI SDK already routes them to the multi-region endpoints.
+- **Not covered**: prices are per model, not per region; whether Google bills the `eu` multi-region at the `global` rate is not verified (to check on the billing report). No automated test of the SDK's routing of `eu` to the `.rep.` host (it needs Google's token exchange); a real call on 2026-11-06 confirmed it. The settings accept any single region by pattern, while a person's own connection uses the domain's list.

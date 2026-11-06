@@ -15,8 +15,9 @@ describe('provider rules', () => {
     expect(isValidProjectId('1starts-with-digit')).toBe(false)
   })
 
-  it('offers global first among the regions', () => {
+  it('offers global first among the regions, then the multi-regions (spec 035 R7)', () => {
     expect(VERTEX_REGIONS[0]).toBe('global')
+    expect(VERTEX_REGIONS.slice(1, 3)).toEqual(['eu', 'us'])
     expect(VERTEX_REGIONS).toContain('europe-west1')
   })
 })

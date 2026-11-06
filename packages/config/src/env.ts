@@ -336,9 +336,9 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
         issues.push('AI_SHARED_VERTEX_KEY: must be the JSON of a service account key')
       }
     }
-    const region = values.AI_SHARED_VERTEX_REGION ?? 'global'
-    if (!/^(global|[a-z]+-[a-z]+\d+)$/.test(region))
-      issues.push('AI_SHARED_VERTEX_REGION: a Vertex AI region such as global or europe-west1')
+    const region = values.AI_SHARED_VERTEX_REGION?.trim().toLowerCase() ?? 'global'
+    if (!/^(global|eu|us|[a-z]+-[a-z]+\d+)$/.test(region))
+      issues.push('AI_SHARED_VERTEX_REGION: a Vertex AI region such as global, eu or europe-west1')
     // The key names its project; AI_SHARED_VERTEX_PROJECT is needed without a key, or for another.
     const fromKey = typeof key?.project_id === 'string' ? key.project_id : undefined
     const project = values.AI_SHARED_VERTEX_PROJECT ?? fromKey

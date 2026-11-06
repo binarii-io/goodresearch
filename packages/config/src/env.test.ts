@@ -213,6 +213,23 @@ describe('loadConfig', () => {
         AI_SHARED_VERTEX_REGION: 'europe-west',
       }),
     ).toContain('AI_SHARED_VERTEX_REGION')
+    // The EU multi-region endpoint: processing stays in the EU.
+    expect(
+      loadConfig({
+        ...valid,
+        AI_SHARED_PROVIDER: 'vertex',
+        AI_SHARED_VERTEX_PROJECT: 'example-project',
+        AI_SHARED_VERTEX_REGION: ' EU ',
+      }).ai.shared,
+    ).toMatchObject({ region: 'eu' })
+    expect(
+      loadConfig({
+        ...valid,
+        AI_SHARED_PROVIDER: 'vertex',
+        AI_SHARED_VERTEX_PROJECT: 'example-project',
+        AI_SHARED_VERTEX_REGION: 'us',
+      }).ai.shared,
+    ).toMatchObject({ region: 'us' })
     expect(errorOf({ ...valid, AI_SHARED_PROVIDER: 'openai' })).toContain('AI_SHARED_API_KEY')
     expect(errorOf({ ...valid, AI_SHARED_PROVIDER: 'mistral' })).toContain('AI_SHARED_PROVIDER')
     expect(errorOf({ ...valid, AI_SHARED_PROVIDER: 'fake' })).toContain('AI_SHARED_PROVIDER')

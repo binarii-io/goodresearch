@@ -79,3 +79,9 @@ export const FAILURES: Record<AiFailure, { reason: MessageDescriptor; action: Me
       action: msg`Try again; if it keeps failing, contact the person who deployed goodresearch.`,
     },
   }
+
+/** Spec 035: a Vertex AI region as people read it; the multi-regions say what they cover. */
+export const REGION_LABELS: Partial<Record<string, MessageDescriptor>> = {
+  eu: msg`eu (European Union, multi-region)`,
+  us: msg`us (United States, multi-region)`,
+}
