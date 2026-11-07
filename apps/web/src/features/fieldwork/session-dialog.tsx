@@ -8,6 +8,7 @@ import {
   useEditSession,
   useLinkSession,
   useListPlannedInterviews,
+  useSetSessionProtocolVersion,
 } from '@goodresearch/api-client'
 import {
   AlertDialog,
@@ -51,7 +52,14 @@ import { errorCode, errorMessage } from '../workspace/errors.ts'
 import { useFormatDate } from '../workspace/format.ts'
 import { useMe } from '../workspace/me.ts'
 import { scheduleEntryOf, useAddToSchedule, useAnalyzeOne } from './analysis.tsx'
-import { excludedReason, matchReason, SESSION_STATES, SUGGESTION_RULES } from './labels.ts'
+import {
+  excludedReason,
+  lengthOf,
+  matchReason,
+  READINESS,
+  SESSION_STATES,
+  SUGGESTION_RULES,
+} from './labels.ts'
 import {
   acceptAllDecisions,
   ProposalAction,
@@ -60,6 +68,9 @@ import {
   RenameDialog,
   useQuietRename,
 } from './proposals.tsx'
+
+/** The protocol version the app proposes from the session's date (spec 037). */
+const APP = '__app__'
 
 type Person = {
   key: string
@@ -80,18 +91,24 @@ export function SessionDialog({
   studyId,
   session,
   unmatchedMedia,
+  protocolVersions = null,
   onClose,
 }: {
   studyId: string
   session: Session
   unmatchedMedia: Fieldwork['unmatchedMedia']
+  /** Spec 037: a usability test's protocol versions; null on an interview study. */
+  protocolVersions?: Fieldwork['protocolVersions'] | null
   onClose: () => void
 }) {
   const { t, i18n } = useLingui()
   const me = useMe()
   const queryClient = useQueryClient()
   const formatDate = useFormatDate()
-  const planned = useListPlannedInterviews(studyId)
+  // Spec 037: a test session has no schedule, but a protocol version.
+  const tests = protocolVersions !== null
+  const planned = useListPlannedInterviews(studyId, { query: { enabled: !tests } })
+  const setProtocol = useSetSessionProtocolVersion()
   const link = useLinkSession()
   const edit = useEditSession()
   const decide = useDecideSession()
@@ -117,6 +134,9 @@ export function SessionDialog({
     reason: useId(),
     media: useId(),
     names: useId(),
+    protocol: useId(),
+    participant: useId(),
+    facilitators: useId(),
   }
   const [focusKey, setFocusKey] = useState<string | null>(null)
   const unnamed = people.some((p) => !p.name.trim())
@@ -129,6 +149,7 @@ export function SessionDialog({
     proposals.isPending ||
     analyzer.pending ||
     schedule.pending ||
+    setProtocol.isPending ||
     renameBusy ||
     deciding
 
@@ -209,12 +230,11 @@ export function SessionDialog({
     }
   }
 
-  const dirty =
-    title.trim() !== (view.title ?? '') ||
-    media.join() !== view.media.map((m) => m.fileId).join() ||
-    JSON.stringify(people.map(({ key: _, ...p }) => p)) !==
-      JSON.stringify(peopleOf(view).map(({ key: _, ...p }) => p))
   const mediaChanged = media.join() !== view.media.map((m) => m.fileId).join()
+  const peopleChanged =
+    JSON.stringify(people.map(({ key: _, ...p }) => p)) !==
+    JSON.stringify(peopleOf(view).map(({ key: _, ...p }) => p))
+  const dirty = title.trim() !== (view.title ?? '') || mediaChanged || peopleChanged
 
   const save = async (): Promise<Session> =>
     took(
@@ -307,6 +327,52 @@ export function SessionDialog({
     }
   }
 
+  /**
+   * Spec 037: on a test session without transcript, people entered give the normalised name at
+   * once: its analysis runs the app's rules only (no AI, no cost). With a transcript, the person
+   * runs the analysis, with its estimate and consent.
+   */
+  const proposeName = async (next: Session) => {
+    if (!tests || next.transcript || !next.roster.some((r) => r.role === 'interviewee')) return
+    const named = await analyzer.analyze(next)
+    if (named) await took(named)
+  }
+
+  /** Spec 037: the participant and facilitators typed on "To decide" when nobody was found. */
+  const [participant, setParticipant] = useState('')
+  const [facilitators, setFacilitators] = useState('')
+  const nobodyFound =
+    tests &&
+    view.roster.length === 0 &&
+    !(view.analysis?.proposals ?? []).some(
+      (p) => (p.field === 'interviewees' || p.field === 'interviewers') && p.status !== 'rejected',
+    )
+  const savePeople = async () => {
+    try {
+      const next = await took(
+        await edit.mutateAsync({
+          sessionId: view.id,
+          data: {
+            version: view.version,
+            roster: [
+              { name: participant.trim(), role: 'interviewee' as const },
+              ...facilitators
+                .split(',')
+                .map((n) => n.trim())
+                .filter(Boolean)
+                .map((name) => ({ name, role: 'interviewer' as const })),
+            ],
+          },
+        }),
+      )
+      setParticipant('')
+      setFacilitators('')
+      await proposeName(next)
+    } catch (failure) {
+      await fail(failure)
+    }
+  }
+
   const analyzeAgain = async () => {
     try {
       if (dirty) await save()
@@ -335,7 +401,7 @@ export function SessionDialog({
         .join(' · ')}
     </span>
   )
-  const entry = scheduleEntryOf(view)
+  const entry = scheduleEntryOf(view, tests)
   const pick = (
     <Select
       value={view.link?.plannedInterviewId ?? NONE}
@@ -483,8 +549,33 @@ export function SessionDialog({
 
   const available = [
     ...view.media,
-    ...unmatchedMedia.filter((f) => !view.media.some((m) => m.fileId === f.fileId)),
+    ...unmatchedMedia.filter(
+      (f) => f.fileId !== view.video?.fileId && !view.media.some((m) => m.fileId === f.fileId),
+    ),
   ]
+  /** Spec 037: the main video of another session; taking it merges that session here. */
+  const otherSession = (fileId: string) =>
+    tests &&
+    !view.media.some((m) => m.fileId === fileId) &&
+    unmatchedMedia.some((f) => f.fileId === fileId && f.mimeType.startsWith('video/'))
+
+  /** Edits typed before choosing the version are saved first, never lost. */
+  const chooseProtocol = async (value: string) => {
+    try {
+      const current = proposed && dirty ? await save() : view
+      await took(
+        await setProtocol.mutateAsync({
+          sessionId: view.id,
+          data: {
+            protocolVersion: value === APP ? null : Number(value),
+            version: current.version,
+          },
+        }),
+      )
+    } catch (failure) {
+      await fail(failure)
+    }
+  }
   const name = view.title ?? view.defaultTitle
 
   return (
@@ -493,8 +584,16 @@ export function SessionDialog({
     <Dialog open onOpenChange={(open) => !open && !deciding && !renameBusy && onClose()}>
       <DialogContent closeLabel={t`Close`} className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{t`Interview: ${name}`}</DialogTitle>
+          <DialogTitle>{tests ? t`Test session: ${name}` : t`Interview: ${name}`}</DialogTitle>
           <DialogDescription>
+            {tests && view.video ? (
+              <>
+                <a href={view.video.webLink} target="_blank" rel="noreferrer" className="underline">
+                  {view.video.name}
+                </a>{' '}
+                ({lengthOf(i18n, view.video.durationMs) ?? t`length unknown`}) ·{' '}
+              </>
+            ) : null}
             {view.transcript ? (
               <a
                 href={view.transcript.webLink}
@@ -504,6 +603,8 @@ export function SessionDialog({
               >
                 {view.transcript.name}
               </a>
+            ) : tests ? (
+              t`No transcript yet: the people come from the file names, or you enter them.`
             ) : view.noTranscript ? (
               view.attachments.length ? (
                 t`No transcript: only a recording and a document attached, which the next phases do not read.`
@@ -526,9 +627,37 @@ export function SessionDialog({
         <Tabs defaultValue="decide" className="gap-4">
           <TabsList variant="line" className="w-full justify-start border-b">
             <TabsTrigger value="decide">{t`To decide (${waiting})`}</TabsTrigger>
-            <TabsTrigger value="interview">{t`Interview`}</TabsTrigger>
+            <TabsTrigger value="interview">{tests ? t`Session` : t`Interview`}</TabsTrigger>
           </TabsList>
-          <TabsContent value="decide">
+          <TabsContent value="decide" className="grid gap-4">
+            {nobodyFound && proposed ? (
+              <fieldset className="grid gap-2 rounded-md border p-3">
+                <legend className="px-1 font-medium text-sm">{t`Who took part?`}</legend>
+                <p className="text-muted-foreground text-xs">{t`Nobody was found in the files. Enter the participant: the name of the session is then proposed.`}</p>
+                <Label htmlFor={ids.participant}>{t`Participant`}</Label>
+                <Input
+                  id={ids.participant}
+                  value={participant}
+                  maxLength={120}
+                  onChange={(e) => setParticipant(e.target.value)}
+                />
+                <Label htmlFor={ids.facilitators}>{t`Facilitators (separated by commas)`}</Label>
+                <Input
+                  id={ids.facilitators}
+                  value={facilitators}
+                  maxLength={600}
+                  onChange={(e) => setFacilitators(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  className="justify-self-start"
+                  disabled={busy || !participant.trim()}
+                  onClick={() => void savePeople()}
+                >
+                  {t`Save and propose the name`}
+                </Button>
+              </fieldset>
+            ) : null}
             <Proposals
               view={view}
               editable={proposed}
@@ -538,7 +667,7 @@ export function SessionDialog({
               onAnalyze={() => void analyzeAgain()}
               onRename={() => setRenaming('asked')}
               renaming={renameBusy}
-              lead={plannedCard}
+              lead={tests ? undefined : plannedCard}
             />
           </TabsContent>
           <TabsContent value="interview" className="grid gap-5">
@@ -554,10 +683,53 @@ export function SessionDialog({
               />
             </div>
 
+            {tests && protocolVersions ? (
+              <div className="grid gap-1.5">
+                <span
+                  id={ids.protocol}
+                  className="font-medium text-sm"
+                >{t`Test protocol version`}</span>
+                <Select
+                  value={
+                    view.protocolVersion?.by === 'person'
+                      ? String(view.protocolVersion.version)
+                      : APP
+                  }
+                  disabled={!proposed || busy || protocolVersions.length === 0}
+                  onValueChange={(value) => value && void chooseProtocol(value)}
+                >
+                  <SelectTrigger aria-labelledby={ids.protocol} className="w-full">
+                    <SelectValue>
+                      {(value: string) =>
+                        value === APP
+                          ? view.protocolVersion
+                            ? t`Version ${view.protocolVersion.version}, saved before the session`
+                            : t`No test protocol saved`
+                          : t`Version ${value}`
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={APP}>{t`The version saved before the session`}</SelectItem>
+                    {protocolVersions.map((v) => (
+                      <SelectItem key={v.version} value={String(v.version)}>
+                        {t`Version ${v.version}, ${formatDate(v.savedAt)}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-muted-foreground text-xs">
+                  {view.readiness ? i18n._(READINESS[view.readiness]) : null}
+                </p>
+              </div>
+            ) : null}
+
             <fieldset className="grid gap-2" aria-describedby={ids.media}>
               <legend className="mb-1 font-medium text-sm">{t`Recordings`}</legend>
               <p id={ids.media} className="text-muted-foreground text-xs">
-                {t`Recordings matched by the app, and the ones no other interview uses.`}
+                {tests
+                  ? t`Other recordings of the session. Ticking the video of another session merges that session here.`
+                  : t`Recordings matched by the app, and the ones no other interview uses.`}
               </p>
               {available.length ? (
                 available.map((f) => {
@@ -577,6 +749,11 @@ export function SessionDialog({
                         }
                       />
                       <span>{f.name}</span>
+                      {otherSession(f.fileId) ? (
+                        <span className="text-muted-foreground text-xs">
+                          ({t`another session`})
+                        </span>
+                      ) : null}
                       {matched ? (
                         <span className="text-muted-foreground text-xs">
                           ({matchReason(i18n, matched)})
@@ -591,7 +768,9 @@ export function SessionDialog({
             </fieldset>
 
             <fieldset className="grid gap-2">
-              <legend className="mb-1 font-medium text-sm">{t`People of the interview`}</legend>
+              <legend className="mb-1 font-medium text-sm">
+                {tests ? t`People of the session` : t`People of the interview`}
+              </legend>
               {people.map((p, i) => (
                 <div key={p.key} className="flex flex-wrap items-center gap-2">
                   <Input
@@ -630,13 +809,23 @@ export function SessionDialog({
                     <SelectTrigger aria-label={t`Role of person ${i + 1}`} className="w-40">
                       <SelectValue>
                         {(value: Person['role']) =>
-                          value === 'interviewer' ? t`Interviewer` : t`Interviewee`
+                          value === 'interviewer'
+                            ? tests
+                              ? t`Facilitator`
+                              : t`Interviewer`
+                            : tests
+                              ? t`Participant`
+                              : t`Interviewee`
                         }
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="interviewee">{t`Interviewee`}</SelectItem>
-                      <SelectItem value="interviewer">{t`Interviewer`}</SelectItem>
+                      <SelectItem value="interviewee">
+                        {tests ? t`Participant` : t`Interviewee`}
+                      </SelectItem>
+                      <SelectItem value="interviewer">
+                        {tests ? t`Facilitator` : t`Interviewer`}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   {p.role === 'interviewer' ? (
@@ -718,13 +907,17 @@ export function SessionDialog({
               <Button
                 variant="outline"
                 disabled={busy || !dirty || unnamed}
-                onClick={() => void save().catch(fail)}
+                onClick={() =>
+                  void save()
+                    .then((next) => (peopleChanged ? proposeName(next) : undefined))
+                    .catch(fail)
+                }
               >
                 {t`Save`}
               </Button>
               {excluding ? (
                 <Button variant="destructive" disabled={busy} onClick={() => void run('exclude')}>
-                  {t`Exclude the interview`}
+                  {tests ? t`Exclude the session` : t`Exclude the interview`}
                 </Button>
               ) : (
                 <Button variant="outline" disabled={busy} onClick={() => setExcluding(true)}>

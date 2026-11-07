@@ -70,22 +70,33 @@ export const surveyNextStep = (s: {
   return s.checksDone ? 'open-form' : 'readiness'
 }
 
-/** The next step of a usability test study (spec 036 FR-016): only Preparation exists so far. */
+/**
+ * The next step of a usability test study (spec 036 FR-016), then its sessions (spec 037 FR-014):
+ * decide them, make them ready for the video analysis, then the next phase.
+ */
 export type UsabilityNextStep =
   | 'write-protocol'
   | 'add-folder'
   | 'publish-protocol'
   | 'readiness'
   | 'run-sessions'
+  | 'decide-sessions'
+  | 'make-ready'
+  | 'next-phase'
 
 export const usabilityNextStep = (s: {
   hasProtocol: boolean
   hasFolder: boolean
   published: readonly string[]
   checksDone: boolean
+  /** Spec 037: the study's test sessions, when read. */
+  sessions?: { total: number; open: number; notReady: number } | undefined
 }): UsabilityNextStep => {
   if (!s.hasProtocol) return 'write-protocol'
   if (!s.hasFolder) return 'add-folder'
   if (!s.published.includes('protocol')) return 'publish-protocol'
-  return s.checksDone ? 'run-sessions' : 'readiness'
+  // Sessions already found: the checks were the way to them, they no longer come first.
+  if (!s.sessions || s.sessions.total === 0) return s.checksDone ? 'run-sessions' : 'readiness'
+  if (s.sessions.open > 0) return 'decide-sessions'
+  return s.sessions.notReady > 0 ? 'make-ready' : 'next-phase'
 }

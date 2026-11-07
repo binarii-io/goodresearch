@@ -31,6 +31,8 @@ const session = (over: Partial<Session> = {}): Session => ({
   id: 'x',
   studyId: 'study',
   transcriptFileId: 't1',
+  videoFileId: null,
+  protocolVersion: null,
   media: [],
   mediaEdited: false,
   state: 'validated',

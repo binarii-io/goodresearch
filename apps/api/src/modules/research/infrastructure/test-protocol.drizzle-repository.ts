@@ -7,7 +7,28 @@ import {
   type TestProtocolContent,
   type TestProtocolOrigin,
 } from '../domain/test-protocol.ts'
-import { researchProtocolChecks, researchTestProtocols } from './schema.ts'
+import {
+  researchProtocolChecks,
+  researchTestProtocols,
+  researchTestProtocolVersions,
+} from './schema.ts'
+
+/**
+ * Spec 037: each save adds an immutable copy, numbered from 1 (the stored version plus one), in the
+ * same transaction as the save.
+ */
+const keepVersion = (
+  tx: Executor,
+  p: { studyId: string; content: unknown; updatedAt: Date; updatedBy: string | null },
+  version: number,
+) =>
+  tx.insert(researchTestProtocolVersions).values({
+    studyId: p.studyId,
+    version,
+    content: p.content,
+    savedAt: p.updatedAt,
+    savedBy: p.updatedBy,
+  })
 
 export const drizzleTestProtocolRepository = (tx: Executor): TestProtocolRepository => ({
   findByStudy: async (studyId) => {
@@ -24,35 +45,39 @@ export const drizzleTestProtocolRepository = (tx: Executor): TestProtocolReposit
       : null
   },
 
-  insert: async (protocol) => {
-    const inserted = await tx
-      .insert(researchTestProtocols)
-      .values({ ...protocol.snapshot(), version: 0 })
-      .onConflictDoNothing({ target: researchTestProtocols.studyId })
-      .returning({ id: researchTestProtocols.studyId })
-    if (inserted.length === 0) throw new ConcurrencyError()
-  },
+  insert: (protocol) =>
+    tx.transaction(async (t) => {
+      const inserted = await t
+        .insert(researchTestProtocols)
+        .values({ ...protocol.snapshot(), version: 0 })
+        .onConflictDoNothing({ target: researchTestProtocols.studyId })
+        .returning({ id: researchTestProtocols.studyId })
+      if (inserted.length === 0) throw new ConcurrencyError()
+      await keepVersion(t, protocol.snapshot(), 1)
+    }),
 
-  update: async (protocol) => {
-    const p = protocol.snapshot()
-    const updated = await tx
-      .update(researchTestProtocols)
-      .set({
-        content: p.content,
-        origin: p.origin,
-        updatedBy: p.updatedBy,
-        updatedAt: p.updatedAt,
-        version: sql`${researchTestProtocols.version} + 1`,
-      })
-      .where(
-        and(
-          eq(researchTestProtocols.studyId, p.studyId),
-          eq(researchTestProtocols.version, p.version),
-        ),
-      )
-      .returning({ id: researchTestProtocols.studyId })
-    if (updated.length === 0) throw new ConcurrencyError()
-  },
+  update: (protocol) =>
+    tx.transaction(async (t) => {
+      const p = protocol.snapshot()
+      const updated = await t
+        .update(researchTestProtocols)
+        .set({
+          content: p.content,
+          origin: p.origin,
+          updatedBy: p.updatedBy,
+          updatedAt: p.updatedAt,
+          version: sql`${researchTestProtocols.version} + 1`,
+        })
+        .where(
+          and(
+            eq(researchTestProtocols.studyId, p.studyId),
+            eq(researchTestProtocols.version, p.version),
+          ),
+        )
+        .returning({ id: researchTestProtocols.studyId })
+      if (updated.length === 0) throw new ConcurrencyError()
+      await keepVersion(t, p, p.version + 2)
+    }),
 
   mark: async (row) => {
     await tx

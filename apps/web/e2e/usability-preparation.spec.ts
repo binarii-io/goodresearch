@@ -22,13 +22,11 @@ test.describe('spec 036 - usability test preparation', () => {
     await dialog.getByRole('radio', { name: 'Usability test' }).click()
     await dialog.getByRole('button', { name: 'Create study' }).click()
 
-    // US1: the phases of a usability test, no Quality; it opens on Preparation.
+    // US1: the phases of a usability test (spec 037: no Lexicon, Enrichment or Quality); it opens on Preparation.
     await expect(page.getByRole('tablist', { name: 'Study phases' }).getByRole('tab')).toHaveText([
       '1 · Preparation',
       '2 · Fieldwork',
-      '3 · Lexicon',
-      '4 · Enrichment',
-      '5 · Analysis',
+      '3 · Analysis',
     ])
     const main = page.getByRole('main')
     await expect(main.getByRole('heading', { name: 'Test protocol', exact: true })).toBeVisible()

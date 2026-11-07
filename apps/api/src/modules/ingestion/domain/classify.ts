@@ -19,6 +19,9 @@ const TRANSCRIPT_EXTENSIONS = ['.doc', '.docx', '.txt', '.vtt', '.srt']
 export const hasTranscriptTab = (tabs: readonly string[]): boolean =>
   tabs.some((title) => /transcri/i.test(title))
 
+/** Spec 037: a video file anchors a usability test session. */
+export const isVideo = (mimeType: string): boolean => mimeType.startsWith('video/')
+
 /** FR-013: transcripts (documents, text, subtitles), media (audio, video), everything else. */
 export const classifyFile = (file: { name: string; mimeType: string }): FileKind => {
   if (file.mimeType.startsWith('audio/') || file.mimeType.startsWith('video/')) return 'media'

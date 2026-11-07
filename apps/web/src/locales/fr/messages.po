@@ -172,6 +172,11 @@ msgstr "{0, plural, one {entretien retenu} other {entretiens retenus}}"
 msgid "{0, plural, one {of # interview} other {of # interviews}}"
 msgstr "{0, plural, one {sur # entretien} other {sur # entretiens}}"
 
+#. placeholder {0}: active.length
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{0, plural, one {of # session} other {of # sessions}}"
+msgstr "{0, plural, one {sur # séance} other {sur # séances}}"
+
 #. placeholder {0}: slide.toValidate
 #: src/features/synthesis/deck-slide.tsx
 msgid "{0, plural, one {Rests on # item to validate} other {Rests on # items to validate}}"
@@ -469,6 +474,11 @@ msgstr "{0} répondants"
 msgid "{0} responses answered the former wording, which stays attached to them."
 msgstr "{0} réponses portent sur l’ancienne formulation, qui leur reste associée."
 
+#. placeholder {0}: e.count
+#: src/features/fieldwork/analysis.tsx
+msgid "{0} sessions will be analyzed: never analyzed, incomplete, or whose files changed. Sessions a person decided are left as they are."
+msgstr "{0} séances seront analysées : jamais analysées, incomplètes, ou dont les fichiers ont changé. Les séances décidées par une personne restent telles quelles."
+
 #. placeholder {0}: a.counts.setAside
 #: src/features/surveys/survey-analysis-tab.tsx
 msgid "{0} set aside"
@@ -575,6 +585,15 @@ msgstr "{handTyped} réponses ne figurent pas parmi les options de leur item, et
 msgid "{hidden, plural, one {The counts leave out # study whose folder access is not confirmed; the AI cost of the project includes it. Opening the study checks it.} other {The counts leave out # studies whose folder access is not confirmed; the AI cost of the project includes them. Opening a study checks it.}}"
 msgstr "{hidden, plural, one {Les décomptes laissent de côté # étude dont l'accès au dossier n'est pas confirmé ; le coût IA du projet l'inclut. Ouvrir l'étude le vérifie.} other {Les décomptes laissent de côté # études dont l'accès au dossier n'est pas confirmé ; le coût IA du projet les inclut. Ouvrir une étude le vérifie.}}"
 
+#. placeholder {0}: String(minutes).padStart(2, '0')
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "{hours} h {0} of video"
+msgstr "{hours} h {0} de vidéo"
+
+#: src/features/fieldwork/labels.ts
+msgid "{hours} h {minutes}"
+msgstr "{hours} h {minutes}"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "{interviewCount} interviews to analyse"
 msgstr "{interviewCount} entretiens à analyser"
@@ -672,6 +691,10 @@ msgstr "{toReview} modification(s) du Drive à revoir. "
 msgid "{toReview} changes made in Drive have not been reviewed. Updating replaces them with the app's version."
 msgstr "{toReview} modification(s) faites dans le Drive n’ont pas été revues. La mise à jour les remplace par la version de l’app."
 
+#: src/features/fieldwork/labels.ts
+msgid "{total} min"
+msgstr "{total} min"
+
 #: src/features/research/project-journey.tsx
 #: src/features/research/study-card.tsx
 msgid "{toValidate} to validate"
@@ -701,6 +724,10 @@ msgstr "{videos, plural, one {# vidéo} other {# vidéos}}"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{without} without transcript"
 msgstr "{without} sans transcription"
+
+#: src/features/fieldwork/analysis.tsx
+msgid "{withoutTranscript, plural, one {# session has no transcript: only its date and language can be proposed, from its files. Enter its participant in the session, and its name is proposed.} other {# sessions have no transcript: only their date and language can be proposed, from their files. Enter their participant in each session, and its name is proposed.}}"
+msgstr "{withoutTranscript, plural, one {# séance n’a pas de transcription : seules sa date et sa langue peuvent être proposées, à partir de ses fichiers. Saisissez son participant dans la séance, et son nom est proposé.} other {# séances n’ont pas de transcription : seules leur date et leur langue peuvent être proposées, à partir de leurs fichiers. Saisissez leur participant dans chaque séance, et son nom est proposé.}}"
 
 #: src/features/enrichment/lexicon-table.tsx
 msgid "{yes} confirmed · {no} not this term"
@@ -752,10 +779,6 @@ msgstr "3 · Lexique"
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "4 · Enrichment"
 msgstr "4 · Enrichissement"
-
-#: src/routes/_authenticated/studies/$studyId.tsx
-msgid "5 · Analysis"
-msgstr "5 · Analyse"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "5 · Quality"
@@ -1434,6 +1457,10 @@ msgstr "Déjà renseignée"
 msgid "Also analyze again the interviews already analyzed"
 msgstr "Analyser à nouveau ceux déjà analysés"
 
+#: src/features/fieldwork/analysis.tsx
+msgid "Also analyze again the sessions already analyzed"
+msgstr "Analyser aussi à nouveau les séances déjà analysées"
+
 #: src/features/enrichment/cleaning-table.tsx
 msgid "Also clean again the interviews already cleaned"
 msgstr "Nettoyer aussi à nouveau les entretiens déjà nettoyés"
@@ -1564,6 +1591,10 @@ msgstr "Analyser à nouveau"
 msgid "Analyze interviews"
 msgstr "Analyser les entretiens"
 
+#: src/features/fieldwork/analysis.tsx
+msgid "Analyze sessions"
+msgstr "Analyser les séances"
+
 #: src/features/fieldwork/proposals.tsx
 msgid "Analyze the interview to find who took part, when, and a clear name for its files."
 msgstr "Analysez l'entretien pour trouver qui y a participé, quand, et un nom clair pour ses fichiers."
@@ -1571,6 +1602,10 @@ msgstr "Analysez l'entretien pour trouver qui y a participé, quand, et un nom c
 #: src/features/fieldwork/analysis.tsx
 msgid "Analyze the interviews?"
 msgstr "Analyser les entretiens ?"
+
+#: src/features/fieldwork/analysis.tsx
+msgid "Analyze the sessions?"
+msgstr "Analyser les séances ?"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/labels.ts
@@ -1632,6 +1667,10 @@ msgstr "Un autre compte Google a été choisi. Pour l'utiliser, déconnectez Goo
 #: src/features/google/reconnect-notice.tsx
 msgid "Another Google account was chosen. To use it, go through the full setup."
 msgstr "Un autre compte Google a été choisi. Pour l'utiliser, passez par la configuration complète."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "another session"
+msgstr "une autre séance"
 
 #: src/features/workspace/errors.ts
 msgid "Another term of the lexicon already has this form: merge them instead."
@@ -2641,6 +2680,10 @@ msgstr "Décompte des entretiens à nettoyer…"
 msgid "Counting the interviews to read…"
 msgstr "Calcul des entretiens à lire…"
 
+#: src/features/fieldwork/analysis.tsx
+msgid "Counting the sessions to analyze…"
+msgstr "Décompte des séances à analyser…"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Counting the terms"
 msgstr "Comptage des termes"
@@ -3039,6 +3082,10 @@ msgstr "Chaque terme est accepté avec ses graphies. Une erreur de transcription
 msgid "Each transcript of the folder is an interview. Link it to the planned interview, check its recordings and people, then validate it."
 msgstr "Chaque transcription du dossier est un entretien. Rattachez-la à l'entretien planifié, vérifiez ses enregistrements et ses personnes, puis validez-la."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Each video of the folder is a test session. Check its transcript, participant, facilitators and protocol version, then validate it."
+msgstr "Chaque vidéo du dossier est une séance de test. Vérifiez sa transcription, son participant, ses animateurs et sa version du protocole, puis validez-la."
+
 #: src/features/preparation/drive-review.tsx
 msgid "Ease question"
 msgstr "Question de facilité"
@@ -3261,9 +3308,21 @@ msgstr "Chaque enregistrement est avec sa transcription."
 msgid "Every section needs a title."
 msgstr "Chaque section doit avoir un titre."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Every session has its transcript."
+msgstr "Chaque séance a sa transcription."
+
+#: src/features/fieldwork/analysis.tsx
+msgid "Every session is already analyzed. Tick the box below to analyze them again."
+msgstr "Toutes les séances sont déjà analysées. Cochez la case ci-dessous pour les analyser à nouveau."
+
 #: src/features/preparation/protocol-tab.tsx
 msgid "Every task has a success criterion"
 msgstr "Chaque tâche a un critère de réussite"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Every transcript has its video."
+msgstr "Chaque transcription a sa vidéo."
 
 #: src/features/analysis/facts-list.tsx
 msgid "Everyone"
@@ -3303,6 +3362,10 @@ msgstr "Exclure des entretiens"
 msgid "Exclude the interview"
 msgstr "Exclure l'entretien"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Exclude the session"
+msgstr "Exclure la séance"
+
 #: src/features/fieldwork/labels.ts
 msgid "Excluded"
 msgstr "Exclu"
@@ -3327,6 +3390,19 @@ msgstr "Déplier le volet"
 #: src/features/preparation/protocol-markdown.ts
 msgid "Expected duration"
 msgstr "Durée attendue"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Facilitator"
+msgstr "Animateur"
+
+#. placeholder {0}: who.interviewers.join(', ')
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Facilitator: {0}"
+msgstr "Animateur : {0}"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Facilitators (separated by commas)"
+msgstr "Animateurs (séparés par des virgules)"
 
 #: src/features/surveys/figure-fact-dialog.tsx
 #: src/features/surveys/open-item.tsx
@@ -4807,6 +4883,11 @@ msgstr "Laissés de côté lors de la dernière recherche : {0} citations introu
 msgid "Left to decide"
 msgstr "Reste à décider"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/fieldwork/session-dialog.tsx
+msgid "length unknown"
+msgstr "durée inconnue"
+
 #: src/features/workspace/errors.ts
 msgid "Let goodresearch edit your Drive files first."
 msgstr "Autorisez d’abord goodresearch à modifier vos fichiers Drive."
@@ -5565,6 +5646,10 @@ msgstr "Pas encore de revue"
 msgid "No review yet: the remarks come after one."
 msgstr "Pas encore de revue : les remarques viennent après."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No session matches these filters."
+msgstr "Aucune séance ne correspond à ces filtres."
+
 #: src/features/quality/remarks-list.tsx
 msgid "No simple reformulation here."
 msgstr "Aucune reformulation simple ici."
@@ -5611,6 +5696,15 @@ msgstr "Aucune équipe"
 msgid "No term matches these filters."
 msgstr "Aucun terme ne correspond à ces filtres."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/fieldwork/labels.ts
+msgid "No test protocol"
+msgstr "Aucun protocole de test"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "No test protocol saved"
+msgstr "Aucun protocole de test enregistré"
+
 #: src/features/preparation/protocol-tab.tsx
 msgid "No test protocol yet."
 msgstr "Pas encore de protocole de test."
@@ -5649,6 +5743,14 @@ msgstr "Ni transcription ni document"
 msgid "No transcript or document found: only a recording."
 msgstr "Ni transcription ni document trouvés : seulement un enregistrement."
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No transcript yet"
+msgstr "Pas encore de transcription"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "No transcript yet: the people come from the file names, or you enter them."
+msgstr "Pas encore de transcription : les personnes viennent des noms de fichiers, ou vous les saisissez."
+
 #: src/features/assistant/interview-lines-card.tsx
 msgid "No transcript: left unticked."
 msgstr "Pas de transcription : laissé décoché."
@@ -5666,6 +5768,18 @@ msgstr "Pas de transcription : seulement un enregistrement et un document joint,
 #: src/features/quality/quality-tab.tsx
 msgid "No validated interview yet."
 msgstr "Aucun entretien validé pour le moment."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No video in the folder yet. Session videos dropped in the folder appear here after a refresh."
+msgstr "Aucune vidéo dans le dossier pour l’instant. Les vidéos de séance déposées dans le dossier apparaissent ici après une actualisation."
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "No video: a session needs its recording. Put the video in the folder, then refresh."
+msgstr "Pas de vidéo : une séance a besoin de son enregistrement. Déposez la vidéo dans le dossier, puis actualisez."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Nobody was found in the files. Enter the participant: the name of the session is then proposed."
+msgstr "Personne n’a été trouvé dans les fichiers. Saisissez le participant : le nom de la séance est alors proposé."
 
 #: src/routes/_authenticated/teams.tsx
 msgid "Nobody yet."
@@ -6062,6 +6176,11 @@ msgstr "Ouvrir la transcription : {0}"
 msgid "Open the Vertex AI API page of this project"
 msgstr "Ouvrir la page de l'API Vertex AI de ce projet"
 
+#. placeholder {0}: s.video.name
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Open the video ({length}): {0}"
+msgstr "Ouvrir la vidéo ({length}) : {0}"
+
 #. placeholder {0}: m.name
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Open the video: {0}"
@@ -6158,6 +6277,10 @@ msgstr "Autres réponses"
 msgid "Other language"
 msgstr "Autre langue"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Other recordings of the session. Ticking the video of another session merges that session here."
+msgstr "Autres enregistrements de la séance. Cocher la vidéo d’une autre séance fusionne cette séance ici."
+
 #: src/features/synthesis/debrief-tab.tsx
 msgid "Out of date"
 msgstr "Pas à jour"
@@ -6237,6 +6360,7 @@ msgid "partial"
 msgstr "partiel"
 
 #: src/features/analysis/facts-list.tsx
+#: src/features/fieldwork/session-dialog.tsx
 msgid "Participant"
 msgstr "Participant"
 
@@ -6249,6 +6373,10 @@ msgstr "Participant non identifié"
 #: src/features/preparation/protocol-tab.tsx
 msgid "Participant sheet"
 msgstr "Fiche participant"
+
+#: src/features/fieldwork/labels.ts
+msgid "Participant to confirm"
+msgstr "Participant à confirmer"
 
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/insight-panel.tsx
@@ -6284,6 +6412,10 @@ msgstr "Les personnes arrivent en se connectant avec un e-mail autorisé. Donnez
 #: src/features/fieldwork/session-dialog.tsx
 msgid "People of the interview"
 msgstr "Personnes de l'entretien"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "People of the session"
+msgstr "Personnes de la séance"
 
 #: src/features/surveys/form-state.tsx
 msgid "People will see that it is closed. The responses already received stay."
@@ -6526,6 +6658,16 @@ msgstr "protocole modifié depuis"
 msgid "Protocol reviewed by another person"
 msgstr "Protocole relu par une autre personne"
 
+#. placeholder {0}: s.protocolVersion.version
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Protocol v{0}"
+msgstr "Protocole v{0}"
+
+#. placeholder {0}: s.protocolVersion.version
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Protocol v{0}, chosen"
+msgstr "Protocole v{0}, choisi"
+
 #: src/features/preparation/labels.ts
 msgid "Prototype"
 msgstr "Prototype"
@@ -6754,6 +6896,11 @@ msgstr "Lecture en cours"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Reading the interviews: {0} of {1}"
 msgstr "Lecture des entretiens : {0} sur {1}"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/fieldwork/labels.ts
+msgid "Ready for analysis"
+msgstr "Prête pour l’analyse"
 
 #: src/features/assistant/interview-lines-card.tsx
 msgid "Reason"
@@ -7277,6 +7424,10 @@ msgstr "même heure"
 msgid "Save"
 msgstr "Enregistrer"
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Save and propose the name"
+msgstr "Enregistrer et proposer le nom"
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Save the edit"
 msgstr "Enregistrer la modification"
@@ -7469,9 +7620,23 @@ msgstr "Envoyé aux personnes correspondant à la cible"
 msgid "Sent widely, then filtered"
 msgstr "Envoyé largement, puis filtré"
 
+#: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Session"
+msgstr "Séance"
+
 #: src/features/preparation/protocol-editor.tsx
 msgid "Session (min)"
 msgstr "Séance (min)"
+
+#. placeholder {0}: data.sessions.length
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Sessions ({0})"
+msgstr "Séances ({0})"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Sessions found"
+msgstr "Séances trouvées"
 
 #: src/features/analysis/interview-facts.tsx
 msgid "Set aside"
@@ -8157,9 +8322,17 @@ msgstr "Avancement de la conception du protocole de test"
 msgid "Test protocol finished · {study}"
 msgstr "Protocole de test terminé · {study}"
 
-#: src/routes/_authenticated/studies/$studyId.tsx
-msgid "Test sessions and their videos are coming in a later version."
-msgstr "Les séances de test et leurs vidéos arrivent dans une prochaine version."
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Test protocol version"
+msgstr "Version du protocole de test"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Test session: {name}"
+msgstr "Séance de test : {name}"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Test sessions"
+msgstr "Séances de test"
 
 #: src/features/preparation/protocol-tab.tsx
 msgid "test-protocol"
@@ -8735,6 +8908,10 @@ msgstr "La transcription n'est plus dans Drive, ou vous ne pouvez pas l'ouvrir."
 msgid "The transcript with the corrections of the cleaning, those still to decide included. Facts can be found before every interview is clean."
 msgstr "La transcription avec les corrections du nettoyage, y compris celles encore à décider. Les faits peuvent être trouvés avant que chaque entretien soit nettoyé."
 
+#: src/features/fieldwork/session-dialog.tsx
+msgid "The version saved before the session"
+msgstr "La version enregistrée avant la séance"
+
 #: src/features/ai/labels.ts
 msgid "The Vertex AI API is not enabled in this project."
 msgstr "L'API Vertex AI n'est pas activée dans ce projet."
@@ -9243,12 +9420,12 @@ msgstr "Pour créer les documents dans le dossier de l’étude, goodresearch de
 msgid "To decide"
 msgstr "À décider"
 
-#. placeholder {0}: toDecide(s)
+#. placeholder {0}: toDecide(s, tests)
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "To decide ({0})"
 msgstr "À décider ({0})"
 
-#. placeholder {0}: toDecide(s)
+#. placeholder {0}: toDecide(s, tests)
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "To decide ({0}): open {name}"
 msgstr "À décider ({0}) : ouvrir {name}"
@@ -9305,6 +9482,7 @@ msgstr "À revoir : {0}"
 msgid "to validate"
 msgstr "à valider"
 
+#: src/features/fieldwork/labels.ts
 #: src/features/synthesis/deck-slide.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insights-picker.tsx
@@ -9353,6 +9531,11 @@ msgstr "Transcription absente"
 #: src/features/enrichment/labels.ts
 msgid "Transcription error"
 msgstr "Erreur de transcription"
+
+#. placeholder {0}: data.unclaimedTranscripts.length
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Transcripts without video ({0})"
+msgstr "Transcriptions sans vidéo ({0})"
 
 #: src/features/analysis/fact-card.tsx
 msgid "Translate"
@@ -9633,9 +9816,36 @@ msgstr "Version {0} · modifiée à la main par {who} {when}"
 msgid "Version {0} · written with the assistant, applied by {who} {when}"
 msgstr "Version {0} · rédigée avec l’assistant, appliquée par {who} {when}"
 
+#. placeholder {0}: v.version
+#. placeholder {1}: formatDate(v.savedAt)
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Version {0}, {1}"
+msgstr "Version {0}, {1}"
+
+#. placeholder {0}: view.protocolVersion.version
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Version {0}, saved before the session"
+msgstr "Version {0}, enregistrée avant la séance"
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Version {value}"
+msgstr "Version {value}"
+
 #: src/features/google/reconnect-notice.tsx
 msgid "Vertex AI"
 msgstr "Vertex AI"
+
+#: src/features/fieldwork/labels.ts
+msgid "Video length unknown"
+msgstr "Durée de la vidéo inconnue"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Video missing"
+msgstr "Vidéo manquante"
+
+#: src/features/fieldwork/labels.ts
+msgid "Video missing in Drive"
+msgstr "Vidéo manquante dans Drive"
 
 #: src/features/quality/quality-tab.tsx
 #: src/features/synthesis/debrief-tab.tsx
@@ -9807,6 +10017,10 @@ msgstr "Qui parle"
 #: src/features/preparation/schedule.tsx
 msgid "Who to interview, when and by whom. Shared with the people who can open this study; never sent to the assistant."
 msgstr "Qui interviewer, quand et par qui. Partagé avec les personnes qui peuvent ouvrir cette étude ; jamais envoyé à l’assistant."
+
+#: src/features/fieldwork/session-dialog.tsx
+msgid "Who took part?"
+msgstr "Qui a participé ?"
 
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Why exclude it? (optional)"

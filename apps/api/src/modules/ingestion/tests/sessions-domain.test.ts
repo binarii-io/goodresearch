@@ -33,6 +33,8 @@ const session = (over: Partial<Session> = {}): Session => ({
   id: 'x',
   studyId: 'study',
   transcriptFileId: 't1',
+  videoFileId: null,
+  protocolVersion: null,
   media: [],
   mediaEdited: false,
   state: 'proposed',
@@ -362,7 +364,7 @@ describe('recordings without transcript and meeting notes', () => {
       now: NOW,
       newId,
     })
-    expect(again).toEqual({ created: [], removed: [], media: [] })
+    expect(again).toEqual({ created: [], removed: [], media: [], transcripts: [] })
     const transcript = file('t9', 'Lone call.txt', 'transcript', '2026-10-25T10:00:10Z')
     const claimed = reconcileSessions({
       studyId: 'study',

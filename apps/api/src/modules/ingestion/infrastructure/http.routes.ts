@@ -22,6 +22,7 @@ import {
   RunParams,
   Session,
   SessionParams,
+  SetProtocolVersion,
   StartAnalysisRun,
   StudyParams,
   StudySourceView,
@@ -245,6 +246,29 @@ export const registerIngestionRoutes = (
     },
     async (request, res) => {
       const done = await sessions.decide({
+        actor: request.account,
+        sessionId: request.params.sessionId,
+        ...request.body,
+      })
+      return done.ok ? sendSession(request, res)(done.value) : reply(res, done, () => res)
+    },
+  )
+
+  // Spec 037: the protocol version a test session was run against.
+  api.put(
+    '/api/sessions/:sessionId/protocol-version',
+    {
+      ...secured,
+      schema: {
+        operationId: 'setSessionProtocolVersion',
+        tags: fieldworkTags,
+        params: SessionParams,
+        body: SetProtocolVersion,
+        response: { 200: Session },
+      },
+    },
+    async (request, res) => {
+      const done = await sessions.setProtocolVersion({
         actor: request.account,
         sessionId: request.params.sessionId,
         ...request.body,

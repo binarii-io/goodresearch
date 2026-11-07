@@ -37,6 +37,15 @@ describe('spec 036 - the next step of a usability test study', () => {
     ['not published', { ...all, published: [] }, 'publish-protocol'],
     ['checks left', { ...all, checksDone: false }, 'readiness'],
     ['ready', all, 'run-sessions'],
+    // Spec 037: then the sessions found in the folder.
+    ['no session yet', { ...all, sessions: { total: 0, open: 0, notReady: 0 } }, 'run-sessions'],
+    [
+      'sessions to decide',
+      { ...all, checksDone: false, sessions: { total: 3, open: 1, notReady: 2 } },
+      'decide-sessions',
+    ],
+    ['sessions not ready', { ...all, sessions: { total: 3, open: 0, notReady: 1 } }, 'make-ready'],
+    ['all ready', { ...all, sessions: { total: 3, open: 0, notReady: 0 } }, 'next-phase'],
   ])('with %s', (_case, state, step) => {
     expect(usabilityNextStep(state)).toBe(step)
   })

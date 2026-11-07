@@ -45,6 +45,14 @@ Names like "[Person 1]" are placeholders: return them exactly as written.
 For each answer, give a short quote copied exactly from the transcript (one sentence, at most 200 characters).
 Give nothing you cannot quote. Never invent names or dates.`
 
+/**
+ * Spec 037: a usability test session has the same two roles under other names; the answer keeps
+ * its fields (interviewees: participants, interviewers: facilitators).
+ */
+const USABILITY = `This transcript is a usability test session, not an interview.
+The facilitator plays the interviewer's role: they explain the test, give the tasks and ask the questions; return them as interviewers.
+The participant plays the interviewee's role: they try the tasks and think aloud; return them as interviewees.`
+
 /** The AI of the analyses through the AI Gateway: one schema-constrained call per analysis. */
 export const createAiAnalyzer = (ai: {
   /** Read at each call: the gateway may be built after this module. */
@@ -52,13 +60,13 @@ export const createAiAnalyzer = (ai: {
   estimateCost(accountId: string, inputChars: number, outputTokens: number): Promise<number | null>
   studyCosts(refs: readonly string[]): Promise<ReadonlyMap<string, number | null>>
 }): Analyzer => ({
-  analyze: async (accountId, ref, text) => {
+  analyze: async (accountId, ref, text, kind) => {
     try {
       const { object } = await ai.gateway().generateObject(
         accountId,
         ANALYSIS_TASK,
         {
-          system: SYSTEM,
+          system: kind === 'usability-test' ? `${SYSTEM}\n${USABILITY}` : SYSTEM,
           prompt: `${ANALYSIS_MARKER}\n${text}\n</transcript>`,
           schema: AnalysisAnswer,
           // A ceiling, not a cost: models that think count it in the output (spec 009, a cut

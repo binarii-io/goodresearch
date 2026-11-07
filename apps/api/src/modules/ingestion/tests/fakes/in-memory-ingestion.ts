@@ -31,8 +31,13 @@ import type { FolderAccessResult } from '../../domain/folder-access.ts'
 import { type InventoryRun, isActiveRun } from '../../domain/inventory-run.ts'
 import type { InventoryFile } from '../../domain/inventory-walk.ts'
 import { assignPseudonyms } from '../../domain/pseudonyms.ts'
-import { reconcileSessions } from '../../domain/reconcile-sessions.ts'
-import { givesUpRecordings, type Session, withoutRecordings } from '../../domain/session.ts'
+import { reconcileStudy, type SessionMode } from '../../domain/reconcile-sessions.ts'
+import {
+  givesUpRecordings,
+  mergeable,
+  type Session,
+  withoutRecordings,
+} from '../../domain/session.ts'
 import { InMemoryDrive } from './in-memory-drive.ts'
 
 /** Same rules as the Drizzle store, including run-scoped writes. */
@@ -52,13 +57,18 @@ export class InMemoryIngestionStore implements IngestionStore {
   #write(s: Session, expected: number): SessionWrite {
     const current = this.sessions.get(s.id)
     if (!current || current.version !== expected) return 'stale'
-    const mine = new Set([...s.media.map((m) => m.fileId), ...s.attachments.map((a) => a.fileId)])
+    const mine = new Set([
+      ...s.media.map((m) => m.fileId),
+      ...s.attachments.map((a) => a.fileId),
+      ...(s.videoFileId ? [s.videoFileId] : []),
+    ])
     if (
       [...this.sessions.values()].some(
         (o) =>
           o.id !== s.id &&
           o.studyId === s.studyId &&
-          (o.media.some((m) => mine.has(m.fileId)) ||
+          ((o.videoFileId !== null && mine.has(o.videoFileId)) ||
+            o.media.some((m) => mine.has(m.fileId)) ||
             o.attachments.some((a) => mine.has(a.fileId))),
       )
     )
@@ -156,12 +166,13 @@ export class InMemoryIngestionStore implements IngestionStore {
     files: readonly InventoryFile[],
     folder: { name: string; ownerName: string | null },
     now: Date,
-    options?: { sessions: boolean },
+    options?: { sessions: SessionMode | false },
   ) {
     const s = this.sources.get(run.studyId)
     if (!s || !this.#isCurrent(run)) return false
     this.files.set(run.studyId, [...files])
-    if (options?.sessions !== false) await this.#reconcile(run.studyId, files, now)
+    const mode = options?.sessions ?? 'transcripts'
+    if (mode !== false) await this.#reconcile(run.studyId, files, now, mode)
     this.sources.set(run.studyId, {
       ...s,
       folderName: folder.name,
@@ -239,8 +250,13 @@ export class InMemoryIngestionStore implements IngestionStore {
   async accountName(id: string) {
     return id
   }
-  async #reconcile(studyId: string, files: readonly InventoryFile[], now: Date) {
-    const r = reconcileSessions({
+  async #reconcile(
+    studyId: string,
+    files: readonly InventoryFile[],
+    now: Date,
+    mode: SessionMode = 'transcripts',
+  ) {
+    const r = reconcileStudy(mode, {
       studyId,
       files,
       sessions: await this.listSessions(studyId),
@@ -253,10 +269,20 @@ export class InMemoryIngestionStore implements IngestionStore {
       if (s)
         this.sessions.set(m.id, { ...s, media: m.media, updatedAt: now, version: s.version + 1 })
     }
+    for (const t of r.transcripts) {
+      const s = this.sessions.get(t.id)
+      if (s)
+        this.sessions.set(t.id, {
+          ...s,
+          transcriptFileId: t.transcriptFileId,
+          updatedAt: now,
+          version: s.version + 1,
+        })
+    }
     for (const s of r.created) this.sessions.set(s.id, s)
   }
-  async backfillSessions(studyId: string, now: Date) {
-    await this.#reconcile(studyId, this.files.get(studyId) ?? [], now)
+  async backfillSessions(studyId: string, now: Date, mode: SessionMode = 'transcripts') {
+    await this.#reconcile(studyId, this.files.get(studyId) ?? [], now, mode)
   }
   async listSessions(studyId: string) {
     return [...this.sessions.values()].filter((s) => s.studyId === studyId)
@@ -278,7 +304,12 @@ export class InMemoryIngestionStore implements IngestionStore {
     const taken = new Set(s.media.map((m) => m.fileId))
     for (const id of release) {
       const o = this.sessions.get(id)
-      if (!o || o.studyId !== s.studyId || !givesUpRecordings(o)) continue
+      if (!o || o.studyId !== s.studyId) continue
+      if (mergeable(o) && o.videoFileId && taken.has(o.videoFileId)) {
+        this.sessions.delete(id)
+        continue
+      }
+      if (!givesUpRecordings(o)) continue
       const rest = withoutRecordings(o, taken, s.updatedAt)
       if (rest) this.sessions.set(id, { ...rest, version: o.version + 1 })
       else this.sessions.delete(id)
@@ -382,13 +413,13 @@ export class FakeAnalyzer implements Analyzer {
     date: null,
   })
   fail = false
-  readonly calls: { accountId: string; ref: string; text: string }[] = []
+  readonly calls: { accountId: string; ref: string; text: string; kind?: string | undefined }[] = []
   /** USD per call, recorded by ref like the usage ledger. */
   costPerCall = 0.01
 
-  async analyze(accountId: string, ref: string, text: string) {
+  async analyze(accountId: string, ref: string, text: string, kind?: string) {
     if (!this.provider) throw new AiUnavailable()
-    this.calls.push({ accountId, ref, text })
+    this.calls.push({ accountId, ref, text, kind })
     if (this.fail) throw new Error('provider down')
     return this.answer(text)
   }
@@ -413,6 +444,8 @@ export class InMemoryIngestion {
   readonly studies = new Map<string, string[]>()
   /** Study id → its schedule (spec 006), for every person who can see the study. */
   readonly schedules = new Map<string, PlannedSummary[]>()
+  /** Spec 037: the saved versions of each study's test protocol. */
+  readonly protocolVersions = new Map<string, { version: number; savedAt: Date }[]>()
   readonly memberIds = new Set<string>(['alice', 'bob', 'admin'])
   /** Simulates a schedule the research module could not read. */
   scheduleUnreadable = false
@@ -480,6 +513,7 @@ export class InMemoryIngestion {
           return true
         },
       },
+      protocolVersions: { list: async (studyId) => this.protocolVersions.get(studyId) ?? [] },
       members: {
         exist: async (ids) => ids.every((id) => this.memberIds.has(id)),
         ofTeam: async () => this.team,

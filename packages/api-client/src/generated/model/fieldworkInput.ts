@@ -4,13 +4,17 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
+import type { FieldworkInputKind } from './fieldworkInputKind.ts';
 import type { FieldworkInputPlannedWithoutSessionItem } from './fieldworkInputPlannedWithoutSessionItem.ts';
+import type { FieldworkInputProtocolVersionsItem } from './fieldworkInputProtocolVersionsItem.ts';
 import type { FieldworkInputRun } from './fieldworkInputRun.ts';
 import type { FieldworkInputTotals } from './fieldworkInputTotals.ts';
+import type { FieldworkInputUnclaimedTranscriptsItem } from './fieldworkInputUnclaimedTranscriptsItem.ts';
 import type { FieldworkInputUnmatchedMediaItem } from './fieldworkInputUnmatchedMediaItem.ts';
 import type { SessionInput } from './sessionInput.ts';
 
 export interface FieldworkInput {
+  kind: FieldworkInputKind;
   sessions: SessionInput[];
   unmatchedMedia: FieldworkInputUnmatchedMediaItem[];
   plannedWithoutSession: FieldworkInputPlannedWithoutSessionItem[];
@@ -30,4 +34,16 @@ export interface FieldworkInput {
      */
   namedFiles: number;
   consentNeeded: boolean;
+  /**
+     * @minimum -9007199254740991
+     * @maximum 9007199254740991
+     */
+  ready: number;
+  /**
+     * @minimum -9007199254740991
+     * @maximum 9007199254740991
+     */
+  videoMinutes: number;
+  unclaimedTranscripts: FieldworkInputUnclaimedTranscriptsItem[];
+  protocolVersions: FieldworkInputProtocolVersionsItem[];
 }

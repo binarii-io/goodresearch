@@ -37,6 +37,7 @@ import type {
   RenamePlan,
   RenameResult,
   Session,
+  SetProtocolVersionInput,
   StartAnalysisRunInput
 } from '../../model';
 
@@ -405,6 +406,88 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDecideSessionMutationOptions(options), queryClient);
+    }
+    export const getSetSessionProtocolVersionUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/sessions/${sessionId}/protocol-version`
+}
+
+export const setSessionProtocolVersion = async (sessionId: string,
+    setProtocolVersionInput: SetProtocolVersionInput, options?: Parameters<typeof apiFetch>[1]): Promise<Session> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<Session>(getSetSessionProtocolVersionUrl(sessionId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(setProtocolVersionInput)
+  }
+);}
+
+
+
+
+
+export const getSetSessionProtocolVersionMutationKey = () => ['setSessionProtocolVersion'] as const;
+
+export const getSetSessionProtocolVersionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSessionProtocolVersion>>, TError,SetSessionProtocolVersionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setSessionProtocolVersion>>, TError,SetSessionProtocolVersionMutationVariables, TContext> => {
+
+const mutationKey = getSetSessionProtocolVersionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setSessionProtocolVersion>>, SetSessionProtocolVersionMutationVariables> = (props) => {
+          const {sessionId,data} = props ?? {};
+
+          return  setSessionProtocolVersion(sessionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetSessionProtocolVersionMutationResult = NonNullable<Awaited<ReturnType<typeof setSessionProtocolVersion>>>
+    export type SetSessionProtocolVersionMutationBody = SetProtocolVersionInput
+    export type SetSessionProtocolVersionMutationError = unknown
+    export type SetSessionProtocolVersionMutationVariables = {sessionId: string;data: SetProtocolVersionInput}
+
+    export const useSetSessionProtocolVersion = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSessionProtocolVersion>>, TError,SetSessionProtocolVersionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setSessionProtocolVersion>>,
+        TError,
+        SetSessionProtocolVersionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetSessionProtocolVersionMutationOptions(options), queryClient);
     }
     export const getAnalyzeSessionUrl = (sessionId: string,) => {
 

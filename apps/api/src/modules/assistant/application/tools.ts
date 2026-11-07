@@ -167,9 +167,10 @@ const INPUTS = {
           'ready',
           'validated',
           'excluded',
+          'not-ready',
         ]),
       )
-      .max(7)
+      .max(8)
       .optional(),
     name: z.string().trim().min(1).max(120).optional(),
     page: z.number().int().min(1).max(10).optional(),
@@ -406,7 +407,7 @@ export const TOOLS: readonly ToolSpec[] = [
   {
     name: 'count_interviews',
     description:
-      'How many interviews of a study are in each state: to-decide (suggestions of the analysis undecided), no-transcript, no-recording, not-analysed, ready (to validate), validated, excluded. An interview can be in several. Holds no name. Call it first to answer what is left to do, instead of listing.',
+      'How many interviews of a study are in each state: to-decide (suggestions of the analysis undecided), no-transcript, no-recording, not-analysed, ready (to validate), validated, excluded. An interview can be in several. Holds no name. Call it first to answer what is left to do, instead of listing. On a usability test study it counts the test sessions, with not-ready, readyForAnalysis (validated with video, length, participant and protocol version) and videoMinutes.',
     inputSchema: INPUTS.count_interviews,
   },
   {
@@ -653,11 +654,17 @@ export const prepareFolder = async (
   if (checked.ok) {
     // Fieldwork comes after the guide; planning interviews blocks nothing (spec 024).
     const preparation = await research.preparation(actor.id, studyId)
-    // Spec 036: a usability test's folder serves its protocol for now; Fieldwork is not built yet.
+    // Spec 037: a usability test's folder opens its sessions once the protocol exists.
+    const protocol =
+      study.type === 'usability-test' ? await research.testProtocol(actor.id, studyId) : null
     const opensOn: 'preparation' | 'fieldwork' =
-      study.type === 'usability-test' || (preparation && !preparation.guide)
-        ? 'preparation'
-        : 'fieldwork'
+      study.type === 'usability-test'
+        ? protocol?.content
+          ? 'fieldwork'
+          : 'preparation'
+        : preparation && !preparation.guide
+          ? 'preparation'
+          : 'fieldwork'
     return {
       ...base,
       kind: 'attach_folder',

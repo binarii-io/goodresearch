@@ -428,6 +428,13 @@
       "when": 1794080417523,
       "tag": "0060_test_protocols",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1794088741306,
+      "tag": "0061_usability_sessions",
+      "breakpoints": true
     }
   ]
 }

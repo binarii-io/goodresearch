@@ -13,7 +13,7 @@ import { createGoogleRequests, type GoogleRequests } from './google-requests.ts'
 const API = 'https://www.googleapis.com/drive/v3'
 const DOCS_API = 'https://docs.googleapis.com/v1'
 const ITEM_FIELDS =
-  'id,name,mimeType,parents,size,modifiedTime,webViewLink,trashed,driveId,owners(displayName),shortcutDetails(targetId,targetMimeType)'
+  'id,name,mimeType,parents,size,modifiedTime,webViewLink,trashed,driveId,owners(displayName),shortcutDetails(targetId,targetMimeType),videoMediaMetadata(durationMillis)'
 
 type RawItem = {
   id: string
@@ -27,6 +27,8 @@ type RawItem = {
   driveId?: string
   owners?: { displayName?: string }[]
   shortcutDetails?: { targetId?: string; targetMimeType?: string }
+  /** Drive gives it as a string, once the video is processed (spec 037). */
+  videoMediaMetadata?: { durationMillis?: string }
 }
 
 const GOOGLE_DOC = 'application/vnd.google-apps.document'
@@ -74,6 +76,11 @@ const tabText = (tab: DocTab, chips: 'names' | 'markers' = 'names'): string =>
     )
     .join('')
 
+const durationOf = (raw: RawItem): { durationMs?: number } => {
+  const ms = Number(raw.videoMediaMetadata?.durationMillis)
+  return Number.isFinite(ms) && ms > 0 ? { durationMs: Math.round(ms) } : {}
+}
+
 const toItem = (raw: RawItem): DriveItem => ({
   id: raw.id,
   name: raw.name,
@@ -89,6 +96,7 @@ const toItem = (raw: RawItem): DriveItem => ({
   ...(raw.shortcutDetails?.targetMimeType
     ? { shortcutTargetMimeType: raw.shortcutDetails.targetMimeType }
     : {}),
+  ...durationOf(raw),
 })
 
 /**

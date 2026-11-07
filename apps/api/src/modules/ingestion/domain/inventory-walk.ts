@@ -10,6 +10,8 @@ export type InventoryFile = {
   readonly size: number | null
   readonly modifiedAt: string | null
   readonly webViewLink: string
+  /** Spec 037: a video's length as the source gives it; absent or null when unknown. */
+  readonly durationMs?: number | null
 }
 
 export type InventoryProgress = { readonly folders: number; readonly files: number }
@@ -52,6 +54,7 @@ export const walkInventory = async (
       size: item.size ?? null,
       modifiedAt: item.modifiedTime ?? null,
       webViewLink: item.webViewLink ?? `https://drive.google.com/open?id=${item.id}`,
+      durationMs: item.durationMs ?? null,
     })
   }
 

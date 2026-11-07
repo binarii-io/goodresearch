@@ -6,6 +6,7 @@ import {
   FOLDER_MIME,
 } from '../../domain/drive-gateway.ts'
 import { type InventoryFile, walkInventory } from '../../domain/inventory-walk.ts'
+import { sessionModeOf } from '../../domain/reconcile-sessions.ts'
 import { readRefreshToken } from '../connection.ts'
 import type { IngestionDeps, InventoryFailure, InventoryJob } from '../ports.ts'
 
@@ -83,7 +84,7 @@ export const makeRunInventory =
         files,
         { name: root.name, ownerName: root.ownerName ?? null },
         deps.clock.now(),
-        { sessions: study?.type === 'interviews' },
+        { sessions: sessionModeOf(study?.type) },
       )
     } catch (error) {
       await progressWrite

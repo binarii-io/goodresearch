@@ -98,7 +98,8 @@ function StudyPage() {
   const reader = study.data?.canChange === false
   // Spec 027: a survey has nothing else yet.
   const survey = study.data?.type === 'survey'
-  // Spec 036: a usability test has transcripts (Lexicon, Enrichment) but no Quality; only Preparation is built.
+  // Spec 037: a usability test has Preparation, Fieldwork and Analysis; its video analysis
+  // transcribes the sessions itself, so no Lexicon, Enrichment or Quality for now.
   const usability = study.data?.type === 'usability-test'
   // A questionnaire has no transcript: no Lexicon, Enrichment or Quality, even from an old link.
   const phase = survey
@@ -106,7 +107,7 @@ function StudyPage() {
       ? asked
       : 'preparation'
     : usability
-      ? asked && asked !== 'quality'
+      ? asked === 'fieldwork' || asked === 'analysis'
         ? asked
         : 'preparation'
       : (asked ?? (reader ? 'analysis' : 'fieldwork'))
@@ -311,14 +312,8 @@ function StudyPage() {
               <TabsList aria-label={t`Study phases`}>
                 <TabsTrigger value="preparation">{t`1 · Preparation`}</TabsTrigger>
                 <TabsTrigger value="fieldwork">{t`2 · Fieldwork`}</TabsTrigger>
-                {survey ? (
+                {survey || usability ? (
                   <TabsTrigger value="analysis">{t`3 · Analysis`}</TabsTrigger>
-                ) : usability ? (
-                  <>
-                    <TabsTrigger value="lexicon">{t`3 · Lexicon`}</TabsTrigger>
-                    <TabsTrigger value="enrichment">{t`4 · Enrichment`}</TabsTrigger>
-                    <TabsTrigger value="analysis">{t`5 · Analysis`}</TabsTrigger>
-                  </>
                 ) : (
                   <>
                     <TabsTrigger value="lexicon">{t`3 · Lexicon`}</TabsTrigger>
@@ -418,16 +413,9 @@ function StudyPage() {
         <TabsContent value="fieldwork">
           {reader ? (
             <ReservedToTeam team={s.team.name} />
-          ) : s.type === 'interviews' ? (
+          ) : s.type === 'interviews' || s.type === 'usability-test' ? (
+            // Spec 037: a usability test lists its test sessions, one per video of the folder.
             <FieldworkTab studyId={studyId} isAdmin={me.role === 'admin'} />
-          ) : s.type === 'usability-test' ? (
-            <div className="grid gap-6">
-              {/* The folder holds the published protocol now, and the sessions with their videos later. */}
-              {readable && source.data?.source ? null : (
-                <SourcePanel studyId={studyId} isAdmin={me.role === 'admin'} />
-              )}
-              <p className="text-muted-foreground text-base">{t`Test sessions and their videos are coming in a later version.`}</p>
-            </div>
           ) : (
             <div className="grid gap-6">
               {/* Once attached, the folder lives behind the icon of the page bar, as for interviews. */}

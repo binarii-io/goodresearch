@@ -1,10 +1,14 @@
 import { err, newId, ok, type Result } from '@goodresearch/shared'
+import { hasSessions } from '../../domain/reconcile-sessions.ts'
 import {
+  absorb,
+  chooseProtocolVersion,
   type Decision,
   decide,
   edit,
   givesUpRecordings,
   link,
+  mergeable,
   personDecided,
   prefillRoster,
   type RosterInput,
@@ -49,7 +53,7 @@ export const makeSessionCommands = (deps: IngestionDeps) => {
     const access = await resolveStudyAccess(deps, actor.id, session.studyId)
     if (access.kind === 'not-found') return err('SESSION_NOT_FOUND')
     if (access.kind !== 'full') return err('FOLDER_ACCESS_REQUIRED')
-    if (access.type !== 'interviews') return err('NOT_AN_INTERVIEW_STUDY')
+    if (!hasSessions(access.type)) return err('NOT_AN_INTERVIEW_STUDY')
     if (session.version !== version) return err('VERSION_CONFLICT')
     const schedule = await deps.schedule.list(actor.id, session.studyId)
     // Only a schedule actually read can show that the planned interview is gone.
@@ -151,26 +155,49 @@ export const makeSessionCommands = (deps: IngestionDeps) => {
         deps.store.listSessions(session.studyId),
       ])
       // A row without transcript gives its recording to this interview, and goes once empty.
+      // Spec 037: taking the main video of an undecided test session merges it into this one.
       const others = sessions.filter((s) => s.id !== session.id)
       const elsewhere = new Set(
-        others.filter((s) => !givesUpRecordings(s)).flatMap((s) => s.media.map((m) => m.fileId)),
+        others.flatMap((s) => [
+          ...(givesUpRecordings(s) ? [] : s.media.map((m) => m.fileId)),
+          ...(s.videoFileId && !mergeable(s) ? [s.videoFileId] : []),
+        ]),
       )
       const available = new Set(files.filter((f) => !elsewhere.has(f.id)).map((f) => f.id))
       const chosen = new Set(c.media ?? [])
-      const release = others
-        .filter((s) => givesUpRecordings(s) && s.media.some((m) => chosen.has(m.fileId)))
-        .map((s) => s.id)
-      const next = edit(
-        session,
-        { title: c.title, media: c.media, roster },
-        available,
-        deps.clock.now(),
+      const merged = others.filter(
+        (s) => mergeable(s) && s.videoFileId !== null && chosen.has(s.videoFileId),
       )
+      const release = [
+        ...others
+          .filter((s) => givesUpRecordings(s) && s.media.some((m) => chosen.has(m.fileId)))
+          .map((s) => s.id),
+        ...merged.map((s) => s.id),
+      ]
+      const now = deps.clock.now()
+      const next = edit(session, { title: c.title, media: c.media, roster }, available, now)
       if (!next.ok) return next
-      const saved = await save(next.value, c.version, release)
+      const whole = merged.reduce((target, source) => absorb(target, source, now), next.value)
+      const saved = await save(whole, c.version, release)
       // The schedule follows the people of its interview (spec 009 FR-022).
-      if (saved.ok && roster) await sync.push(c.actor, next.value)
+      if (saved.ok && roster) await sync.push(c.actor, whole)
       return saved
+    },
+
+    /** Spec 037 FR-011: a person chooses the protocol version of a test session (null: the app's). */
+    setProtocolVersion: async (c: {
+      actor: Actor
+      sessionId: string
+      protocolVersion: number | null
+      version: number
+    }): Promise<Done> => {
+      const loaded = await load(c.actor, c.sessionId, c.version)
+      if (!loaded.ok) return loaded
+      const { session } = loaded.value
+      const known = (await deps.protocolVersions.list(session.studyId)).map((v) => v.version)
+      const next = chooseProtocolVersion(session, c.protocolVersion, known, deps.clock.now())
+      if (!next.ok) return next
+      return save(next.value, c.version)
     },
 
     decide: async (c: {

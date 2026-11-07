@@ -162,6 +162,9 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         return done.ok
       },
     },
+    protocolVersions: {
+      list: (studyId) => bound(research).handlers.protocolQueries.protocolVersions(studyId),
+    },
     members: { exist: workspace.membersExist, ofTeam: workspace.membersOfTeam },
     analyzer: createAiAnalyzer({
       // Late binding: the AI gateway is built after ingestion.

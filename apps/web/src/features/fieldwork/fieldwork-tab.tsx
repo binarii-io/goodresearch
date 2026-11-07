@@ -68,7 +68,7 @@ import {
   useAddToSchedule,
   useAnalyzeOne,
 } from './analysis.tsx'
-import { SESSION_STATES, SUGGESTION_RULES } from './labels.ts'
+import { lengthOf, READINESS, SESSION_STATES, SUGGESTION_RULES } from './labels.ts'
 import { takeRenameAfterConsent, useQuietRename } from './proposals.tsx'
 import { SessionDialog } from './session-dialog.tsx'
 
@@ -80,12 +80,12 @@ const isVideo = (f: { mimeType: string }) => f.mimeType.startsWith('video/')
 const wasAnalyzed = (s: Session) => s.analysis?.state === 'done' || s.analysis?.state === 'failed'
 
 /** What waits for the person: open proposals, and the planned interview to link or add. */
-const toDecide = (s: Session) =>
+const toDecide = (s: Session, tests: boolean) =>
   (s.analysis?.proposals.filter((p) => p.status === 'proposed').length ?? 0) +
-  (!s.link && (s.suggestion || scheduleEntryOf(s)) ? 1 : 0)
+  (!s.link && (s.suggestion || scheduleEntryOf(s, tests)) ? 1 : 0)
 
-/** The group of an interview: its transcript's, else its first recording's. */
-const group0 = (s: Session) => s.transcript?.group ?? s.media[0]?.group
+/** The group of an interview: its transcript's, else its main video's or first recording's. */
+const group0 = (s: Session) => s.transcript?.group ?? s.video?.group ?? s.media[0]?.group
 
 /** Who took part, from the people entered, else from the linked planned interview. */
 const peopleOf = (s: Session) => {
@@ -143,6 +143,50 @@ export function FieldworkTab({ studyId, isAdmin }: { studyId: string; isAdmin: b
         </section>
       )}
     </div>
+  )
+}
+
+/** Spec 037: the headline numbers of test sessions: found, ready, with a transcript, analyzed. */
+function SessionsOverview({ data }: { data: Fieldwork }) {
+  const { t } = useLingui()
+  const money = useMoney()
+  const active = data.sessions.filter((s) => s.state !== 'excluded')
+  const { validated, excluded, proposed } = data.totals
+  const withTranscript = active.filter((s) => s.transcript !== null).length
+  const analyzed = data.sessions.filter((s) => s.analysis).length
+  const hours = Math.floor(data.videoMinutes / 60)
+  const minutes = data.videoMinutes % 60
+  return (
+    <StatTiles aria-label={t`Fieldwork in numbers`}>
+      <StatTile
+        icon={<UsersIcon aria-hidden />}
+        label={t`Sessions found`}
+        value={active.length}
+        detail={[
+          t`${validated} validated`,
+          t`${proposed} proposed`,
+          ...(excluded ? [t`${excluded} excluded`] : []),
+        ].join(' · ')}
+      />
+      <StatTile
+        icon={<VideoIcon aria-hidden />}
+        label={t`Ready for analysis`}
+        value={data.ready}
+        detail={t`${hours} h ${String(minutes).padStart(2, '0')} of video`}
+      />
+      <StatTile
+        icon={<FileTextIcon aria-hidden />}
+        label={t`With a transcript`}
+        value={withTranscript}
+        detail={plural(active.length, { one: 'of # session', other: 'of # sessions' })}
+      />
+      <StatTile
+        icon={<FileSearchIcon aria-hidden />}
+        label={t`Analyzed`}
+        value={analyzed}
+        detail={t`Cost of the analyses: ${data.analysisCost === null ? t`unknown` : money(data.analysisCost)}`}
+      />
+    </StatTiles>
   )
 }
 
@@ -216,9 +260,88 @@ function Overview({ data }: { data: Fieldwork }) {
 }
 
 /** The files of an interview as icons that open them: the transcript, then each recording. */
-function FileIcons({ s }: { s: Session }) {
-  const { t } = useLingui()
+function FileIcons({ s, tests }: { s: Session; tests: boolean }) {
+  const { t, i18n } = useLingui()
   const icon = 'inline-flex size-8 items-center justify-center rounded-md border hover:bg-muted'
+  // Spec 037: a test session is its video; a transcript is welcome, not required.
+  if (tests) {
+    const length = lengthOf(i18n, s.video?.durationMs ?? null) ?? t`length unknown`
+    return (
+      <ul className="flex items-center gap-1">
+        <li>
+          {s.video ? (
+            <a
+              href={s.video.webLink}
+              target="_blank"
+              rel="noreferrer"
+              className={icon}
+              aria-label={t`Open the video (${length}): ${s.video.name}`}
+              title={s.video.name}
+            >
+              <VideoIcon aria-hidden className="size-4" />
+            </a>
+          ) : (
+            <Badge variant="destructive">{t`Video missing`}</Badge>
+          )}
+        </li>
+        <li>
+          {s.transcript ? (
+            <a
+              href={s.transcript.webLink}
+              target="_blank"
+              rel="noreferrer"
+              className={icon}
+              aria-label={t`Open the transcript: ${s.transcript.name}`}
+              title={s.transcript.name}
+            >
+              <FileTextIcon aria-hidden className="size-4" />
+            </a>
+          ) : (
+            <span
+              className="inline-flex size-8 items-center justify-center rounded-md border border-dashed text-muted-foreground"
+              role="img"
+              aria-label={t`No transcript yet`}
+              title={t`No transcript yet`}
+            >
+              <FileXIcon aria-hidden className="size-4" />
+            </span>
+          )}
+        </li>
+        {s.media.map((m) => (
+          <li key={m.fileId}>
+            <a
+              href={m.webLink}
+              target="_blank"
+              rel="noreferrer"
+              className={icon}
+              aria-label={isVideo(m) ? t`Open the video: ${m.name}` : t`Open the audio: ${m.name}`}
+              title={m.name}
+            >
+              {isVideo(m) ? (
+                <VideoIcon aria-hidden className="size-4" />
+              ) : (
+                <MicIcon aria-hidden className="size-4" />
+              )}
+            </a>
+          </li>
+        ))}
+        {s.attachments.map((a) => (
+          <li key={a.fileId}>
+            <a
+              href={a.webLink}
+              target="_blank"
+              rel="noreferrer"
+              className={icon}
+              aria-label={t`Open the attached document: ${a.name}`}
+              title={t`Attached document, not a transcript: ${a.name}`}
+            >
+              <PaperclipIcon aria-hidden className="size-4" />
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
   // Nothing at all, or a document that holds no words of the interview: not the same to fix.
   const noTranscript = s.attachments.length
     ? t`No transcript: only a document attached, which the next phases do not read.`
@@ -386,6 +509,8 @@ function Interviews({
   if (fieldwork.isPending) return <Skeleton className="h-40 w-full" />
   if (!fieldwork.data) return null
   const data = fieldwork.data
+  // Spec 037: the test sessions of a usability test, one per video.
+  const tests = data.kind === 'sessions'
   const groups = [
     ...new Set(
       data.sessions.flatMap((s) => {
@@ -441,10 +566,12 @@ function Interviews({
       <Table className="table-fixed">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[26%]">{t`Interview`}</TableHead>
+            <TableHead className="w-[26%]">{tests ? t`Session` : t`Interview`}</TableHead>
             <TableHead className="w-[16%]">{t`People`}</TableHead>
             <TableHead className="w-[11%]">{t`Files`}</TableHead>
-            <TableHead className="w-[18%]">{t`Planned interview`}</TableHead>
+            <TableHead className="w-[18%]">
+              {tests ? t`Ready for analysis` : t`Planned interview`}
+            </TableHead>
             <TableHead className="w-[11%]">{t`State`}</TableHead>
             <TableHead className="w-[10%]">{t`Validated`}</TableHead>
             <TableHead>
@@ -456,7 +583,7 @@ function Interviews({
           {list.map((s) => {
             const name = s.title ?? s.defaultTitle
             const who = peopleOf(s)
-            const at = s.transcript?.modifiedAt ?? s.media[0]?.modifiedAt
+            const at = s.transcript?.modifiedAt ?? s.video?.modifiedAt ?? s.media[0]?.modifiedAt
             return (
               <TableRow key={s.id}>
                 <TableCell>
@@ -465,7 +592,7 @@ function Interviews({
                     <span className="truncate font-medium" title={name}>
                       {name}
                     </span>
-                    {s.noTranscript && s.attachments.length ? (
+                    {tests ? null : s.noTranscript && s.attachments.length ? (
                       <Badge variant="highlight">
                         <TriangleAlertIcon aria-hidden />
                         {t`Document, no transcript`}
@@ -477,7 +604,13 @@ function Interviews({
                       </Badge>
                     ) : null}
                     <span className="text-muted-foreground text-xs">
-                      {[group0(s), at ? day.format(new Date(at)) : null]
+                      {[
+                        group0(s),
+                        at ? day.format(new Date(at)) : null,
+                        tests
+                          ? (lengthOf(i18n, s.video?.durationMs ?? null) ?? t`length unknown`)
+                          : null,
+                      ]
                         .filter(Boolean)
                         .join(' · ')}
                     </span>
@@ -495,7 +628,9 @@ function Interviews({
                         className="truncate text-muted-foreground text-xs"
                         title={who.interviewers.join(', ')}
                       >
-                        {t`Interviewer: ${who.interviewers.join(', ')}`}
+                        {tests
+                          ? t`Facilitator: ${who.interviewers.join(', ')}`
+                          : t`Interviewer: ${who.interviewers.join(', ')}`}
                       </span>
                     ) : null}
                     {who.planned ? (
@@ -504,10 +639,23 @@ function Interviews({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <FileIcons s={s} />
+                  <FileIcons s={s} tests={tests} />
                 </TableCell>
                 <TableCell>
-                  {s.link ? (
+                  {tests ? (
+                    <span className="grid">
+                      <Badge variant={s.readiness === 'ready' ? 'secondary' : 'outline'}>
+                        {s.readiness ? i18n._(READINESS[s.readiness]) : '—'}
+                      </Badge>
+                      <span className="text-muted-foreground text-xs">
+                        {s.protocolVersion
+                          ? s.protocolVersion.by === 'person'
+                            ? t`Protocol v${s.protocolVersion.version}, chosen`
+                            : t`Protocol v${s.protocolVersion.version}`
+                          : t`No test protocol`}
+                      </span>
+                    </span>
+                  ) : s.link ? (
                     <span className="grid">
                       <span>{s.link.interviewee}</span>
                       <span className="text-muted-foreground text-xs">
@@ -529,7 +677,7 @@ function Interviews({
                         {t`Confirm`}
                       </Button>
                     </span>
-                  ) : reviewable(s) && scheduleEntryOf(s) ? (
+                  ) : reviewable(s) && scheduleEntryOf(s, tests) ? (
                     // No planned interview matches: the interview can become one (FR-017).
                     <Button
                       size="sm"
@@ -550,10 +698,10 @@ function Interviews({
                     <Button
                       size="sm"
                       variant="outline"
-                      aria-label={t`To decide (${toDecide(s)}): open ${name}`}
+                      aria-label={t`To decide (${toDecide(s, tests)}): open ${name}`}
                       onClick={() => setOpen(s)}
                     >
-                      {t`To decide (${toDecide(s)})`}
+                      {t`To decide (${toDecide(s, tests)})`}
                     </Button>
                   ) : (
                     <Badge variant={STATE_BADGE[s.state]}>{i18n._(SESSION_STATES[s.state])}</Badge>
@@ -681,13 +829,21 @@ function Interviews({
           ) : (
             <p className="rounded-md border border-dashed p-4 text-muted-foreground text-sm">
               {tab === 'no-transcript' && state === ALL && group === ALL
-                ? t`Every recording is with its transcript.`
-                : t`No interview matches these filters.`}
+                ? tests
+                  ? t`Every session has its transcript.`
+                  : t`Every recording is with its transcript.`
+                : tests
+                  ? t`No session matches these filters.`
+                  : t`No interview matches these filters.`}
             </p>
           )}
         </>
       ) : (
-        <p className="rounded-md border border-dashed p-4 text-muted-foreground text-sm">{t`No transcript in the folder yet. Transcripts dropped in the folder appear here after a refresh.`}</p>
+        <p className="rounded-md border border-dashed p-4 text-muted-foreground text-sm">
+          {tests
+            ? t`No video in the folder yet. Session videos dropped in the folder appear here after a refresh.`
+            : t`No transcript in the folder yet. Transcripts dropped in the folder appear here after a refresh.`}
+        </p>
       )}
     </>
   )
@@ -695,10 +851,16 @@ function Interviews({
   return (
     <section aria-labelledby="interviews-heading" className="grid gap-4">
       <div className="grid gap-1">
-        <SectionTitle id="interviews-heading">{t`Interviews`}</SectionTitle>
-        <p className="text-muted-foreground text-sm">{t`Each transcript of the folder is an interview. Link it to the planned interview, check its recordings and people, then validate it.`}</p>
+        <SectionTitle id="interviews-heading">
+          {tests ? t`Test sessions` : t`Interviews`}
+        </SectionTitle>
+        <p className="text-muted-foreground text-sm">
+          {tests
+            ? t`Each video of the folder is a test session. Check its transcript, participant, facilitators and protocol version, then validate it.`
+            : t`Each transcript of the folder is an interview. Link it to the planned interview, check its recordings and people, then validate it.`}
+        </p>
       </div>
-      <Overview data={data} />
+      {tests ? <SessionsOverview data={data} /> : <Overview data={data} />}
       {data.skipped ? (
         <p
           role="status"
@@ -710,9 +872,17 @@ function Interviews({
         {/* The refresh sits in the tab bar, outside the tab list (only tabs belong there). */}
         <div className="flex flex-wrap items-center gap-2 border-b">
           <TabsList variant="line" className="flex-1 border-b-0">
-            <TabsTrigger value="interviews">{t`Interviews (${data.sessions.length})`}</TabsTrigger>
+            <TabsTrigger value="interviews">
+              {tests
+                ? t`Sessions (${data.sessions.length})`
+                : t`Interviews (${data.sessions.length})`}
+            </TabsTrigger>
             <TabsTrigger value="no-transcript">{t`Without transcript (${withoutTranscript.length})`}</TabsTrigger>
-            <TabsTrigger value="planned">{t`Planned only (${data.plannedWithoutSession.length})`}</TabsTrigger>
+            {tests ? (
+              <TabsTrigger value="no-video">{t`Transcripts without video (${data.unclaimedTranscripts.length})`}</TabsTrigger>
+            ) : (
+              <TabsTrigger value="planned">{t`Planned only (${data.plannedWithoutSession.length})`}</TabsTrigger>
+            )}
           </TabsList>
           <RefreshButton studyId={studyId} running={running} />
         </div>
@@ -723,6 +893,24 @@ function Interviews({
 
         <TabsContent value="no-transcript" className="grid gap-3">
           {list}
+        </TabsContent>
+
+        <TabsContent value="no-video" className="grid gap-3">
+          <p className="text-muted-foreground text-sm">{t`No video: a session needs its recording. Put the video in the folder, then refresh.`}</p>
+          {data.unclaimedTranscripts.length ? (
+            <ul className="grid gap-1 rounded-md border p-3 text-sm">
+              {data.unclaimedTranscripts.map((f) => (
+                <li key={f.fileId}>
+                  <a href={f.webLink} target="_blank" rel="noreferrer" className="underline">
+                    {f.name}
+                  </a>{' '}
+                  <span className="text-muted-foreground text-xs">{f.group}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground text-sm">{t`Every transcript has its video.`}</p>
+          )}
         </TabsContent>
 
         <TabsContent value="planned" className="grid gap-3">
@@ -763,6 +951,7 @@ function Interviews({
           studyId={studyId}
           session={open}
           unmatchedMedia={data.unmatchedMedia}
+          protocolVersions={tests ? data.protocolVersions : null}
           onClose={() => setOpen(null)}
         />
       ) : null}

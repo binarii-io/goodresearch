@@ -12,12 +12,22 @@ export type RosterEntry = {
   readonly memberId: string | null
 }
 
-/** One interview occurrence of a study (context map, Session); labelled "Interview" in the UI. */
+/**
+ * One interview occurrence of a study (context map, Session); labelled "Interview" in the UI. On a
+ * usability test study (spec 037) it is a test session, anchored on its main video.
+ */
 export type Session = {
   readonly id: string
   readonly studyId: string
-  /** `null`: a recording without its transcript (shown with a warning). */
+  /** `null`: a recording without its transcript (shown with a warning), or a test session without one. */
   readonly transcriptFileId: string | null
+  /** Spec 037: the main video of a usability test session; null for interviews. */
+  readonly videoFileId: string | null
+  /**
+   * Spec 037: the protocol version a person chose for the session; null while the app proposes the
+   * one saved last before the session's date (computed, never stored).
+   */
+  readonly protocolVersion: number | null
   readonly media: readonly MediaMatch[]
   /** Once a person changed the recordings, a refresh keeps them (research R2). */
   readonly mediaEdited: boolean
@@ -66,7 +76,46 @@ export const personDecided = (s: Session): boolean => s.state !== 'proposed' && 
  * takes them; it goes once it has none left (a person's decision is never undone silently).
  */
 export const givesUpRecordings = (s: Session): boolean =>
-  s.transcriptFileId === null && !personDecided(s)
+  s.transcriptFileId === null && s.videoFileId === null && !personDecided(s)
+
+/**
+ * Spec 037: an undecided test session whose main video another session takes is merged into it:
+ * its recordings and attachments follow, and its transcript when the target has none.
+ */
+export const mergeable = (s: Session): boolean => s.videoFileId !== null && !personDecided(s)
+
+/**
+ * The target after taking `source` (whose main video it holds now as a recording). The people and
+ * title typed on the source follow when the target has none: nothing a person entered is lost.
+ */
+export const absorb = (target: Session, source: Session, now: Date): Session => {
+  const mine = new Set([target.videoFileId, ...target.media.map((m) => m.fileId)])
+  const moved = source.media.filter((m) => !mine.has(m.fileId))
+  const held = new Set(target.attachments.map((a) => a.fileId))
+  return {
+    ...target,
+    transcriptFileId: target.transcriptFileId ?? source.transcriptFileId,
+    media: [...target.media, ...moved],
+    mediaEdited: true,
+    attachments: [...target.attachments, ...source.attachments.filter((a) => !held.has(a.fileId))],
+    roster: target.roster.length ? target.roster : source.roster,
+    title: target.title ?? source.title,
+    updatedAt: now,
+  }
+}
+
+/** Spec 037: a person chooses the protocol version of an undecided session (null: the app's). */
+export const chooseProtocolVersion = (
+  s: Session,
+  version: number | null,
+  known: readonly number[],
+  now: Date,
+): Result<Session, 'SESSION_DECIDED' | 'VALIDATION'> => {
+  if (personDecided(s)) return err('SESSION_DECIDED')
+  if (s.videoFileId === null || (version !== null && !known.includes(version)))
+    return err('VALIDATION')
+  return ok({ ...s, protocolVersion: version, updatedAt: now })
+}
 
 /** The session without the given recordings, or null when it has none left. */
 export const withoutRecordings = (
@@ -171,7 +220,10 @@ export const edit = (
     const ids = [...new Set(change.media)]
     if (ids.some((id) => !available.has(id))) return err('MEDIA_UNAVAILABLE')
     // A session holds at least one file.
-    if (s.transcriptFileId === null && ids.length === 0) return err('VALIDATION')
+    if (s.transcriptFileId === null && s.videoFileId === null && ids.length === 0)
+      return err('VALIDATION')
+    // A test session's main video is not one of its recordings (spec 037).
+    if (s.videoFileId !== null && ids.includes(s.videoFileId)) return err('VALIDATION')
     const previous = new Map(s.media.map((m) => [m.fileId, m]))
     next = {
       ...next,

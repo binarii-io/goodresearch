@@ -15,6 +15,8 @@ export type DriveItem = {
   readonly trashed?: boolean
   readonly shortcutTargetId?: string
   readonly shortcutTargetMimeType?: string
+  /** Spec 037: a video's length from the source's metadata (never its content). */
+  readonly durationMs?: number
 }
 
 /**

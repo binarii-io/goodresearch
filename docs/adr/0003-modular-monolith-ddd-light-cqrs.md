@@ -44,3 +44,9 @@ Patterns are taken from *Architecture Patterns with Python* (repository, unit of
 ## Update (spec 017): the Reporting module
 
 The project's Overview reads six modules, so it opens `modules/reporting`, the place `docs/standards.md` gives cross-module views. It acts as the backend for that screen: read models only, no table, no aggregate, no write, each other module reached through ports wired in `compose.ts`. A screen may use several endpoints when parts differ in cost, so numbers do not wait for the ledger; a rule owned by a module stays there, as "may be out of date" stays in Synthesis. The debrief deck stays in Synthesis because its publication writes.
+
+## Update (spec 037): test sessions and protocol versions
+
+A test session of a usability test study is the Ingestion **Session** aggregate, not a new one: it gains a main video (`video_file_id`, unique per study) and a protocol version chosen by a person, and its reconciliation starts from videos instead of transcripts (`reconcileStudy` by study type). Files, matching, people, analysis, renaming and the assistant's cards stay one code path for interviews and tests.
+
+The saved versions of a test protocol belong to Research (`research_test_protocol_versions`, written in the same transaction as each save, never changed). Ingestion reads them through its `ProtocolVersions` port, wired in `compose.ts`; it never reads Research's tables. The version a session was run against is proposed at read time from the session's date; only a person's choice is stored.

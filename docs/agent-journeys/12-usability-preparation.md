@@ -46,6 +46,7 @@ flowchart TD
     N -->|"publish"| U["publish_preparation: protocol and best practices"]
     U -->|"Apply"| R["Protocol, participant sheet and best practices in the folder"]
     R --> K["Pilot, interface check and review, marked on the tab"]
+    K --> T["Run the sessions: their videos go in the folder (journey 13)"]
 ```
 
 ## Guarantees

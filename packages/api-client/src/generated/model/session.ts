@@ -12,9 +12,12 @@ import type { SessionFileNames } from './sessionFileNames.ts';
 import type { SessionLanguage } from './sessionLanguage.ts';
 import type { SessionLink } from './sessionLink.ts';
 import type { SessionMediaItem } from './sessionMediaItem.ts';
+import type { SessionProtocolVersion } from './sessionProtocolVersion.ts';
+import type { SessionReadiness } from './sessionReadiness.ts';
 import type { SessionState } from './sessionState.ts';
 import type { SessionSuggestion } from './sessionSuggestion.ts';
 import type { SessionTranscript } from './sessionTranscript.ts';
+import type { SessionVideo } from './sessionVideo.ts';
 
 export interface Session {
   /** @pattern ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$ */
@@ -43,6 +46,9 @@ export interface Session {
   /** @nullable */
   cost: number | null;
   fileNames: SessionFileNames;
+  video: SessionVideo;
+  protocolVersion: SessionProtocolVersion;
+  readiness: SessionReadiness;
   /**
      * @minimum 0
      * @maximum 9007199254740991

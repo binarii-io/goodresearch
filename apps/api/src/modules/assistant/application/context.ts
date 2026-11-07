@@ -51,7 +51,13 @@ const USABILITY_NEXT_STEPS: Record<UsabilityNextStep, string> = {
   readiness:
     "run a pilot session, open the tested interface on the participants' device and account, and have the protocol reviewed, then mark these checks on the Preparation tab; this advises and blocks nothing",
   'run-sessions':
-    'run the test sessions and record them; reading the sessions in the app comes in a later version',
+    'run the test sessions, record them and put their videos in the study folder: the Fieldwork tab lists one session per video',
+  'decide-sessions':
+    'validate or exclude the test sessions found on the Fieldwork tab, after checking their participant, facilitators and protocol version',
+  'make-ready':
+    'complete the validated sessions that are not ready for the video analysis (participant to confirm, video length unknown, protocol version) on the Fieldwork tab',
+  'next-phase':
+    'every session kept is ready; the video analysis, which also transcribes them, comes in a later version',
 }
 
 /** The app's own words for its tabs (bilingual glossary): the model would translate them itself. */
@@ -258,10 +264,10 @@ export const buildContext = async (
         study.type === 'survey'
           ? `Tabs (study phases): preparation, fieldwork, analysis; no other tab exists on a survey study. Current tab: ${page.phase ?? 'preparation'}`
           : study.type === 'usability-test'
-            ? `Tabs (study phases): preparation, fieldwork, lexicon, enrichment, analysis; only preparation is built for a usability test study so far. Current tab: ${page.phase ?? 'preparation'}`
+            ? `Tabs (study phases): preparation, fieldwork, analysis; no other tab exists on a usability test study, and only preparation and fieldwork are built so far. On fieldwork, each video of the folder is a test session: the interview tools work on them, with the participant as the interviewee and the facilitators as the interviewers. Current tab: ${page.phase ?? 'preparation'}`
             : `Tabs (study phases): preparation, fieldwork, enrichment, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
         `Source folder: ${
-          folder && (study.type === 'survey' || study.type === 'usability-test')
+          folder && study.type === 'survey'
             ? folder.name
             : folder
               ? `${folder.name} (inventory ${folder.status}: ${folder.byKind.transcript} transcripts, ${folder.byKind.media} recordings, ${folder.byKind.other} other files)`
@@ -329,6 +335,17 @@ export const buildContext = async (
         protocolStudy = { id: study.id, name: study.name, version: protocol.version }
         const has = protocol.content !== null
         const published = has && folder ? await research.publishedKinds(actor, study.id) : []
+        // Spec 037: the sessions, read only once the protocol is published (no name).
+        const counted = published.includes('protocol')
+          ? await research.interviewCounts(actor, study.id)
+          : null
+        const sessions = counted?.ok
+          ? {
+              total: counted.counts.total ?? 0,
+              open: counted.counts.open ?? 0,
+              notReady: counted.counts['not-ready'] ?? 0,
+            }
+          : undefined
         lines.push(
           // FR-022: the tested interface is text here; the app never opens it.
           has
@@ -341,6 +358,7 @@ export const buildContext = async (
                 hasFolder: folder !== null,
                 published,
                 checksDone: protocol.checksDone,
+                sessions,
               })
             ]
           }.`,

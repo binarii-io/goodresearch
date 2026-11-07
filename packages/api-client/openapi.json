@@ -5564,6 +5564,112 @@
               }
             ]
           },
+          "video": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "fileId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "modifiedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "webLink": {
+                    "type": "string"
+                  },
+                  "durationMs": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "fileId",
+                  "name",
+                  "mimeType",
+                  "group",
+                  "modifiedAt",
+                  "webLink",
+                  "durationMs"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "protocolVersion": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "by": {
+                    "type": "string",
+                    "enum": [
+                      "app",
+                      "person"
+                    ]
+                  }
+                },
+                "required": [
+                  "version",
+                  "by"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "readiness": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ready",
+                  "not-validated",
+                  "video-missing",
+                  "duration-unknown",
+                  "participant-to-confirm",
+                  "no-protocol"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "version": {
             "type": "integer",
             "minimum": 0,
@@ -5592,12 +5698,22 @@
           "analysis",
           "cost",
           "fileNames",
+          "video",
+          "protocolVersion",
+          "readiness",
           "version"
         ]
       },
       "FieldworkInput": {
         "type": "object",
         "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "interviews",
+              "sessions"
+            ]
+          },
           "sessions": {
             "type": "array",
             "items": {
@@ -5808,9 +5924,85 @@
           },
           "consentNeeded": {
             "type": "boolean"
+          },
+          "ready": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "videoMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "unclaimedTranscripts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fileId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "mimeType": {
+                  "type": "string"
+                },
+                "group": {
+                  "type": "string"
+                },
+                "modifiedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "webLink": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "fileId",
+                "name",
+                "mimeType",
+                "group",
+                "modifiedAt",
+                "webLink"
+              ]
+            }
+          },
+          "protocolVersions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "version": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                },
+                "savedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "version",
+                "savedAt"
+              ]
+            }
           }
         },
         "required": [
+          "kind",
           "sessions",
           "unmatchedMedia",
           "plannedWithoutSession",
@@ -5820,7 +6012,11 @@
           "run",
           "anonymised",
           "namedFiles",
-          "consentNeeded"
+          "consentNeeded",
+          "ready",
+          "videoMinutes",
+          "unclaimedTranscripts",
+          "protocolVersions"
         ]
       },
       "LinkSessionInput": {
@@ -5950,6 +6146,32 @@
         },
         "required": [
           "decision",
+          "version"
+        ]
+      },
+      "SetProtocolVersionInput": {
+        "type": "object",
+        "properties": {
+          "protocolVersion": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "protocolVersion",
           "version"
         ]
       },
@@ -23384,6 +23606,114 @@
               }
             ]
           },
+          "video": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "fileId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "modifiedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "webLink": {
+                    "type": "string"
+                  },
+                  "durationMs": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "fileId",
+                  "name",
+                  "mimeType",
+                  "group",
+                  "modifiedAt",
+                  "webLink",
+                  "durationMs"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "protocolVersion": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "by": {
+                    "type": "string",
+                    "enum": [
+                      "app",
+                      "person"
+                    ]
+                  }
+                },
+                "required": [
+                  "version",
+                  "by"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "readiness": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ready",
+                  "not-validated",
+                  "video-missing",
+                  "duration-unknown",
+                  "participant-to-confirm",
+                  "no-protocol"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "version": {
             "type": "integer",
             "minimum": 0,
@@ -23412,6 +23742,9 @@
           "analysis",
           "cost",
           "fileNames",
+          "video",
+          "protocolVersion",
+          "readiness",
           "version"
         ],
         "additionalProperties": false
@@ -23419,6 +23752,13 @@
       "Fieldwork": {
         "type": "object",
         "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "interviews",
+              "sessions"
+            ]
+          },
           "sessions": {
             "type": "array",
             "items": {
@@ -23634,9 +23974,87 @@
           },
           "consentNeeded": {
             "type": "boolean"
+          },
+          "ready": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "videoMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "unclaimedTranscripts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fileId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "mimeType": {
+                  "type": "string"
+                },
+                "group": {
+                  "type": "string"
+                },
+                "modifiedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "webLink": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "fileId",
+                "name",
+                "mimeType",
+                "group",
+                "modifiedAt",
+                "webLink"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "protocolVersions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "version": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                },
+                "savedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "version",
+                "savedAt"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
+          "kind",
           "sessions",
           "unmatchedMedia",
           "plannedWithoutSession",
@@ -23646,7 +24064,11 @@
           "run",
           "anonymised",
           "namedFiles",
-          "consentNeeded"
+          "consentNeeded",
+          "ready",
+          "videoMinutes",
+          "unclaimedTranscripts",
+          "protocolVersions"
         ],
         "additionalProperties": false
       },
@@ -23780,6 +24202,33 @@
         },
         "required": [
           "decision",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "SetProtocolVersion": {
+        "type": "object",
+        "properties": {
+          "protocolVersion": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "protocolVersion",
           "version"
         ],
         "additionalProperties": false
@@ -37852,6 +38301,48 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DecideSessionInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "sessionId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{sessionId}/protocol-version": {
+      "put": {
+        "operationId": "setSessionProtocolVersion",
+        "tags": [
+          "fieldwork"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetProtocolVersionInput"
               }
             }
           }

@@ -106,6 +106,24 @@ export const researchTestProtocols = pgTable('research_test_protocols', {
   version: integer('version').notNull().default(0),
 })
 
+/**
+ * Every saved version of a test protocol (spec 037 FR-010): written with each save, never changed,
+ * so a test session keeps the tasks it was run against.
+ */
+export const researchTestProtocolVersions = pgTable(
+  'research_test_protocol_versions',
+  {
+    studyId: text('study_id')
+      .notNull()
+      .references(() => researchStudies.id, { onDelete: 'cascade' }),
+    version: integer('version').notNull(),
+    content: jsonb('content').notNull(),
+    savedAt: timestamp('saved_at', { withTimezone: true }).notNull(),
+    savedBy: text('saved_by').references(() => auth_users.id, { onDelete: 'set null' }),
+  },
+  (t) => [primaryKey({ columns: [t.studyId, t.version] })],
+)
+
 /** What a person checked before the first session of a usability test (spec 036 US6). */
 export const researchProtocolChecks = pgTable(
   'research_protocol_checks',

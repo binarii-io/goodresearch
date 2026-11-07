@@ -18,6 +18,7 @@ import type {
   Analyzer,
   IngestionDeps,
   Members,
+  ProtocolVersions,
   Schedule,
   StudyDirectory,
 } from '../application/ports.ts'
@@ -62,6 +63,8 @@ export const createIngestionModule = (deps: {
   studies: StudyDirectory
   /** The study's schedule (research module), for link suggestions (spec 008). */
   schedule: Schedule
+  /** Spec 037: the saved versions of a test protocol (research module). */
+  protocolVersions: ProtocolVersions
   members: Members
   /** The AI of the analyses, through the AI Gateway (spec 009). */
   analyzer: Analyzer
@@ -92,6 +95,7 @@ export const createIngestionModule = (deps: {
     store: createIngestionStore(deps.db),
     studies: deps.studies,
     schedule: deps.schedule,
+    protocolVersions: deps.protocolVersions,
     members: deps.members,
     drive,
     cipher: createTokenCipher(config.authSecret, CIPHER_PURPOSES.sourceConnections),

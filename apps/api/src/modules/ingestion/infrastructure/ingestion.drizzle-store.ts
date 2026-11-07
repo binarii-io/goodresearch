@@ -29,9 +29,10 @@ import type { FolderAccessResult } from '../domain/folder-access.ts'
 import { type InventoryRun, STALE_RUN_MS } from '../domain/inventory-run.ts'
 import type { InventoryFile } from '../domain/inventory-walk.ts'
 import { assignPseudonyms } from '../domain/pseudonyms.ts'
-import { reconcileSessions } from '../domain/reconcile-sessions.ts'
+import { reconcileStudy, type SessionMode } from '../domain/reconcile-sessions.ts'
 import {
   givesUpRecordings,
+  mergeable,
   type Session,
   type SessionState,
   withoutRecordings,
@@ -69,12 +70,26 @@ const toSession = (r: SessionRow): Session => ({
   analysis: toAnalysis(r.analysis),
 })
 
+const toFile = (r: typeof ingestionInventoryFiles.$inferSelect): InventoryFile => ({
+  id: r.fileId,
+  name: r.name,
+  kind: r.kind as FileKind,
+  group: r.group,
+  mimeType: r.mimeType,
+  size: r.size,
+  modifiedAt: r.modifiedAt?.toISOString() ?? null,
+  webViewLink: r.webViewLink,
+  durationMs: r.durationMs,
+})
+
 type RunRow = typeof ingestionAnalysisRuns.$inferSelect
 const toRun = (r: RunRow): AnalysisRun => ({ ...r, state: r.state as AnalysisRun['state'] })
 
 const sessionValues = (s: Session) => ({
   studyId: s.studyId,
   transcriptFileId: s.transcriptFileId,
+  videoFileId: s.videoFileId,
+  protocolVersion: s.protocolVersion,
   media: [...s.media],
   mediaEdited: s.mediaEdited,
   state: s.state,
@@ -104,21 +119,29 @@ const lockSessions = (tx: Tx, studyId: string) =>
   tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`sessions:${studyId}`}))`)
 
 const writeSession = async (tx: Tx, s: Session, expected: number): Promise<SessionWrite> => {
-  if (s.media.length || s.attachments.length) {
+  if (s.media.length || s.attachments.length || s.videoFileId) {
     const held = await tx
       .select({
         id: ingestionSessions.id,
+        videoFileId: ingestionSessions.videoFileId,
         media: ingestionSessions.media,
         attachments: ingestionSessions.attachments,
       })
       .from(ingestionSessions)
       .where(and(eq(ingestionSessions.studyId, s.studyId), ne(ingestionSessions.id, s.id)))
-    // A file belongs to one interview at most, as a recording or an attachment (spec 009 R11).
-    const mine = new Set([...s.media.map((m) => m.fileId), ...s.attachments.map((a) => a.fileId)])
+    // A file belongs to one interview at most, as a recording or an attachment (spec 009 R11),
+    // or as the main video of a test session (spec 037).
+    const mine = new Set([
+      ...s.media.map((m) => m.fileId),
+      ...s.attachments.map((a) => a.fileId),
+      ...(s.videoFileId ? [s.videoFileId] : []),
+    ])
     if (
       held.some(
         (o) =>
-          o.media.some((m) => mine.has(m.fileId)) || o.attachments.some((a) => mine.has(a.fileId)),
+          (o.videoFileId !== null && mine.has(o.videoFileId)) ||
+          o.media.some((m) => mine.has(m.fileId)) ||
+          o.attachments.some((a) => mine.has(a.fileId)),
       )
     )
       return 'media-taken'
@@ -132,12 +155,18 @@ const writeSession = async (tx: Tx, s: Session, expected: number): Promise<Sessi
 }
 
 /** Spec 008 FR-002: the sessions follow the files of the inventory, decided ones excepted. */
-const reconcile = async (tx: Tx, studyId: string, files: readonly InventoryFile[], now: Date) => {
+const reconcile = async (
+  tx: Tx,
+  studyId: string,
+  files: readonly InventoryFile[],
+  now: Date,
+  mode: SessionMode,
+) => {
   await lockSessions(tx, studyId)
   const sessions = (
     await tx.select().from(ingestionSessions).where(eq(ingestionSessions.studyId, studyId))
   ).map(toSession)
-  const r = reconcileSessions({ studyId, files, sessions, now, newId })
+  const r = reconcileStudy(mode, { studyId, files, sessions, now, newId })
   const seen = new Map(sessions.map((s) => [s.id, s.version]))
   // Conditional on the version read: a person's change made meanwhile wins.
   for (const id of r.removed)
@@ -149,18 +178,32 @@ const reconcile = async (tx: Tx, studyId: string, files: readonly InventoryFile[
         eq(ingestionSessions.version, seen.get(id) ?? -1),
       ),
     )
-  for (const m of r.media)
-    await tx
+  // Spec 037: a transcript moving between test sessions is first released by every session that
+  // changes it, then taken: the unique index on transcripts is checked statement by statement.
+  const update = async (id: string, change: Partial<typeof ingestionSessions.$inferInsert>) => {
+    const at = seen.get(id) ?? -1
+    const rows = await tx
       .update(ingestionSessions)
-      .set({ media: [...m.media], updatedAt: now, version: (seen.get(m.id) ?? 0) + 1 })
+      .set({ ...change, updatedAt: now, version: at + 1 })
       .where(
         and(
-          eq(ingestionSessions.id, m.id),
+          eq(ingestionSessions.id, id),
           // Not decided by a person: proposed, or validated by the app (FR-002c).
           isNull(ingestionSessions.decidedBy),
-          eq(ingestionSessions.version, seen.get(m.id) ?? -1),
+          eq(ingestionSessions.version, at),
         ),
       )
+      .returning({ id: ingestionSessions.id })
+    if (rows.length) seen.set(id, at + 1)
+  }
+  for (const t of r.transcripts) await update(t.id, { transcriptFileId: null })
+  // One write per session, whether its recordings, its transcript or both changed.
+  const changes = new Map<string, Partial<typeof ingestionSessions.$inferInsert>>()
+  for (const m of r.media) changes.set(m.id, { ...changes.get(m.id), media: [...m.media] })
+  for (const t of r.transcripts)
+    if (t.transcriptFileId)
+      changes.set(t.id, { ...changes.get(t.id), transcriptFileId: t.transcriptFileId })
+  for (const [id, change] of changes) await update(id, change)
   for (let i = 0; i < r.created.length; i += 500)
     await tx
       .insert(ingestionSessions)
@@ -411,10 +454,12 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
             size: f.size,
             modifiedAt: f.modifiedAt ? new Date(f.modifiedAt) : null,
             webViewLink: f.webViewLink,
+            durationMs: f.durationMs ?? null,
           })),
         )
       }
-      if (options?.sessions !== false) await reconcile(tx, run.studyId, files, now)
+      const mode = options?.sessions ?? 'transcripts'
+      if (mode !== false) await reconcile(tx, run.studyId, files, now, mode)
       return true
     }),
 
@@ -469,18 +514,7 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
         ),
       )
       .orderBy(asc(ingestionInventoryFiles.group), asc(ingestionInventoryFiles.name))
-    return rows.map(
-      (r): InventoryFile => ({
-        id: r.fileId,
-        name: r.name,
-        kind: r.kind as FileKind,
-        group: r.group,
-        mimeType: r.mimeType,
-        size: r.size,
-        modifiedAt: r.modifiedAt?.toISOString() ?? null,
-        webViewLink: r.webViewLink,
-      }),
-    )
+    return rows.map(toFile)
   },
 
   totals: async (studyId) => {
@@ -611,10 +645,15 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
               and(
                 inArray(ingestionSessions.id, [...release]),
                 eq(ingestionSessions.studyId, s.studyId),
-                isNull(ingestionSessions.transcriptFileId),
               ),
             )
-          for (const row of rows.map(toSession).filter(givesUpRecordings)) {
+          for (const row of rows.map(toSession)) {
+            // Spec 037: a test session whose main video this one took is merged into it.
+            if (mergeable(row) && row.videoFileId && taken.has(row.videoFileId)) {
+              await tx.delete(ingestionSessions).where(eq(ingestionSessions.id, row.id))
+              continue
+            }
+            if (!givesUpRecordings(row)) continue
             const rest = withoutRecordings(row, taken, s.updatedAt)
             if (rest) await writeSession(tx, rest, row.version)
             else await tx.delete(ingestionSessions).where(eq(ingestionSessions.id, row.id))
@@ -632,7 +671,7 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
     }
   },
 
-  backfillSessions: async (studyId, now) => {
+  backfillSessions: async (studyId, now, mode = 'transcripts') => {
     await db.transaction(async (tx) => {
       // The lock first: files read after an inventory that commits meanwhile are its files.
       await lockSessions(tx, studyId)
@@ -641,19 +680,8 @@ export const createIngestionStore = (db: Db): IngestionStore => ({
           .select()
           .from(ingestionInventoryFiles)
           .where(eq(ingestionInventoryFiles.studyId, studyId))
-      ).map(
-        (r): InventoryFile => ({
-          id: r.fileId,
-          name: r.name,
-          kind: r.kind as FileKind,
-          group: r.group,
-          mimeType: r.mimeType,
-          size: r.size,
-          modifiedAt: r.modifiedAt?.toISOString() ?? null,
-          webViewLink: r.webViewLink,
-        }),
-      )
-      await reconcile(tx, studyId, files, now)
+      ).map(toFile)
+      await reconcile(tx, studyId, files, now, mode)
     })
   },
 

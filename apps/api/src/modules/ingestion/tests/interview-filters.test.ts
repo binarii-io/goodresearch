@@ -41,6 +41,9 @@ describe('spec 025 — the states of interviews', () => {
       ready: 1,
       validated: 1,
       excluded: 1,
+      'not-ready': 0,
+      readyForAnalysis: 0,
+      videoMinutes: 0,
     })
   })
 

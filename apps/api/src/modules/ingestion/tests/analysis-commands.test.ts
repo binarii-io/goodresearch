@@ -107,7 +107,7 @@ describe('analyzing the interviews (spec 009)', () => {
     const s = await sessionOf('Second interview.txt')
     await world.analysis.analyzeSession({ actor: alice, sessionId: s.id, consent: true })
     expect(world.analyzer.calls).toEqual([
-      { accountId: 'alice', ref: `session-analysis:${s.id}`, text: SPEAKERS },
+      { accountId: 'alice', ref: `session-analysis:${s.id}`, text: SPEAKERS, kind: 'interview' },
     ])
     const after = await sessionOf('Second interview.txt')
     const byField = Object.fromEntries((after.analysis?.proposals ?? []).map((p) => [p.field, p]))

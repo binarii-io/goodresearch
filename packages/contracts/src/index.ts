@@ -364,7 +364,9 @@ export {
   SessionLanguage,
   SessionParams,
   SessionProposal,
+  SessionReadiness,
   SessionState,
+  SetProtocolVersion,
   StartAnalysisRun,
 } from './sessions.ts'
 export {

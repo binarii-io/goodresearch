@@ -20,6 +20,7 @@ A journey is defined and delivered on its own: one journey, one pull request, on
 | 10 | [Survey fieldwork](10-survey-fieldwork.md) | Built by [spec 028](../../specs/028-survey-fieldwork/spec.md) |
 | 11 | [Survey analysis](11-survey-analysis.md) | Built by [spec 029](../../specs/029-survey-analysis/spec.md) |
 | 12 | [Usability test preparation](12-usability-preparation.md) | Built by [spec 036](../../specs/036-usability-test-preparation/spec.md) |
+| 13 | [Usability test sessions](13-usability-sessions.md) | Built by [spec 037](../../specs/037-usability-test-fieldwork/spec.md) |
 
 ## How a journey is written
 

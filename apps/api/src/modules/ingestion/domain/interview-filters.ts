@@ -10,6 +10,8 @@ export const INTERVIEW_FILTERS = [
   'ready',
   'validated',
   'excluded',
+  /** Spec 037: a test session not excluded and not ready for the video analysis. */
+  'not-ready',
 ] as const
 export type InterviewFilter = (typeof INTERVIEW_FILTERS)[number]
 
@@ -24,6 +26,9 @@ export type InterviewFacts = {
   readonly roster?: readonly { readonly name: string }[]
   readonly transcript: unknown | null
   readonly media: readonly unknown[]
+  /** Spec 037, test sessions only. */
+  readonly readiness?: string | null
+  readonly video?: { readonly durationMs: number | null } | null
   readonly analysis: {
     readonly state: string
     readonly proposals: readonly {
@@ -58,12 +63,17 @@ export const matches = (i: InterviewFacts, filter: InterviewFilter): boolean => 
       return i.state === 'validated'
     case 'excluded':
       return i.state === 'excluded'
+    case 'not-ready':
+      return i.readiness != null && i.readiness !== 'ready' && i.state !== 'excluded'
   }
 }
 
 export const countInterviews = (
   interviews: readonly InterviewFacts[],
-): { total: number; open: number } & Record<InterviewFilter, number> => {
+): { total: number; open: number; readyForAnalysis: number; videoMinutes: number } & Record<
+  InterviewFilter,
+  number
+> => {
   const counts = Object.fromEntries(
     INTERVIEW_FILTERS.map((f) => [f, interviews.filter((i) => matches(i, f)).length]),
   ) as Record<InterviewFilter, number>
@@ -71,6 +81,13 @@ export const countInterviews = (
     total: interviews.length,
     // Not decided yet, whatever is missing: an interview without transcript counts too.
     open: interviews.filter((i) => i.state === 'proposed').length,
+    // Spec 037: test sessions ready for the video analysis, and their videos' length (not excluded).
+    readyForAnalysis: interviews.filter((i) => i.readiness === 'ready').length,
+    videoMinutes: Math.round(
+      interviews
+        .filter((i) => i.state !== 'excluded')
+        .reduce((sum, i) => sum + (i.video?.durationMs ?? 0), 0) / 60_000,
+    ),
     ...counts,
   }
 }

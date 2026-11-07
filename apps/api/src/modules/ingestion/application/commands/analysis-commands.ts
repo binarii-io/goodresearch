@@ -30,6 +30,7 @@ import type { InventoryFile } from '../../domain/inventory-walk.ts'
 import { attachmentLabel, normalisedBase } from '../../domain/normalised-name.ts'
 import { nameKey } from '../../domain/pseudonyms.ts'
 import { fromPlaceholders, QUOTE_MAX, quoteFound, withPlaceholders } from '../../domain/quotes.ts'
+import { hasSessions } from '../../domain/reconcile-sessions.ts'
 import { decide, personDecided, type Session, splitNames } from '../../domain/session.ts'
 import { looksLikeTranscript } from '../../domain/transcript-text.ts'
 import { resolveStudyAccess } from '../access.ts'
@@ -40,6 +41,7 @@ import {
   type AnalysisRun,
   type IngestionDeps,
   type PlannedSummary,
+  type SessionKind,
 } from '../ports.ts'
 import { makePlannedSync } from './planned-sync.ts'
 
@@ -77,6 +79,8 @@ type Failure =
 /** What the analyses of one study read once (files, sessions, schedule, members, Drive access). */
 type StudyContext = {
   readonly studyId: string
+  /** Spec 037: the AI names the roles of a usability test (participant, facilitator). */
+  readonly kind: SessionKind
   readonly anonymised: boolean
   readonly files: readonly InventoryFile[]
   readonly fileById: ReadonlyMap<string, InventoryFile>
@@ -104,7 +108,7 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
     const access = await resolveStudyAccess(deps, accountId, studyId)
     if (access.kind === 'not-found') return err('STUDY_NOT_FOUND')
     if (access.kind !== 'full') return err('FOLDER_ACCESS_REQUIRED')
-    if (access.type !== 'interviews') return err('NOT_AN_INTERVIEW_STUDY')
+    if (!hasSessions(access.type)) return err('NOT_AN_INTERVIEW_STUDY')
     const [files, sessions, schedule, members, connection] = await Promise.all([
       deps.store.listFiles(studyId, {}),
       deps.store.listSessions(studyId),
@@ -114,6 +118,7 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
     ])
     return ok({
       studyId,
+      kind: access.type === 'usability-test' ? ('usability-test' as const) : ('interview' as const),
       anonymised: access.anonymised,
       files,
       fileById: new Map(files.map((f) => [f.id, f])),
@@ -137,8 +142,10 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
       const date =
         o.interviewDate ??
         (proposed.find((p) => p.field === 'date')?.value as string | undefined) ??
-        (o.transcriptFileId
-          ? ctx.fileById.get(o.transcriptFileId)?.modifiedAt?.slice(0, 10)
+        ((o.transcriptFileId ?? o.videoFileId)
+          ? ctx.fileById
+              .get((o.transcriptFileId ?? o.videoFileId) as string)
+              ?.modifiedAt?.slice(0, 10)
           : null) ??
         null
       // Accepted interviewees, and proposed ones not rejected: the codes follow the dates of
@@ -195,8 +202,12 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
     runId: string | null,
   ): Promise<Analysis> => {
     const transcript = s.transcriptFileId ? ctx.fileById.get(s.transcriptFileId) : undefined
-    const media = s.media.flatMap((m) => {
-      const f = ctx.fileById.get(m.fileId)
+    // A test session's main video comes first among its recordings (spec 037).
+    const media = [
+      ...(s.videoFileId ? [s.videoFileId] : []),
+      ...s.media.map((m) => m.fileId),
+    ].flatMap((id) => {
+      const f = ctx.fileById.get(id)
       return f ? [f] : []
     })
     const planned = s.plannedInterviewId
@@ -261,7 +272,12 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
       const back = (t: string) => fromPlaceholders(t, sent.names)
       try {
         usedAi = true
-        const answer = await deps.analyzer.analyze(accountId, analysisRef(s.id), sent.text)
+        const answer = await deps.analyzer.analyze(
+          accountId,
+          analysisRef(s.id),
+          sent.text,
+          ctx.kind,
+        )
         // Constitution IV: a proposal is kept only with a quote found in the text sent.
         const found = (people: readonly { name: string; quote: string }[]) =>
           people
@@ -368,6 +384,7 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
         .filter((o) => o.id !== s.id)
         .flatMap((o) => [
           ...(o.transcriptFileId ? [o.transcriptFileId] : []),
+          ...(o.videoFileId ? [o.videoFileId] : []),
           ...o.media.map((m) => m.fileId),
           ...o.attachments.map((a) => a.fileId),
         ]),
@@ -543,6 +560,7 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
           .filter((o) => o.id !== s.id)
           .flatMap((o) => [
             ...(o.transcriptFileId ? [o.transcriptFileId] : []),
+            ...(o.videoFileId ? [o.videoFileId] : []),
             ...o.media.map((m) => m.fileId),
             ...o.attachments.map((a) => a.fileId),
           ]),

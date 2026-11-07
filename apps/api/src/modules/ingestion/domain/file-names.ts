@@ -23,6 +23,8 @@ export const expectedNames = (
   const byId = new Map(files.map((f) => [f.id, f]))
   const own: FileToName[] = [
     ...(s.transcriptFileId ? [{ id: s.transcriptFileId, kind: 'transcript' as const }] : []),
+    // Spec 037: a test session's main video, named "Video" like its other recordings.
+    ...(s.videoFileId ? [{ id: s.videoFileId, kind: 'media' as const }] : []),
     ...s.media.map((m) => ({ id: m.fileId, kind: 'media' as const })),
     ...s.attachments.map((a) => ({
       id: a.fileId,

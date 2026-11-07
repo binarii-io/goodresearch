@@ -79,6 +79,8 @@ export const ingestionInventoryFiles = pgTable(
     size: bigint('size', { mode: 'number' }),
     modifiedAt: timestamp('modified_at', { withTimezone: true }),
     webViewLink: text('web_view_link').notNull(),
+    /** Spec 037: a video's length from the source's metadata, null when unknown. */
+    durationMs: bigint('duration_ms', { mode: 'number' }),
   },
   (t) => [
     primaryKey({ columns: [t.studyId, t.fileId] }),
@@ -125,6 +127,10 @@ export const ingestionSessions = pgTable(
     studyId: text('study_id').notNull(),
     /** Null for a recording without its transcript. */
     transcriptFileId: text('transcript_file_id'),
+    /** Spec 037: the main video of a usability test session. */
+    videoFileId: text('video_file_id'),
+    /** Spec 037: the protocol version a person chose; null while the app proposes one. */
+    protocolVersion: integer('protocol_version'),
     media: jsonb('media')
       .$type<{ fileId: string; confidence: 'high' | 'medium' | 'low' | null; reason: string }[]>()
       .notNull(),
@@ -162,6 +168,9 @@ export const ingestionSessions = pgTable(
   },
   (t) => [
     uniqueIndex('ingestion_sessions_transcript_idx').on(t.studyId, t.transcriptFileId),
+    uniqueIndex('ingestion_sessions_video_idx')
+      .on(t.studyId, t.videoFileId)
+      .where(sql`${t.videoFileId} is not null`),
     uniqueIndex('ingestion_sessions_planned_idx')
       .on(t.studyId, t.plannedInterviewId)
       .where(sql`${t.plannedInterviewId} is not null`),

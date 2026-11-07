@@ -1,16 +1,21 @@
 import { err, ok, type Result, sumCosts } from '@goodresearch/shared'
 import { type Analysis, filesChanged, type Proposal, shownAnalysis } from '../../domain/analysis.ts'
+import { isVideo } from '../../domain/classify.ts'
 import { fileNamesState } from '../../domain/file-names.ts'
 import { fileWords, nameWords } from '../../domain/file-words.ts'
 import { countInterviews, peopleOf, selectInterviews } from '../../domain/interview-filters.ts'
 import type { InventoryFile } from '../../domain/inventory-walk.ts'
 import { suggestLink } from '../../domain/link-suggestion.ts'
+import { type ProtocolVersionRef, sessionMoment, versionAt } from '../../domain/protocol-version.ts'
+import { type SessionMode, sessionModeOf } from '../../domain/reconcile-sessions.ts'
 import {
   givesUpRecordings,
+  mergeable,
   personDecided,
   SESSION_LIMIT,
   type Session,
 } from '../../domain/session.ts'
+import { readinessOf, type SessionReadiness } from '../../domain/session-readiness.ts'
 import { resolveStudyAccess } from '../access.ts'
 import { analysisRef, isLive } from '../commands/analysis-commands.ts'
 import type { Actor, AnalysisRun, IngestionDeps, PlannedSummary } from '../ports.ts'
@@ -57,6 +62,12 @@ export type SessionView = {
   readonly cost: number | null
   /** Spec 009 FR-028: the files in Drive carry the accepted name; null before one is accepted. */
   readonly fileNames: { inSync: boolean; differing: number } | null
+  /** Spec 037, test sessions only: the main video and its length (null when unknown). */
+  readonly video: (FileView & { durationMs: number | null }) | null
+  /** Spec 037: the protocol version, chosen by a person or proposed by the app from the date. */
+  readonly protocolVersion: { version: number; by: 'app' | 'person' } | null
+  /** Spec 037: ready for the video analysis, or the first condition missing. */
+  readonly readiness: SessionReadiness | null
   readonly version: number
 }
 
@@ -82,6 +93,8 @@ type AnalysisView = {
 }
 
 export type FieldworkView = {
+  /** Spec 037: interviews, or the test sessions of a usability test study. */
+  readonly kind: 'interviews' | 'sessions'
   readonly sessions: SessionView[]
   readonly unmatchedMedia: FileView[]
   readonly plannedWithoutSession: {
@@ -105,6 +118,12 @@ export type FieldworkView = {
   readonly anonymised: boolean
   readonly namedFiles: number
   readonly consentNeeded: boolean
+  /** Spec 037, test sessions: how many are ready, and the length of their videos. */
+  readonly ready: number
+  readonly videoMinutes: number
+  /** Spec 037: transcripts no video claims (a session needs its video). */
+  readonly unclaimedTranscripts: FileView[]
+  readonly protocolVersions: { version: number; savedAt: string }[]
 }
 
 type Denied = 'STUDY_NOT_FOUND' | 'FOLDER_ACCESS_REQUIRED' | 'NOT_AN_INTERVIEW_STUDY'
@@ -129,32 +148,49 @@ const plannedView = (p: PlannedSummary): PlannedView => ({
 
 const withoutExtension = (name: string) => name.replace(/\.[^./]{1,5}$/, '')
 
+/** Whole minutes of a length in milliseconds (spec 037: video hours of the study). */
+const minutesOf = (ms: number | null) => Math.round((ms ?? 0) / 60_000)
+
 /**
  * Spec 008: what the Fieldwork phase shows. Suggestions are computed here from the schedule and
  * never stored (research R4); a link to a planned interview no longer in the schedule reads as none.
  */
 export const makeSessionQueries = (deps: IngestionDeps) => {
   /** `backfill`: place files no session holds yet (the list only, never a single session). */
-  const build = async (accountId: string, studyId: string, backfill: boolean) => {
-    let [sessions, files, read] = await Promise.all([
+  const build = async (
+    accountId: string,
+    studyId: string,
+    backfill: boolean,
+    mode: SessionMode = 'transcripts',
+  ) => {
+    const videos = mode === 'videos'
+    let [sessions, files, read, versions] = await Promise.all([
       deps.store.listSessions(studyId),
       deps.store.listFiles(studyId, {}),
-      deps.schedule.list(accountId, studyId),
+      // Usability tests have no schedule (spec 037 FR-015).
+      videos ? Promise.resolve(null) : deps.schedule.list(accountId, studyId),
+      videos
+        ? deps.protocolVersions.list(studyId)
+        : Promise.resolve([] as readonly ProtocolVersionRef[]),
     ])
     // Files of the inventory that no session holds yet (an inventory taken before sessions, or
     // before recordings without transcript got their own row): propose them now (SC-001).
     const placed = new Set(
       sessions.flatMap((x) => [
         ...(x.transcriptFileId ? [x.transcriptFileId] : []),
+        ...(x.videoFileId ? [x.videoFileId] : []),
         ...x.media.map((m) => m.fileId),
       ]),
     )
+    // A test session starts from a video: other files alone propose nothing (spec 037).
+    const proposes = (f: InventoryFile) =>
+      videos ? f.kind === 'media' && isVideo(f.mimeType) : f.kind !== 'other'
     if (
       backfill &&
       sessions.length < SESSION_LIMIT &&
-      files.some((f) => f.kind !== 'other' && !placed.has(f.id))
+      files.some((f) => proposes(f) && !placed.has(f.id))
     ) {
-      await deps.store.backfillSessions(studyId, deps.clock.now())
+      await deps.store.backfillSessions(studyId, deps.clock.now(), mode)
       sessions = await deps.store.listSessions(studyId)
     }
     const planned = read ?? []
@@ -210,12 +246,26 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
     }
     const view = (s: Session): SessionView => {
       const transcript = s.transcriptFileId ? fileById.get(s.transcriptFileId) : undefined
+      const video = s.videoFileId ? fileById.get(s.videoFileId) : undefined
       const recordings = s.media.flatMap((m) => {
         const f = fileById.get(m.fileId)
         return f ? [{ ...fileView(f), confidence: m.confidence, reason: m.reason }] : []
       })
-      // Without a transcript, the first recording names and dates the interview.
-      const anchor = transcript ?? (recordings[0] ? fileById.get(recordings[0].fileId) : undefined)
+      // Without a transcript, the main video (or the first recording) names and dates it.
+      const anchor =
+        transcript ?? video ?? (recordings[0] ? fileById.get(recordings[0].fileId) : undefined)
+      const protocol =
+        s.protocolVersion !== null
+          ? { version: s.protocolVersion, by: 'person' as const }
+          : videos
+            ? (() => {
+                const v = versionAt(
+                  versions,
+                  sessionMoment(s.interviewDate, video?.modifiedAt ?? null),
+                )
+                return v === null ? null : { version: v, by: 'app' as const }
+              })()
+            : null
       const linked = linkOf(s)
       // Spec 009: the people and date the analysis found (accepted, else proposed) come first.
       const proposed = (s.analysis?.proposals ?? []).filter((p) => p.status !== 'rejected')
@@ -242,7 +292,11 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
         defaultTitle: linked?.interviewee ?? (anchor ? withoutExtension(anchor.name) : s.id),
         transcript: transcript ? fileView(transcript) : null,
         noTranscript: s.transcriptFileId === null,
-        fileMissing: s.transcriptFileId !== null ? !transcript : recordings.length === 0,
+        fileMissing: videos
+          ? !video
+          : s.transcriptFileId !== null
+            ? !transcript
+            : recordings.length === 0,
         media: recordings,
         mediaEdited: s.mediaEdited,
         link: linked ? { ...plannedView(linked), linkedBy: s.linkedBy ?? 'person' } : null,
@@ -260,22 +314,32 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
         analysis: analysisView(s),
         cost: costs.get(analysisRef(s.id)) ?? null,
         fileNames: fileNamesState(s, files),
+        video: video ? { ...fileView(video), durationMs: video.durationMs ?? null } : null,
+        protocolVersion: protocol,
+        readiness: videos
+          ? readinessOf({
+              state: s.state,
+              videoInFolder: video !== undefined,
+              durationMs: video?.durationMs ?? null,
+              participants: s.roster.filter((r) => r.role === 'interviewee').length,
+              protocolVersion: protocol?.version ?? null,
+            })
+          : null,
         version: s.version,
       }
     }
-    return { sessions, files, planned, held, view, costs }
+    return { sessions, files, planned, held, view, costs, versions }
   }
 
   const gate = async (
     accountId: string,
     studyId: string,
-  ): Promise<Result<{ anonymised: boolean }, Denied>> => {
+  ): Promise<Result<{ anonymised: boolean; mode: SessionMode }, Denied>> => {
     const access = await resolveStudyAccess(deps, accountId, studyId)
     if (access.kind === 'not-found') return err('STUDY_NOT_FOUND')
     if (access.kind !== 'full') return err('FOLDER_ACCESS_REQUIRED')
-    return access.type === 'interviews'
-      ? ok({ anonymised: access.anonymised })
-      : err('NOT_AN_INTERVIEW_STUDY')
+    const mode = sessionModeOf(access.type)
+    return mode ? ok({ anonymised: access.anonymised, mode }) : err('NOT_AN_INTERVIEW_STUDY')
   }
 
   /** Interviews whose file names hold a word of an interviewee's name (to rename, FR-013). */
@@ -287,7 +351,7 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
           p.field === 'interviewees' ? p.value.map((v) => v.name) : [],
         ),
       ].flatMap(nameWords)
-      const ids = [s.transcriptFileId, ...s.media.map((m) => m.fileId)]
+      const ids = [s.transcriptFileId, s.videoFileId, ...s.media.map((m) => m.fileId)]
       return ids.some((id) => {
         const f = id ? fileById.get(id) : undefined
         const inName = f ? fileWords(f.name) : new Set<string>()
@@ -300,7 +364,7 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
     interviewCounts: async (actor: Actor, studyId: string) => {
       const allowed = await gate(actor.id, studyId)
       if (!allowed.ok) return allowed
-      const { sessions, view } = await build(actor.id, studyId, true)
+      const { sessions, view } = await build(actor.id, studyId, true, allowed.value.mode)
       return ok(countInterviews(sessions.map(view)))
     },
 
@@ -313,7 +377,7 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
       const allowed = await gate(actor.id, studyId)
       if (!allowed.ok) return allowed
       if (allowed.value.anonymised) return err('STUDY_ANONYMISED' as const)
-      const { sessions, view } = await build(actor.id, studyId, true)
+      const { sessions, view } = await build(actor.id, studyId, true, allowed.value.mode)
       const page = selectInterviews(sessions.map(view), search)
       return ok({
         ...page,
@@ -323,6 +387,8 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
           people: peopleOf(s),
           state: s.state,
           hasTranscript: s.transcript !== null,
+          ...(s.readiness ? { readiness: s.readiness } : {}),
+          ...(s.video ? { videoMinutes: minutesOf(s.video.durationMs) } : {}),
           recordings: s.media.length,
           attachedDocuments: s.attachments.length,
           date: s.interviewDate,
@@ -347,7 +413,13 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
     fieldwork: async (actor: Actor, studyId: string): Promise<Result<FieldworkView, Denied>> => {
       const allowed = await gate(actor.id, studyId)
       if (!allowed.ok) return allowed
-      const { sessions, files, planned, held, view, costs } = await build(actor.id, studyId, true)
+      const { mode } = allowed.value
+      const { sessions, files, planned, held, view, costs, versions } = await build(
+        actor.id,
+        studyId,
+        true,
+        mode,
+      )
       const [last, provider] = await Promise.all([
         deps.store.lastRun(studyId),
         deps.analyzer.providerOf(actor.id),
@@ -364,18 +436,29 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
       const used = new Set(
         sessions.flatMap((s) => [
           ...(s.transcriptFileId ? [s.transcriptFileId] : []),
+          ...(s.videoFileId ? [s.videoFileId] : []),
           ...s.media.map((m) => m.fileId),
         ]),
       )
       // Recordings a person can add to an interview: free ones, and those of rows without
-      // transcript that no person decided (the row gives them up).
+      // transcript that no person decided (the row gives them up). Spec 037: the main video of an
+      // undecided test session too (taking it merges the session).
       const lone = new Set(
-        sessions.filter(givesUpRecordings).flatMap((s) => s.media.map((m) => m.fileId)),
+        sessions.flatMap((s) =>
+          givesUpRecordings(s)
+            ? s.media.map((m) => m.fileId)
+            : mergeable(s) && s.videoFileId
+              ? [s.videoFileId]
+              : [],
+        ),
       )
       const totals = { proposed: 0, validated: 0, excluded: 0 }
       for (const s of sessions) totals[s.state]++
+      const views = sorted.map(view)
+      const counted = countInterviews(views)
       return ok({
-        sessions: sorted.map(view),
+        kind: mode === 'videos' ? ('sessions' as const) : ('interviews' as const),
+        sessions: views,
         unmatchedMedia: files
           .filter((f) => f.kind === 'media' && (!used.has(f.id) || lone.has(f.id)))
           .map(fileView),
@@ -411,6 +494,17 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
           : null,
         anonymised: allowed.value.anonymised,
         namedFiles: named(sessions, new Map(files.map((f) => [f.id, f]))),
+        // The same numbers as the assistant's counts (spec 025 filters).
+        ready: counted.readyForAnalysis,
+        videoMinutes: counted.videoMinutes,
+        unclaimedTranscripts:
+          mode === 'videos'
+            ? files.filter((f) => f.kind === 'transcript' && !used.has(f.id)).map(fileView)
+            : [],
+        protocolVersions: versions.map((v) => ({
+          version: v.version,
+          savedAt: v.savedAt.toISOString(),
+        })),
         consentNeeded:
           provider !== null && !(await deps.store.hasConsent(actor.id, studyId, provider)),
       })
@@ -425,7 +519,7 @@ export const makeSessionQueries = (deps: IngestionDeps) => {
       const allowed = await gate(actor.id, s.studyId)
       if (!allowed.ok)
         return allowed.error === 'STUDY_NOT_FOUND' ? err('SESSION_NOT_FOUND') : allowed
-      return ok((await build(actor.id, s.studyId, false)).view(s))
+      return ok((await build(actor.id, s.studyId, false, allowed.value.mode)).view(s))
     },
   }
 }

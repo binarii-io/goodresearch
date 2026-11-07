@@ -99,3 +99,23 @@ export const ANALYSIS_FAILURES: Record<NonNullable<Analysis['failure']>, Message
 /** Reasons of exclusions made by the app, as people read them (others are the person's text). */
 export const excludedReason = (i18n: I18n, reason: string): string =>
   reason === 'not-a-transcript' ? i18n._(msg`a summary, not a transcript (by the app)`) : reason
+
+/** Spec 037: ready for the video analysis, or what is missing first. */
+export const READINESS: Record<NonNullable<Session['readiness']>, MessageDescriptor> = {
+  ready: msg`Ready for analysis`,
+  'not-validated': msg`To validate`,
+  'video-missing': msg`Video missing in Drive`,
+  'duration-unknown': msg`Video length unknown`,
+  'participant-to-confirm': msg`Participant to confirm`,
+  'no-protocol': msg`No test protocol`,
+}
+
+/** A video's length as people read it ("31 min", "1 h 05"); null when unknown. */
+export const lengthOf = (i18n: I18n, ms: number | null): string | null => {
+  if (ms === null) return null
+  const total = Math.max(1, Math.round(ms / 60_000))
+  if (total < 60) return i18n._(msg`${total} min`)
+  const hours = Math.floor(total / 60)
+  const minutes = String(total % 60).padStart(2, '0')
+  return i18n._(msg`${hours} h ${minutes}`)
+}

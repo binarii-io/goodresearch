@@ -80,9 +80,18 @@ const demoFiles = (): [string, DriveItem][] => {
     parent: string,
     mimeType: string,
     modifiedTime: string,
+    durationMs?: number,
   ): [string, DriveItem] => [
     id,
-    { id, name, mimeType, parents: [parent], size: 1200, modifiedTime },
+    {
+      id,
+      name,
+      mimeType,
+      parents: [parent],
+      size: 1200,
+      modifiedTime,
+      ...(durationMs ? { durationMs } : {}),
+    },
   ]
   return [
     folder('dev-week-1', 'Week 1'),
@@ -100,6 +109,8 @@ const demoFiles = (): [string, DriveItem][] => {
       'dev-week-1',
       'video/mp4',
       '2026-10-20T10:00:20Z',
+      // 31 minutes; the other video has no length yet (still processing, spec 037).
+      1_860_000,
     ),
     file(
       'dev-transcript-2',

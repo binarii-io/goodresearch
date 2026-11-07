@@ -108,6 +108,16 @@ export const SessionAnalysis = z
   })
   .meta({ id: 'SessionAnalysis' })
 
+export const SessionReadiness = z.enum([
+  'ready',
+  'not-validated',
+  'video-missing',
+  'duration-unknown',
+  'participant-to-confirm',
+  'no-protocol',
+])
+export type SessionReadiness = z.infer<typeof SessionReadiness>
+
 export const Session = z
   .object({
     id: Id,
@@ -143,6 +153,14 @@ export const Session = z
     cost: z.number().nullable(),
     /** The files in Drive carry the accepted name (last inventory); null before one is accepted. */
     fileNames: z.object({ inSync: z.boolean(), differing: z.number().int() }).nullable(),
+    /** Spec 037, test sessions only: the main video and its length (null when unknown). */
+    video: SessionFile.extend({ durationMs: z.number().int().nullable() }).nullable(),
+    /** Spec 037: chosen by a person, or proposed by the app from the session's date. */
+    protocolVersion: z
+      .object({ version: z.number().int().min(1), by: z.enum(['app', 'person']) })
+      .nullable(),
+    /** Spec 037: ready for the video analysis, or the first condition missing; null on interviews. */
+    readiness: SessionReadiness.nullable(),
     version: Version,
   })
   .meta({ id: 'Session' })
@@ -150,6 +168,8 @@ export type Session = z.infer<typeof Session>
 
 export const Fieldwork = z
   .object({
+    /** Spec 037: the interviews of an interview study, or the test sessions of a usability test. */
+    kind: z.enum(['interviews', 'sessions']),
     sessions: z.array(Session),
     /** Recordings a person can add to an interview: free ones and those alone in their own row. */
     unmatchedMedia: z.array(SessionFile),
@@ -186,6 +206,14 @@ export const Fieldwork = z
     namedFiles: z.number().int(),
     /** The person has not yet agreed to send transcripts to their current AI provider. */
     consentNeeded: z.boolean(),
+    /** Spec 037, test sessions: how many are ready for the video analysis. */
+    ready: z.number().int(),
+    /** Spec 037: the length of the videos of sessions not excluded, in minutes. */
+    videoMinutes: z.number().int(),
+    /** Spec 037: transcripts no video claims (a session needs its video). */
+    unclaimedTranscripts: z.array(SessionFile),
+    /** Spec 037: the saved versions of the study's test protocol, oldest first. */
+    protocolVersions: z.array(z.object({ version: z.number().int().min(1), savedAt: Timestamp })),
   })
   .meta({ id: 'Fieldwork' })
 export type Fieldwork = z.infer<typeof Fieldwork>
@@ -219,6 +247,11 @@ export const DecideSession = z
     version: Version,
   })
   .meta({ id: 'DecideSession' })
+
+/** Spec 037: a person's choice of protocol version for a test session; null gives it back to the app. */
+export const SetProtocolVersion = z
+  .object({ protocolVersion: z.number().int().min(1).nullable(), version: Version })
+  .meta({ id: 'SetProtocolVersion' })
 
 export const AnalyzeSession = z
   .object({ consent: z.boolean().optional() })

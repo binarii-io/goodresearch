@@ -177,13 +177,73 @@ describe('Usability test preparation (spec 036)', () => {
     expect(change.statusCode).toBeGreaterThanOrEqual(400)
   })
 
-  it('creates no session when a folder is attached', async () => {
-    await consent(alex, 'alex@drive.example', 'read')
+  it('spec 037: one test session per video of the folder, with its length and protocol version', async () => {
+    const video = (id: string, name: string, at: string, durationMs?: number) => {
+      drive.addFile(id, name, FOLDER, 'video/mp4')
+      const item = drive.items.get(id)
+      if (item)
+        drive.items.set(id, { ...item, modifiedTime: at, ...(durationMs ? { durationMs } : {}) })
+    }
+    video(
+      'v-one',
+      'Test one - 2026/11/03 10:00 CET - Recording.mp4',
+      '2026-11-03T11:00:00Z',
+      1_800_000,
+    )
+    video('v-two', 'Test two.mp4', '2026-11-04T11:00:00Z')
+    drive.addFile('t-one', 'Test one - 2026/11/03 10:00 CET - Transcript', FOLDER, 'text/plain')
+    drive.addFile('t-lost', 'Lost notes.txt', FOLDER, 'text/plain')
+    await consent(alex, 'alex@drive.example', 'write')
     await call(alex, 'PUT', `/api/studies/${testId}/source`, {
       link: `https://drive.google.com/drive/folders/${FOLDER}`,
     })
-    const sessions = await call(alex, 'GET', `/api/studies/${testId}/sessions`)
-    expect(sessions.json().code).toBe('NOT_AN_INTERVIEW_STUDY')
+    await world.runJobs()
+    const view = (await call(alex, 'GET', `/api/studies/${testId}/sessions`)).json()
+    expect(view.kind).toBe('sessions')
+    expect(view.sessions).toHaveLength(2)
+    const one = view.sessions.find((s: { video: { fileId: string } }) => s.video.fileId === 'v-one')
+    expect(one).toMatchObject({
+      video: { durationMs: 1_800_000 },
+      transcript: { fileId: 't-one' },
+      readiness: 'not-validated',
+      link: null,
+    })
+    expect(view.unclaimedTranscripts.map((f: { fileId: string }) => f.fileId)).toEqual(['t-lost'])
+    // Three saves above, each kept as a version (FR-010).
+    expect(view.protocolVersions.map((v: { version: number }) => v.version)).toEqual([1, 2, 3])
+    const chosen = await call(alex, 'PUT', `/api/sessions/${one.id}/protocol-version`, {
+      protocolVersion: 2,
+      version: one.version,
+    })
+    expect(chosen.json().protocolVersion).toEqual({ version: 2, by: 'person' })
+    const unknown = await call(alex, 'PUT', `/api/sessions/${one.id}/protocol-version`, {
+      protocolVersion: 9,
+      version: chosen.json().version,
+    })
+    expect(unknown.statusCode).toBe(422)
+    expect(view.videoMinutes).toBe(30)
+  })
+
+  it('spec 037: a transcript moves to another open session without breaking the inventory', async () => {
+    // The names now say the transcript belongs to the other video.
+    const rename = (id: string, name: string) => {
+      const item = drive.items.get(id)
+      if (item) drive.items.set(id, { ...item, name })
+    }
+    rename('v-one', 'Other take.mp4')
+    rename('v-two', 'Test one - 2026/11/03 10:00 CET - Recording.mp4')
+    const two = drive.items.get('v-two')
+    if (two) drive.items.set('v-two', { ...two, modifiedTime: '2026-11-03T11:00:00Z' })
+    const refresh = await call(alex, 'POST', `/api/studies/${testId}/source/inventory`)
+    expect(refresh.statusCode).toBeLessThan(300)
+    await world.runJobs()
+    const source = (await call(alex, 'GET', `/api/studies/${testId}/source`)).json()
+    expect(source.source.inventory.status).toBe('done')
+    const view = (await call(alex, 'GET', `/api/studies/${testId}/sessions`)).json()
+    const byVideo = (id: string) =>
+      view.sessions.find((s: { video: { fileId: string } }) => s.video.fileId === id)
+    expect(byVideo('v-two').transcript?.fileId).toBe('t-one')
+    expect(byVideo('v-one').transcript).toBeNull()
   })
 
   it('deletes it with the study', async () => {

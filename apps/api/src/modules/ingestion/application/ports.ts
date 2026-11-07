@@ -6,6 +6,8 @@ import type { FolderAccessResult } from '../domain/folder-access.ts'
 import type { InventoryRun } from '../domain/inventory-run.ts'
 import type { InventoryFile, InventoryProgress } from '../domain/inventory-walk.ts'
 import type { ScheduleChange } from '../domain/planned-sync.ts'
+import type { ProtocolVersionRef } from '../domain/protocol-version.ts'
+import type { SessionMode } from '../domain/reconcile-sessions.ts'
 import type { Session } from '../domain/session.ts'
 
 export type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
@@ -49,6 +51,14 @@ export type PlannedSummary = {
  * The study's schedule, read with the person's own access (research module); `null` when it could
  * not be read, so a link is never dropped on a doubt (PR #8 review).
  */
+/** Spec 037: the saved versions of a study's test protocol (research module), oldest first. */
+export type ProtocolVersions = {
+  list(studyId: string): Promise<readonly ProtocolVersionRef[]>
+}
+
+/** What a session is: an interview, or a usability test session (spec 037). */
+export type SessionKind = 'interview' | 'usability-test'
+
 export type Schedule = {
   list(accountId: string, studyId: string): Promise<readonly PlannedSummary[] | null>
   /**
@@ -91,7 +101,13 @@ export class AiFailed extends Error {
  * recorded in the usage ledger under `ref`.
  */
 export type Analyzer = {
-  analyze(accountId: string, ref: string, text: string): Promise<AnalyzerAnswer>
+  analyze(
+    accountId: string,
+    ref: string,
+    text: string,
+    /** Spec 037: a usability test names its roles participant and facilitator. */
+    kind?: SessionKind,
+  ): Promise<AnalyzerAnswer>
   providerOf(accountId: string): Promise<string | null>
   estimate(accountId: string, inputChars: number, outputTokens: number): Promise<number | null>
   /** Costs by ref, for every account. */
@@ -201,8 +217,8 @@ export interface IngestionStore {
     files: readonly InventoryFile[],
     folder: { name: string; ownerName: string | null },
     now: Date,
-    /** Only interview studies have sessions. */
-    options?: { sessions: boolean },
+    /** Interview studies anchor their sessions on transcripts, usability tests on videos. */
+    options?: { sessions: SessionMode | false },
   ): Promise<boolean>
   failInventory(run: InventoryRun, failure: InventoryFailure, now: Date): Promise<void>
   getFolderAccess(
@@ -260,7 +276,7 @@ export interface IngestionStore {
     release?: readonly string[],
   ): Promise<SessionWrite>
   /** Proposes the sessions of an inventory taken before sessions existed (spec 008 SC-001). */
-  backfillSessions(studyId: string, now: Date): Promise<void>
+  backfillSessions(studyId: string, now: Date, mode?: SessionMode): Promise<void>
   /** Writes only the analysis of a session if its version is still `expected` (research R7). */
   writeAnalysis(
     sessionId: string,
@@ -306,6 +322,7 @@ export type IngestionDeps = {
   readonly store: IngestionStore
   readonly studies: StudyDirectory
   readonly schedule: Schedule
+  readonly protocolVersions: ProtocolVersions
   readonly members: Members
   readonly drive: {
     readonly gateway: DriveGateway

@@ -222,7 +222,7 @@ describe('spec 036 - test protocol design', () => {
     const after = await buildContext(world.research.reads, ada, studyPage, 'en', [], 'study')
     expect(after.system).toContain('designing its test protocol')
     expect(after.system).not.toContain('preparing its interview guide')
-    expect(after.system).toContain('only preparation is built for a usability test study')
+    expect(after.system).toContain('only preparation and fieldwork are built so far')
   })
 
   it('after the folder, speaks of the protocol, never of interviews (PR #51)', async () => {

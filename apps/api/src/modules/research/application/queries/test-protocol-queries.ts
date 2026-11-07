@@ -1,6 +1,6 @@
 import type { StandardTexts, TestProtocol, TestProtocolDraft } from '@goodresearch/contracts'
 import { err, ok, type Result, STANDARD_QUESTIONS } from '@goodresearch/shared'
-import { eq } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 import type { Db } from '#platform/db.ts'
 import {
@@ -16,6 +16,7 @@ import {
   researchProtocolChecks,
   researchStudies,
   researchTestProtocols,
+  researchTestProtocolVersions,
 } from '../../infrastructure/schema.ts'
 import type { StudyActionGate, TeamDirectory } from '../ports.ts'
 
@@ -149,6 +150,20 @@ export const makeTestProtocolQueries = (deps: {
         row ? { content: row.content as TestProtocol['content'], version: row.version } : null,
       )
     },
+
+    /**
+     * Spec 037: the saved versions of a study's protocol, oldest first, without their content; for
+     * Ingestion, which checks the person's access to the study before.
+     */
+    protocolVersions: async (studyId: string): Promise<{ version: number; savedAt: Date }[]> =>
+      db
+        .select({
+          version: researchTestProtocolVersions.version,
+          savedAt: researchTestProtocolVersions.savedAt,
+        })
+        .from(researchTestProtocolVersions)
+        .where(eq(researchTestProtocolVersions.studyId, studyId))
+        .orderBy(asc(researchTestProtocolVersions.version)),
 
     /** What the assistant may know: `null` without the right to change, or another type. */
     testProtocolForAssistant: async (

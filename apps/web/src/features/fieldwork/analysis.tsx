@@ -25,6 +25,7 @@ import { Button } from '@goodresearch/ui/components/button'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
 import { HourglassIcon, LoaderCircleIcon, SparklesIcon } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
+import { plural } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
@@ -201,24 +202,50 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
 
   const e = estimate.data
   const cost = e?.estimatedCost === null ? t`unknown` : money(e?.estimatedCost ?? 0)
+  // Spec 037: the test sessions of a usability test, worded as such.
+  const tests = data.kind === 'sessions'
+  const withoutTranscript = e ? e.count - e.withTranscript : 0
   return (
     <>
       <Button className="ml-auto" onClick={() => setOpen(true)}>
         <SparklesIcon aria-hidden />
-        {t`Analyze interviews`}
+        {tests ? t`Analyze sessions` : t`Analyze interviews`}
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t`Analyze the interviews?`}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {tests ? t`Analyze the sessions?` : t`Analyze the interviews?`}
+            </AlertDialogTitle>
             {!e ? (
-              <AlertDialogDescription>{t`Counting the interviews to analyze…`}</AlertDialogDescription>
+              <AlertDialogDescription>
+                {tests
+                  ? t`Counting the sessions to analyze…`
+                  : t`Counting the interviews to analyze…`}
+              </AlertDialogDescription>
             ) : e.count === 0 ? (
-              <AlertDialogDescription>{t`Every interview is already analyzed. Tick the box below to analyze them again.`}</AlertDialogDescription>
+              <AlertDialogDescription>
+                {tests
+                  ? t`Every session is already analyzed. Tick the box below to analyze them again.`
+                  : t`Every interview is already analyzed. Tick the box below to analyze them again.`}
+              </AlertDialogDescription>
             ) : (
               <>
                 <AlertDialogDescription className="grid gap-2">
-                  <span>{t`${e.count} interviews will be analyzed: never analyzed, incomplete, or whose files changed. Interviews a person decided are left as they are.`}</span>
+                  <span>
+                    {tests
+                      ? t`${e.count} sessions will be analyzed: never analyzed, incomplete, or whose files changed. Sessions a person decided are left as they are.`
+                      : t`${e.count} interviews will be analyzed: never analyzed, incomplete, or whose files changed. Interviews a person decided are left as they are.`}
+                  </span>
+                  {tests && withoutTranscript > 0 ? (
+                    <span>
+                      {plural(withoutTranscript, {
+                        one: '# session has no transcript: only its date and language can be proposed, from its files. Enter its participant in the session, and its name is proposed.',
+                        other:
+                          '# sessions have no transcript: only their date and language can be proposed, from their files. Enter their participant in each session, and its name is proposed.',
+                      })}
+                    </span>
+                  ) : null}
                   {e.aiConnected ? (
                     <span>{t`At most ${cost} with your AI provider: the AI is asked only when the app's rules do not find everything.`}</span>
                   ) : (
@@ -236,7 +263,11 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
               onCheckedChange={(checked) => setAgain(checked === true)}
             />
             <Label htmlFor={againId} className="grid gap-0.5 font-normal">
-              <span>{t`Also analyze again the interviews already analyzed`}</span>
+              <span>
+                {tests
+                  ? t`Also analyze again the sessions already analyzed`
+                  : t`Also analyze again the interviews already analyzed`}
+              </span>
               <span className="text-muted-foreground text-xs">{t`What you accepted or rejected stays; only the proposals still to decide are replaced.`}</span>
             </Label>
           </div>
@@ -272,7 +303,9 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
  * What an interview without a planned one would add to the schedule (spec 009 FR-017): its people
  * and date, accepted or proposed; null while nobody interviewed is known.
  */
-export const scheduleEntryOf = (s: Session) => {
+export const scheduleEntryOf = (s: Session, tests = false) => {
+  // A usability test has no schedule (spec 037 FR-015).
+  if (tests) return null
   const open = (s.analysis?.proposals ?? []).filter((p) => p.status !== 'rejected')
   const names = (role: 'interviewee' | 'interviewer') => {
     const accepted = s.roster.filter((r) => r.role === role).map((r) => r.name)
