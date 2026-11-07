@@ -69,3 +69,23 @@ export const surveyNextStep = (s: {
           : 'analysis-done'
   return s.checksDone ? 'open-form' : 'readiness'
 }
+
+/** The next step of a usability test study (spec 036 FR-016): only Preparation exists so far. */
+export type UsabilityNextStep =
+  | 'write-protocol'
+  | 'add-folder'
+  | 'publish-protocol'
+  | 'readiness'
+  | 'run-sessions'
+
+export const usabilityNextStep = (s: {
+  hasProtocol: boolean
+  hasFolder: boolean
+  published: readonly string[]
+  checksDone: boolean
+}): UsabilityNextStep => {
+  if (!s.hasProtocol) return 'write-protocol'
+  if (!s.hasFolder) return 'add-folder'
+  if (!s.published.includes('protocol')) return 'publish-protocol'
+  return s.checksDone ? 'run-sessions' : 'readiness'
+}

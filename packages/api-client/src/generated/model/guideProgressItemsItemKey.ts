@@ -28,4 +28,12 @@ export const GuideProgressItemsItemKey = {
   profiling: 'profiling',
   thematicItems: 'thematicItems',
   formatOrder: 'formatOrder',
+  objectiveHypotheses: 'objectiveHypotheses',
+  interface: 'interface',
+  participants: 'participants',
+  formatConsent: 'formatConsent',
+  scenario: 'scenario',
+  tasks: 'tasks',
+  criteria: 'criteria',
+  questionnaireDebrief: 'questionnaireDebrief',
 } as const;

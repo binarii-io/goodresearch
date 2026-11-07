@@ -12,4 +12,6 @@ export const ProposalPreviewInputDocumentsItem = {
   guide: 'guide',
   'best-practices': 'best-practices',
   questionnaire: 'questionnaire',
+  protocol: 'protocol',
+  'participant-sheet': 'participant-sheet',
 } as const;

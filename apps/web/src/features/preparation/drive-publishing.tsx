@@ -37,6 +37,8 @@ const KINDS: Record<Publication['kind'], MessageDescriptor> = {
   'best-practices': msg`Interview best practices`,
   schedule: msg`Interview schedule`,
   questionnaire: msg`Questionnaire`,
+  protocol: msg`Test protocol`,
+  'participant-sheet': msg`Participant sheet`,
 }
 
 const STATES: Record<Publication['state'], MessageDescriptor> = {
@@ -289,9 +291,12 @@ export function DriveButton({
   kind,
   available = true,
   size = 'sm',
+  label,
 }: {
   studyId: string
   kind: Publication['kind']
+  /** The element's name when its kind says too little (spec 036: usability test best practices). */
+  label?: string
   /** False while there is nothing to publish (no guide yet). */
   available?: boolean
   /** The size of the other buttons of the row. */
@@ -334,7 +339,7 @@ export function DriveButton({
             href={publication.webLink}
             target="_blank"
             rel="noreferrer"
-            aria-label={t`Open in Drive: ${i18n._(KINDS[kind])}`}
+            aria-label={t`Open in Drive: ${label ?? i18n._(KINDS[kind])}`}
           />
         }
       >
@@ -362,12 +367,21 @@ export function DriveButton({
 }
 
 /** Under the element, once published: the file's state, and check, review and update. */
-export function DriveStatus({ studyId, kind }: { studyId: string; kind: Publication['kind'] }) {
+export function DriveStatus({
+  studyId,
+  kind,
+  label,
+}: {
+  studyId: string
+  kind: Publication['kind']
+  label?: string
+}) {
   const { t, i18n } = useLingui()
   const { publication } = useDrivePublication(studyId, kind)
   if (!publication) return null
+  const name = label ?? i18n._(KINDS[kind])
   return (
-    <fieldset aria-label={t`${i18n._(KINDS[kind])} in Drive`} className="m-0 min-w-0 border-0 p-0">
+    <fieldset aria-label={t`${name} in Drive`} className="m-0 min-w-0 border-0 p-0">
       <PublicationRow studyId={studyId} publication={publication} />
     </fieldset>
   )

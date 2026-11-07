@@ -4,6 +4,7 @@ import type { FastifyInstance } from 'fastify'
 import { createAiGatewayModule, registerAiRoutes } from './modules/ai-gateway/index.ts'
 import {
   createAssistantModule,
+  type PublishableKind,
   type ResearchActions,
   registerAssistantRoutes,
 } from './modules/assistant/index.ts'
@@ -620,6 +621,16 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       )
       return done.ok ? { ok: true as const } : { ok: false as const, error: String(done.error) }
     },
+    saveTestProtocol: async (c) =>
+      outcome(
+        await r.protocols.saveTestProtocol({
+          actor: c.actor,
+          studyId: c.studyId,
+          content: c.protocol,
+          version: c.version,
+          origin: 'assistant',
+        }),
+      ),
     saveQuestionnaire: async (c) =>
       outcome(
         await r.questionnaires.saveQuestionnaire({
@@ -715,7 +726,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         return done.ok
           ? {
               ok: true as const,
-              kinds: done.value.kinds as ('guide' | 'best-practices' | 'questionnaire')[],
+              kinds: done.value.kinds as PublishableKind[],
             }
           : { ok: false as const, error: String(done.error) }
       },
@@ -735,6 +746,9 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       questionnaire: (accountId, studyId) =>
         r.questionnaireQueries.questionnaireForAssistant(accountId, studyId),
       checkQuestionnaire: research.checkQuestionnaire,
+      testProtocol: (accountId, studyId) =>
+        r.protocolQueries.testProtocolForAssistant(accountId, studyId),
+      checkTestProtocol: research.checkTestProtocol,
       surveyProgress: async (accountId, studyId) => {
         const form = await publishing.formOfStudy(studyId)
         const seen = await bound(surveys).handlers.queries.progress(accountId, studyId)
@@ -845,6 +859,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
             : null,
         }
       },
+      // The team only, as the schedule; content and version only (PR #51 review).
+      protocol: (accountId, studyId) => r.protocolQueries.protocolForTeam(accountId, studyId),
       schedule: (accountId, studyId) =>
         r.preparationQueries.listPlannedInterviews(accountId, studyId),
     },
@@ -852,6 +868,8 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
       saveGuide: async (c) => outcome(await r.preparation.saveGuide({ ...c, origin: 'drive' })),
       saveQuestionnaire: async (c) =>
         outcome(await r.questionnaires.saveQuestionnaire({ ...c, origin: 'drive' })),
+      saveTestProtocol: async (c) =>
+        outcome(await r.protocols.saveTestProtocol({ ...c, origin: 'drive' })),
       addPlanned: async (c) =>
         outcome(
           await r.preparation.addPlannedInterview({

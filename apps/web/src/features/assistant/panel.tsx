@@ -46,7 +46,12 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { normalise } from '../../app/i18n.ts'
 import { FailureNotice } from '../ai/provider-forms.tsx'
 import { ReconnectNotice } from '../google/reconnect-notice.tsx'
-import { GUIDE_POINTS, POINT_STATES, QUESTIONNAIRE_POINTS } from '../preparation/labels.ts'
+import {
+  GUIDE_POINTS,
+  POINT_STATES,
+  PROTOCOL_POINTS,
+  QUESTIONNAIRE_POINTS,
+} from '../preparation/labels.ts'
 import { errorCode, errorMessage } from '../workspace/errors.ts'
 import { useFormatRelative } from '../workspace/format.ts'
 import { useMe } from '../workspace/me.ts'
@@ -288,6 +293,7 @@ function ConversationList({ onOpen }: { onOpen: (id: string | null) => void }) {
 const isProgress = (p: Proposal) =>
   (p.kind === 'report_guide_progress' ||
     p.kind === 'report_questionnaire_progress' ||
+    p.kind === 'report_protocol_progress' ||
     p.kind === 'report_project_progress' ||
     p.kind === 'report_study_progress') &&
   Boolean(p.preview.progress)
@@ -306,6 +312,7 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
   const framing = latest.kind === 'report_project_progress'
   const studyFraming = latest.kind === 'report_study_progress'
   const surveyDesign = latest.kind === 'report_questionnaire_progress'
+  const protocolDesign = latest.kind === 'report_protocol_progress'
   const created = framing ? 'create_project' : studyFraming ? 'create_study' : null
   if (proposals.slice(index).some((p) => p.kind === created && p.state === 'applied')) return null
   const study = latest.preview.studyName ?? ''
@@ -320,7 +327,9 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
     (surveyDesign &&
       proposals
         .slice(index)
-        .some((p) => p.kind === 'propose_questionnaire' && p.state === 'applied'))
+        .some((p) => p.kind === 'propose_questionnaire' && p.state === 'applied')) ||
+    (protocolDesign &&
+      proposals.slice(index).some((p) => p.kind === 'propose_protocol' && p.state === 'applied'))
   ) {
     const key = `goodresearch.assistant.guideDone.${latest.id}`
     if (closed === latest.id || read(key)) return null
@@ -330,7 +339,9 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
         <p role="status" className="min-w-0 flex-1 truncate font-medium">
           {surveyDesign
             ? t`Questionnaire finished · ${study}`
-            : t`Interview guide finished · ${study}`}
+            : protocolDesign
+              ? t`Test protocol finished · ${study}`
+              : t`Interview guide finished · ${study}`}
         </p>
         <Button
           variant="ghost"
@@ -353,7 +364,9 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
           ? t`Project framing`
           : studyFraming
             ? t`Study framing`
-            : t`Interview guide · ${study}`}
+            : protocolDesign
+              ? t`Test protocol · ${study}`
+              : t`Interview guide · ${study}`}
       </p>
       <SegmentedProgress
         label={
@@ -363,7 +376,9 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
               ? t`Study framing progress`
               : surveyDesign
                 ? t`Questionnaire design progress`
-                : t`Interview guide design progress`
+                : protocolDesign
+                  ? t`Test protocol design progress`
+                  : t`Interview guide design progress`
         }
         percent={progress.percent}
         listLabel={t`${count} points`}
@@ -375,7 +390,9 @@ function ProgressBar({ proposals }: { proposals: readonly Proposal[] }) {
                 ? STUDY_FRAMING_POINTS
                 : surveyDesign
                   ? QUESTIONNAIRE_POINTS
-                  : GUIDE_POINTS
+                  : protocolDesign
+                    ? PROTOCOL_POINTS
+                    : GUIDE_POINTS
           )[item.key]
           return {
             key: item.key,

@@ -10,7 +10,7 @@ import type { PublishPreparationInputLanguage } from './publishPreparationInputL
 export interface PublishPreparationInput {
   /**
      * @minItems 1
-     * @maxItems 4
+     * @maxItems 6
      */
   kinds: PublishPreparationInputKindsItem[];
   language: PublishPreparationInputLanguage;

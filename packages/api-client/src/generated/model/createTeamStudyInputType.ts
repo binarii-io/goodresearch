@@ -11,4 +11,5 @@ export type CreateTeamStudyInputType = typeof CreateTeamStudyInputType[keyof typ
 export const CreateTeamStudyInputType = {
   interviews: 'interviews',
   survey: 'survey',
+  'usability-test': 'usability-test',
 } as const;

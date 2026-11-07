@@ -421,6 +421,13 @@
       "when": 1793975923206,
       "tag": "0059_shared_ai_provider",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1794080417523,
+      "tag": "0060_test_protocols",
+      "breakpoints": true
     }
   ]
 }

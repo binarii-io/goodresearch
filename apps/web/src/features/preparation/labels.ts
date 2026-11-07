@@ -121,3 +121,56 @@ export const QUESTIONNAIRE_FLAGS: Record<string, MessageDescriptor> = {
   'no-profiling': msg`No profiling item to check the target audience.`,
   'too-many-open': msg`Many open questions: they are harder to interpret.`,
 }
+
+/** The tested interface of a usability test (spec 036). */
+export const INTERFACE_KINDS: Record<
+  'prototype' | 'live-application' | 'other',
+  MessageDescriptor
+> = {
+  prototype: msg`Prototype`,
+  'live-application': msg`Live application`,
+  other: msg`Other`,
+}
+
+export const SESSION_FORMATS: Record<
+  'moderated-remote' | 'moderated-in-person',
+  MessageDescriptor
+> = {
+  'moderated-remote': msg`Moderated, remote`,
+  'moderated-in-person': msg`Moderated, in person`,
+}
+
+/** The nine points of a test protocol design (spec 036 US2). */
+export const PROTOCOL_POINTS: Record<string, MessageDescriptor> = {
+  objectiveHypotheses: msg`Objective and hypotheses`,
+  interface: msg`Tested interface`,
+  participants: msg`Participants`,
+  formatConsent: msg`Format, length and consent`,
+  scenario: msg`Scenario`,
+  tasks: msg`Tasks`,
+  criteria: msg`Success criteria`,
+  questionnaireDebrief: msg`Questionnaire and debrief`,
+  biasReview: msg`Bias review`,
+}
+
+/** What the writing rules flag in a task (spec 036 FR-007). */
+export const TASK_FLAGS: Record<string, MessageDescriptor> = {
+  'gives-the-way': msg`gives the way: names a button, a menu or steps`,
+  'several-tasks': msg`several tasks in one`,
+  'no-goal': msg`no goal or context`,
+  'too-long': msg`too long`,
+}
+
+export const PROTOCOL_FLAGS: Record<string, MessageDescriptor> = {
+  'too-long-for-session': msg`The planned length is beyond the session length.`,
+  'too-many-tasks': msg`More than 8 tasks for a session of an hour or less.`,
+  'no-think-aloud': msg`No think-aloud instructions.`,
+  'consent-without-ai': msg`The consent does not say the session is recorded and read by an AI service.`,
+}
+
+/** What a person checks before the first session (spec 036 US6). */
+export const PROTOCOL_READINESS: Record<'pilot' | 'interface' | 'review', MessageDescriptor> = {
+  pilot: msg`Pilot session run with someone outside the project`,
+  interface: msg`Tested interface opened on the participants' device and account`,
+  review: msg`Protocol reviewed by another person`,
+}

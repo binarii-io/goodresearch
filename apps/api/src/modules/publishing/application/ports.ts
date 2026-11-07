@@ -8,12 +8,19 @@ import type {
 } from '../domain/form.ts'
 import type { GuideContent, GuideInput } from '../domain/guide.ts'
 import type { DocModel, Language, TableModel, TableRead } from '../domain/model.ts'
+import type { ProtocolContent, ProtocolInput } from '../domain/protocol.ts'
 import type { PlannedRow } from '../domain/schedule.ts'
 import type { ChangeKind, FileState } from '../domain/three-way.ts'
 
 export type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
 
-export type PublicationKind = 'guide' | 'best-practices' | 'schedule' | 'questionnaire'
+export type PublicationKind =
+  | 'guide'
+  | 'best-practices'
+  | 'schedule'
+  | 'questionnaire'
+  | 'protocol'
+  | 'participant-sheet'
 
 export type FormRead = {
   readonly blocks: readonly FormReadBlock[]
@@ -106,6 +113,11 @@ export type PreparationReads = {
     accountId: string,
     studyId: string,
   ): Promise<Result<{ content: QuestionnaireContent; version: number } | null, string>>
+  /** Spec 036: the test protocol of a usability test study. */
+  protocol(
+    accountId: string,
+    studyId: string,
+  ): Promise<Result<{ content: ProtocolContent; version: number } | null, string>>
   schedule(
     accountId: string,
     studyId: string,
@@ -124,6 +136,12 @@ export type PreparationActions = {
     actor: Actor
     studyId: string
     content: QuestionnaireInput
+    version: number
+  }): Promise<{ ok: true } | { ok: false; error: string }>
+  saveTestProtocol(c: {
+    actor: Actor
+    studyId: string
+    content: ProtocolInput
     version: number
   }): Promise<{ ok: true } | { ok: false; error: string }>
   addPlanned(c: {

@@ -77,12 +77,15 @@ export type PublicationView = ReturnType<typeof view>
 /** Publications and Drive changes of a study (spec 007), for whoever can act on the study. */
 export const makePublicationQueries = (deps: PublishingDeps) => {
   // Same gate as the preparation itself: the project's team, then the study's folder. A survey
-  // study has no schedule: its questionnaire says the same (spec 027).
+  // study has no schedule: its questionnaire says the same (spec 027); a usability test study,
+  // its protocol (spec 036).
   const gate = async (actor: Actor, studyId: string) => {
     const schedule = await deps.reads.schedule(actor.id, studyId)
-    return schedule.ok || schedule.error !== 'NOT_AN_INTERVIEW_STUDY'
-      ? schedule
-      : deps.reads.questionnaire(actor.id, studyId)
+    if (schedule.ok || schedule.error !== 'NOT_AN_INTERVIEW_STUDY') return schedule
+    const questionnaire = await deps.reads.questionnaire(actor.id, studyId)
+    return questionnaire.ok || questionnaire.error !== 'NOT_A_SURVEY_STUDY'
+      ? questionnaire
+      : deps.reads.protocol(actor.id, studyId)
   }
   return {
     list: async (actor: Actor, studyId: string): Promise<Result<PublicationView[], string>> => {
@@ -111,11 +114,27 @@ export const makePublicationQueries = (deps: PublishingDeps) => {
       studyId: string
       kinds: readonly PublicationKind[]
     }): Promise<Result<{ kinds: PublicationKind[] }, string>> => {
-      // The interview documents only belong to an interview study: its guide read says so.
+      // The interview documents only belong to an interview study: its guide read says so. The
+      // best practices also belong to a usability test study, with their own content (spec 036).
       if (c.kinds.includes('guide') || c.kinds.includes('best-practices')) {
         const guide = await deps.reads.guide(c.actor.id, c.studyId)
-        if (!guide.ok) return guide
-        if (c.kinds.includes('guide') && !guide.value) return err('GUIDE_MISSING')
+        const protocol =
+          !guide.ok && !c.kinds.includes('guide')
+            ? await deps.reads.protocol(c.actor.id, c.studyId)
+            : null
+        if (!guide.ok && !protocol?.ok)
+          return protocol &&
+            !protocol.ok &&
+            guide.error === 'NOT_AN_INTERVIEW_STUDY' &&
+            protocol.error !== 'NOT_A_USABILITY_TEST_STUDY'
+            ? protocol
+            : guide
+        if (c.kinds.includes('guide') && guide.ok && !guide.value) return err('GUIDE_MISSING')
+      }
+      if (c.kinds.includes('protocol') || c.kinds.includes('participant-sheet')) {
+        const protocol = await deps.reads.protocol(c.actor.id, c.studyId)
+        if (!protocol.ok) return protocol
+        if (!protocol.value) return err('PROTOCOL_NOT_FOUND')
       }
       if (c.kinds.includes('questionnaire')) {
         const questionnaire = await deps.reads.questionnaire(c.actor.id, c.studyId)
@@ -123,7 +142,11 @@ export const makePublicationQueries = (deps: PublishingDeps) => {
         if (!questionnaire.value) return err('QUESTIONNAIRE_NOT_FOUND')
       }
       const existing = await deps.store.listByStudy(c.studyId)
-      const kinds = [...new Set(c.kinds)].filter(
+      // The protocol brings its participant sheet: a sheet forgotten alone is published again.
+      const asked: PublicationKind[] = c.kinds.includes('protocol')
+        ? [...c.kinds, 'participant-sheet']
+        : [...c.kinds]
+      const kinds = [...new Set(asked)].filter(
         (k) => !existing.some((p) => p.kind === k && p.fileId !== ''),
       )
       if (!kinds.length) return err('NOTHING_TO_PUBLISH')

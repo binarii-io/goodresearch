@@ -32,6 +32,8 @@ import type {
   Questionnaire,
   SaveInterviewGuideInput,
   SaveQuestionnaireInput,
+  SaveTestProtocolInput,
+  TestProtocol,
   UpdatePlannedInterviewInput,
   VersionAck
 } from '../../model';
@@ -413,6 +415,320 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSaveQuestionnaireMutationOptions(options), queryClient);
+    }
+    export const getGetTestProtocolUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/protocol`
+}
+
+export const getTestProtocol = async (studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<TestProtocol | null> => {
+
+  return apiFetch<TestProtocol | null>(getGetTestProtocolUrl(studyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTestProtocolQueryKey = (studyId: string,) => {
+    return [
+    `/api/studies/${studyId}/protocol`
+    ] as const;
+    }
+
+
+export const getGetTestProtocolQueryOptions = <TData = Awaited<ReturnType<typeof getTestProtocol>>, TError = unknown>(studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTestProtocol>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTestProtocolQueryKey(studyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTestProtocol>>> = ({ signal }) => getTestProtocol(studyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTestProtocol>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTestProtocolQueryResult = NonNullable<Awaited<ReturnType<typeof getTestProtocol>>>
+export type GetTestProtocolQueryError = unknown
+
+
+export function useGetTestProtocol<TData = Awaited<ReturnType<typeof getTestProtocol>>, TError = unknown>(
+ studyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTestProtocol>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTestProtocol>>,
+          TError,
+          Awaited<ReturnType<typeof getTestProtocol>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTestProtocol<TData = Awaited<ReturnType<typeof getTestProtocol>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTestProtocol>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTestProtocol>>,
+          TError,
+          Awaited<ReturnType<typeof getTestProtocol>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTestProtocol<TData = Awaited<ReturnType<typeof getTestProtocol>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTestProtocol>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTestProtocol<TData = Awaited<ReturnType<typeof getTestProtocol>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTestProtocol>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTestProtocolQueryOptions(studyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getSaveTestProtocolUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/protocol`
+}
+
+export const saveTestProtocol = async (studyId: string,
+    saveTestProtocolInput: SaveTestProtocolInput, options?: Parameters<typeof apiFetch>[1]): Promise<VersionAck> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<VersionAck>(getSaveTestProtocolUrl(studyId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(saveTestProtocolInput)
+  }
+);}
+
+
+
+
+
+export const getSaveTestProtocolMutationKey = () => ['saveTestProtocol'] as const;
+
+export const getSaveTestProtocolMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveTestProtocol>>, TError,SaveTestProtocolMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveTestProtocol>>, TError,SaveTestProtocolMutationVariables, TContext> => {
+
+const mutationKey = getSaveTestProtocolMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveTestProtocol>>, SaveTestProtocolMutationVariables> = (props) => {
+          const {studyId,data} = props ?? {};
+
+          return  saveTestProtocol(studyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveTestProtocolMutationResult = NonNullable<Awaited<ReturnType<typeof saveTestProtocol>>>
+    export type SaveTestProtocolMutationBody = SaveTestProtocolInput
+    export type SaveTestProtocolMutationError = unknown
+    export type SaveTestProtocolMutationVariables = {studyId: string;data: SaveTestProtocolInput}
+
+    export const useSaveTestProtocol = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveTestProtocol>>, TError,SaveTestProtocolMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveTestProtocol>>,
+        TError,
+        SaveTestProtocolMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveTestProtocolMutationOptions(options), queryClient);
+    }
+    export const getMarkProtocolReadinessUrl = (studyId: string,
+    kind: 'pilot' | 'interface' | 'review',) => {
+
+
+
+
+  return `/api/studies/${studyId}/protocol/readiness/${kind}`
+}
+
+export const markProtocolReadiness = async (studyId: string,
+    kind: 'pilot' | 'interface' | 'review', options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getMarkProtocolReadinessUrl(studyId,kind),
+  {
+    ...options,
+    method: 'PUT'
+
+
+  }
+);}
+
+
+
+
+
+export const getMarkProtocolReadinessMutationKey = () => ['markProtocolReadiness'] as const;
+
+export const getMarkProtocolReadinessMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markProtocolReadiness>>, TError,MarkProtocolReadinessMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markProtocolReadiness>>, TError,MarkProtocolReadinessMutationVariables, TContext> => {
+
+const mutationKey = getMarkProtocolReadinessMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markProtocolReadiness>>, MarkProtocolReadinessMutationVariables> = (props) => {
+          const {studyId,kind} = props ?? {};
+
+          return  markProtocolReadiness(studyId,kind,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkProtocolReadinessMutationResult = NonNullable<Awaited<ReturnType<typeof markProtocolReadiness>>>
+
+    export type MarkProtocolReadinessMutationError = unknown
+    export type MarkProtocolReadinessMutationVariables = {studyId: string;kind: 'pilot' | 'interface' | 'review'}
+
+    export const useMarkProtocolReadiness = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markProtocolReadiness>>, TError,MarkProtocolReadinessMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markProtocolReadiness>>,
+        TError,
+        MarkProtocolReadinessMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkProtocolReadinessMutationOptions(options), queryClient);
+    }
+    export const getUnmarkProtocolReadinessUrl = (studyId: string,
+    kind: 'pilot' | 'interface' | 'review',) => {
+
+
+
+
+  return `/api/studies/${studyId}/protocol/readiness/${kind}`
+}
+
+export const unmarkProtocolReadiness = async (studyId: string,
+    kind: 'pilot' | 'interface' | 'review', options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getUnmarkProtocolReadinessUrl(studyId,kind),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUnmarkProtocolReadinessMutationKey = () => ['unmarkProtocolReadiness'] as const;
+
+export const getUnmarkProtocolReadinessMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unmarkProtocolReadiness>>, TError,UnmarkProtocolReadinessMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unmarkProtocolReadiness>>, TError,UnmarkProtocolReadinessMutationVariables, TContext> => {
+
+const mutationKey = getUnmarkProtocolReadinessMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unmarkProtocolReadiness>>, UnmarkProtocolReadinessMutationVariables> = (props) => {
+          const {studyId,kind} = props ?? {};
+
+          return  unmarkProtocolReadiness(studyId,kind,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnmarkProtocolReadinessMutationResult = NonNullable<Awaited<ReturnType<typeof unmarkProtocolReadiness>>>
+
+    export type UnmarkProtocolReadinessMutationError = unknown
+    export type UnmarkProtocolReadinessMutationVariables = {studyId: string;kind: 'pilot' | 'interface' | 'review'}
+
+    export const useUnmarkProtocolReadiness = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unmarkProtocolReadiness>>, TError,UnmarkProtocolReadinessMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unmarkProtocolReadiness>>,
+        TError,
+        UnmarkProtocolReadinessMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUnmarkProtocolReadinessMutationOptions(options), queryClient);
     }
     export const getMarkQuestionnaireReadinessUrl = (studyId: string,
     kind: 'review' | 'pre-test',) => {

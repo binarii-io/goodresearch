@@ -20,6 +20,11 @@ import type {
 import { Questionnaire } from '../../domain/questionnaire.ts'
 import type { StudyRepository } from '../../domain/study.repository.ts'
 import { Study } from '../../domain/study.ts'
+import type {
+  ProtocolMarkRow,
+  TestProtocolRepository,
+} from '../../domain/test-protocol.repository.ts'
+import { TestProtocol } from '../../domain/test-protocol.ts'
 
 /** In-memory research ports (fakes, not mocks). */
 export class InMemoryResearch {
@@ -136,6 +141,34 @@ export class InMemoryResearch {
     },
     unmark: async (studyId, kind) => {
       this.readinessMarks.delete(`${studyId}:${kind}`)
+    },
+  }
+
+  readonly protocols = new Map<string, TestProtocol>()
+  readonly protocolMarks = new Map<string, ProtocolMarkRow>()
+
+  readonly protocolRepository: TestProtocolRepository = {
+    findByStudy: async (studyId) => {
+      const p = this.protocols.get(studyId)
+      return p ? TestProtocol.fromPersistence(p.snapshot()) : null
+    },
+    insert: async (p) => {
+      if (this.protocols.has(p.studyId)) throw new ConcurrencyError()
+      this.protocols.set(p.studyId, TestProtocol.fromPersistence(p.snapshot()))
+    },
+    update: async (p) => {
+      const stored = this.protocols.get(p.studyId)
+      if (!stored || stored.version !== p.version) throw new ConcurrencyError()
+      this.protocols.set(
+        p.studyId,
+        TestProtocol.fromPersistence({ ...p.snapshot(), version: p.version + 1 }),
+      )
+    },
+    mark: async (row) => {
+      this.protocolMarks.set(`${row.studyId}:${row.kind}`, row)
+    },
+    unmark: async (studyId, kind) => {
+      this.protocolMarks.delete(`${studyId}:${kind}`)
     },
   }
 

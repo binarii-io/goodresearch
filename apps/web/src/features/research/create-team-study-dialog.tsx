@@ -29,7 +29,9 @@ export function CreateTeamStudyDialog({ teamId }: { teamId: string }) {
   const [name, setName] = useState('')
   const [goal, setGoal] = useState('')
   const [touched, setTouched] = useState(false)
-  const [studyType, setStudyType] = useState<'interviews' | 'survey'>('interviews')
+  const [studyType, setStudyType] = useState<'interviews' | 'survey' | 'usability-test'>(
+    'interviews',
+  )
   const ids = { name: useId(), nameError: useId(), goal: useId(), type: useId() }
   const missing = touched && name.trim().length === 0
 
@@ -86,6 +88,7 @@ export function CreateTeamStudyDialog({ teamId }: { teamId: string }) {
                 [
                   ['interviews', t`Interviews`],
                   ['survey', t`Survey`],
+                  ['usability-test', t`Usability test`],
                 ] as const
               ).map(([value, label]) => (
                 <div key={value} className="flex items-center gap-2">

@@ -24,7 +24,9 @@ const forbidden = async () => {
 
 const setup = (
   options: {
-    studies?: { id: string; access: boolean; type?: 'interviews' | 'survey' }[] | null
+    studies?:
+      | { id: string; access: boolean; type?: 'interviews' | 'survey' | 'usability-test' }[]
+      | null
     prices?: Record<string, number | null>
     over?: Partial<ReportingSources>
     canDelete?: boolean
@@ -114,6 +116,12 @@ describe('project overview (spec 017)', () => {
       kinds: { interviews: true, surveys: true },
     })
     expect(o.studies[1]?.counts?.responses).toEqual({ received: 7, counted: 5 })
+    expect(o.studies[0]?.counts?.responses).toBeNull()
+  })
+
+  it('counts a usability test study neither as interviews nor as a survey (spec 036)', async () => {
+    const o = await read(setup({ studies: [{ id: 'ut', access: true, type: 'usability-test' }] }))
+    expect(o.steps[0]).toMatchObject({ responses: 0, kinds: { interviews: false, surveys: false } })
     expect(o.studies[0]?.counts?.responses).toBeNull()
   })
 

@@ -7,6 +7,7 @@ import { makePreparationCommands } from '../application/commands/preparation-com
 import { makeQuestionnaireCommands } from '../application/commands/questionnaire-commands.ts'
 import { makeRenameProject } from '../application/commands/rename-project.ts'
 import { makeStudyCommands } from '../application/commands/study-commands.ts'
+import { makeTestProtocolCommands } from '../application/commands/test-protocol-commands.ts'
 import { makeUpdateProjectGoal } from '../application/commands/update-project-goal.ts'
 import type {
   ProjectRunGate,
@@ -21,6 +22,10 @@ import {
   makeQuestionnaireQueries,
 } from '../application/queries/questionnaire-queries.ts'
 import { makeStudyQueries, type SourceSummaries } from '../application/queries/study-queries.ts'
+import {
+  checkTestProtocolDraft,
+  makeTestProtocolQueries,
+} from '../application/queries/test-protocol-queries.ts'
 import type { ResearchHandlers } from './http.routes.ts'
 import {
   drizzleGuideRepository,
@@ -29,6 +34,7 @@ import {
 import { drizzleProjectRepository } from './project.drizzle-repository.ts'
 import { drizzleQuestionnaireRepository } from './questionnaire.drizzle-repository.ts'
 import { drizzleStudyRepository } from './study.drizzle-repository.ts'
+import { drizzleTestProtocolRepository } from './test-protocol.drizzle-repository.ts'
 
 export const createResearchModule = (deps: {
   db: Db
@@ -67,6 +73,7 @@ export const createResearchModule = (deps: {
   }
   const preparationQueries = makePreparationQueries({ db: deps.db, teams: deps.teams, gate })
   const questionnaireQueries = makeQuestionnaireQueries({ db: deps.db, teams: deps.teams, gate })
+  const protocolQueries = makeTestProtocolQueries({ db: deps.db, teams: deps.teams, gate })
   const handlers: ResearchHandlers = {
     createProject: makeCreateProject(commandDeps),
     deleteProject: makeDeleteProject({
@@ -100,6 +107,13 @@ export const createResearchModule = (deps: {
       gate,
     }),
     questionnaireQueries,
+    protocols: makeTestProtocolCommands({
+      ...commandDeps,
+      studies: drizzleStudyRepository(deps.db),
+      protocols: drizzleTestProtocolRepository(deps.db),
+      gate,
+    }),
+    protocolQueries,
   }
   return {
     handlers,
@@ -114,5 +128,7 @@ export const createResearchModule = (deps: {
     preparationForAssistant: preparationQueries.preparationForAssistant,
     questionnaireForAssistant: questionnaireQueries.questionnaireForAssistant,
     checkQuestionnaire: checkDraft,
+    testProtocolForAssistant: protocolQueries.testProtocolForAssistant,
+    checkTestProtocol: checkTestProtocolDraft,
   }
 }

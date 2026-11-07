@@ -144,7 +144,7 @@ export const CreateTeamStudy = z
   .object({
     name: StudyName,
     goal: z.string().trim().max(10_000).default(''),
-    type: z.enum(['interviews', 'survey']).default('interviews'),
+    type: z.enum(['interviews', 'survey', 'usability-test']).default('interviews'),
   })
   .meta({ id: 'CreateTeamStudy' })
 export const RenameStudy = z

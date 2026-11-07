@@ -1,11 +1,17 @@
-import { BEST_PRACTICES } from '@goodresearch/shared'
+import { BEST_PRACTICES, USABILITY_PRACTICES } from '@goodresearch/shared'
 import type { DocBlock, DocModel, Items, Language } from './model.ts'
 
 const plain = (text: string) => text.replace(/\*\*/g, '')
 
-/** The best practices as a document (spec 006 content); fixed content, never read back. */
-export const renderPractices = (language: Language): DocModel => {
-  const doc = BEST_PRACTICES[language]
+/**
+ * The best practices as a document (spec 006 content); fixed content, never read back. A usability
+ * test study gets its own (spec 036 R8): one row per study and kind, and a study has one type.
+ */
+export const renderPractices = (
+  language: Language,
+  studyType: 'interviews' | 'usability-test' = 'interviews',
+): DocModel => {
+  const doc = (studyType === 'usability-test' ? USABILITY_PRACTICES : BEST_PRACTICES)[language]
   const blocks: DocBlock[] = [
     { kind: 'heading', level: 1, text: doc.title },
     { kind: 'paragraph', text: plain(doc.intro) },

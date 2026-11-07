@@ -23,7 +23,16 @@ import {
 } from '../../domain/guide.ts'
 import { LABELS } from '../../domain/labels.ts'
 import type { DocModel, Items, Language, TableModel } from '../../domain/model.ts'
+import { renderParticipantSheet, sheetItems } from '../../domain/participant-sheet.ts'
 import { practicesItems, renderPractices } from '../../domain/practices.ts'
+import {
+  applyToProtocol,
+  type ProtocolContent,
+  protocolItems,
+  readProtocol,
+  renderProtocol,
+  validProtocolItem,
+} from '../../domain/protocol.ts'
 import {
   appScheduleItems,
   type PlannedRow,
@@ -70,11 +79,19 @@ type AppSide = {
   file: { doc: DocModel } | { table: TableModel } | { form: FormModel }
   guide?: { content: GuideContent; version: number }
   questionnaire?: { content: QuestionnaireContent; version: number }
+  protocol?: { content: ProtocolContent; version: number }
+  /** The file's name when its kind says too little (the usability test best practices). */
+  label?: 'usabilityPractices'
   rows?: (PlannedRow & { version: number })[]
 }
 
-const NAMES: Record<PublicationKind, 'guide' | 'practices' | 'schedule' | 'questionnaire'> = {
+const NAMES: Record<
+  PublicationKind,
+  'guide' | 'practices' | 'schedule' | 'questionnaire' | 'protocol' | 'participantSheet'
+> = {
   questionnaire: 'questionnaire',
+  protocol: 'protocol',
+  'participant-sheet': 'participantSheet',
   guide: 'guide',
   'best-practices': 'practices',
   schedule: 'schedule',
@@ -102,11 +119,38 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
   ): Promise<Result<AppSide | null, string>> => {
     const name = (await deps.reads.studyName(actor.id, p.studyId)) ?? ''
     if (p.kind === 'best-practices') {
-      // The interview best practices only belong to an interview study.
+      // The interview best practices belong to an interview study, the usability test ones to a
+      // usability test study (spec 036 R8); a survey has neither.
       const guide = await deps.reads.guide(actor.id, p.studyId)
-      if (!guide.ok) return guide
+      if (!guide.ok) {
+        const protocol = await deps.reads.protocol(actor.id, p.studyId)
+        // The reason that belongs to the study: its folder access rather than "not an interview".
+        if (!protocol.ok)
+          return guide.error === 'NOT_AN_INTERVIEW_STUDY' &&
+            protocol.error !== 'NOT_A_USABILITY_TEST_STUDY'
+            ? protocol
+            : guide
+        const doc = renderPractices(p.language, 'usability-test')
+        return ok({ items: practicesItems(doc), file: { doc }, label: 'usabilityPractices' })
+      }
       const doc = renderPractices(p.language)
       return ok({ items: practicesItems(doc), file: { doc } })
+    }
+    if (p.kind === 'protocol' || p.kind === 'participant-sheet') {
+      const protocol = await deps.reads.protocol(actor.id, p.studyId)
+      if (!protocol.ok) return protocol
+      if (!protocol.value) return ok(null)
+      const content = protocol.value.content
+      // The protocol is written in its own language, whatever the interface's (FR-012).
+      if (p.kind === 'participant-sheet') {
+        const doc = renderParticipantSheet(content, name)
+        return ok({ items: sheetItems(doc), file: { doc } })
+      }
+      return ok({
+        items: protocolItems(content),
+        file: { doc: renderProtocol(content, name, content.framing.language) },
+        protocol: protocol.value,
+      })
     }
     if (p.kind === 'guide') {
       const guide = await deps.reads.guide(actor.id, p.studyId)
@@ -166,12 +210,24 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
     const read = await files.readDocument(p.fileId)
     if (!read.ok) return read
     const items =
-      p.kind === 'guide' ? guideItems(readGuide(read.value.doc)) : practicesItems(read.value.doc)
+      p.kind === 'guide'
+        ? guideItems(readGuide(read.value.doc))
+        : p.kind === 'protocol'
+          ? readProtocol(read.value.doc).items
+          : p.kind === 'participant-sheet'
+            ? sheetItems(read.value.doc)
+            : practicesItems(read.value.doc)
     return ok({ items, revision: read.value.revision })
   }
 
   const valid = (kind: PublicationKind) =>
-    kind === 'schedule' ? validRow : kind === 'questionnaire' ? validFormItem : validGuideItem
+    kind === 'schedule'
+      ? validRow
+      : kind === 'questionnaire'
+        ? validFormItem
+        : kind === 'protocol'
+          ? validProtocolItem
+          : validGuideItem
 
   /** What only people changed stays to review: never part of what the app wrote. */
   const known = (items: Items): [string, unknown][] =>
@@ -256,7 +312,11 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       drive: [...drive],
       checkedVersion: meta.version,
       checkedRevision: meta.revision,
-      appVersion: app.value?.guide?.version ?? app.value?.questionnaire?.version ?? null,
+      appVersion:
+        app.value?.guide?.version ??
+        app.value?.questionnaire?.version ??
+        app.value?.protocol?.version ??
+        null,
       state,
       unavailableReason: null,
       lastCheckedAt: now(),
@@ -438,14 +498,23 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
     }): Promise<Result<{ ids: string[] }, PublishingError | string>> => {
       const files = await deps.files(c.actor.id, c.studyId, 'write')
       if (!files.ok) return files
-      const kinds = [...new Set(c.kinds)]
+      // Spec 036 FR-013a: the protocol comes with its participant sheet.
+      const asked = [...new Set(c.kinds)]
       // A reservation left by an interrupted publication (the server stopped meanwhile) is freed
       // after a while, so the element can be published again (PR #7 review).
       for (const p of await deps.store.listByStudy(c.studyId))
         if (p.fileId === '' && now().getTime() - p.publishedAt.getTime() > RESERVATION_MS)
           await deps.store.delete(p.id)
       const existing = await deps.store.listByStudy(c.studyId)
-      if (kinds.some((k) => existing.some((p) => p.kind === k))) return err('ALREADY_PUBLISHED')
+      if (asked.some((k) => existing.some((p) => p.kind === k))) return err('ALREADY_PUBLISHED')
+      // Spec 036 FR-013a: the protocol comes with its participant sheet, unless the sheet is
+      // already there; each can be published again on its own once forgotten (PR #51 review).
+      const kinds =
+        asked.includes('protocol') &&
+        !asked.includes('participant-sheet') &&
+        !existing.some((p) => p.kind === 'participant-sheet')
+          ? [...asked, 'participant-sheet' as const]
+          : asked
       const studyName = (await deps.reads.studyName(c.actor.id, c.studyId)) ?? ''
       const ids: string[] = []
       for (const kind of kinds) {
@@ -459,7 +528,7 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         if (!app.ok) return app
         // A guide is published once it exists (US1 scenario 4).
         if (!app.value) continue
-        const name = `${studyName} · ${LABELS[c.language][NAMES[kind]]}`
+        const name = `${studyName} · ${LABELS[c.language][app.value.label ?? NAMES[kind]]}`
         const at = now()
         // The (study, kind) slot is reserved before the file is created: two people publishing at
         // once create one file, not two (PR #7 review). Hidden from the lists until filled.
@@ -556,7 +625,11 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
           drive: read.drive ?? read.base,
           checkedVersion: read.version,
           checkedRevision: read.revision,
-          appVersion: app.value.guide?.version ?? app.value.questionnaire?.version ?? null,
+          appVersion:
+            app.value.guide?.version ??
+            app.value.questionnaire?.version ??
+            app.value.protocol?.version ??
+            null,
           state,
           unavailableReason: null,
           lastCheckedAt: at,
@@ -630,7 +703,14 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
       if (
         accept.some((d) => {
           const change = known(d.changeId)
-          if (!change || !acceptable(change.kind) || p.kind === 'best-practices') return true
+          // The best practices and the participant sheet are published one way (spec 036 FR-013a).
+          if (
+            !change ||
+            !acceptable(change.kind) ||
+            p.kind === 'best-practices' ||
+            p.kind === 'participant-sheet'
+          )
+            return true
           if (!('final' in d) || d.final === undefined) return false
           const sectionOf = (v: unknown) => (v as { section?: unknown } | null | undefined)?.section
           return (
@@ -854,7 +934,11 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         drive: base.value.base,
         checkedVersion: base.value.version,
         checkedRevision: base.value.revision,
-        appVersion: app.value.guide?.version ?? app.value.questionnaire?.version ?? null,
+        appVersion:
+          app.value.guide?.version ??
+          app.value.questionnaire?.version ??
+          app.value.protocol?.version ??
+          null,
         ...formFields(base.value),
         state: 'in-sync',
         unavailableReason: null,
@@ -943,6 +1027,19 @@ export const makePublicationCommands = (deps: PublishingDeps) => {
         studyId: p.studyId,
         content: applyToGuide(guide.content, accepted),
         version: guide.version,
+      })
+      return saved.ok ? { done: [...claimed], error: null } : { done: [], error: saved.error }
+    }
+    if (p.kind === 'protocol') {
+      const protocol = app.value?.protocol
+      if (!protocol || protocol.version !== p.appVersion)
+        return { done: [], error: 'VERSION_CONFLICT' }
+      const accepted = new Map(claimed.map((x) => [x.key, value(x)]))
+      const saved = await deps.actions.saveTestProtocol({
+        actor,
+        studyId: p.studyId,
+        content: applyToProtocol(protocol.content, accepted),
+        version: protocol.version,
       })
       return saved.ok ? { done: [...claimed], error: null } : { done: [], error: saved.error }
     }

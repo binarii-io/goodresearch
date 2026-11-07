@@ -27,6 +27,12 @@ export const makeConversationQueries = (deps: AssistantDeps) => ({
       deps.store.answersWithSkill(studyId, 'questionnaire-design'),
     ),
 
+  /** Spec 036 FR-011: the same for the design of a usability test's protocol. */
+  protocolDesignCost: (accountId: string, studyId: string) =>
+    totalOf(deps, accountId, studyId, () =>
+      deps.store.answersWithSkill(studyId, 'test-protocol-design'),
+    ),
+
   /** Spec 028 FR-013: the same for the target rules the assistant proposed. */
   targetRuleCost: (accountId: string, studyId: string) =>
     totalOf(deps, accountId, studyId, () =>

@@ -2486,6 +2486,749 @@
           "total"
         ]
       },
+      "TestProtocolContentInput": {
+        "type": "object",
+        "properties": {
+          "framing": {
+            "type": "object",
+            "properties": {
+              "objective": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "hypotheses": {
+                "maxItems": 15,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                }
+              },
+              "participants": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "moderated-remote",
+                  "moderated-in-person"
+                ]
+              },
+              "sessionMinutes": {
+                "type": "integer",
+                "minimum": 10,
+                "maximum": 240
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "fr"
+                ]
+              },
+              "consent": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "interface": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "prototype",
+                      "live-application",
+                      "other"
+                    ]
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "url",
+                  "kind",
+                  "description"
+                ]
+              }
+            },
+            "required": [
+              "objective",
+              "hypotheses",
+              "participants",
+              "format",
+              "sessionMinutes",
+              "language",
+              "consent",
+              "interface"
+            ]
+          },
+          "script": {
+            "type": "object",
+            "properties": {
+              "introduction": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "thinkAloud": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "warmUp": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                }
+              },
+              "debrief": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                }
+              },
+              "closing": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "introduction",
+              "thinkAloud",
+              "warmUp",
+              "debrief",
+              "closing"
+            ]
+          },
+          "scenario": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "tasks": {
+            "minItems": 1,
+            "maxItems": 15,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "instruction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                },
+                "criterion": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                },
+                "startUrl": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "minutes": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 60
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                }
+              },
+              "required": [
+                "instruction",
+                "criterion",
+                "startUrl",
+                "minutes",
+                "id"
+              ]
+            }
+          },
+          "questionnaire": {
+            "type": "string",
+            "enum": [
+              "none",
+              "sus-v1"
+            ]
+          },
+          "easeQuestion": {
+            "type": "string",
+            "enum": [
+              "none",
+              "seq-v1"
+            ]
+          },
+          "retiredTaskIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        },
+        "required": [
+          "framing",
+          "script",
+          "scenario",
+          "tasks",
+          "questionnaire",
+          "easeQuestion",
+          "retiredTaskIds"
+        ]
+      },
+      "TestProtocolInput": {
+        "type": "object",
+        "properties": {
+          "studyId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "content": {
+            "$ref": "#/components/schemas/TestProtocolContentInput"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "assistant",
+              "person",
+              "drive"
+            ]
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "tasks": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "gives-the-way",
+                      "several-tasks",
+                      "no-goal",
+                      "too-long"
+                    ]
+                  }
+                }
+              },
+              "whole": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "too-long-for-session",
+                    "too-many-tasks",
+                    "no-think-aloud",
+                    "consent-without-ai"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "tasks",
+              "whole"
+            ]
+          },
+          "plannedMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "standard": {
+            "type": "object",
+            "properties": {
+              "sus": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "scale": {
+                        "type": "object",
+                        "properties": {
+                          "points": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "low": {
+                            "type": "string"
+                          },
+                          "high": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "points",
+                          "low",
+                          "high"
+                        ]
+                      },
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "instructions": {
+                        "type": "string"
+                      },
+                      "facilitatorNote": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "scale",
+                      "items",
+                      "instructions",
+                      "facilitatorNote"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "seq": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "question": {
+                        "type": "string"
+                      },
+                      "scale": {
+                        "type": "object",
+                        "properties": {
+                          "points": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "low": {
+                            "type": "string"
+                          },
+                          "high": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "points",
+                          "low",
+                          "high"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "question",
+                      "scale"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "sus",
+              "seq"
+            ]
+          },
+          "readiness": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "pilot",
+                    "interface",
+                    "review"
+                  ]
+                },
+                "by": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "changedSince": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "kind",
+                "by",
+                "at",
+                "changedSince"
+              ]
+            }
+          }
+        },
+        "required": [
+          "studyId",
+          "content",
+          "origin",
+          "updatedBy",
+          "updatedAt",
+          "version",
+          "checks",
+          "plannedMinutes",
+          "standard",
+          "readiness"
+        ]
+      },
+      "SaveTestProtocolInput": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "object",
+            "properties": {
+              "framing": {
+                "type": "object",
+                "properties": {
+                  "objective": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "hypotheses": {
+                    "maxItems": 15,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "participants": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": [
+                      "moderated-remote",
+                      "moderated-in-person"
+                    ]
+                  },
+                  "sessionMinutes": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 240
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "fr"
+                    ]
+                  },
+                  "consent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "interface": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "prototype",
+                          "live-application",
+                          "other"
+                        ]
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "url",
+                      "kind",
+                      "description"
+                    ]
+                  }
+                },
+                "required": [
+                  "objective",
+                  "hypotheses",
+                  "participants",
+                  "format",
+                  "sessionMinutes",
+                  "language",
+                  "consent",
+                  "interface"
+                ]
+              },
+              "script": {
+                "type": "object",
+                "properties": {
+                  "introduction": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "thinkAloud": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "warmUp": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "debrief": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "closing": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                },
+                "required": [
+                  "introduction",
+                  "thinkAloud",
+                  "warmUp",
+                  "debrief",
+                  "closing"
+                ]
+              },
+              "scenario": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "tasks": {
+                "minItems": 1,
+                "maxItems": 15,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "instruction": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    },
+                    "criterion": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    },
+                    "startUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "minutes": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "required": [
+                    "instruction",
+                    "criterion",
+                    "startUrl",
+                    "minutes"
+                  ]
+                }
+              },
+              "questionnaire": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "sus-v1"
+                ]
+              },
+              "easeQuestion": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "seq-v1"
+                ]
+              }
+            },
+            "required": [
+              "framing",
+              "script",
+              "scenario",
+              "tasks",
+              "questionnaire",
+              "easeQuestion"
+            ]
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "content",
+          "version"
+        ]
+      },
+      "ProtocolDesignCostInput": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "const": "USD"
+          },
+          "total": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "currency",
+          "total"
+        ]
+      },
       "AssistantPageInput": {
         "type": "object",
         "properties": {
@@ -2554,7 +3297,15 @@
                     "administration",
                     "profiling",
                     "thematicItems",
-                    "formatOrder"
+                    "formatOrder",
+                    "objectiveHypotheses",
+                    "interface",
+                    "participants",
+                    "formatConsent",
+                    "scenario",
+                    "tasks",
+                    "criteria",
+                    "questionnaireDebrief"
                   ]
                 },
                 "weight": {
@@ -2642,7 +3393,9 @@
               "enum": [
                 "guide",
                 "best-practices",
-                "questionnaire"
+                "questionnaire",
+                "protocol",
+                "participant-sheet"
               ]
             }
           },
@@ -3059,7 +3812,10 @@
           },
           "type": {
             "type": "string",
-            "const": "survey"
+            "enum": [
+              "survey",
+              "usability-test"
+            ]
           },
           "questionnaire": {
             "type": "object",
@@ -3432,6 +4188,274 @@
               "estimatedMinutes"
             ]
           },
+          "protocol": {
+            "type": "object",
+            "properties": {
+              "framing": {
+                "type": "object",
+                "properties": {
+                  "objective": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "hypotheses": {
+                    "maxItems": 15,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "participants": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": [
+                      "moderated-remote",
+                      "moderated-in-person"
+                    ]
+                  },
+                  "sessionMinutes": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 240
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "fr"
+                    ]
+                  },
+                  "consent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "interface": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "prototype",
+                          "live-application",
+                          "other"
+                        ]
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "url",
+                      "kind",
+                      "description"
+                    ]
+                  }
+                },
+                "required": [
+                  "objective",
+                  "hypotheses",
+                  "participants",
+                  "format",
+                  "sessionMinutes",
+                  "language",
+                  "consent",
+                  "interface"
+                ]
+              },
+              "script": {
+                "type": "object",
+                "properties": {
+                  "introduction": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "thinkAloud": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "warmUp": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "debrief": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "closing": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                },
+                "required": [
+                  "introduction",
+                  "thinkAloud",
+                  "warmUp",
+                  "debrief",
+                  "closing"
+                ]
+              },
+              "scenario": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "tasks": {
+                "minItems": 1,
+                "maxItems": 15,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "instruction": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    },
+                    "criterion": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    },
+                    "startUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "minutes": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "instruction",
+                    "criterion",
+                    "startUrl",
+                    "minutes"
+                  ]
+                }
+              },
+              "questionnaire": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "sus-v1"
+                ]
+              },
+              "easeQuestion": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "seq-v1"
+                ]
+              }
+            },
+            "required": [
+              "framing",
+              "script",
+              "scenario",
+              "tasks",
+              "questionnaire",
+              "easeQuestion"
+            ]
+          },
+          "replacesProtocol": {
+            "type": "boolean"
+          },
+          "taskChecks": {
+            "type": "object",
+            "properties": {
+              "tasks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "instruction": {
+                      "type": "string"
+                    },
+                    "flags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "gives-the-way",
+                          "several-tasks",
+                          "no-goal",
+                          "too-long"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "instruction",
+                    "flags"
+                  ]
+                }
+              },
+              "whole": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "too-long-for-session",
+                    "too-many-tasks",
+                    "no-think-aloud",
+                    "consent-without-ai"
+                  ]
+                }
+              },
+              "plannedMinutes": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "tasks",
+              "whole",
+              "plannedMinutes"
+            ]
+          },
           "progress": {
             "$ref": "#/components/schemas/GuideProgressInput"
           },
@@ -3495,6 +4519,9 @@
               "propose_questionnaire",
               "report_questionnaire_progress",
               "check_questionnaire_items",
+              "propose_protocol",
+              "report_protocol_progress",
+              "check_protocol_tasks",
               "count_responses",
               "propose_opening_form",
               "propose_closing_form",
@@ -7142,6 +8169,8 @@
               "SCHEDULE_FULL",
               "NOT_AN_INTERVIEW_STUDY",
               "NOT_A_SURVEY_STUDY",
+              "NOT_A_USABILITY_TEST_STUDY",
+              "PROTOCOL_NOT_FOUND",
               "FORM_NOT_PUBLISHED",
               "FORM_COLLECTS_IDENTITY",
               "FORM_CONSENT_BROKEN",
@@ -11123,7 +12152,9 @@
               "guide",
               "best-practices",
               "schedule",
-              "questionnaire"
+              "questionnaire",
+              "protocol",
+              "participant-sheet"
             ]
           },
           "fileName": {
@@ -11406,7 +12437,7 @@
         "properties": {
           "kinds": {
             "minItems": 1,
-            "maxItems": 4,
+            "maxItems": 6,
             "type": "array",
             "items": {
               "type": "string",
@@ -11414,7 +12445,9 @@
                 "guide",
                 "best-practices",
                 "schedule",
-                "questionnaire"
+                "questionnaire",
+                "protocol",
+                "participant-sheet"
               ]
             }
           },
@@ -12421,7 +13454,8 @@
             "type": "string",
             "enum": [
               "interviews",
-              "survey"
+              "survey",
+              "usability-test"
             ]
           }
         },
@@ -19194,6 +20228,771 @@
         ],
         "additionalProperties": false
       },
+      "TestProtocolContent": {
+        "type": "object",
+        "properties": {
+          "framing": {
+            "type": "object",
+            "properties": {
+              "objective": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "hypotheses": {
+                "maxItems": 15,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                }
+              },
+              "participants": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "moderated-remote",
+                  "moderated-in-person"
+                ]
+              },
+              "sessionMinutes": {
+                "type": "integer",
+                "minimum": 10,
+                "maximum": 240
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "fr"
+                ]
+              },
+              "consent": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "interface": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "prototype",
+                      "live-application",
+                      "other"
+                    ]
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "url",
+                  "kind",
+                  "description"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "objective",
+              "hypotheses",
+              "participants",
+              "format",
+              "sessionMinutes",
+              "language",
+              "consent",
+              "interface"
+            ],
+            "additionalProperties": false
+          },
+          "script": {
+            "type": "object",
+            "properties": {
+              "introduction": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "thinkAloud": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "warmUp": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                }
+              },
+              "debrief": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                }
+              },
+              "closing": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "introduction",
+              "thinkAloud",
+              "warmUp",
+              "debrief",
+              "closing"
+            ],
+            "additionalProperties": false
+          },
+          "scenario": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "tasks": {
+            "minItems": 1,
+            "maxItems": 15,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "instruction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                },
+                "criterion": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                },
+                "startUrl": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "minutes": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 60
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                }
+              },
+              "required": [
+                "instruction",
+                "criterion",
+                "startUrl",
+                "minutes",
+                "id"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "questionnaire": {
+            "type": "string",
+            "enum": [
+              "none",
+              "sus-v1"
+            ]
+          },
+          "easeQuestion": {
+            "type": "string",
+            "enum": [
+              "none",
+              "seq-v1"
+            ]
+          },
+          "retiredTaskIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        },
+        "required": [
+          "framing",
+          "script",
+          "scenario",
+          "tasks",
+          "questionnaire",
+          "easeQuestion",
+          "retiredTaskIds"
+        ],
+        "additionalProperties": false
+      },
+      "TestProtocol": {
+        "type": "object",
+        "properties": {
+          "studyId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "content": {
+            "$ref": "#/components/schemas/TestProtocolContent"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "assistant",
+              "person",
+              "drive"
+            ]
+          },
+          "updatedBy": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "tasks": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "gives-the-way",
+                      "several-tasks",
+                      "no-goal",
+                      "too-long"
+                    ]
+                  }
+                }
+              },
+              "whole": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "too-long-for-session",
+                    "too-many-tasks",
+                    "no-think-aloud",
+                    "consent-without-ai"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "tasks",
+              "whole"
+            ],
+            "additionalProperties": false
+          },
+          "plannedMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "standard": {
+            "type": "object",
+            "properties": {
+              "sus": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "scale": {
+                        "type": "object",
+                        "properties": {
+                          "points": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "low": {
+                            "type": "string"
+                          },
+                          "high": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "points",
+                          "low",
+                          "high"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "instructions": {
+                        "type": "string"
+                      },
+                      "facilitatorNote": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "scale",
+                      "items",
+                      "instructions",
+                      "facilitatorNote"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "seq": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "question": {
+                        "type": "string"
+                      },
+                      "scale": {
+                        "type": "object",
+                        "properties": {
+                          "points": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "low": {
+                            "type": "string"
+                          },
+                          "high": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "points",
+                          "low",
+                          "high"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "question",
+                      "scale"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "sus",
+              "seq"
+            ],
+            "additionalProperties": false
+          },
+          "readiness": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "pilot",
+                    "interface",
+                    "review"
+                  ]
+                },
+                "by": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "changedSince": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "kind",
+                "by",
+                "at",
+                "changedSince"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "studyId",
+          "content",
+          "origin",
+          "updatedBy",
+          "updatedAt",
+          "version",
+          "checks",
+          "plannedMinutes",
+          "standard",
+          "readiness"
+        ],
+        "additionalProperties": false
+      },
+      "SaveTestProtocol": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "object",
+            "properties": {
+              "framing": {
+                "type": "object",
+                "properties": {
+                  "objective": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "hypotheses": {
+                    "maxItems": 15,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "participants": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": [
+                      "moderated-remote",
+                      "moderated-in-person"
+                    ]
+                  },
+                  "sessionMinutes": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 240
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "fr"
+                    ]
+                  },
+                  "consent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "interface": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "prototype",
+                          "live-application",
+                          "other"
+                        ]
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "url",
+                      "kind",
+                      "description"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "objective",
+                  "hypotheses",
+                  "participants",
+                  "format",
+                  "sessionMinutes",
+                  "language",
+                  "consent",
+                  "interface"
+                ],
+                "additionalProperties": false
+              },
+              "script": {
+                "type": "object",
+                "properties": {
+                  "introduction": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "thinkAloud": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "warmUp": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "debrief": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "closing": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                },
+                "required": [
+                  "introduction",
+                  "thinkAloud",
+                  "warmUp",
+                  "debrief",
+                  "closing"
+                ],
+                "additionalProperties": false
+              },
+              "scenario": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "tasks": {
+                "minItems": 1,
+                "maxItems": 15,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "instruction": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    },
+                    "criterion": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    },
+                    "startUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "minutes": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "required": [
+                    "instruction",
+                    "criterion",
+                    "startUrl",
+                    "minutes"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "questionnaire": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "sus-v1"
+                ]
+              },
+              "easeQuestion": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "seq-v1"
+                ]
+              }
+            },
+            "required": [
+              "framing",
+              "script",
+              "scenario",
+              "tasks",
+              "questionnaire",
+              "easeQuestion"
+            ],
+            "additionalProperties": false
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "content",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "ProtocolDesignCost": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "const": "USD"
+          },
+          "total": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "currency",
+          "total"
+        ],
+        "additionalProperties": false
+      },
       "AssistantPage": {
         "type": "object",
         "properties": {
@@ -19263,7 +21062,15 @@
                     "administration",
                     "profiling",
                     "thematicItems",
-                    "formatOrder"
+                    "formatOrder",
+                    "objectiveHypotheses",
+                    "interface",
+                    "participants",
+                    "formatConsent",
+                    "scenario",
+                    "tasks",
+                    "criteria",
+                    "questionnaireDebrief"
                   ]
                 },
                 "weight": {
@@ -19353,7 +21160,9 @@
               "enum": [
                 "guide",
                 "best-practices",
-                "questionnaire"
+                "questionnaire",
+                "protocol",
+                "participant-sheet"
               ]
             }
           },
@@ -19781,7 +21590,10 @@
           },
           "type": {
             "type": "string",
-            "const": "survey"
+            "enum": [
+              "survey",
+              "usability-test"
+            ]
           },
           "questionnaire": {
             "type": "object",
@@ -20162,6 +21974,281 @@
             ],
             "additionalProperties": false
           },
+          "protocol": {
+            "type": "object",
+            "properties": {
+              "framing": {
+                "type": "object",
+                "properties": {
+                  "objective": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "hypotheses": {
+                    "maxItems": 15,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "participants": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": [
+                      "moderated-remote",
+                      "moderated-in-person"
+                    ]
+                  },
+                  "sessionMinutes": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 240
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "fr"
+                    ]
+                  },
+                  "consent": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "interface": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "prototype",
+                          "live-application",
+                          "other"
+                        ]
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "url",
+                      "kind",
+                      "description"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "objective",
+                  "hypotheses",
+                  "participants",
+                  "format",
+                  "sessionMinutes",
+                  "language",
+                  "consent",
+                  "interface"
+                ],
+                "additionalProperties": false
+              },
+              "script": {
+                "type": "object",
+                "properties": {
+                  "introduction": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "thinkAloud": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "warmUp": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "debrief": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    }
+                  },
+                  "closing": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                },
+                "required": [
+                  "introduction",
+                  "thinkAloud",
+                  "warmUp",
+                  "debrief",
+                  "closing"
+                ],
+                "additionalProperties": false
+              },
+              "scenario": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "tasks": {
+                "minItems": 1,
+                "maxItems": 15,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "instruction": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    },
+                    "criterion": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 600
+                    },
+                    "startUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "minutes": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "instruction",
+                    "criterion",
+                    "startUrl",
+                    "minutes"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "questionnaire": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "sus-v1"
+                ]
+              },
+              "easeQuestion": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "seq-v1"
+                ]
+              }
+            },
+            "required": [
+              "framing",
+              "script",
+              "scenario",
+              "tasks",
+              "questionnaire",
+              "easeQuestion"
+            ],
+            "additionalProperties": false
+          },
+          "replacesProtocol": {
+            "type": "boolean"
+          },
+          "taskChecks": {
+            "type": "object",
+            "properties": {
+              "tasks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "instruction": {
+                      "type": "string"
+                    },
+                    "flags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "gives-the-way",
+                          "several-tasks",
+                          "no-goal",
+                          "too-long"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "instruction",
+                    "flags"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "whole": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "too-long-for-session",
+                    "too-many-tasks",
+                    "no-think-aloud",
+                    "consent-without-ai"
+                  ]
+                }
+              },
+              "plannedMinutes": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "tasks",
+              "whole",
+              "plannedMinutes"
+            ],
+            "additionalProperties": false
+          },
           "progress": {
             "$ref": "#/components/schemas/GuideProgress"
           },
@@ -20227,6 +22314,9 @@
               "propose_questionnaire",
               "report_questionnaire_progress",
               "check_questionnaire_items",
+              "propose_protocol",
+              "report_protocol_progress",
+              "check_protocol_tasks",
               "count_responses",
               "propose_opening_form",
               "propose_closing_form",
@@ -23984,6 +26074,8 @@
               "SCHEDULE_FULL",
               "NOT_AN_INTERVIEW_STUDY",
               "NOT_A_SURVEY_STUDY",
+              "NOT_A_USABILITY_TEST_STUDY",
+              "PROTOCOL_NOT_FOUND",
               "FORM_NOT_PUBLISHED",
               "FORM_COLLECTS_IDENTITY",
               "FORM_CONSENT_BROKEN",
@@ -28082,7 +30174,9 @@
               "guide",
               "best-practices",
               "schedule",
-              "questionnaire"
+              "questionnaire",
+              "protocol",
+              "participant-sheet"
             ]
           },
           "fileName": {
@@ -28370,7 +30464,7 @@
         "properties": {
           "kinds": {
             "minItems": 1,
-            "maxItems": 4,
+            "maxItems": 6,
             "type": "array",
             "items": {
               "type": "string",
@@ -28378,7 +30472,9 @@
                 "guide",
                 "best-practices",
                 "schedule",
-                "questionnaire"
+                "questionnaire",
+                "protocol",
+                "participant-sheet"
               ]
             }
           },
@@ -29427,7 +31523,8 @@
             "type": "string",
             "enum": [
               "interviews",
-              "survey"
+              "survey",
+              "usability-test"
             ]
           }
         },
@@ -35082,6 +37179,159 @@
         }
       }
     },
+    "/api/studies/{studyId}/protocol": {
+      "get": {
+        "operationId": "getTestProtocol",
+        "tags": [
+          "preparation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/TestProtocol"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveTestProtocol",
+        "tags": [
+          "preparation"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveTestProtocolInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionAck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/protocol/readiness/{kind}": {
+      "put": {
+        "operationId": "markProtocolReadiness",
+        "tags": [
+          "preparation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pilot",
+                "interface",
+                "review"
+              ]
+            },
+            "in": "path",
+            "name": "kind",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "unmarkProtocolReadiness",
+        "tags": [
+          "preparation"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pilot",
+                "interface",
+                "review"
+              ]
+            },
+            "in": "path",
+            "name": "kind",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
     "/api/studies/{studyId}/questionnaire/readiness/{kind}": {
       "put": {
         "operationId": "markQuestionnaireReadiness",
@@ -36288,6 +38538,38 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/QuestionnaireDesignCost"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/protocol/design-cost": {
+      "get": {
+        "operationId": "getProtocolDesignCost",
+        "tags": [
+          "assistant"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtocolDesignCost"
                 }
               }
             }

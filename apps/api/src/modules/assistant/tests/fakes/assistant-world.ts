@@ -203,6 +203,9 @@ export const fakeResearch = () => {
   const questionnaire: { value: Awaited<ReturnType<ResearchReads['questionnaire']>> } = {
     value: null,
   }
+  const protocol: { value: Awaited<ReturnType<ResearchReads['testProtocol']>> } = {
+    value: null,
+  }
   const attachable: {
     studies: { id: string; name: string; projects: { name: string }[] }[]
   } = { studies: [] }
@@ -282,6 +285,16 @@ export const fakeResearch = () => {
     projectRunning: async () => running.value,
     questionnaire: async (accountId, id) =>
       accountId === 'ada' && id === 's1' ? questionnaire.value : null,
+    testProtocol: async (accountId, id) =>
+      accountId === 'ada' && id === 's1' ? protocol.value : null,
+    checkTestProtocol: (draft) => ({
+      tasks: draft.tasks.map((t) => ({
+        instruction: t.instruction,
+        flags: /click/i.test(t.instruction) ? (['gives-the-way'] as const).slice() : [],
+      })),
+      whole: [],
+      plannedMinutes: 20,
+    }),
     surveyProgress: async () => survey.progress,
     // Spec 029: counts and figures only; the answers never reach this fake.
     surveyAnalysisState: async () => ({
@@ -364,6 +377,7 @@ export const fakeResearch = () => {
     updateStudyGoal: async (c) => result('updateStudyGoal', c, {}),
     saveGuide: async (c) => result('saveGuide', c, {}),
     saveQuestionnaire: async (c) => result('saveQuestionnaire', c, {}),
+    saveTestProtocol: async (c) => result('saveTestProtocol', c, {}),
     setFormOpen: async (c) => result('setFormOpen', c, {}),
     saveTargetRule: async (c) => result('saveTargetRule', c, {}),
     createSurveyFacts: async (c) => result('createSurveyFacts', c, { made: c.facts.length }),
@@ -389,6 +403,7 @@ export const fakeResearch = () => {
     study,
     preparation,
     questionnaire,
+    protocol,
     survey,
     actions,
     actionsLog,

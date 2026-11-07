@@ -1,7 +1,14 @@
 import { z } from 'zod'
 import { Id, Timestamp } from './common.ts'
 
-export const PublicationKind = z.enum(['guide', 'best-practices', 'schedule', 'questionnaire'])
+export const PublicationKind = z.enum([
+  'guide',
+  'best-practices',
+  'schedule',
+  'questionnaire',
+  'protocol',
+  'participant-sheet',
+])
 
 export const PublicationState = z.enum([
   'in-sync',
@@ -74,7 +81,7 @@ export const DriveChange = z
 
 export const PublishPreparation = z
   .object({
-    kinds: z.array(PublicationKind).min(1).max(4),
+    kinds: z.array(PublicationKind).min(1).max(6),
     language: z.enum(['en', 'fr']),
     /** The person's time zone, for the schedule's dates (IANA name). */
     timeZone: z

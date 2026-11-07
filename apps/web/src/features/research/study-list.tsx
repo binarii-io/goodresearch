@@ -138,7 +138,9 @@ function CreateStudyDialog({ projectId }: { projectId: string }) {
   const [name, setName] = useState('')
   const [touched, setTouched] = useState(false)
   const ids = { name: useId(), nameError: useId(), type: useId() }
-  const [studyType, setStudyType] = useState<'interviews' | 'survey'>('interviews')
+  const [studyType, setStudyType] = useState<'interviews' | 'survey' | 'usability-test'>(
+    'interviews',
+  )
   const missing = touched && name.trim().length === 0
 
   const submit = async (event: FormEvent) => {
@@ -158,7 +160,7 @@ function CreateStudyDialog({ projectId }: { projectId: string }) {
   const types = [
     { value: 'interviews', label: t`Interviews`, available: true },
     { value: 'survey', label: t`Survey`, available: true },
-    { value: 'usability-test', label: t`Usability test`, available: false },
+    { value: 'usability-test', label: t`Usability test`, available: true },
   ]
 
   return (

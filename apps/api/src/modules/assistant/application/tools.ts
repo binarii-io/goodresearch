@@ -1,12 +1,13 @@
-import { GuideDraft, QuestionnaireDraft } from '@goodresearch/contracts'
+import { GuideDraft, QuestionnaireDraft, TestProtocolDraft } from '@goodresearch/contracts'
 import { z } from 'zod'
 import { GUIDE_CHECKLIST, GUIDE_POINT_STATES } from '../domain/guide-progress.ts'
 import { composeGoal, type Framing, openPoints } from '../domain/project-framing.ts'
 import type { ProposalKind } from '../domain/proposal.ts'
+import { PROTOCOL_CHECKLIST } from '../domain/protocol-progress.ts'
 import { checkQuestion } from '../domain/question-checks.ts'
 import { QUESTIONNAIRE_CHECKLIST } from '../domain/questionnaire-progress.ts'
 import { openStudyPoints, type StudyFraming } from '../domain/study-framing.ts'
-import type { GuideStudy, SurveyStudy } from './context.ts'
+import type { GuideStudy, ProtocolStudy, SurveyStudy } from './context.ts'
 import type { Actor, ProposalPreview, ResearchReads, ToolSpec } from './ports.ts'
 import { SKILL_NAMES } from './skills.ts'
 
@@ -28,7 +29,7 @@ const INPUTS = {
   create_study: z.object({
     name: Name,
     goal: Goal,
-    type: z.enum(['interviews', 'survey']).optional(),
+    type: z.enum(['interviews', 'survey', 'usability-test']).optional(),
     projectId: Id.optional(),
     teamId: Id.optional(),
   }),
@@ -47,6 +48,13 @@ const INPUTS = {
     ),
   }) as z.ZodType<{ studyId: string } & Record<string, (typeof GUIDE_POINT_STATES)[number]>>,
   check_questionnaire_items: z.object({ studyId: Id, questionnaire: QuestionnaireDraft }),
+  // Spec 036: the test protocol of a usability test study.
+  propose_protocol: z.object({ studyId: Id, protocol: TestProtocolDraft }),
+  report_protocol_progress: z.object({
+    studyId: Id,
+    ...Object.fromEntries(PROTOCOL_CHECKLIST.map(([key]) => [key, z.enum(GUIDE_POINT_STATES)])),
+  }) as z.ZodType<{ studyId: string } & Record<string, (typeof GUIDE_POINT_STATES)[number]>>,
+  check_protocol_tasks: z.object({ studyId: Id, protocol: TestProtocolDraft }),
   // Spec 028: counts only; no tool gives an answer of a response.
   count_responses: z.object({ studyId: Id }),
   propose_opening_form: z.object({ studyId: Id }),
@@ -104,9 +112,9 @@ const INPUTS = {
   publish_preparation: z.object({
     studyId: Id,
     kinds: z
-      .array(z.enum(['guide', 'best-practices', 'questionnaire']))
+      .array(z.enum(['guide', 'best-practices', 'questionnaire', 'protocol']))
       .min(1)
-      .max(3),
+      .max(4),
   }),
   // Spec 024: there is no line to delete, trash or share, and no way to write one.
   browse_folder: z.object({ studyId: Id, folderId: Id.optional() }),
@@ -290,6 +298,31 @@ export const QUESTIONNAIRE_TOOLS: readonly ToolSpec[] = [
 ]
 
 /**
+ * Tools of the test protocol design (spec 036), offered on the page of a usability test study the
+ * person can change, as the questionnaire's on a survey study.
+ */
+export const PROTOCOL_TOOLS: readonly ToolSpec[] = [
+  {
+    name: 'check_protocol_tasks',
+    description:
+      "Check a whole test protocol against the app's writing rules: an instruction that gives the way (names a button, a menu or steps), several tasks in one, no goal, too long; a planned length beyond the session, too many tasks, no think-aloud instructions, a consent that does not mention the recording and the AI reading. Returns what to review and the planned length the app computes. Call it before proposing.",
+    inputSchema: INPUTS.check_protocol_tasks,
+  },
+  {
+    name: 'report_protocol_progress',
+    description:
+      'Record how far the design of the test protocol is: for each of the nine points, missing, partial or done. Call it last, after your text, at the end of each answer while designing: it ends the answer. Changes nothing else.',
+    inputSchema: INPUTS.report_protocol_progress,
+  },
+  {
+    name: 'propose_protocol',
+    description:
+      "Propose the complete test protocol of the study (use the Study id from the context): framing with the tested interface and the consent, the script, the scenario, the tasks in order with their success criteria, and whether to ask the ease question after each task (easeQuestion seq-v1) and end with the System Usability Scale (questionnaire sus-v1); their texts are the app's. The person reviews and applies it; it replaces the current one only then.",
+    inputSchema: INPUTS.propose_protocol,
+  },
+]
+
+/**
  * The tools the model may call (spec 005 US3). They have no execution: a call becomes a proposal
  * card, applied only on the person's explicit Apply (constitution IV, research R2).
  */
@@ -314,7 +347,7 @@ export const TOOLS: readonly ToolSpec[] = [
   {
     name: 'create_study',
     description:
-      'Propose a new study (type: interviews by default, or survey for a questionnaire), once every point of the framing is done and they agreed (load the skill study-framing first). Send its goal, and a project id from the context, or a team id for a study in no project. The result says whether a card was shown or why it was refused. The person confirms before anything is created.',
+      'Propose a new study (type: interviews by default, survey for a questionnaire, or usability-test to watch people use an interface or a prototype), once every point of the framing is done and they agreed (load the skill study-framing first). Send its goal, and a project id from the context, or a team id for a study in no project. The result says whether a card was shown or why it was refused. The person confirms before anything is created.',
     inputSchema: INPUTS.create_study,
   },
   {
@@ -557,8 +590,8 @@ export const prepareStudy = async (
         'Refused: send a name of 1 to 120 characters, a goal of at most 10,000 characters, and a projectId or teamId as text, leaving the other one out.',
     }
   const { name, goal, projectId, teamId, type } = input.data
-  // Spec 027: an interview study stays described as before.
-  const typed = type === 'survey' ? { type } : {}
+  // Spec 027: an interview study stays described as before; spec 036 adds the usability test.
+  const typed = type === 'survey' || type === 'usability-test' ? { type } : {}
   if (Boolean(projectId) === Boolean(teamId))
     return { refused: 'Refused: send a projectId, or a teamId for a study in no project.' }
   const project = projectId ? await research.getProject(actor.id, projectId) : null
@@ -620,8 +653,11 @@ export const prepareFolder = async (
   if (checked.ok) {
     // Fieldwork comes after the guide; planning interviews blocks nothing (spec 024).
     const preparation = await research.preparation(actor.id, studyId)
+    // Spec 036: a usability test's folder serves its protocol for now; Fieldwork is not built yet.
     const opensOn: 'preparation' | 'fieldwork' =
-      preparation && !preparation.guide ? 'preparation' : 'fieldwork'
+      study.type === 'usability-test' || (preparation && !preparation.guide)
+        ? 'preparation'
+        : 'fieldwork'
     return {
       ...base,
       kind: 'attach_folder',
@@ -648,6 +684,8 @@ const PUBLICATION_REFUSALS: Record<string, string> = {
   NO_SOURCE_FOLDER: 'Refused: this study has no folder. Offer to add the folder first.',
   GUIDE_MISSING: 'Refused: this study has no interview guide yet. Write it first.',
   QUESTIONNAIRE_NOT_FOUND: 'Refused: this study has no questionnaire yet. Write it first.',
+  PROTOCOL_NOT_FOUND: 'Refused: this study has no test protocol yet. Write it first.',
+  NOT_A_USABILITY_TEST_STUDY: 'Refused: only a usability test study has a test protocol.',
   NOTHING_TO_PUBLISH:
     'Refused: already published. Updates happen on the Preparation tab, which compares with the files.',
 }
@@ -665,7 +703,8 @@ export const preparePublication = async (
   const input = INPUTS.publish_preparation.safeParse(rawInput)
   if (!input.success)
     return {
-      refused: 'Refused: send a studyId, and kinds among guide, best-practices and questionnaire.',
+      refused:
+        'Refused: send a studyId, and kinds among guide, best-practices, questionnaire and protocol (which brings its participant sheet).',
     }
   const { studyId, kinds } = input.data
   const study = await research.getStudy(actor.id, studyId)
@@ -955,8 +994,27 @@ export const prepareProposal = async (
   /** The interview study of the page, the only one a guide may be proposed for (FR-006). */
   guideStudy: GuideStudy | null = null,
   surveyStudy: SurveyStudy | null = null,
+  protocolStudy: ProtocolStudy | null = null,
 ): Promise<PreparedProposal | null> => {
   switch (call.name) {
+    case 'propose_protocol': {
+      const input = INPUTS.propose_protocol.safeParse(call.input)
+      // The page's study, as the context just loaded it with the person's access.
+      if (!input.success || !protocolStudy || input.data.studyId !== protocolStudy.id) return null
+      const protocol = input.data.protocol
+      return {
+        kind: 'propose_protocol',
+        targetId: protocolStudy.id,
+        targetVersion: protocolStudy.version,
+        values: { protocol },
+        preview: {
+          studyName: protocolStudy.name,
+          protocol,
+          replacesProtocol: protocolStudy.version !== null,
+          taskChecks: research.checkTestProtocol(protocol),
+        },
+      }
+    }
     case 'update_project_goal':
     case 'rename_project': {
       const parsed =

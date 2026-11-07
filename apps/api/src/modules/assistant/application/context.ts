@@ -3,6 +3,8 @@ import {
   nextStep,
   type SurveyNextStep,
   surveyNextStep,
+  type UsabilityNextStep,
+  usabilityNextStep,
 } from '../domain/next-step.ts'
 import type { Actor, PageRef, ResearchReads } from './ports.ts'
 import { SKILL_NAMES, SKILLS, type SkillName } from './skills.ts'
@@ -38,6 +40,18 @@ const SURVEY_NEXT_STEPS: Record<SurveyNextStep, string> = {
   'decide-facts': 'decide the facts still to decide, in the Analysis tab',
   'analysis-done':
     'the survey is analysed: its accepted facts feed the project insights with those of interviews',
+}
+
+/** Spec 036: only Preparation exists for a usability test so far. */
+const USABILITY_NEXT_STEPS: Record<UsabilityNextStep, string> = {
+  'write-protocol': 'write its test protocol',
+  'add-folder': 'add the folder that will hold its protocol and, later, its session videos',
+  'publish-protocol':
+    'publish its test protocol (with its participant sheet) and the usability test best practices to its folder',
+  readiness:
+    "run a pilot session, open the tested interface on the participants' device and account, and have the protocol reviewed, then mark these checks on the Preparation tab; this advises and blocks nothing",
+  'run-sessions':
+    'run the test sessions and record them; reading the sessions in the app comes in a later version',
 }
 
 /** The app's own words for its tabs (bilingual glossary): the model would translate them itself. */
@@ -86,6 +100,12 @@ const CONTINUATIONS = {
     'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready, then call offer_choices with the next steps: designing its questionnaire, and adding the folder that will hold its form. Never mention interviews or an interview guide: this is a survey study. Start neither, and call no other tool. Do not repeat the framing.',
   surveyFolder:
     'The person just applied your folder proposal and the study is open: nobody wrote a new message. In one sentence, say the folder is attached: it will hold the form of the questionnaire. Then call offer_choices with what comes next according to the next step in the context. Never mention interviews, transcripts or recordings: this is a survey study. Start nothing, and call no other tool.',
+  protocol:
+    'The person just applied your test protocol and it is saved: nobody wrote a new message. In one or two sentences, say so. Then call offer_choices with what comes next according to the next step in the context. Start nothing, and call no other tool.',
+  usabilityFolder:
+    'The person just applied your folder proposal and the study is open: nobody wrote a new message. In one sentence, say the folder is attached: it will hold the test protocol and its participant sheet, and later the session videos. Then call offer_choices with what comes next according to the next step in the context. Never mention interviews, an interview guide or transcripts: this is a usability test study. Start nothing, and call no other tool.',
+  usabilityStudy:
+    'The person just applied your study proposal and its page is now open: nobody wrote a new message. In one or two sentences, say the study is ready, then call offer_choices with the next steps: designing its test protocol, and adding the folder that will hold it. Never mention an interview guide or a questionnaire: this is a usability test study. Start neither, and call no other tool. Do not repeat the framing.',
   questionnaire:
     'The person just applied your questionnaire and it is saved: nobody wrote a new message. In one or two sentences, say so. Then call offer_choices with what comes next according to the next step in the context. Start nothing, and call no other tool.',
   connected:
@@ -96,6 +116,9 @@ export type Continuation = keyof typeof CONTINUATIONS
 
 /** The interview study of the page, for the guide tools (spec 006). */
 export type GuideStudy = { id: string; name: string; guideVersion: number | null }
+
+/** The usability test study of the page, for the test protocol tools (spec 036). */
+export type ProtocolStudy = { id: string; name: string; version: number | null }
 
 /** The survey study of the page, for the questionnaire tools (spec 027). */
 export type SurveyStudy = {
@@ -168,10 +191,12 @@ export const buildContext = async (
   system: string
   guideStudy: GuideStudy | null
   surveyStudy: SurveyStudy | null
+  protocolStudy: ProtocolStudy | null
   readOnly: boolean
 }> => {
   let guideStudy: GuideStudy | null = null
   let surveyStudy: SurveyStudy | null = null
+  let protocolStudy: ProtocolStudy | null = null
   let readOnly = false
   const lines: string[] = []
   const teams = await research.teamsOf(actor.id)
@@ -232,9 +257,11 @@ export const buildContext = async (
         `Study: ${study.name} (${study.type}), Study id: ${study.id}`,
         study.type === 'survey'
           ? `Tabs (study phases): preparation, fieldwork, analysis; no other tab exists on a survey study. Current tab: ${page.phase ?? 'preparation'}`
-          : `Tabs (study phases): preparation, fieldwork, enrichment, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
+          : study.type === 'usability-test'
+            ? `Tabs (study phases): preparation, fieldwork, lexicon, enrichment, analysis; only preparation is built for a usability test study so far. Current tab: ${page.phase ?? 'preparation'}`
+            : `Tabs (study phases): preparation, fieldwork, enrichment, analysis. Current tab: ${page.phase ?? 'fieldwork'}`,
         `Source folder: ${
-          folder && study.type === 'survey'
+          folder && (study.type === 'survey' || study.type === 'usability-test')
             ? folder.name
             : folder
               ? `${folder.name} (inventory ${folder.status}: ${folder.byKind.transcript} transcripts, ${folder.byKind.media} recordings, ${folder.byKind.other} other files)`
@@ -291,6 +318,29 @@ export const buildContext = async (
                   analysisState?.openItems.filter((o) => o.answers >= 5 && o.themes === 0).length ??
                   0,
                 facts: analysisState?.facts ?? { total: 0, toDecide: 0 },
+              })
+            ]
+          }.`,
+        )
+      }
+      const protocol =
+        study.type === 'usability-test' ? await research.testProtocol(actor.id, study.id) : null
+      if (protocol) {
+        protocolStudy = { id: study.id, name: study.name, version: protocol.version }
+        const has = protocol.content !== null
+        const published = has && folder ? await research.publishedKinds(actor, study.id) : []
+        lines.push(
+          // FR-022: the tested interface is text here; the app never opens it.
+          has
+            ? `Test protocol of this study (version ${protocol.version}): ${JSON.stringify(protocol.content)}`
+            : 'Test protocol of this study: none yet.',
+          `Next step of this study: ${
+            USABILITY_NEXT_STEPS[
+              usabilityNextStep({
+                hasProtocol: has,
+                hasFolder: folder !== null,
+                published,
+                checksDone: protocol.checksDone,
               })
             ]
           }.`,
@@ -358,7 +408,8 @@ export const buildContext = async (
       !readOnly &&
       !loadedSkills.includes(name) &&
       (name !== 'interview-guide-design' || guideStudy !== null) &&
-      (name !== 'questionnaire-design' || surveyStudy !== null),
+      (name !== 'questionnaire-design' || surveyStudy !== null) &&
+      (name !== 'test-protocol-design' || protocolStudy !== null),
   )
   if (available.length)
     skills.push(
@@ -378,18 +429,28 @@ export const buildContext = async (
       'The questionnaire tools (check_questionnaire_items, report_questionnaire_progress, propose_questionnaire) are only available on the page of a survey study: open it with open_study to go on.',
     )
 
-  // Spec 027: the same card leads elsewhere on a survey study.
+  if (loaded.includes('test-protocol-design') && !protocolStudy)
+    skills.push(
+      'The test protocol tools (check_protocol_tasks, report_protocol_progress, propose_protocol) are only available on the page of a usability test study: open it with open_study to go on.',
+    )
+
+  // Spec 027: the same card leads elsewhere on a survey study; spec 036, on a usability test.
   const said: Continuation | null =
-    surveyStudy && continuation === 'study'
-      ? 'surveyStudy'
-      : surveyStudy && continuation === 'folder'
-        ? 'surveyFolder'
-        : continuation
+    protocolStudy && continuation === 'study'
+      ? 'usabilityStudy'
+      : protocolStudy && continuation === 'folder'
+        ? 'usabilityFolder'
+        : surveyStudy && continuation === 'study'
+          ? 'surveyStudy'
+          : surveyStudy && continuation === 'folder'
+            ? 'surveyFolder'
+            : continuation
 
   return {
     system: `${INSTRUCTIONS}${said ? `\n- ${CONTINUATIONS[said]}` : ''}\nAnswer in ${LANGUAGES[language]} unless the person writes in another language. ${TAB_NAMES[language]}\n\nContext:\n${lines.join('\n')}${skills.length ? `\n\n${skills.join('\n\n')}` : ''}`,
     guideStudy,
     surveyStudy,
+    protocolStudy,
     readOnly,
   }
 }

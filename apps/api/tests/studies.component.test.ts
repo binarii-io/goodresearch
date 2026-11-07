@@ -38,7 +38,7 @@ describe('studies API (spec 002 US1)', () => {
     await world?.close()
   })
 
-  it('creates interview and survey studies, lists them most recent first', async () => {
+  it('creates interview, survey and usability test studies, lists them most recent first', async () => {
     const created = await call(alex, 'POST', `/api/projects/${projectId}/studies`, {
       name: ' Interviews Q4 ',
       type: 'interviews',
@@ -50,10 +50,8 @@ describe('studies API (spec 002 US1)', () => {
           name: 'Usability',
           type: 'usability-test',
         })
-      ).json(),
-    ).toMatchObject({
-      code: 'VALIDATION',
-    })
+      ).statusCode,
+    ).toBe(201)
     world.clock.advance(1000)
     await call(alex, 'POST', `/api/projects/${projectId}/studies`, {
       name: 'Survey Q2',
@@ -67,7 +65,12 @@ describe('studies API (spec 002 US1)', () => {
     const list = (await call(alex, 'GET', `/api/projects/${projectId}/studies`)).json<
       { name: string; folderName: null }[]
     >()
-    expect(list.map((s) => s.name)).toEqual(['Interviews Q1', 'Survey Q2', 'Interviews Q4'])
+    expect(list.map((s) => s.name).filter((n) => n !== 'Usability')).toEqual([
+      'Interviews Q1',
+      'Survey Q2',
+      'Interviews Q4',
+    ])
+    expect(list.map((s) => s.name)).toContain('Usability')
     expect(list[0]?.folderName).toBeNull()
   })
 

@@ -11,6 +11,7 @@ import type {
 import { makePublicationQueries } from '../../application/queries/publication-queries.ts'
 import type { QuestionnaireContent } from '../../domain/form.ts'
 import type { GuideContent, GuideInput } from '../../domain/guide.ts'
+import type { ProtocolContent } from '../../domain/protocol.ts'
 import type { PlannedRow } from '../../domain/schedule.ts'
 
 const inMemoryStore = (): PublishingStore & {
@@ -92,6 +93,9 @@ const inMemoryStore = (): PublishingStore & {
 export const publishingWorld = () => {
   const drive = new InMemoryDriveDocuments((token) => token)
   const state = {
+    /** Spec 036: which preparation the study has. */
+    type: 'interviews' as 'interviews' | 'survey' | 'usability-test',
+    protocol: null as { version: number; content: ProtocolContent } | null,
     guide: {
       version: 0,
       content: {
@@ -232,7 +236,18 @@ export const publishingWorld = () => {
     },
     reads: {
       studyName: async () => 'Study A',
-      guide: async (accountId) => (accountId === 'eve' ? err('STUDY_NOT_FOUND') : ok(state.guide)),
+      guide: async (accountId) =>
+        accountId === 'eve'
+          ? err('STUDY_NOT_FOUND')
+          : state.type !== 'interviews'
+            ? err('NOT_AN_INTERVIEW_STUDY')
+            : ok(state.guide),
+      protocol: async (accountId) =>
+        accountId === 'eve'
+          ? err('STUDY_NOT_FOUND')
+          : state.type !== 'usability-test'
+            ? err('NOT_A_USABILITY_TEST_STUDY')
+            : ok(state.protocol),
       questionnaire: async (accountId) =>
         accountId === 'eve' ? err('STUDY_NOT_FOUND') : ok(state.questionnaire),
       schedule: async (accountId) =>
@@ -253,6 +268,20 @@ export const publishingWorld = () => {
               id: s.id ?? `s-new-${++n}`,
               questions: s.questions.map((q) => ({ ...q, id: q.id ?? `q-new-${++n}` })),
             })),
+          },
+        }
+        return { ok: true }
+      },
+      saveTestProtocol: async (c) => {
+        if (!state.protocol || c.version !== state.protocol.version)
+          return { ok: false, error: 'VERSION_CONFLICT' }
+        let n = 0
+        state.protocol = {
+          version: state.protocol.version + 1,
+          content: {
+            ...c.content,
+            tasks: c.content.tasks.map((t) => ({ ...t, id: t.id ?? `t-new-${++n}` })),
+            retiredTaskIds: state.protocol.content.retiredTaskIds,
           },
         }
         return { ok: true }

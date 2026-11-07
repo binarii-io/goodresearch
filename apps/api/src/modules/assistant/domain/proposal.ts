@@ -22,6 +22,9 @@ export const PROPOSAL_KINDS = [
   'propose_questionnaire',
   'report_questionnaire_progress',
   'check_questionnaire_items',
+  'propose_protocol',
+  'report_protocol_progress',
+  'check_protocol_tasks',
   'count_responses',
   'propose_opening_form',
   'propose_closing_form',
@@ -74,6 +77,7 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
   kind === 'load_skill' ||
   kind === 'check_guide_questions' ||
   kind === 'check_questionnaire_items' ||
+  kind === 'check_protocol_tasks' ||
   kind === 'count_responses' ||
   kind === 'survey_analysis_state' ||
   kind === 'read_figures' ||
@@ -100,6 +104,7 @@ export const isRunDuringAnswer = (kind: ProposalKind): boolean =>
 export const isRecordedAtOnce = (kind: ProposalKind): boolean =>
   kind === 'report_guide_progress' ||
   kind === 'report_questionnaire_progress' ||
+  kind === 'report_protocol_progress' ||
   kind === 'report_project_progress' ||
   kind === 'report_study_progress' ||
   kind === 'offer_choices'
@@ -109,6 +114,7 @@ export const isActivity = (kind: ProposalKind): boolean =>
   kind === 'load_skill' ||
   kind === 'check_guide_questions' ||
   kind === 'check_questionnaire_items' ||
+  kind === 'check_protocol_tasks' ||
   kind === 'count_responses' ||
   kind === 'survey_analysis_state' ||
   kind === 'read_figures' ||

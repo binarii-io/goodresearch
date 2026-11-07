@@ -8,6 +8,12 @@ export {
   type PracticeSection,
 } from './content/best-practices.ts'
 export { QUESTIONNAIRE_PRACTICES } from './content/questionnaire-practices.ts'
+export {
+  type Scale,
+  STANDARD_QUESTIONS,
+  type StandardQuestions,
+} from './content/standard-questions.ts'
+export { USABILITY_PRACTICES } from './content/usability-practices.ts'
 export { REGISTERS, WRITING_STYLE } from './content/writing-style.ts'
 export { anyCostUnknown, sumCosts, sumKnownCosts } from './costs.ts'
 export { ConcurrencyError } from './errors.ts'

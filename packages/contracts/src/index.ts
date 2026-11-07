@@ -411,6 +411,26 @@ export {
   SaveTargetRule,
 } from './surveys.ts'
 export {
+  EaseQuestion,
+  InterfaceKind,
+  ProtocolDesignCost,
+  ProtocolFlag,
+  ProtocolQuestionnaire,
+  ProtocolReadinessKind,
+  ProtocolReadinessMark,
+  ProtocolReadinessParams,
+  SaveTestProtocol,
+  SessionFormat,
+  StandardTexts,
+  TaskFlag,
+  TEST_PROTOCOL_LIMITS,
+  TestProtocol,
+  TestProtocolContent,
+  TestProtocolContentInput,
+  TestProtocolDraft,
+  WebAddress,
+} from './test-protocol.ts'
+export {
   AccessEventType,
   AccessHistoryEntry,
   AccountStatus,

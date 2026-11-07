@@ -14,18 +14,21 @@ import {
   ProjectDetail,
   ProjectParams,
   ProjectSummary,
+  ProtocolReadinessParams,
   Questionnaire,
   ReadinessParams,
   RenameProject,
   RenameStudy,
   SaveInterviewGuide,
   SaveQuestionnaire,
+  SaveTestProtocol,
   StudyDetail,
   StudyParams,
   StudySettings,
   StudySummary,
   TeamStudies,
   TeamStudiesQuery,
+  TestProtocol,
   UpdatePlannedInterview,
   UpdateProjectGoal,
   UpdateStudyGoal,
@@ -43,11 +46,13 @@ import type { PreparationCommands } from '../application/commands/preparation-co
 import type { QuestionnaireCommands } from '../application/commands/questionnaire-commands.ts'
 import type { makeRenameProject } from '../application/commands/rename-project.ts'
 import type { StudyCommands } from '../application/commands/study-commands.ts'
+import type { TestProtocolCommands } from '../application/commands/test-protocol-commands.ts'
 import type { makeUpdateProjectGoal } from '../application/commands/update-project-goal.ts'
 import type { PreparationQueries } from '../application/queries/preparation-queries.ts'
 import type { ProjectQueries } from '../application/queries/project-queries.ts'
 import type { QuestionnaireQueries } from '../application/queries/questionnaire-queries.ts'
 import type { StudyQueries } from '../application/queries/study-queries.ts'
+import type { TestProtocolQueries } from '../application/queries/test-protocol-queries.ts'
 
 export type ResearchHandlers = {
   readonly createProject: ReturnType<typeof makeCreateProject>
@@ -62,6 +67,8 @@ export type ResearchHandlers = {
   readonly preparationQueries: PreparationQueries
   readonly questionnaires: QuestionnaireCommands
   readonly questionnaireQueries: QuestionnaireQueries
+  readonly protocols: TestProtocolCommands
+  readonly protocolQueries: TestProtocolQueries
 }
 
 const fieldsOf = (body: z.infer<typeof PlannedInterviewInput>) => ({
@@ -533,6 +540,95 @@ export const registerResearchRoutes = (
           origin: 'person',
         }),
         (v) => res.send(v),
+      ),
+  )
+
+  api.get(
+    '/api/studies/:studyId/protocol',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getTestProtocol',
+        tags: prepTags,
+        params: StudyParams,
+        response: { 200: TestProtocol.nullable() },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.protocolQueries.getTestProtocol(request.account.id, request.params.studyId),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.put(
+    '/api/studies/:studyId/protocol',
+    {
+      ...secured,
+      schema: {
+        operationId: 'saveTestProtocol',
+        tags: prepTags,
+        params: StudyParams,
+        body: SaveTestProtocol,
+        response: { 200: VersionAck },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.protocols.saveTestProtocol({
+          actor: request.account,
+          studyId: request.params.studyId,
+          content: request.body.content,
+          version: request.body.version,
+          origin: 'person',
+        }),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.put(
+    '/api/studies/:studyId/protocol/readiness/:kind',
+    {
+      ...secured,
+      schema: {
+        operationId: 'markProtocolReadiness',
+        tags: prepTags,
+        params: ProtocolReadinessParams,
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.protocols.markProtocolReadiness({
+          actor: request.account,
+          studyId: request.params.studyId,
+          kind: request.params.kind,
+        }),
+        () => res.code(204).send(),
+      ),
+  )
+
+  api.delete(
+    '/api/studies/:studyId/protocol/readiness/:kind',
+    {
+      ...secured,
+      schema: {
+        operationId: 'unmarkProtocolReadiness',
+        tags: prepTags,
+        params: ProtocolReadinessParams,
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await h.protocols.unmarkProtocolReadiness({
+          actor: request.account,
+          studyId: request.params.studyId,
+          kind: request.params.kind,
+        }),
+        () => res.code(204).send(),
       ),
   )
 

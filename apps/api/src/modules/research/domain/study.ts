@@ -2,10 +2,10 @@ import { type Brand, err, ok, type Result } from '@goodresearch/shared'
 
 export type StudyId = Brand<string, 'StudyId'>
 
-/** Every type the product knows; `usability-test` cannot be created yet. */
+/** Every type the product knows; all can be created since spec 036. */
 export const STUDY_TYPES = ['interviews', 'survey', 'usability-test'] as const
 export type StudyType = (typeof STUDY_TYPES)[number]
-const CREATABLE: readonly string[] = ['interviews', 'survey']
+const CREATABLE: readonly string[] = ['interviews', 'survey', 'usability-test']
 
 /** Spec 012 FR-002: the corrected text (proposed corrections included), or the clean version only. */
 export type TextAnalysed = 'with-corrections' | 'clean-only'

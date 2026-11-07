@@ -32,6 +32,7 @@ import type {
   ConversationSummary,
   CreateConversation201,
   Proposal,
+  ProtocolDesignCost,
   QuestionnaireDesignCost,
   RenameConversationInput,
   SendAssistantMessageInput
@@ -307,6 +308,100 @@ export function useGetQuestionnaireDesignCost<TData = Awaited<ReturnType<typeof 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetQuestionnaireDesignCostQueryOptions(studyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getGetProtocolDesignCostUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/protocol/design-cost`
+}
+
+export const getProtocolDesignCost = async (studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ProtocolDesignCost> => {
+
+  return apiFetch<ProtocolDesignCost>(getGetProtocolDesignCostUrl(studyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProtocolDesignCostQueryKey = (studyId: string,) => {
+    return [
+    `/api/studies/${studyId}/protocol/design-cost`
+    ] as const;
+    }
+
+
+export const getGetProtocolDesignCostQueryOptions = <TData = Awaited<ReturnType<typeof getProtocolDesignCost>>, TError = unknown>(studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProtocolDesignCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProtocolDesignCostQueryKey(studyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProtocolDesignCost>>> = ({ signal }) => getProtocolDesignCost(studyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProtocolDesignCost>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetProtocolDesignCostQueryResult = NonNullable<Awaited<ReturnType<typeof getProtocolDesignCost>>>
+export type GetProtocolDesignCostQueryError = unknown
+
+
+export function useGetProtocolDesignCost<TData = Awaited<ReturnType<typeof getProtocolDesignCost>>, TError = unknown>(
+ studyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProtocolDesignCost>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProtocolDesignCost>>,
+          TError,
+          Awaited<ReturnType<typeof getProtocolDesignCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProtocolDesignCost<TData = Awaited<ReturnType<typeof getProtocolDesignCost>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProtocolDesignCost>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProtocolDesignCost>>,
+          TError,
+          Awaited<ReturnType<typeof getProtocolDesignCost>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProtocolDesignCost<TData = Awaited<ReturnType<typeof getProtocolDesignCost>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProtocolDesignCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetProtocolDesignCost<TData = Awaited<ReturnType<typeof getProtocolDesignCost>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProtocolDesignCost>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetProtocolDesignCostQueryOptions(studyId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

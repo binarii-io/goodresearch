@@ -1,4 +1,11 @@
-import type { ItemFlag, QuestionnaireDraft, QuestionnaireFlag } from '@goodresearch/contracts'
+import type {
+  ItemFlag,
+  ProtocolFlag,
+  QuestionnaireDraft,
+  QuestionnaireFlag,
+  TaskFlag,
+  TestProtocolDraft,
+} from '@goodresearch/contracts'
 import type {
   AiFailure,
   ChatMessage,
@@ -9,6 +16,7 @@ import type {
 import type { GuidePoint, GuidePointState } from '../domain/guide-progress.ts'
 import type { FramingPoint } from '../domain/project-framing.ts'
 import type { ProposalKind, ProposalState } from '../domain/proposal.ts'
+import type { ProtocolPoint } from '../domain/protocol-progress.ts'
 import type { QuestionIssue } from '../domain/question-checks.ts'
 import type { QuestionnairePoint } from '../domain/questionnaire-progress.ts'
 import type { StudyFramingPoint } from '../domain/study-framing.ts'
@@ -96,7 +104,7 @@ export type ProposalPreview = {
     studies: number
     studiesWithoutProject: number
   }
-  readonly type?: 'survey'
+  readonly type?: 'survey' | 'usability-test'
   readonly responseCounts?: ResponseCounts
   readonly targetRule?: {
     items: { text: string; accepted: string[] }[]
@@ -116,12 +124,15 @@ export type ProposalPreview = {
   readonly questionnaire?: QuestionnaireDraft
   readonly replacesQuestionnaire?: boolean
   readonly itemChecks?: ItemChecks
+  readonly protocol?: TestProtocolDraft
+  readonly replacesProtocol?: boolean
+  readonly taskChecks?: TaskChecks
   readonly guide?: GuideDraft
   readonly replacesGuide?: boolean
   readonly progress?: {
     percent: number
     items: {
-      key: GuidePoint | FramingPoint | StudyFramingPoint | QuestionnairePoint
+      key: GuidePoint | FramingPoint | StudyFramingPoint | QuestionnairePoint | ProtocolPoint
       weight: number
       status: GuidePointState
     }[]
@@ -488,6 +499,18 @@ export interface ResearchReads {
   } | null>
   /** The app's writing rules, as the tab shows them (spec 027 FR-007). */
   checkQuestionnaire(draft: QuestionnaireDraft): ItemChecks
+  /** Spec 036: `null` without the right to change the study, or for another type than usability-test. */
+  testProtocol(
+    accountId: string,
+    studyId: string,
+  ): Promise<{
+    version: number | null
+    content: TestProtocolDraft | null
+    /** The human checks marked and still valid (US6). */
+    checksDone: boolean
+  } | null>
+  /** The app's task writing rules and planned length, as the tab shows them (spec 036 FR-007, FR-008). */
+  checkTestProtocol(draft: TestProtocolDraft): TaskChecks
 }
 
 /** The research commands a proposal runs, with the person's permissions and validation. */
@@ -516,7 +539,7 @@ export interface ResearchActions {
     projectId: string
     name: string
     goal?: string
-    type?: 'survey'
+    type?: 'survey' | 'usability-test'
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
   /** Spec 025: runs the lines kept of a card on interviews. */
   applyInterviewCard(c: {
@@ -560,7 +583,7 @@ export interface ResearchActions {
     teamId: string
     name: string
     goal: string
-    type?: 'survey'
+    type?: 'survey' | 'usability-test'
   }): Promise<{ ok: true; id: string } | { ok: false; error: string }>
   deleteProject(c: {
     actor: Actor
@@ -612,6 +635,13 @@ export interface ResearchActions {
     accepted: Record<string, string[]>
     version: number | null
   }): Promise<{ ok: true } | { ok: false; error: string }>
+  /** `version: null` when the study had no protocol when it was proposed (spec 036). */
+  saveTestProtocol(c: {
+    actor: Actor
+    studyId: string
+    protocol: TestProtocolDraft
+    version: number | null
+  }): Promise<{ ok: true } | { ok: false; error: string }>
   /** `version: null` when the study had no questionnaire when it was proposed. */
   saveQuestionnaire(c: {
     actor: Actor
@@ -636,7 +666,18 @@ export type ResponseCounts = {
   refusedConsent: number
 }
 
-export type PublishableKind = 'guide' | 'best-practices' | 'questionnaire'
+export type PublishableKind =
+  | 'guide'
+  | 'best-practices'
+  | 'questionnaire'
+  | 'protocol'
+  | 'participant-sheet'
+
+export type TaskChecks = {
+  tasks: { instruction: string; flags: TaskFlag[] }[]
+  whole: ProtocolFlag[]
+  plannedMinutes: number
+}
 
 export type ItemChecks = {
   items: { text: string; flags: ItemFlag[] }[]

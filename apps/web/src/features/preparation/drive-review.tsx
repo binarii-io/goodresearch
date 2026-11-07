@@ -1,6 +1,7 @@
 import {
   type DriveChange,
   getGetInterviewGuideQueryKey,
+  getGetTestProtocolQueryKey,
   getListDriveChangesQueryKey,
   getListPlannedInterviewsQueryKey,
   getListPublicationsQueryKey,
@@ -46,6 +47,13 @@ type Value =
   | { type: 'order'; ids: string[] }
   | { type: 'question'; section: string | null; text: string; followUps: string[] }
   | { type: 'unread'; text: string }
+  | {
+      type: 'task'
+      instruction: string
+      criterion: string
+      startUrl: string | null
+      minutes: number | null
+    }
   | { type: 'consent'; text: string; exits: boolean }
   | { type: 'thanks'; text: string }
   | { type: 'layout'; grids: string[][] }
@@ -74,6 +82,19 @@ const FRAMING: Record<string, MessageDescriptor> = {
   'framing:hypotheses': msg`Hypotheses`,
   'framing:audience': msg`Audience`,
   'framing:format': msg`Format`,
+  // Spec 036: the test protocol.
+  'framing:objective': msg`Objective`,
+  'framing:participants': msg`Participants`,
+  'framing:consent': msg`Consent text`,
+  'script:introduction': msg`Introduction`,
+  'script:thinkAloud': msg`Think-aloud instructions`,
+  'script:warmUp': msg`Warm-up questions`,
+  'script:debrief': msg`Debrief questions`,
+  'script:closing': msg`Closing`,
+  scenario: msg`Scenario`,
+  settings: msg`Tested interface and session`,
+  'standard:questionnaire': msg`System Usability Scale`,
+  'standard:ease': msg`Ease question`,
 }
 
 /** What the item is, in words: "Question", "Objectives", "Row: Sam"… */
@@ -88,6 +109,12 @@ function useItemLabel() {
     if (change.key.startsWith('item:')) return t`Item`
     if (change.key.startsWith('section:')) return t`Section`
     if (change.key === 'order:sections') return t`Order of the sections`
+    if (change.key === 'order:tasks') return t`Order of the tasks`
+    if (
+      change.key.startsWith('task:') ||
+      (change.key.startsWith('new:') && (change.drive as Value | null)?.type === 'task')
+    )
+      return t`Task`
     if (change.key.startsWith('order:')) return t`Order of the questions`
     if (change.key.startsWith('question:') || change.key.startsWith('new:')) return t`Question`
     if (change.key === 'unread:structure') return t`Columns of the sheet`
@@ -150,6 +177,21 @@ function ValueView({ value }: { value: unknown }) {
       )
     case 'order':
       return <span>{t`${v.ids.length} items in a new order`}</span>
+    case 'task':
+      return (
+        <span className="grid gap-0.5">
+          <span>{v.instruction}</span>
+          <span className="text-muted-foreground text-xs">
+            {[
+              t`Success criterion: ${v.criterion}`,
+              v.startUrl ? t`Starts at ${v.startUrl}` : null,
+              v.minutes !== null ? t`about ${v.minutes} min` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+        </span>
+      )
     case 'question':
       return (
         <span className="grid gap-0.5">
@@ -202,14 +244,18 @@ export function DriveReview({
   const [choices, setChoices] = useState<Record<string, Choice>>({})
   const [finals, setFinals] = useState<Record<string, string>>({})
   const pending = (changes.data ?? []).filter((c) => c.decision === 'pending')
-  // The best practices never come back to the app: their changes are only reported.
+  // The best practices and the participant sheet never come back to the app: their changes are
+  // only reported (spec 007 FR-011, spec 036 FR-013a).
+  const oneWay = publication.kind === 'best-practices' || publication.kind === 'participant-sheet'
   const decidable = (c: DriveChange) =>
-    publication.kind !== 'best-practices' && c.kind !== 'not-understood' && c.kind !== 'invalid'
+    !oneWay && c.kind !== 'not-understood' && c.kind !== 'invalid'
   const finalOf = (c: DriveChange): unknown => {
     const text = finals[c.id] ?? ''
     const drive = c.drive as Value | null
     if (drive?.type === 'question') return { ...drive, text }
-    return { type: 'text', text }
+    // A required text (the protocol's consent) keeps its marker: an empty final text is refused.
+    const required = [c.drive, c.app].some((v) => (v as { min?: number } | null)?.min === 1)
+    return required ? { type: 'text', text, min: 1 } : { type: 'text', text }
   }
   const textual = (c: DriveChange) => {
     const v = c.drive as Value | null
@@ -241,6 +287,7 @@ export function DriveReview({
         queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(studyId) }),
         queryClient.invalidateQueries({ queryKey: getGetInterviewGuideQueryKey(studyId) }),
         queryClient.invalidateQueries({ queryKey: getListPlannedInterviewsQueryKey(studyId) }),
+        queryClient.invalidateQueries({ queryKey: getGetTestProtocolQueryKey(studyId) }),
       ])
     }
   }
@@ -327,7 +374,9 @@ export function DriveReview({
                     <p className="text-muted-foreground text-xs">
                       {publication.kind === 'best-practices'
                         ? t`The best practices are not brought back: the next update replaces this.`
-                        : t`This cannot be applied: copy it into the editor if you need it. The next update replaces it.`}
+                        : publication.kind === 'participant-sheet'
+                          ? t`The participant sheet is written from the protocol: change the protocol instead. The next update replaces this.`
+                          : t`This cannot be applied: copy it into the editor if you need it. The next update replaces it.`}
                     </p>
                   )}
                   {choices[c.id] === 'final' ? (

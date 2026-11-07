@@ -1,4 +1,4 @@
-import type { QuestionnaireDraft } from '@goodresearch/contracts'
+import type { QuestionnaireDraft, TestProtocolDraft } from '@goodresearch/contracts'
 import { err, ok, type Result } from '@goodresearch/shared'
 import { decideProposal, isInterviewCard } from '../../domain/proposal.ts'
 import type {
@@ -74,14 +74,14 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
               projectId: p.targetId,
               name: str(v.name),
               ...('goal' in v ? { goal: str(v.goal) } : {}),
-              ...(v.type === 'survey' ? { type: 'survey' as const } : {}),
+              ...(v.type === 'survey' || v.type === 'usability-test' ? { type: v.type } : {}),
             })
           : await deps.actions.createTeamStudy({
               actor,
               teamId: str(v.teamId),
               name: str(v.name),
               goal: str(v.goal),
-              ...(v.type === 'survey' ? { type: 'survey' as const } : {}),
+              ...(v.type === 'survey' || v.type === 'usability-test' ? { type: v.type } : {}),
             })
         return r.ok ? { ok: true as const, result: { kind: 'study' as const, id: r.id } } : r
       }
@@ -193,6 +193,17 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
           ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
           : r
       }
+      case 'propose_protocol': {
+        const r = await deps.actions.saveTestProtocol({
+          actor,
+          studyId: p.targetId ?? '',
+          protocol: v.protocol as TestProtocolDraft,
+          version: p.targetVersion,
+        })
+        return r.ok
+          ? { ok: true as const, result: { kind: 'study' as const, id: p.targetId ?? '' } }
+          : r
+      }
       case 'propose_questionnaire': {
         const r = await deps.actions.saveQuestionnaire({
           actor,
@@ -224,6 +235,8 @@ export const makeProposalCommands = (deps: AssistantDeps) => {
       case 'report_guide_progress':
       case 'report_questionnaire_progress':
       case 'check_questionnaire_items':
+      case 'report_protocol_progress':
+      case 'check_protocol_tasks':
       case 'count_responses':
       case 'survey_analysis_state':
       case 'read_figures':

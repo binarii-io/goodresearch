@@ -20,12 +20,16 @@ import { useId, useState } from 'react'
 import { connectUrl, DriveExplanation } from '../ingestion/source-panel.tsx'
 import { GuideView, questionCount, totalMinutes } from '../preparation/guide-view.tsx'
 import {
+  INTERFACE_KINDS,
   ITEM_FLAGS,
   ITEM_KINDS,
   type ItemKind,
+  PROTOCOL_FLAGS,
   QUESTION_ISSUES,
   QUESTIONNAIRE_FLAGS,
+  TASK_FLAGS,
 } from '../preparation/labels.ts'
+import { ProtocolView } from '../preparation/protocol-view.tsx'
 import { itemCount, QuestionnaireView } from '../preparation/questionnaire-view.tsx'
 import { DeletionSummary, forgetProject, NameToType } from '../research/delete-project-dialog.tsx'
 import { errorMessage, messageForCode } from '../workspace/errors.ts'
@@ -46,6 +50,9 @@ const TITLES: Record<Proposal['kind'], MessageDescriptor> = {
   propose_questionnaire: msg`Questionnaire`,
   report_questionnaire_progress: msg`Questionnaire design progress`,
   check_questionnaire_items: msg`Item check`,
+  propose_protocol: msg`Test protocol`,
+  report_protocol_progress: msg`Test protocol design progress`,
+  check_protocol_tasks: msg`Task check`,
   count_responses: msg`Counted the responses`,
   propose_opening_form: msg`Open the form to responses`,
   propose_closing_form: msg`Close the form`,
@@ -91,11 +98,14 @@ const DOCUMENTS: Record<string, MessageDescriptor> = {
   guide: msg`Interview guide`,
   'best-practices': msg`Interview best practices`,
   questionnaire: msg`Questionnaire`,
+  protocol: msg`Test protocol and participant sheet`,
+  'participant-sheet': msg`Participant sheet`,
 }
 
 const SKILLS: Record<string, MessageDescriptor> = {
   'interview-guide-design': msg`Interview guide design`,
   'questionnaire-design': msg`Questionnaire design`,
+  'test-protocol-design': msg`Test protocol design`,
   'project-framing': msg`Project framing`,
   'study-framing': msg`Study framing`,
 }
@@ -119,6 +129,7 @@ export function ProposalCard({
   if (
     proposal.kind === 'report_guide_progress' ||
     proposal.kind === 'report_questionnaire_progress' ||
+    proposal.kind === 'report_protocol_progress' ||
     proposal.kind === 'report_project_progress' ||
     proposal.kind === 'report_study_progress'
   )
@@ -126,6 +137,7 @@ export function ProposalCard({
   if (proposal.kind === 'load_skill') return <SkillLine proposal={proposal} />
   if (proposal.kind === 'check_guide_questions') return <ChecksLine proposal={proposal} />
   if (proposal.kind === 'check_questionnaire_items') return <ItemChecksLine proposal={proposal} />
+  if (proposal.kind === 'check_protocol_tasks') return <TaskChecksLine proposal={proposal} />
   if (proposal.kind === 'delete_project') return <DeleteCard proposal={proposal} />
   if (proposal.kind === 'connect_source') return <ConnectCard proposal={proposal} />
   if (proposal.kind === 'propose_folder_changes') return <FolderChangesCard proposal={proposal} />
@@ -157,6 +169,7 @@ export const isActivity = (proposal: Proposal) =>
   proposal.kind === 'load_skill' ||
   proposal.kind === 'check_guide_questions' ||
   proposal.kind === 'check_questionnaire_items' ||
+  proposal.kind === 'check_protocol_tasks' ||
   proposal.kind === 'browse_folder' ||
   proposal.kind === 'find_files' ||
   proposal.kind === 'read_file' ||
@@ -335,6 +348,13 @@ function ItemChecksLine({ proposal }: { proposal: Proposal }) {
   return <p className="text-muted-foreground text-xs">{t`Checked ${n} items`}</p>
 }
 
+/** The assistant checked the tasks with the app's rules (spec 036). */
+function TaskChecksLine({ proposal }: { proposal: Proposal }) {
+  const { t } = useLingui()
+  const n = proposal.preview.taskChecks?.tasks.length ?? 0
+  return <p className="text-muted-foreground text-xs">{t`Checked ${n} tasks`}</p>
+}
+
 function ChecksLine({ proposal }: { proposal: Proposal }) {
   const { t } = useLingui()
   const checks = proposal.preview.checks ?? []
@@ -413,6 +433,12 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
   const refresh = () => queryClient.invalidateQueries()
 
   const guide = p.guide
+  const protocol = p.protocol
+  const flaggedTasks = (p.taskChecks?.tasks ?? []).filter((task) => task.flags.length > 0)
+  const flaggedTaskCount = flaggedTasks.length
+  const plannedMinutes = p.taskChecks?.plannedMinutes ?? 0
+  const sessionMinutes = protocol?.framing.sessionMinutes ?? 0
+  const taskCountOf = protocol?.tasks.length ?? 0
   const questionnaire = p.questionnaire
   const itemCountOf = questionnaire ? itemCount(questionnaire) : 0
   const sectionsOf = questionnaire?.sections.length ?? 0
@@ -424,8 +450,11 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
   const interviewCount = p.interviews ?? 0
   const estimatedCost = (p.estimatedCost ?? 0).toFixed(2)
   const rows: [string, string | undefined][] = [
-    [t`Study`, guide || questionnaire ? undefined : p.studyName],
-    [t`Type`, p.type === 'survey' ? t`Survey` : undefined],
+    [t`Study`, guide || questionnaire || protocol ? undefined : p.studyName],
+    [
+      t`Type`,
+      p.type === 'survey' ? t`Survey` : p.type === 'usability-test' ? t`Usability test` : undefined,
+    ],
     [t`Project`, p.projectName ?? (proposal.kind === 'create_study' ? t`No project` : undefined)],
     [t`Team`, p.teamName],
     [t`Folder`, p.folderName],
@@ -516,6 +545,51 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
               : t`At most about $${estimatedCost}, on your AI provider.`}
           </p>
           <p className="text-muted-foreground text-xs">{t`The answers are masked before they are sent. The themes are proposals you decide in the Analysis tab.`}</p>
+        </div>
+      ) : null}
+      {protocol ? (
+        <div className="grid gap-2">
+          <p>
+            {p.studyName ? `${p.studyName} · ` : ''}
+            {t`${taskCountOf} tasks · about ${plannedMinutes} min for sessions of ${sessionMinutes} min`}
+          </p>
+          <p className="text-muted-foreground text-xs">
+            {t`Tested interface:`} {protocol.framing.interface.url} (
+            {i18n._(INTERFACE_KINDS[protocol.framing.interface.kind])})
+          </p>
+          <p className="text-muted-foreground text-xs">
+            {[
+              protocol.questionnaire === 'sus-v1' ? t`ends with the System Usability Scale` : null,
+              protocol.easeQuestion === 'seq-v1' ? t`ease question after each task` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ') || t`no standard question`}
+          </p>
+          {p.replacesProtocol ? (
+            <p className="text-muted-foreground text-xs">{t`Replaces the current test protocol of the study.`}</p>
+          ) : null}
+          {flaggedTaskCount || p.taskChecks?.whole.length ? (
+            <details>
+              <summary className="cursor-pointer font-medium">{t`${flaggedTaskCount} tasks to review`}</summary>
+              <ul className="mt-2 ml-5 list-disc">
+                {flaggedTasks.map((task, i) => (
+                  <li key={`${i}-${task.instruction}`}>
+                    {task.instruction}:{' '}
+                    {task.flags.map((f) => (TASK_FLAGS[f] ? i18n._(TASK_FLAGS[f]) : f)).join(', ')}
+                  </li>
+                ))}
+                {(p.taskChecks?.whole ?? []).map((f) => (
+                  <li key={f}>{PROTOCOL_FLAGS[f] ? i18n._(PROTOCOL_FLAGS[f]) : f}</li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+          <details>
+            <summary className="cursor-pointer font-medium">{t`Read the whole protocol`}</summary>
+            <div className="mt-2">
+              <ProtocolView protocol={protocol} compact />
+            </div>
+          </details>
         </div>
       ) : null}
       {questionnaire ? (
@@ -664,6 +738,7 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
                   if (
                     (proposal.kind === 'propose_interview_guide' ||
                       proposal.kind === 'propose_questionnaire' ||
+                      proposal.kind === 'propose_protocol' ||
                       proposal.kind === 'publish_preparation') &&
                     created.kind === 'study'
                   )
@@ -731,6 +806,7 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
               search={
                 proposal.kind === 'propose_interview_guide' ||
                 proposal.kind === 'propose_questionnaire' ||
+                proposal.kind === 'propose_protocol' ||
                 proposal.kind === 'publish_preparation'
                   ? { phase: 'preparation' }
                   : {}
@@ -740,7 +816,9 @@ function ChangeCard({ proposal }: { proposal: Proposal }) {
                 ? t`See the guide`
                 : proposal.kind === 'propose_questionnaire'
                   ? t`See the questionnaire`
-                  : t`Open the study`}
+                  : proposal.kind === 'propose_protocol'
+                    ? t`See the test protocol`
+                    : t`Open the study`}
             </Link>
           ) : null}
         </p>

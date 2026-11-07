@@ -27,6 +27,7 @@ const OPEN = new Set([
   '/api/projects/{projectId}/debrief',
   '/api/studies/{studyId}',
   '/api/studies/{studyId}/questionnaire',
+  '/api/studies/{studyId}/protocol',
   '/api/studies/{studyId}/guide',
   '/api/studies/{studyId}/source',
   '/api/studies/{studyId}/facts',

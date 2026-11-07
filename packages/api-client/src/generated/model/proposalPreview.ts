@@ -16,10 +16,13 @@ import type { ProposalPreviewLinesItem } from './proposalPreviewLinesItem.ts';
 import type { ProposalPreviewOpenItem } from './proposalPreviewOpenItem.ts';
 import type { ProposalPreviewOpensOn } from './proposalPreviewOpensOn.ts';
 import type { ProposalPreviewPhase } from './proposalPreviewPhase.ts';
+import type { ProposalPreviewProtocol } from './proposalPreviewProtocol.ts';
 import type { ProposalPreviewQuestionnaire } from './proposalPreviewQuestionnaire.ts';
 import type { ProposalPreviewResponseCounts } from './proposalPreviewResponseCounts.ts';
 import type { ProposalPreviewSurveyFactsItem } from './proposalPreviewSurveyFactsItem.ts';
 import type { ProposalPreviewTargetRule } from './proposalPreviewTargetRule.ts';
+import type { ProposalPreviewTaskChecks } from './proposalPreviewTaskChecks.ts';
+import type { ProposalPreviewType } from './proposalPreviewType.ts';
 
 export interface ProposalPreview {
   projectName?: string;
@@ -62,10 +65,13 @@ export interface ProposalPreview {
   targetRule?: ProposalPreviewTargetRule;
   surveyFacts?: ProposalPreviewSurveyFactsItem[];
   openItem?: ProposalPreviewOpenItem;
-  type?: 'survey';
+  type?: ProposalPreviewType;
   questionnaire?: ProposalPreviewQuestionnaire;
   replacesQuestionnaire?: boolean;
   itemChecks?: ProposalPreviewItemChecks;
+  protocol?: ProposalPreviewProtocol;
+  replacesProtocol?: boolean;
+  taskChecks?: ProposalPreviewTaskChecks;
   progress?: GuideProgress;
   checks?: ProposalPreviewChecksItem[];
   skill?: string;

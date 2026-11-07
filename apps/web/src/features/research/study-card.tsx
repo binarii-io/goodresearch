@@ -59,7 +59,13 @@ export function StudyCard({
       />
       <div className="grid min-w-0 gap-2.5">
         <div className="flex min-w-0 items-center gap-2.5">
-          <Badge variant="secondary">{study.type === 'survey' ? t`Survey` : t`Interviews`}</Badge>
+          <Badge variant="secondary">
+            {study.type === 'survey'
+              ? t`Survey`
+              : study.type === 'usability-test'
+                ? t`Usability test`
+                : t`Interviews`}
+          </Badge>
           <Link
             to="/studies/$studyId"
             params={{ studyId: study.id }}
@@ -74,8 +80,10 @@ export function StudyCard({
           </div>
         </div>
         {note}
-        {/* A survey whose responses could not be read shows no count rather than a wrong one. */}
-        {counts && (study.type !== 'survey' || counts.responses) ? (
+        {/* A survey whose responses could not be read shows no count rather than a wrong one; a usability
+            test has nothing to count before its Fieldwork (spec 036). */}
+        {counts &&
+        (study.type === 'interviews' || (study.type === 'survey' && counts.responses)) ? (
           <StudyChips counts={counts} />
         ) : null}
         {closed ? (

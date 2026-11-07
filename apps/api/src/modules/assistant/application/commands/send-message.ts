@@ -17,6 +17,7 @@ import {
   isStudyChange,
   type ProposalKind,
 } from '../../domain/proposal.ts'
+import { type ProtocolPoint, protocolCompleteness } from '../../domain/protocol-progress.ts'
 import {
   type QuestionnairePoint,
   questionnaireCompleteness,
@@ -31,6 +32,7 @@ import {
   buildContext,
   type Continuation,
   type GuideStudy,
+  type ProtocolStudy,
   reusableStudies,
   type SurveyStudy,
 } from '../context.ts'
@@ -51,6 +53,7 @@ import {
   folderWorkRefusal,
   GUIDE_TOOLS,
   offeredOnReadOnlyPage,
+  PROTOCOL_TOOLS,
   prepareAnalysis,
   prepareDeletion,
   prepareFolder,
@@ -124,6 +127,7 @@ const continuationOf = (held: readonly StoredProposal[]): Continuation => {
   if (has('publish_preparation')) return 'published'
   if (has('propose_interview_guide')) return 'guide'
   if (has('propose_questionnaire')) return 'questionnaire'
+  if (has('propose_protocol')) return 'protocol'
   if (has('create_study')) return 'study'
   return has('create_project') ? 'project' : 'connected'
 }
@@ -171,6 +175,20 @@ const itemChecksText = (checks: ProposalPreview['itemChecks']): string => {
     .join(' ')
 }
 
+const taskChecksText = (checks: ProposalPreview['taskChecks']): string => {
+  if (!checks) return 'Not checked.'
+  const flagged = checks.tasks.filter((t) => t.flags.length > 0)
+  return [
+    `Planned length computed by the app: ${checks.plannedMinutes} minutes.`,
+    flagged.length
+      ? `To review: ${flagged.map((t) => `"${t.instruction}": ${t.flags.join(', ')}`).join('; ')}.`
+      : 'No task flagged.',
+    checks.whole.length ? `On the whole: ${checks.whole.join(', ')}.` : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
 /** What the model is told about a tool call in the next turns (research R2). */
 const outcomeOf = (p: StoredProposal): string => {
   if (
@@ -209,6 +227,8 @@ const outcomeOf = (p: StoredProposal): string => {
     return 'Loaded: its instructions are in your context.'
   if (p.state === 'applied' && p.kind === 'check_questionnaire_items')
     return itemChecksText(p.preview.itemChecks)
+  if (p.state === 'applied' && p.kind === 'check_protocol_tasks')
+    return taskChecksText(p.preview.taskChecks)
   if (p.state === 'applied' && p.kind === 'check_guide_questions')
     return checksText(p.preview.checks)
   if (p.state === 'applied' && isRecordedAtOnce(p.kind))
@@ -691,7 +711,11 @@ export const makeSendMessage = (deps: AssistantDeps) => {
 
     /** The tools that run at once (spec 006, 018): skill, writing checks, progress, new project. */
     const runFor =
-      (guideStudy: GuideStudy | null, surveyStudy: SurveyStudy | null) =>
+      (
+        guideStudy: GuideStudy | null,
+        surveyStudy: SurveyStudy | null,
+        protocolStudy: ProtocolStudy | null = null,
+      ) =>
       async (name: string, input: unknown, callId: string): Promise<string> => {
         const raw = (typeof input === 'object' && input ? input : {}) as Record<string, unknown>
         if (
@@ -778,7 +802,8 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           if (
             !parsed.success ||
             (parsed.data.name === 'interview-guide-design' && !guideStudy) ||
-            (parsed.data.name === 'questionnaire-design' && !surveyStudy)
+            (parsed.data.name === 'questionnaire-design' && !surveyStudy) ||
+            (parsed.data.name === 'test-protocol-design' && !protocolStudy)
           ) {
             await record(callId, 'load_skill', raw, null)
             return 'Unknown skill: use a name listed in the context.'
@@ -829,6 +854,31 @@ export const makeSendMessage = (deps: AssistantDeps) => {
             target: seen.target,
             open: seen.accepting,
           })
+        }
+        if (name === 'check_protocol_tasks') {
+          const parsed = TOOL_INPUTS.check_protocol_tasks.safeParse(input)
+          if (!parsed.success || !protocolStudy || parsed.data.studyId !== protocolStudy.id) {
+            await record(callId, 'check_protocol_tasks', raw, null)
+            return 'Invalid: use the Study id of the context and a whole protocol within its limits (1 to 15 tasks, web addresses starting with http:// or https://).'
+          }
+          const taskChecks = deps.research.checkTestProtocol(parsed.data.protocol)
+          await record(callId, 'check_protocol_tasks', parsed.data, { taskChecks })
+          return taskChecksText(taskChecks)
+        }
+        if (name === 'report_protocol_progress') {
+          const parsed = TOOL_INPUTS.report_protocol_progress.safeParse(input)
+          if (!parsed.success || !protocolStudy || parsed.data.studyId !== protocolStudy.id) {
+            await record(callId, 'report_protocol_progress', raw, null)
+            return 'Invalid: use the Study id of the context, and missing, partial or done for every point.'
+          }
+          const progress = protocolCompleteness(
+            parsed.data as Partial<Record<ProtocolPoint, string>>,
+          )
+          await record(callId, 'report_protocol_progress', parsed.data, {
+            studyName: protocolStudy.name,
+            progress,
+          })
+          return `Recorded: ${progress.percent} % covered.`
         }
         if (name === 'check_questionnaire_items') {
           const parsed = TOOL_INPUTS.check_questionnaire_items.safeParse(input)
@@ -895,7 +945,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
       const loadedSkills = proposals
         .filter((p) => p.kind === 'load_skill' && p.state === 'applied')
         .map((p) => String(p.values.name))
-      const { system, guideStudy, surveyStudy, readOnly } = await buildContext(
+      const { system, guideStudy, surveyStudy, protocolStudy, readOnly } = await buildContext(
         deps.research,
         c.actor,
         c.page,
@@ -903,7 +953,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
         loadedSkills,
         continuation,
       )
-      const run = runFor(guideStudy, surveyStudy)
+      const run = runFor(guideStudy, surveyStudy, protocolStudy)
       // A continuing answer follows a card just applied: it offers the next step, no new card.
       const offered = (
         readOnly
@@ -912,6 +962,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
               ...TOOLS,
               ...(guideStudy && person ? GUIDE_TOOLS : []),
               ...(surveyStudy && person ? QUESTIONNAIRE_TOOLS : []),
+              ...(protocolStudy && person ? PROTOCOL_TOOLS : []),
             ]
       ).filter(
         (t) =>
@@ -971,6 +1022,7 @@ export const makeSendMessage = (deps: AssistantDeps) => {
           part.call,
           guideStudy,
           surveyStudy,
+          protocolStudy,
         )
         const raw = typeof part.call.input === 'object' && part.call.input ? part.call.input : {}
         const proposal: StoredProposal = {

@@ -60,6 +60,7 @@ export function StudySettingsButton({ study }: { study: StudyDetail }) {
       toast.error(errorMessage(i18n, failure))
     }
   }
+  const usability = study.type === 'usability-test'
   const toggle = (anonymised: boolean) =>
     save({ anonymised }, anonymised ? t`Anonymisation on` : t`Anonymisation off`)
 
@@ -97,46 +98,56 @@ export function StudySettingsButton({ study }: { study: StudyDetail }) {
             <div className="grid gap-1">
               <Label htmlFor={ids.switch}>{t`Anonymisation`}</Label>
               <p id={ids.help} className="text-muted-foreground text-sm">
-                {t`The names and titles proposed for the interviews use a pseudonym (P01, P02…) instead of the interviewee's name. Before the beginning of a transcript goes to the AI, the names the app knows (schedule, people of the interview, team) are replaced; names it does not know stay in the text. Replacing every name inside the transcripts comes with the cleaning phase.`}
+                {usability
+                  ? t`Names are replaced by pseudonyms in what the app writes about the sessions: observations, quotes, facts and the debrief.`
+                  : t`The names and titles proposed for the interviews use a pseudonym (P01, P02…) instead of the interviewee's name. Before the beginning of a transcript goes to the AI, the names the app knows (schedule, people of the interview, team) are replaced; names it does not know stay in the text. Replacing every name inside the transcripts comes with the cleaning phase.`}
               </p>
+              {usability ? (
+                // Spec 036 FR-022a: a video cannot be masked; the setting must not promise it.
+                <p className="text-sm font-medium">
+                  {t`It does not apply to the recordings: the AI service that reads the videos sees the names and faces they contain.`}
+                </p>
+              ) : null}
             </div>
           </div>
           {/* Spec 012 FR-002: the text Analysis reads. */}
-          <fieldset className="grid gap-2" aria-describedby={ids.text}>
-            <legend className="font-medium text-sm">{t`Text analysed`}</legend>
-            <p id={ids.text} className="text-muted-foreground text-sm">
-              {t`What the Analysis phase reads to find verbatims and facts.`}
-            </p>
-            <RadioGroup
-              value={study.textAnalysed}
-              disabled={update.isPending}
-              onValueChange={(v) =>
-                void save(
-                  {
-                    anonymised: study.anonymised,
-                    textAnalysed: v as StudyDetail['textAnalysed'],
-                  },
-                  t`Text analysed changed`,
-                )
-              }
-              className="grid gap-2"
-            >
-              <div className="flex items-start gap-2">
-                <RadioGroupItem id={ids.corrections} value="with-corrections" />
-                <Label htmlFor={ids.corrections} className="grid gap-0.5 font-normal">
-                  <span>{t`With the corrections`}</span>
-                  <span className="text-muted-foreground text-xs">{t`The transcript with the corrections of the cleaning, those still to decide included. Facts can be found before every interview is clean.`}</span>
-                </Label>
-              </div>
-              <div className="flex items-start gap-2">
-                <RadioGroupItem id={ids.clean} value="clean-only" />
-                <Label htmlFor={ids.clean} className="grid gap-0.5 font-normal">
-                  <span>{t`Validated clean version only`}</span>
-                  <span className="text-muted-foreground text-xs">{t`Only what a person checked. An interview without a validated clean version is not analysed.`}</span>
-                </Label>
-              </div>
-            </RadioGroup>
-          </fieldset>
+          {usability ? null : (
+            <fieldset className="grid gap-2" aria-describedby={ids.text}>
+              <legend className="font-medium text-sm">{t`Text analysed`}</legend>
+              <p id={ids.text} className="text-muted-foreground text-sm">
+                {t`What the Analysis phase reads to find verbatims and facts.`}
+              </p>
+              <RadioGroup
+                value={study.textAnalysed}
+                disabled={update.isPending}
+                onValueChange={(v) =>
+                  void save(
+                    {
+                      anonymised: study.anonymised,
+                      textAnalysed: v as StudyDetail['textAnalysed'],
+                    },
+                    t`Text analysed changed`,
+                  )
+                }
+                className="grid gap-2"
+              >
+                <div className="flex items-start gap-2">
+                  <RadioGroupItem id={ids.corrections} value="with-corrections" />
+                  <Label htmlFor={ids.corrections} className="grid gap-0.5 font-normal">
+                    <span>{t`With the corrections`}</span>
+                    <span className="text-muted-foreground text-xs">{t`The transcript with the corrections of the cleaning, those still to decide included. Facts can be found before every interview is clean.`}</span>
+                  </Label>
+                </div>
+                <div className="flex items-start gap-2">
+                  <RadioGroupItem id={ids.clean} value="clean-only" />
+                  <Label htmlFor={ids.clean} className="grid gap-0.5 font-normal">
+                    <span>{t`Validated clean version only`}</span>
+                    <span className="text-muted-foreground text-xs">{t`Only what a person checked. An interview without a validated clean version is not analysed.`}</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </fieldset>
+          )}
         </DialogContent>
       </Dialog>
     </>

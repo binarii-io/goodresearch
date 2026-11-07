@@ -13,4 +13,6 @@ export const PublicationInputKind = {
   'best-practices': 'best-practices',
   schedule: 'schedule',
   questionnaire: 'questionnaire',
+  protocol: 'protocol',
+  'participant-sheet': 'participant-sheet',
 } as const;

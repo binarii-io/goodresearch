@@ -93,6 +93,34 @@ export const researchQuestionnaires = pgTable('research_questionnaires', {
   version: integer('version').notNull().default(0),
 })
 
+/** The test protocol of a usability test study (spec 036). */
+export const researchTestProtocols = pgTable('research_test_protocols', {
+  studyId: text('study_id')
+    .primaryKey()
+    .references(() => researchStudies.id, { onDelete: 'cascade' }),
+  content: jsonb('content').notNull(),
+  origin: text('origin').notNull(),
+  updatedBy: text('updated_by').references(() => auth_users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+  version: integer('version').notNull().default(0),
+})
+
+/** What a person checked before the first session of a usability test (spec 036 US6). */
+export const researchProtocolChecks = pgTable(
+  'research_protocol_checks',
+  {
+    studyId: text('study_id')
+      .notNull()
+      .references(() => researchStudies.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    protocolVersion: integer('protocol_version').notNull(),
+    markedBy: text('marked_by').references(() => auth_users.id, { onDelete: 'set null' }),
+    markedAt: timestamp('marked_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.studyId, t.kind] })],
+)
+
 /** What a person checked before sending a questionnaire (spec 027 US6). */
 export const researchQuestionnaireChecks = pgTable(
   'research_questionnaire_checks',

@@ -77,3 +77,14 @@ The interview best practices are a document of about 160 lines per language. As 
 - Good: documents read and translate as documents; the same content can be published as files (spec 007).
 - Bad: `i18n:extract` does not see these texts; a missing language must be caught in review (typed modules make a missing key a type error).
 
+## Update 2026-11-07 — more long-form content (specs 027, 036)
+
+The long-form content modules now hold, each as one typed module per language in `packages/shared/src/content/`:
+
+- the interview best practices (spec 006);
+- the questionnaire best practices (spec 027);
+- the usability test best practices (spec 036);
+- the standard questions of a usability test (spec 036): the System Usability Scale and the Single Ease Question, with the default consent and think-aloud texts. They are fixed texts referenced by a versioned key (`sus-v1`, `seq-v1`) so a later analysis knows exactly what was asked; the French System Usability Scale is its published validated translation, not ours.
+
+The rule is unchanged: interface strings go through Lingui; documents a person reads as a whole, or texts that must stay word for word, are typed modules.
+

@@ -45,6 +45,7 @@ import {
   PreparationTab,
   ReaderPreparation,
 } from '../../../features/preparation/preparation-tab.tsx'
+import { ProtocolTab, ReaderProtocol } from '../../../features/preparation/protocol-tab.tsx'
 import {
   QuestionnaireTab,
   ReaderQuestionnaire,
@@ -97,12 +98,18 @@ function StudyPage() {
   const reader = study.data?.canChange === false
   // Spec 027: a survey has nothing else yet.
   const survey = study.data?.type === 'survey'
+  // Spec 036: a usability test has transcripts (Lexicon, Enrichment) but no Quality; only Preparation is built.
+  const usability = study.data?.type === 'usability-test'
   // A questionnaire has no transcript: no Lexicon, Enrichment or Quality, even from an old link.
   const phase = survey
     ? asked === 'fieldwork' || asked === 'analysis'
       ? asked
       : 'preparation'
-    : (asked ?? (reader ? 'analysis' : 'fieldwork'))
+    : usability
+      ? asked && asked !== 'quality'
+        ? asked
+        : 'preparation'
+      : (asked ?? (reader ? 'analysis' : 'fieldwork'))
   const source = useGetStudySource(studyId)
   const rename = useRenameStudy()
   const remove = useDeleteStudy()
@@ -298,12 +305,20 @@ function StudyPage() {
                   interviewStudy={s.type === 'interviews'}
                 />
               ) : null}
-              {canAct && s.type === 'interviews' ? <StudySettingsButton study={s} /> : null}
+              {canAct && (s.type === 'interviews' || s.type === 'usability-test') ? (
+                <StudySettingsButton study={s} />
+              ) : null}
               <TabsList aria-label={t`Study phases`}>
                 <TabsTrigger value="preparation">{t`1 · Preparation`}</TabsTrigger>
                 <TabsTrigger value="fieldwork">{t`2 · Fieldwork`}</TabsTrigger>
                 {survey ? (
                   <TabsTrigger value="analysis">{t`3 · Analysis`}</TabsTrigger>
+                ) : usability ? (
+                  <>
+                    <TabsTrigger value="lexicon">{t`3 · Lexicon`}</TabsTrigger>
+                    <TabsTrigger value="enrichment">{t`4 · Enrichment`}</TabsTrigger>
+                    <TabsTrigger value="analysis">{t`5 · Analysis`}</TabsTrigger>
+                  </>
                 ) : (
                   <>
                     <TabsTrigger value="lexicon">{t`3 · Lexicon`}</TabsTrigger>
@@ -378,6 +393,16 @@ function StudyPage() {
             ) : (
               <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see and change its preparation.`}</p>
             )
+          ) : s.type === 'usability-test' ? (
+            source.isPending ? (
+              <Skeleton className="h-40 w-full" />
+            ) : reader && readable ? (
+              <ReaderProtocol studyId={studyId} />
+            ) : canAct ? (
+              <ProtocolTab studyId={studyId} studyName={s.name} />
+            ) : (
+              <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see and change its preparation.`}</p>
+            )
           ) : s.type !== 'interviews' ? (
             <p className="text-muted-foreground text-base">{t`Preparation for this type of study is coming in a later version.`}</p>
           ) : source.isPending ? (
@@ -395,6 +420,14 @@ function StudyPage() {
             <ReservedToTeam team={s.team.name} />
           ) : s.type === 'interviews' ? (
             <FieldworkTab studyId={studyId} isAdmin={me.role === 'admin'} />
+          ) : s.type === 'usability-test' ? (
+            <div className="grid gap-6">
+              {/* The folder holds the published protocol now, and the sessions with their videos later. */}
+              {readable && source.data?.source ? null : (
+                <SourcePanel studyId={studyId} isAdmin={me.role === 'admin'} />
+              )}
+              <p className="text-muted-foreground text-base">{t`Test sessions and their videos are coming in a later version.`}</p>
+            </div>
           ) : (
             <div className="grid gap-6">
               {/* Once attached, the folder lives behind the icon of the page bar, as for interviews. */}

@@ -8,6 +8,7 @@ import {
   ConversationSummary,
   Proposal,
   ProposalParams,
+  ProtocolDesignCost,
   QuestionnaireDesignCost,
   RenameConversation,
   SendAssistantMessage,
@@ -118,6 +119,22 @@ export const registerAssistantRoutes = (
     },
     async (request, res) =>
       (await queries.questionnaireDesignCost(request.account.id, request.params.studyId)) ??
+      sendError(res, 'STUDY_NOT_FOUND'),
+  )
+
+  api.get(
+    '/api/studies/:studyId/protocol/design-cost',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getProtocolDesignCost',
+        tags,
+        params: StudyParams,
+        response: { 200: ProtocolDesignCost },
+      },
+    },
+    async (request, res) =>
+      (await queries.protocolDesignCost(request.account.id, request.params.studyId)) ??
       sendError(res, 'STUDY_NOT_FOUND'),
   )
 

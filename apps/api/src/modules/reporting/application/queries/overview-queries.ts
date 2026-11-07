@@ -128,7 +128,8 @@ export const makeOverviewQueries = ({ sources }: ReportingDeps) => {
           responses: responses.reduce((n, r) => n + (r ?? NO_RESPONSES).counted, 0),
           received: responses.reduce((n, r) => n + (r ?? NO_RESPONSES).received, 0),
           kinds: {
-            interviews: open.some((s) => s.type !== 'survey'),
+            // Spec 036: a usability test study counts as neither, until its Fieldwork exists.
+            interviews: open.some((s) => s.type === 'interviews'),
             surveys: open.some((s) => s.type === 'survey'),
           },
         },
