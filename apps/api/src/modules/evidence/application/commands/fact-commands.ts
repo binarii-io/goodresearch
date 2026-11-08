@@ -116,7 +116,7 @@ export const makeFactCommands = (deps: EvidenceDeps) => {
     studyId: string,
     factId: string,
     input: {
-      decision: 'accept' | 'reject' | 'edit'
+      decision: 'accept' | 'reject' | 'edit' | 'reopen'
       version: number
       statement?: GivenStatement | undefined
       polarity?: Polarity | undefined
@@ -162,11 +162,11 @@ export const makeFactCommands = (deps: EvidenceDeps) => {
       context.verbatimsOf,
     )
     if (!cited.ok) return cited
-    // Its verbatims all set aside: a fact can still be rejected, not kept.
-    if (input.decision !== 'reject' && cited.value.length === 0) return err('FACT_NEEDS_VERBATIM')
+    // Its verbatims all set aside: a fact can still be rejected or reopened, not kept.
+    const keeps = input.decision !== 'reject' && input.decision !== 'reopen'
+    if (keeps && cited.value.length === 0) return err('FACT_NEEDS_VERBATIM')
     // A fact counts only once its people are known (research R8).
-    if (input.decision !== 'reject' && cited.value.some((v) => v.participant === null))
-      return err('SPEAKER_TO_ATTRIBUTE')
+    if (keeps && cited.value.some((v) => v.participant === null)) return err('SPEAKER_TO_ATTRIBUTE')
     const decision: FactDecision = {
       decision: input.decision,
       version: input.version,

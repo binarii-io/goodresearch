@@ -12,4 +12,5 @@ export const DecideSurveyFactDecision = {
   accept: 'accept',
   reject: 'reject',
   edit: 'edit',
+  reopen: 'reopen',
 } as const;

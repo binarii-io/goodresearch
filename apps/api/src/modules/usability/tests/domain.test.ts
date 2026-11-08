@@ -165,9 +165,13 @@ describe('observations', () => {
     expect(merged.add.map((o) => o.id)).toEqual(['n2'])
   })
 
-  it('gives a fact only once decided, never for a questionnaire answer', () => {
+  it('gives a fact to decide unless the checks rejected it, never for a questionnaire answer (spec 039)', () => {
     expect(givesFact(obs({ status: 'accepted' }))).toBe(true)
-    expect(givesFact(obs())).toBe(false)
+    expect(givesFact(obs())).toBe(true)
+    expect(givesFact(obs({ judge: 'rejected' }))).toBe(false)
+    // A person decides past the checks: the fact follows.
+    expect(givesFact(obs({ judge: 'rejected', status: 'accepted' }))).toBe(true)
+    expect(givesFact(obs({ status: 'rejected' }))).toBe(true)
     expect(givesFact(obs({ kind: 'sus-answer', status: 'accepted' }))).toBe(false)
     expect(polarityOf('positive')).toBe('positive')
     expect(polarityOf('error')).toBe('negative')

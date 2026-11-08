@@ -2,7 +2,7 @@ import { type Clock, newId } from '@goodresearch/shared'
 import { z } from 'zod'
 import type { Db } from '#platform/db.ts'
 import { type JobHandler, QUEUES } from '#platform/jobs.ts'
-import { makeAnalysisRun, sweep } from '../application/commands/analysis-run.ts'
+import { backfillFacts, makeAnalysisRun, sweep } from '../application/commands/analysis-run.ts'
 import { makeObservationCommands } from '../application/commands/observation-commands.ts'
 import type {
   AnalysisAi,
@@ -109,6 +109,10 @@ export const createUsabilityModule = (deps: {
         deps.log.warn({ err: error }, 'screenshot sweep failed'),
       )
     void once()
+    // Spec 039: sessions analysed before their observations gave facts get them.
+    void backfillFacts(usability).catch((error: unknown) =>
+      deps.log.warn({ err: error }, 'facts backfill failed'),
+    )
     const timer = setInterval(once, SWEEP_EVERY_MS)
     timer.unref()
     return () => clearInterval(timer)

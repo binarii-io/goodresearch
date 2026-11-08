@@ -4,6 +4,7 @@ import {
   type FactStatus,
   type GivenStatement,
   type Polarity,
+  reopened,
   STATEMENT_MAX,
   type Statement,
   statementOf,
@@ -153,7 +154,7 @@ export const createSurveyFact = (input: {
 export const decideSurveyFact = (
   fact: SurveyFact,
   d: {
-    readonly decision: 'accept' | 'reject' | 'edit'
+    readonly decision: 'accept' | 'reject' | 'edit' | 'reopen'
     readonly version: number
     readonly statement?: GivenStatement | undefined
     readonly polarity?: Polarity | undefined
@@ -162,6 +163,7 @@ export const decideSurveyFact = (
   now: Date,
   names: readonly string[],
 ): Result<SurveyFact, FactError> => {
+  if (d.decision === 'reopen') return reopened(fact, d.version)
   if (d.version !== fact.version) return err('VERSION_CONFLICT')
   const decided = { decidedBy: by, decidedAt: now, version: fact.version + 1 }
   if (d.decision !== 'edit')

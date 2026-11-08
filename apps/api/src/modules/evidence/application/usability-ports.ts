@@ -9,7 +9,11 @@ export type UsabilityFactStore = {
   put(fact: UsabilityFact, at: Date): Promise<void>
   /** Writes the fact if its version is still `expected`. */
   save(fact: UsabilityFact, expected: number): Promise<'ok' | 'conflict'>
-  deleteByObservation(observationId: string): Promise<void>
+  deleteIds(ids: readonly string[]): Promise<void>
+  /** Spec 039: the observation facts of a session. */
+  ofSession(sessionId: string): Promise<UsabilityFact[]>
+  /** Spec 039: the task facts of a study. */
+  tasksOf(studyId: string): Promise<UsabilityFact[]>
   ofStudies(studyIds: readonly string[]): Promise<UsabilityFact[]>
   byIds(ids: readonly string[]): Promise<UsabilityFact[]>
 }

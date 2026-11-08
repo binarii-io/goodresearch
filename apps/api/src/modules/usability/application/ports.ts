@@ -291,9 +291,25 @@ export type Facts = {
     screenshotKey: string | null
     participant: string | null
     origin: 'ai' | 'person'
+    /** Spec 039: the observation's status, its fact's too. */
+    status: 'proposed' | 'accepted' | 'edited' | 'rejected'
+    decidedBy: string | null
+    decidedAt: Date | null
     /** Refused when the statement names a person (a fact never does) or is empty. */
   }): Promise<Result<{ factId: string }, 'VALIDATION' | 'NAME_IN_STATEMENT'>>
-  withdraw(observationId: string): Promise<void>
+  /** An observation that gives no fact any more. */
+  remove(observationId: string): Promise<void>
+  /** Spec 039: the facts of a session's observations after its analysis. */
+  syncSession(sessionId: string, items: readonly Parameters<Facts['upsert']>[0][]): Promise<void>
+  /** Spec 039: the task facts of a study, from its tasks' decided outcomes. */
+  syncTasks(
+    studyId: string,
+    tasks: readonly {
+      studyId: string
+      task: { id: string; index: number; instruction: string }
+      outcomes: { success: number; partial: number; failure: number; notAttempted: number }
+    }[],
+  ): Promise<void>
 }
 
 export type AnalysisRun = {
@@ -326,6 +342,8 @@ export type AnalysisOutput = {
 export interface UsabilityStore {
   analysisOf(sessionId: string): Promise<SessionAnalysis | null>
   analysesOf(studyId: string): Promise<SessionAnalysis[]>
+  /** Spec 039: the studies with at least one analysis done. */
+  analysedStudies(): Promise<string[]>
   /** Starts (or restarts) the analysis of a session; the previous one's decided items are kept. */
   beginAnalysis(a: SessionAnalysis): Promise<void>
   /** Puts an analysis back as it was (a run that could not be queued). */

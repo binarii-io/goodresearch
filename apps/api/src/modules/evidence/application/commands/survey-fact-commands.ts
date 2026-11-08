@@ -265,7 +265,7 @@ export const makeSurveyFactCommands = (deps: SurveyFactDeps) => {
       studyId: string,
       factId: string,
       d: {
-        decision: 'accept' | 'reject' | 'edit'
+        decision: 'accept' | 'reject' | 'edit' | 'reopen'
         version: number
         statement?: GivenStatement | undefined
         polarity?: Polarity | undefined

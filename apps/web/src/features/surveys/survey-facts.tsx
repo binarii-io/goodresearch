@@ -2,6 +2,7 @@ import {
   getGetSurveyAnalysisQueryKey,
   getListSurveyFactsQueryKey,
   type SurveyFact,
+  useAcceptAnyFacts,
   useDecideSurveyFact,
   useListSurveyFacts,
   useUpdateSurveyFactFigure,
@@ -16,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@goodresearch/ui/components/dialog'
-import { CheckIcon, PencilIcon, TriangleAlertIcon, XIcon } from '@goodresearch/ui/components/icons'
+import { TriangleAlertIcon } from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
@@ -25,7 +26,10 @@ import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { toast } from 'sonner'
-import { FACT_STATUSES, POLARITIES } from '../analysis/labels.ts'
+import { POLARITIES } from '../analysis/labels.ts'
+import { AcceptAllShown } from '../facts/accept-all.tsx'
+import { FactDecision } from '../facts/fact-decision.tsx'
+import { FactStatusBadge } from '../facts/fact-status.tsx'
 import { errorMessage } from '../workspace/errors.ts'
 import { Pager } from '../workspace/pager.tsx'
 import { useShare } from './figure-card.tsx'
@@ -138,6 +142,7 @@ export function SurveyFacts({ studyId }: { studyId: string }) {
   const [page, setPage] = useState(1)
   const list = useListSurveyFacts(studyId, { status, page })
   const decide = useDecideSurveyFact()
+  const accept = useAcceptAnyFacts()
   const figure = useUpdateSurveyFactFigure()
   const language = i18n.locale.startsWith('fr') ? 'fr' : 'en'
   const labels: Record<Status, string> = {
@@ -158,6 +163,7 @@ export function SurveyFacts({ studyId }: { studyId: string }) {
     })
 
   const facts = list.data?.facts ?? []
+  const toDecide = facts.filter((f) => f.status === 'proposed')
   const content = list.isPending ? (
     <Skeleton className="h-24 w-full" />
   ) : list.isError ? (
@@ -171,9 +177,7 @@ export function SurveyFacts({ studyId }: { studyId: string }) {
       {facts.map((f) => (
         <li key={f.id} className="grid gap-2 rounded-md border p-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={f.status === 'proposed' ? 'outline' : 'secondary'}>
-              {i18n._(FACT_STATUSES[f.status])}
-            </Badge>
+            <FactStatusBadge status={f.status} />
             <Badge variant="ghost">{i18n._(POLARITIES[f.polarity])}</Badge>
             {f.theme ? (
               <span className="text-muted-foreground text-xs">{f.theme.title}</span>
@@ -235,50 +239,21 @@ export function SurveyFacts({ studyId }: { studyId: string }) {
               </Button>
             </div>
           ) : null}
-          <div className="flex flex-wrap gap-2">
-            {f.status !== 'accepted' && f.status !== 'edited' ? (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={decide.isPending}
-                onClick={() =>
-                  run(
-                    decide.mutateAsync({
-                      studyId,
-                      factId: f.id,
-                      data: { decision: 'accept', version: f.version },
-                    }),
-                  )
-                }
-              >
-                <CheckIcon aria-hidden />
-                {t`Accept`}
-              </Button>
-            ) : null}
-            <Button size="sm" variant="ghost" onClick={() => setEditing(f)}>
-              <PencilIcon aria-hidden />
-              {t`Edit`}
-            </Button>
-            {f.status !== 'rejected' ? (
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={decide.isPending}
-                onClick={() =>
-                  run(
-                    decide.mutateAsync({
-                      studyId,
-                      factId: f.id,
-                      data: { decision: 'reject', version: f.version },
-                    }),
-                  )
-                }
-              >
-                <XIcon aria-hidden />
-                {t`Reject`}
-              </Button>
-            ) : null}
-          </div>
+          {/* Spec 039: the same decisions as every fact, reopen included. */}
+          <FactDecision
+            status={f.status}
+            pending={decide.isPending}
+            onDecide={(decision) =>
+              run(
+                decide.mutateAsync({
+                  studyId,
+                  factId: f.id,
+                  data: { decision, version: f.version },
+                }),
+              )
+            }
+            onEdit={() => setEditing(f)}
+          />
         </li>
       ))}
     </ul>
@@ -309,6 +284,21 @@ export function SurveyFacts({ studyId }: { studyId: string }) {
         </TabsList>
         {STATUSES.map((s) => (
           <TabsContent key={s} value={s} className="grid gap-3">
+            {status === s && s !== 'rejected' ? (
+              <div className="flex justify-end">
+                <AcceptAllShown
+                  count={toDecide.length}
+                  pending={accept.isPending}
+                  onAccept={() =>
+                    run(
+                      accept.mutateAsync({
+                        data: { facts: toDecide.map((f) => ({ id: f.id, version: f.version })) },
+                      }),
+                    )
+                  }
+                />
+              </div>
+            ) : null}
             {status === s ? content : null}
             {status === s && list.data ? (
               <Pager

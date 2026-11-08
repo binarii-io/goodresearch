@@ -1,7 +1,7 @@
 import { factsRef, translationRef } from '../../domain/analysis-run.ts'
 import type { Fact, FactStatus, Polarity, Statement, Theme } from '../../domain/facts.ts'
 import type { SurveyFact } from '../../domain/survey-facts.ts'
-import { evidenceLine, type UsabilityFact } from '../../domain/usability-facts.ts'
+import { evidenceLine, participantOf, type UsabilityFact } from '../../domain/usability-facts.ts'
 import type { EvidenceStore } from '../ports.ts'
 import type { SurveyFactStore } from '../survey-ports.ts'
 import type { UsabilityFactStore } from '../usability-ports.ts'
@@ -54,7 +54,7 @@ const usabilityForSynthesis = (f: UsabilityFact): FactForSynthesis => ({
   polarity: f.polarity,
   theme: f.theme,
   status: f.status,
-  participants: f.support.participant ? [f.support.participant] : [],
+  participants: participantOf(f) ? [participantOf(f) ?? ''] : [],
   version: f.version,
   decidedAt: f.decidedAt,
 })
@@ -111,7 +111,10 @@ export const makeSynthesisReads = (
       return [
         ...(await withParticipants(facts.filter((f) => f.status !== 'rejected'))),
         ...(await surveys.ofStudies(studyIds)).map(surveyForSynthesis),
-        ...(await usability.ofStudies(studyIds)).map(usabilityForSynthesis),
+        // Spec 039: usability facts have the same lifecycle; rejected ones are not read either.
+        ...(await usability.ofStudies(studyIds))
+          .filter((f) => f.status !== 'rejected')
+          .map(usabilityForSynthesis),
       ]
     },
     /** Facts by id whatever their status, in the order asked; a deleted one is absent. */
@@ -140,18 +143,12 @@ export const makeSynthesisReads = (
         usability.byIds(factIds),
       ])
       // Spec 038: a usability fact's evidence is its quote, else the moment it was seen.
-      const seen = tests.flatMap((f) =>
-        f.support.participant
-          ? [
-              {
-                factId: f.id,
-                studyId: f.studyId,
-                participant: f.support.participant,
-                text: evidenceLine(f),
-              },
-            ]
-          : [],
-      )
+      const seen = tests.flatMap((f) => {
+        const participant = participantOf(f)
+        return participant
+          ? [{ factId: f.id, studyId: f.studyId, participant, text: evidenceLine(f) }]
+          : []
+      })
       const verbatims = await store.verbatimsByIds([
         ...new Set(facts.flatMap((f) => f.verbatimIds)),
       ])

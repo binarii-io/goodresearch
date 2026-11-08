@@ -53,3 +53,7 @@ On Cloud Run the worker's temporary directory is held in memory, and the worker 
 - **Long answers**: Vertex AI calls no longer use Node's default 300-second HTTP timeout, which a long transcript can pass before its first byte; the gateway's own timeout of each call applies.
 - **Reads**: an analysis reads about two to three times the video's size from the bucket; keep the worker in the bucket's region.
 - **Screenshots on Google Cloud Storage**: `STORAGE_PROVIDER=gcs` stores them in a bucket with the service's own identity, no key. The S3 mode of Google Cloud Storage with an HMAC key is not enough (no multi-object delete, which the sweep uses).
+
+## Update spec 039: facts to decide
+
+Observations give facts as soon as a session is analysed, with the observation's status (to decide until a person decides; a rejection keeps the fact, rejected), and each task's decided outcomes give a task fact written by the app. An observation and its fact are decided together: Evidence decides an observation's fact through a port to the Usability module (`UsabilityDecisions`), so every study type has one Facts list and one decision path (ADR-0003 boundaries kept).

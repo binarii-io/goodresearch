@@ -242,7 +242,8 @@ export const CreateFact = z
 
 export const DecideFact = z
   .object({
-    decision: z.enum(['accept', 'reject', 'edit']),
+    /** Spec 039: `reopen` sends a decided fact back to decide. */
+    decision: z.enum(['accept', 'reject', 'edit', 'reopen']),
     version: Version,
     statement: z.object({ en: StatementText.optional(), fr: StatementText.optional() }).optional(),
     polarity: Polarity.optional(),
@@ -294,3 +295,99 @@ export const AttributeSpeaker = z
     participant: z.string().min(1).max(64),
   })
   .meta({ id: 'AttributeSpeaker' })
+
+/** Spec 039: the filters of a study's Facts list, the same for every source. */
+export const FactBoardStatus = z.enum(['to-decide', 'accepted', 'rejected', 'all'])
+
+export const FactBoardQuery = z.object({
+  status: FactBoardStatus.optional(),
+  q: z.string().trim().max(200).optional(),
+  page: z.coerce.number().int().min(1).max(1_000).default(1),
+})
+
+/** Spec 039: what a fact rests on, by source. */
+export const FactEvidence = z
+  .discriminatedUnion('kind', [
+    z.object({ kind: z.literal('verbatims'), count: z.number().int() }),
+    z.object({ kind: z.literal('figure'), base: z.number().int() }),
+    z.object({
+      kind: z.literal('observation'),
+      observationId: Id,
+      sessionId: Id,
+      momentMs: z.number().int(),
+      quote: z.string().nullable(),
+      participant: z.string().nullable(),
+      screenshot: z.boolean(),
+    }),
+    z.object({
+      kind: z.literal('task'),
+      taskId: z.string(),
+      outcomes: z.object({
+        success: z.number().int(),
+        partial: z.number().int(),
+        failure: z.number().int(),
+        notAttempted: z.number().int(),
+      }),
+      sessions: z.number().int(),
+      figuresChanged: z.boolean(),
+    }),
+  ])
+  .meta({ id: 'FactEvidence' })
+
+/** Spec 039: one status vocabulary for every fact. */
+export const CommonFactStatus = z
+  .enum(['to-decide', 'accepted', 'edited', 'rejected'])
+  .meta({ id: 'CommonFactStatus' })
+
+export const FactRow = z
+  .object({
+    id: Id,
+    version: Version,
+    studyId: Id,
+    source: z.enum(['interview', 'survey', 'usability']),
+    sessionId: Id.nullable(),
+    status: CommonFactStatus,
+    statement: Statement,
+    translation: z.enum(['done', 'translating', 'not-translated']),
+    polarity: Polarity,
+    theme: z.object({ id: z.string(), title: z.string() }).nullable(),
+    origin: z.enum(['ai', 'person']),
+    evidence: FactEvidence,
+    canDecide: z.boolean(),
+  })
+  .meta({ id: 'FactRow' })
+
+export const FactBoardPage = z
+  .object({
+    items: z.array(FactRow),
+    total: z.number().int(),
+    counts: z.object({
+      toDecide: z.number().int(),
+      accepted: z.number().int(),
+      edited: z.number().int(),
+      rejected: z.number().int(),
+    }),
+    page: z.number().int(),
+    pageSize: z.number().int(),
+  })
+  .meta({ id: 'FactBoardPage' })
+
+/** Spec 039: a decision on a fact of any source. */
+export const DecideAnyFact = z
+  .object({
+    decision: z.enum(['accept', 'reject', 'edit', 'reopen']),
+    version: Version,
+    statement: z.object({ en: StatementText.optional(), fr: StatementText.optional() }).optional(),
+  })
+  .meta({ id: 'DecideAnyFact' })
+
+export const AcceptAnyFacts = z
+  .object({
+    facts: z
+      .array(z.object({ id: Id, version: Version }))
+      .min(1)
+      .max(500),
+  })
+  .meta({ id: 'AcceptAnyFacts' })
+
+export const AnyFactParams = z.object({ factId: Id })

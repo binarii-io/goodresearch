@@ -43,7 +43,7 @@ Enforced in code, not left to the model:
 - Only ready sessions are analysed, with the folder consent, on Vertex AI (or the dev fake); the estimate is shown before.
 - The video is copied for the analysis only and deleted at the end; the bucket deletes anything older than a day.
 - An observation reaches the person only with a quote found in the transcript and a moment within its task; the judge never rejects without contrary evidence; every doubt goes to the arbiter.
-- Only decided items count; a decided observation gives a fact, a rejected or reopened one withdraws it.
+- Only decided items count in the results; every observation the checks kept or doubted gives a fact to decide, decided with its observation (spec 039), and each task's decided outcomes give a task fact; insights read facts to decide only when asked, by default when nothing is decided yet.
 - Every call is in the ledger under the session; its cost shows per session and per study.
 
 ## How we verify it

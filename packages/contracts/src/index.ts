@@ -77,14 +77,23 @@ export {
 } from './debrief.ts'
 export { ERROR_CODES, type ErrorCode, HTTP_STATUS, Problem } from './errors.ts'
 export {
+  AcceptAnyFacts,
   AcceptFacts,
   AddVerbatim,
+  AnyFactParams,
   AttributeSpeaker,
+  CommonFactStatus,
   CreateFact,
+  DecideAnyFact,
   DecideFact,
   Fact,
+  FactBoardPage,
+  FactBoardQuery,
+  FactBoardStatus,
+  FactEvidence,
   FactOrigin,
   FactParams,
+  FactRow,
   FactStatus,
   FactsBulkResult,
   FactsEstimate,

@@ -32,7 +32,10 @@ export const makeAnalysisQueries = (
       const byId = new Map(analyses.map((a) => [a.sessionId, a]))
       // Counted by the database: the rows themselves are not shown here.
       const toReview = await deps.store.toReviewCounts(analyses.map((a) => a.id))
-      const costs = await run.costs(sessions.map((s) => s.sessionId))
+      const costs = await run.costs(
+        sessions.map((s) => s.sessionId),
+        studyId,
+      )
       const live = isLive(last, deps.clock.now()) ? last : null
       return ok({
         sessions: sessions

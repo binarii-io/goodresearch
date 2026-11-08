@@ -266,7 +266,7 @@ const StatementText = z.string().trim().min(1).max(200)
 
 export const DecideSurveyFact = z
   .object({
-    decision: z.enum(['accept', 'reject', 'edit']),
+    decision: z.enum(['accept', 'reject', 'edit', 'reopen']),
     version: Version,
     statement: z.object({ en: StatementText.optional(), fr: StatementText.optional() }).optional(),
     polarity: Polarity.optional(),

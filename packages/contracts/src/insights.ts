@@ -239,7 +239,10 @@ export const ProjectFact = z
     participant: z.string().nullable(),
     /** Null when the viewer cannot open its study (FR-018). */
     statement: Bilingual.nullable(),
-    status: z.enum(['accepted', 'to-decide']),
+    /** Spec 039: one status vocabulary for every fact; rejected facts are not listed. */
+    status: z.enum(['to-decide', 'accepted', 'edited', 'rejected']),
+    /** Spec 039 FR-009: the person can decide it from the project. */
+    canDecide: z.boolean(),
     polarity: Polarity,
     theme: InsightTheme,
     insights: z.number().int(),

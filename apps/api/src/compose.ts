@@ -260,6 +260,40 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
   evidence = createEvidenceModule({
     db: infra.db,
     clock,
+    // Spec 039: a usability observation's fact is decided with its observation, at its version.
+    usabilityDecisions: () =>
+      usability
+        ? {
+            decideObservation: async (actor, observationId, decision, edit) => {
+              const u = bound(usability)
+              const o = await u.handlers.deps.store.observation(observationId)
+              if (!o) return { ok: false, error: 'OBSERVATION_NOT_FOUND' as const }
+              // An observation is written in its protocol's language: an edit in the other one is
+              // refused rather than stored in the wrong language.
+              if (edit) {
+                const analysis = await u.handlers.deps.store.analysisById(o.analysisId)
+                const protocol = analysis
+                  ? await u.handlers.deps.protocols.version(
+                      analysis.studyId,
+                      analysis.protocolVersion,
+                    )
+                  : null
+                if (protocol && protocol.language !== edit.language)
+                  return { ok: false, error: 'VALIDATION' as const }
+              }
+              const done = await u.handlers.observations.decide({
+                actor,
+                observationId,
+                decision:
+                  decision === 'edit'
+                    ? { action: 'edit', value: { text: edit?.text ?? '' } }
+                    : { action: decision },
+                version: o.version,
+              })
+              return done.ok ? { ok: true } : { ok: false, error: done.error }
+            },
+          }
+        : null,
     sources: {
       studyAccess: (accountId, studyId) => research.getStudyAccess(accountId, studyId),
       sessions: async (accountId, studyId) =>

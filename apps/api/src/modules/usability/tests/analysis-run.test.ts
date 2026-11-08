@@ -217,11 +217,24 @@ describe('reviewing observations (spec 038 US2, US3)', () => {
       }),
     ).toEqual({ ok: false, error: 'NAME_IN_STATEMENT' })
     expect(world.store.observations.get(o.id)).toMatchObject({ status: 'proposed', version: 1 })
-    expect(world.facts.has(o.id)).toBe(false)
+    // Its fact stays to decide, as the analysis made it (spec 039).
+    expect(world.facts.get(o.id)?.status).toBe('proposed')
   })
 
-  it('accepting gives a fact, rejecting withdraws it, at the version seen', async () => {
+  it('backfills the facts of sessions analysed before, and running it again changes nothing (spec 039)', async () => {
+    const before = [...world.facts.keys()].sort()
+    expect(before.length).toBeGreaterThan(0)
+    world.facts.clear()
+    const { backfillFacts } = await import('../application/commands/analysis-run.ts')
+    await backfillFacts(world.deps)
+    expect([...world.facts.keys()].sort()).toEqual(before)
+    await backfillFacts(world.deps)
+    expect([...world.facts.keys()].sort()).toEqual(before)
+  })
+
+  it('the analysis gives facts to decide; accepting and rejecting decide them, at the version seen (spec 039)', async () => {
     const o = first()
+    expect(world.facts.get(o.id)).toMatchObject({ status: 'proposed', decidedBy: null })
     const accepted = await world.observations.decide({
       actor: alice,
       observationId: o.id,
@@ -236,6 +249,8 @@ describe('reviewing observations (spec 038 US2, US3)', () => {
       quote: "where's the export?",
       participant: 'Casey Test',
       origin: 'ai',
+      status: 'accepted',
+      decidedBy: 'alice',
     })
     expect(
       await world.observations.decide({
@@ -251,7 +266,14 @@ describe('reviewing observations (spec 038 US2, US3)', () => {
       decision: { action: 'reject' },
       version: 2,
     })
-    expect(world.facts.has(o.id)).toBe(false)
+    expect(world.facts.get(o.id)?.status).toBe('rejected')
+    await world.observations.decide({
+      actor: alice,
+      observationId: o.id,
+      decision: { action: 'reopen' },
+      version: 3,
+    })
+    expect(world.facts.get(o.id)?.status).toBe('proposed')
   })
 
   it('adds an observation by hand, accepted at once, and corrects a task outcome', async () => {
@@ -264,7 +286,9 @@ describe('reviewing observations (spec 038 US2, US3)', () => {
       text: 'Clicks Export twice',
     })
     expect(added).toMatchObject({ ok: true, value: { origin: 'person', status: 'accepted' } })
-    expect(world.facts.size).toBe(1)
+    if (!added.ok) throw new Error(added.error)
+    expect(world.facts.get(added.value.id)).toMatchObject({ status: 'accepted', origin: 'person' })
+    expect(world.taskFacts).toEqual([])
     const result = [...world.store.tasks.values()].find((t) => t.taskId === 'task-1')
     if (!result) throw new Error('fixture')
     expect(
@@ -275,6 +299,13 @@ describe('reviewing observations (spec 038 US2, US3)', () => {
         version: 1,
       }),
     ).toMatchObject({ ok: true, value: { outcome: 'partial', status: 'edited' } })
+    // Spec 039: the task's fact counts the decided outcome.
+    expect(world.taskFacts).toMatchObject([
+      {
+        task: { id: 'task-1', index: 1, instruction: 'Find the report of last week' },
+        outcomes: { success: 0, partial: 1, failure: 0, notAttempted: 0 },
+      },
+    ])
   })
 
   it('counts only decided items in the study results', async () => {

@@ -275,7 +275,10 @@ export const makeInsightQueries = (deps: SynthesisDeps) => {
         respondents: f.respondents ?? null,
         participant: f.participants[0] ?? null,
         statement: mask(f.statement),
-        status: f.status === 'proposed' ? ('to-decide' as const) : ('accepted' as const),
+        // Spec 039: one status vocabulary for every fact.
+        status: f.status === 'proposed' ? ('to-decide' as const) : f.status,
+        // Spec 039 FR-009: the study's team decides from the project; readers only read.
+        canDecide: project.value.canChange !== false,
         polarity: f.polarity,
         theme: themeOf(f.theme),
         insights: cited.get(f.id) ?? 0,

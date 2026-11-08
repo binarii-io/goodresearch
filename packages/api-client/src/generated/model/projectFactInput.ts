@@ -28,6 +28,7 @@ export interface ProjectFactInput {
   participant: string | null;
   statement: ProjectFactInputStatement;
   status: ProjectFactInputStatus;
+  canDecide: boolean;
   polarity: ProjectFactInputPolarity;
   theme: InsightThemeInput;
   /**

@@ -1,12 +1,17 @@
 import {
+  AcceptAnyFacts,
   AcceptFacts,
   AddVerbatim,
+  AnyFactParams,
   AttributeSpeaker,
   Created,
   CreateFact,
   CreateSurveyFact,
+  DecideAnyFact,
   DecideFact,
   DecideSurveyFact,
+  FactBoardPage,
+  FactBoardQuery,
   FactParams,
   FactsBulkResult,
   FactsEstimate,
@@ -35,14 +40,19 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { reply } from '#platform/http/result.ts'
 import type { AnalysisCommands } from '../application/commands/analysis-commands.ts'
 import type { FactCommands } from '../application/commands/fact-commands.ts'
+import type { FactDecisions } from '../application/commands/fact-decisions.ts'
 import type { SurveyFactCommands } from '../application/commands/survey-fact-commands.ts'
 import type { AnalysisQueries } from '../application/queries/analysis-queries.ts'
+import type { makeFactBoard } from '../application/queries/fact-board.ts'
 import type { makeSurveyFactQueries } from '../application/queries/survey-fact-queries.ts'
 import type { SurveyFact as SurveyFactModel } from '../domain/survey-facts.ts'
 
 export type EvidenceHandlers = {
   analysis: AnalysisCommands
   facts: FactCommands
+  /** Spec 039: one decision path and one Facts list for every source. */
+  decisions: FactDecisions
+  board: ReturnType<typeof makeFactBoard>
   queries: AnalysisQueries
   /** Spec 029: facts of survey studies. */
   surveyFacts: SurveyFactCommands
@@ -337,6 +347,56 @@ export const registerEvidenceRoutes = (
         await facts.acceptMany(request.account, request.params.studyId, request.body.facts),
         (v) => res.send(v),
       ),
+  )
+
+  // Spec 039: the facts of a study whatever their source, decided the same way.
+  api.get(
+    '/api/studies/:studyId/fact-board',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getFactBoard',
+        tags,
+        params: StudyParams,
+        querystring: FactBoardQuery,
+        response: { 200: FactBoardPage },
+      },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await deps.handlers.board(request.account.id, request.params.studyId, request.query),
+        (v) => res.send(v),
+      ),
+  )
+
+  api.post(
+    '/api/facts/:factId/decision',
+    {
+      ...secured,
+      schema: { operationId: 'decideAnyFact', tags, params: AnyFactParams, body: DecideAnyFact },
+    },
+    async (request, res) =>
+      reply(
+        res,
+        await deps.handlers.decisions.decide(request.account, request.params.factId, request.body),
+        () => res.status(204).send(),
+      ),
+  )
+
+  api.post(
+    '/api/facts/accept',
+    {
+      ...secured,
+      schema: {
+        operationId: 'acceptAnyFacts',
+        tags,
+        body: AcceptAnyFacts,
+        response: { 200: FactsBulkResult },
+      },
+    },
+    async (request, res) =>
+      res.send(await deps.handlers.decisions.acceptMany(request.account, request.body.facts)),
   )
 
   api.post(

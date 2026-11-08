@@ -1,14 +1,13 @@
 import { err, ok, type Result } from '@goodresearch/shared'
 import {
   decideObservation,
-  givesFact,
   type Observation,
   type ObservationAction,
   type ObservationKind,
-  polarityOf,
   TEXT_MAX,
 } from '../../domain/observation.ts'
 import { correctTaskResult, type Outcome, type TaskResult } from '../../domain/task-result.ts'
+import { observationFactInput, syncTaskFacts } from '../facts-sync.ts'
 import type { Actor, UsabilityDeps } from '../ports.ts'
 
 export type ObservationFailure =
@@ -39,32 +38,27 @@ export const makeObservationCommands = (deps: UsabilityDeps) => {
 
   type Ctx = Extract<Awaited<ReturnType<typeof context>>, { ok: true }>['value']
 
-  /** The fact follows the observation: made when decided, withdrawn otherwise. */
+  /** Spec 039: the fact follows the observation, with its status; none when it gives none. */
   const syncFact = async (
     actor: Actor,
     ctx: Ctx,
     o: Observation,
   ): Promise<Result<unknown, 'VALIDATION' | 'NAME_IN_STATEMENT'>> => {
-    const task = ctx.protocol.tasks.find((t) => t.id === o.taskId)
-    if (!givesFact(o) || !task) {
-      await deps.facts.withdraw(o.id)
+    const input = observationFactInput(
+      actor.id,
+      {
+        studyId: ctx.analysis.studyId,
+        sessionId: ctx.analysis.sessionId,
+        session: ctx.session,
+        protocol: ctx.protocol,
+      },
+      o,
+    )
+    if (!input) {
+      await deps.facts.remove(o.id)
       return ok(undefined)
     }
-    return deps.facts.upsert({
-      accountId: actor.id,
-      observationId: o.id,
-      studyId: ctx.analysis.studyId,
-      sessionId: ctx.analysis.sessionId,
-      statement: o.text,
-      language: ctx.protocol.language,
-      polarity: polarityOf(o.kind),
-      theme: { id: task.id, title: task.instruction },
-      quote: o.quote,
-      momentMs: o.momentMs,
-      screenshotKey: o.screenshotKey,
-      participant: ctx.session.participant,
-      origin: o.status === 'edited' || o.origin === 'person' ? 'person' : 'ai',
-    })
+    return deps.facts.upsert(input)
   }
 
   return {
@@ -107,7 +101,7 @@ export const makeObservationCommands = (deps: UsabilityDeps) => {
       text: string
     }): Promise<Result<Observation, ObservationFailure>> => {
       const analysis = await deps.store.analysisOf(c.sessionId)
-      if (!analysis || analysis.state !== 'done') return err('SESSION_NOT_FOUND')
+      if (analysis?.state !== 'done') return err('SESSION_NOT_FOUND')
       const ctx = await context(c.actor, analysis.id)
       if (!ctx.ok) return ctx
       const text = c.text.trim()
@@ -164,6 +158,11 @@ export const makeObservationCommands = (deps: UsabilityDeps) => {
       if (!next.ok) return next
       if ((await deps.store.saveTaskResult(next.value, c.version)) === 'stale')
         return err('VERSION_CONFLICT')
+      // Spec 039: the task's fact follows its decided outcomes across the study's sessions; the
+      // outcome is saved whatever happens to the fact (the next sync writes it).
+      await syncTaskFacts(deps, ctx.value.analysis.studyId).catch((error: unknown) =>
+        deps.log.error({ err: error }, 'task facts not synced'),
+      )
       return ok({ ...next.value, version: c.version + 1 })
     },
   }

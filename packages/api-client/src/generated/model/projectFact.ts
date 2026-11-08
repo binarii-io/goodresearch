@@ -28,6 +28,7 @@ export interface ProjectFact {
   participant: string | null;
   statement: ProjectFactStatement;
   status: ProjectFactStatus;
+  canDecide: boolean;
   polarity: ProjectFactPolarity;
   theme: InsightTheme;
   /**

@@ -135,18 +135,29 @@ export const evidenceSurveySupports = pgTable('evidence_survey_supports', {
 
 /**
  * Spec 038: what a usability fact rests on: its observation's moment, verified quote and
- * screenshot (no foreign key across modules to the observation).
+ * screenshot (no foreign key across modules to the observation); since spec 039, or a task's
+ * decided outcomes across the study's sessions (one task fact per study and task).
  */
-export const evidenceUsabilitySupports = pgTable('evidence_usability_supports', {
-  factId: text('fact_id')
-    .primaryKey()
-    .references(() => evidenceFacts.id, { onDelete: 'cascade' }),
-  observationId: text('observation_id').notNull().unique(),
-  quote: text('quote'),
-  momentMs: integer('moment_ms').notNull(),
-  screenshotKey: text('screenshot_key'),
-  participant: text('participant'),
-})
+export const evidenceUsabilitySupports = pgTable(
+  'evidence_usability_supports',
+  {
+    factId: text('fact_id')
+      .primaryKey()
+      .references(() => evidenceFacts.id, { onDelete: 'cascade' }),
+    observationId: text('observation_id').unique(),
+    quote: text('quote'),
+    momentMs: integer('moment_ms'),
+    screenshotKey: text('screenshot_key'),
+    participant: text('participant'),
+    /** Spec 039: a task fact's study and task, its counts and whether they changed once decided. */
+    studyId: text('study_id'),
+    taskId: text('task_id'),
+    outcomes: jsonb('outcomes'),
+    sessions: integer('sessions'),
+    figuresChanged: boolean('figures_changed').notNull().default(false),
+  },
+  (t) => [uniqueIndex('evidence_usability_supports_task_idx').on(t.studyId, t.taskId)],
+)
 
 export const evidenceFactVerbatims = pgTable(
   'evidence_fact_verbatims',

@@ -9,6 +9,8 @@ export type ProjectFactInputStatus = typeof ProjectFactInputStatus[keyof typeof 
 
 
 export const ProjectFactInputStatus = {
-  accepted: 'accepted',
   'to-decide': 'to-decide',
+  accepted: 'accepted',
+  edited: 'edited',
+  rejected: 'rejected',
 } as const;

@@ -41,6 +41,9 @@ export type SessionAnalysis = {
 /** The ledger reference of a session's analysis calls: its cost per session and per study. */
 export const usabilityRef = (sessionId: string) => `usability-analysis:${sessionId}`
 
+/** Spec 039: the study's own ledger ref (translations of its task facts), in its analysis cost. */
+export const usabilityStudyRef = (studyId: string) => `usability-study:${studyId}`
+
 /**
  * Out of date when the session's protocol version or its video changed since the analysis read
  * them (FR-008).

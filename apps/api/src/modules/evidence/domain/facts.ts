@@ -35,6 +35,34 @@ export type FactError =
   | 'NAME_IN_STATEMENT'
   | 'VERSION_CONFLICT'
   | 'VALIDATION'
+  /** Spec 039: reopening a fact still to decide. */
+  | 'INVALID_TRANSITION'
+
+/**
+ * Spec 039 FR-005: a decided fact of any source goes back to decide; its statement is kept, its
+ * decision cleared. Refused on a stale version or on a fact already to decide.
+ */
+export const reopened = <
+  F extends {
+    status: FactStatus
+    version: number
+    decidedBy: string | null
+    decidedAt: Date | null
+  },
+>(
+  fact: F,
+  version: number,
+): Result<F, 'VERSION_CONFLICT' | 'INVALID_TRANSITION'> => {
+  if (version !== fact.version) return err('VERSION_CONFLICT')
+  if (fact.status === 'proposed') return err('INVALID_TRANSITION')
+  return ok({
+    ...fact,
+    status: 'proposed',
+    decidedBy: null,
+    decidedAt: null,
+    version: fact.version + 1,
+  })
+}
 
 const validStatement = (s: string) => s.trim().length >= 1 && s.trim().length <= STATEMENT_MAX
 
@@ -177,7 +205,7 @@ export const createFact = (input: {
 }
 
 export type FactDecision = {
-  readonly decision: 'accept' | 'reject' | 'edit'
+  readonly decision: 'accept' | 'reject' | 'edit' | 'reopen'
   readonly version: number
   readonly statement?: GivenStatement | undefined
   readonly polarity?: Polarity | undefined
@@ -210,6 +238,7 @@ export const decideFact = (
   now: Date,
   names: readonly string[],
 ): Result<Fact, FactError> => {
+  if (d.decision === 'reopen') return reopened(fact, d.version)
   if (d.version !== fact.version) return err('VERSION_CONFLICT')
   const decided = { decidedBy: by, decidedAt: now, version: fact.version + 1 }
   if (d.decision !== 'edit')

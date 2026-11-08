@@ -1,13 +1,15 @@
 import { type Fact, useDecideFact, useTranslateFact } from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
-import { CheckIcon, PencilIcon, SparklesIcon, XIcon } from '@goodresearch/ui/components/icons'
+import { SparklesIcon } from '@goodresearch/ui/components/icons'
 import { useLingui } from '@lingui/react/macro'
 import { toast } from 'sonner'
+import { FactDecision, type FactDecisionKind } from '../facts/fact-decision.tsx'
+import { FactStatusBadge } from '../facts/fact-status.tsx'
 import { errorMessage } from '../workspace/errors.ts'
 import { useCanChange } from '../workspace/read-only.tsx'
 import { useRefreshFacts } from './fact-dialog.tsx'
-import { FACT_STATUSES, POLARITIES, TONE_FILLS } from './labels.ts'
+import { POLARITIES, TONE_FILLS } from './labels.ts'
 
 /** The statement in the viewer's language, or the other one while it is being translated. */
 export const useStatement = () => {
@@ -57,9 +59,7 @@ export function FactCard({
   const interview = fact.interviewNumber
     ? t`Interview ${fact.interviewNumber}`
     : fact.interviewTitle
-  const accepted = fact.status === 'accepted' || fact.status === 'edited'
-  const rejected = fact.status === 'rejected'
-  const act = (decision: 'accept' | 'reject') =>
+  const act = (decision: FactDecisionKind) =>
     void decide
       .mutateAsync({ studyId, factId: fact.id, data: { decision, version: fact.version } })
       .then(refresh)
@@ -70,9 +70,7 @@ export function FactCard({
       className={`grid gap-2 rounded-md border p-3 ${selected ? 'border-primary ring-1 ring-primary' : ''} ${fact.status === 'rejected' ? 'opacity-70' : ''}`}
     >
       <div className="flex flex-wrap items-center gap-1.5">
-        <Badge variant={fact.status === 'proposed' ? 'outline' : 'secondary'}>
-          {i18n._(FACT_STATUSES[fact.status])}
-        </Badge>
+        <FactStatusBadge status={fact.status} />
         {/* The colour of its verbatims in the transcript. */}
         <Badge
           variant="outline"
@@ -144,35 +142,14 @@ export function FactCard({
           </li>
         ))}
       </ul>
-      {/* The decision stays in view: the choice made is highlighted, the other one stays at hand. */}
-      <div hidden={!canChange} className="flex flex-wrap items-center gap-1">
-        <fieldset className="flex gap-1">
-          <legend className="sr-only">{t`Decision`}</legend>
-          <Button
-            size="xs"
-            variant={accepted ? 'default' : 'outline'}
-            aria-pressed={accepted}
-            disabled={decide.isPending}
-            onClick={() => (accepted ? undefined : act('accept'))}
-          >
-            <CheckIcon aria-hidden />
-            {accepted ? t`Accepted` : t`Accept`}
-          </Button>
-          <Button
-            size="xs"
-            variant={rejected ? 'default' : 'outline'}
-            aria-pressed={rejected}
-            disabled={decide.isPending}
-            onClick={() => (rejected ? undefined : act('reject'))}
-          >
-            <XIcon aria-hidden />
-            {rejected ? t`Rejected` : t`Reject`}
-          </Button>
-        </fieldset>
-        <Button size="xs" variant="ghost" onClick={onEdit}>
-          <PencilIcon aria-hidden />
-          {t`Edit`}
-        </Button>
+      {/* Spec 039: the same decisions as every fact, in every study; the choice made stays highlighted. */}
+      <div hidden={!canChange}>
+        <FactDecision
+          status={fact.status}
+          pending={decide.isPending}
+          onDecide={act}
+          onEdit={onEdit}
+        />
       </div>
     </article>
   )

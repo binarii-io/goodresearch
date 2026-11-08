@@ -37,20 +37,29 @@ export function RecommendationRunDialog({
   const money = useMoney()
   const queryClient = useQueryClient()
   const id = useId()
-  const [withProposed, setWithProposed] = useState(false)
+  // Spec 039 FR-011: null = decided by the insights there are (on when none is validated).
+  const [askedProposed, setWithProposed] = useState<boolean | null>(null)
+  const validated = useEstimateRecommendationRun()
+  const all = useEstimateRecommendationRun()
   const estimate = useEstimateRecommendationRun()
   const start = useStartRecommendationRun()
   useEffect(() => {
+    if (!open) return
+    setWithProposed(null)
+    validated.mutate({ projectId, data: { withProposed: false } })
+    all.mutate({ projectId, data: { withProposed: true } })
+  }, [open, projectId, validated.mutate, all.mutate])
+  const decided = validated.data?.insights ?? null
+  const toDecide = decided === null || !all.data ? null : all.data.insights - decided
+  const withProposed = askedProposed ?? decided === 0
+  useEffect(() => {
     if (open) estimate.mutate({ projectId, data: { withProposed } })
   }, [open, withProposed, projectId, estimate.mutate])
-  useEffect(() => {
-    if (open) setWithProposed(false)
-  }, [open])
   const e = estimate.data
   const cost = e?.cost === null ? t`unknown` : money(e?.cost ?? 0)
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="data-[size=default]:sm:max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle>{t`Find recommendations?`}</AlertDialogTitle>
           <AlertDialogDescription>
@@ -68,6 +77,14 @@ export function RecommendationRunDialog({
             <span className="text-muted-foreground text-xs">{t`They are shown “to validate” in the recommendations, and count once validated.`}</span>
           </Label>
         </div>
+        {decided !== null && toDecide !== null ? (
+          <p className="text-sm">
+            {t`${decided} validated insights, ${toDecide} to decide.`}{' '}
+            {askedProposed === null && decided === 0 && toDecide > 0
+              ? t`None is validated yet: the insights still to decide are read, and the recommendations found are marked “to validate”.`
+              : null}
+          </p>
+        ) : null}
         <div className="grid gap-2 text-sm" aria-live="polite">
           {!e ? (
             <p>{t`Counting the insights to read…`}</p>

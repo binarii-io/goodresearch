@@ -1,6 +1,12 @@
 import { err, ok, type Result, sumCosts } from '@goodresearch/shared'
-import { RUN_STALE_MS, type SessionAnalysis, usabilityRef } from '../../domain/analysis.ts'
+import {
+  RUN_STALE_MS,
+  type SessionAnalysis,
+  usabilityRef,
+  usabilityStudyRef,
+} from '../../domain/analysis.ts'
 import { estimateInputs, minutesOf } from '../../domain/estimate.ts'
+import { observationFactInput, syncTaskFacts } from '../facts-sync.ts'
 import { AnalysisStopped, runSession } from '../pipeline/run-session.ts'
 import {
   type Actor,
@@ -188,7 +194,7 @@ export const makeAnalysisRun = (deps: UsabilityDeps) => {
     /** The worker's job: sessions one after another; a failed one never stops the others. */
     runJob: async (job: AnalysisJob) => {
       const run = await deps.store.getRun(job.runId)
-      if (!run || run.state !== 'running') return
+      if (run?.state !== 'running') return
       const beat = () => deps.store.heartbeat(run.id, deps.clock.now())
       // Stopped by the person, or no longer the study's run (replaced after it looked stale).
       const stopAsked = async () => {
@@ -222,8 +228,11 @@ export const makeAnalysisRun = (deps: UsabilityDeps) => {
     },
 
     /** Cost of the study's analyses, by session (ledger), whoever ran them (FR-016). */
-    costs: async (sessionIds: readonly string[]) => {
-      const costs = await deps.ai.costs(sessionIds.map(usabilityRef))
+    costs: async (sessionIds: readonly string[], studyId?: string) => {
+      const costs = await deps.ai.costs([
+        ...sessionIds.map(usabilityRef),
+        ...(studyId ? [usabilityStudyRef(studyId)] : []),
+      ])
       return { bySession: costs, total: sumCosts(costs.values()) }
     },
   }
@@ -261,6 +270,29 @@ const analyseOne = async (
     // A run replaced meanwhile does not save over the analysis of the run that replaced it.
     if (await stopAsked()) throw new AnalysisStopped('STOPPED')
     await deps.store.completeAnalysis(analysis.id, output, deps.clock.now())
+    // Spec 039: the session's observations give their facts (to decide until a person decides),
+    // and the study's task facts follow. The analysis is done even if this fails: retried at the
+    // next decision or analysis.
+    try {
+      const observations = await deps.store.observationsOf([analysis.id])
+      await deps.facts.syncSession(
+        analysis.sessionId,
+        observations.flatMap((o) => {
+          const input = observationFactInput(
+            accountId,
+            { studyId: analysis.studyId, sessionId: analysis.sessionId, session, protocol },
+            o,
+          )
+          return input ? [input] : []
+        }),
+      )
+      await syncTaskFacts(deps, analysis.studyId)
+    } catch (error) {
+      deps.log.error(
+        { err: error, sessionId: analysis.sessionId },
+        'facts of the session not synced',
+      )
+    }
   } catch (error) {
     if (error instanceof AnalysisStopped) return fail(error.failure)
     if (error instanceof ProviderAccessLost) return fail('AI_RECONNECT_REQUIRED')
@@ -286,3 +318,35 @@ export const sweep = async (deps: UsabilityDeps, graceMs = SWEEP_GRACE_MS) => {
 }
 
 export type AnalysisRunCommands = ReturnType<typeof makeAnalysisRun>
+
+/**
+ * Spec 039: the facts of sessions analysed before facts were made at the end of each analysis, and
+ * the task facts of their studies. Run when the worker starts; a fact already up to date is not
+ * written again, so running it again changes nothing.
+ */
+export const backfillFacts = async (deps: UsabilityDeps) => {
+  for (const studyId of await deps.store.analysedStudies()) {
+    try {
+      for (const a of (await deps.store.analysesOf(studyId)).filter((x) => x.state === 'done')) {
+        const session = await deps.sessions.one(a.startedBy, a.sessionId)
+        const protocol = await deps.protocols.version(studyId, a.protocolVersion)
+        if (!session || !protocol) continue
+        const observations = await deps.store.observationsOf([a.id])
+        await deps.facts.syncSession(
+          a.sessionId,
+          observations.flatMap((o) => {
+            const input = observationFactInput(
+              a.startedBy,
+              { studyId, sessionId: a.sessionId, session, protocol },
+              o,
+            )
+            return input ? [input] : []
+          }),
+        )
+      }
+      await syncTaskFacts(deps, studyId)
+    } catch (error) {
+      deps.log.error({ err: error, studyId }, 'facts of the study not backfilled')
+    }
+  }
+}

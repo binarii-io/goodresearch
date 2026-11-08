@@ -1,4 +1,10 @@
-import { type ProjectFact, useListInsightFacts } from '@goodresearch/api-client'
+import {
+  getListInsightFactsQueryKey,
+  type ProjectFact,
+  useAcceptAnyFacts,
+  useDecideAnyFact,
+  useListInsightFacts,
+} from '@goodresearch/api-client'
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
@@ -6,10 +12,16 @@ import { Input } from '@goodresearch/ui/components/input'
 import { Label } from '@goodresearch/ui/components/label'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
 import { useLingui } from '@lingui/react/macro'
+import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { type ReactNode, useId, useState } from 'react'
+import { toast } from 'sonner'
 import { Choice } from '../analysis/choice.tsx'
 import { POLARITIES } from '../analysis/labels.ts'
+import { AcceptAllShown } from '../facts/accept-all.tsx'
+import { FactDecision, type FactDecisionKind } from '../facts/fact-decision.tsx'
+import { FactStatusBadge } from '../facts/fact-status.tsx'
+import { errorMessage } from '../workspace/errors.ts'
 import { useCanChange } from '../workspace/read-only.tsx'
 import { useBilingual } from './insight-card.tsx'
 
@@ -108,10 +120,22 @@ export function FactsPanel({
     ...(theme !== ALL ? { theme } : {}),
     ...(study !== ALL ? { study } : {}),
     ...(unlinked ? { unlinked: 'true' } : {}),
-    ...(status !== ALL ? { status: status as ProjectFact['status'] } : {}),
+    ...(status !== ALL ? { status: status as 'accepted' | 'to-decide' } : {}),
   })
   const data = list.data
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1
+  // Spec 039 FR-009: the study's team decides facts here as in the study.
+  const queryClient = useQueryClient()
+  const decide = useDecideAnyFact()
+  const accept = useAcceptAnyFacts()
+  const refresh = () =>
+    queryClient.invalidateQueries({ queryKey: getListInsightFactsQueryKey(projectId) })
+  const onDecide = (f: ProjectFact) => (decision: FactDecisionKind) =>
+    void decide
+      .mutateAsync({ factId: f.id, data: { decision, version: f.version } })
+      .then(refresh)
+      .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
+  const toDecide = (data?.items ?? []).filter((f) => f.status === 'to-decide' && f.canDecide)
   return (
     <section aria-label={t`Accepted facts`} className="grid gap-3">
       <div className="grid gap-1">
@@ -134,7 +158,7 @@ export function FactsPanel({
           options={[
             { value: ALL, label: t`All` },
             { value: 'accepted', label: t`Accepted` },
-            { value: 'to-decide', label: t`To validate` },
+            { value: 'to-decide', label: t`To decide` },
           ]}
         />
         <Choice
@@ -183,9 +207,23 @@ export function FactsPanel({
           </Label>
         </div>
       </div>
-      <p className="text-muted-foreground text-sm" aria-live="polite">
-        {data ? t`${data.total} facts` : null}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-muted-foreground text-sm" aria-live="polite">
+          {data ? t`${data.total} facts` : null}
+        </p>
+        <AcceptAllShown
+          count={toDecide.length}
+          pending={accept.isPending}
+          onAccept={() =>
+            void accept
+              .mutateAsync({
+                data: { facts: toDecide.map((f) => ({ id: f.id, version: f.version })) },
+              })
+              .then(refresh)
+              .catch((failure: unknown) => toast.error(errorMessage(i18n, failure)))
+          }
+        />
+      </div>
       {list.isPending ? (
         <Skeleton className="h-32 w-full" />
       ) : (
@@ -196,9 +234,7 @@ export function FactsPanel({
                 {f.statement ? bilingual(f.statement).text : t`From a study you cannot open`}
               </p>
               <div className="flex flex-wrap items-center gap-1.5">
-                {f.status === 'to-decide' ? (
-                  <Badge variant="outline">{t`To validate`}</Badge>
-                ) : null}
+                <FactStatusBadge status={f.status} />
                 <Badge variant="outline">{i18n._(POLARITIES[f.polarity])}</Badge>
                 <Badge variant="ghost">{f.theme.title ?? t`Other`}</Badge>
                 {f.participant ? <Badge variant="ghost">{f.participant}</Badge> : null}
@@ -210,6 +246,9 @@ export function FactsPanel({
                 <FactSource fact={f} projectId={projectId} />
                 {actions ? <div className="flex gap-1">{actions(f)}</div> : null}
               </div>
+              {f.canDecide && f.statement ? (
+                <FactDecision status={f.status} pending={decide.isPending} onDecide={onDecide(f)} />
+              ) : null}
             </li>
           ))}
         </ul>

@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
   type ObservationFactInput,
   observationFact,
+  taskFact,
 } from '../src/modules/evidence/domain/usability-facts.ts'
 import { createEvidenceStore } from '../src/modules/evidence/infrastructure/evidence.drizzle-store.ts'
 import { createUsabilityFactStore } from '../src/modules/evidence/infrastructure/usability-facts.drizzle-store.ts'
@@ -26,6 +27,9 @@ const input: ObservationFactInput = {
   screenshotKey: 'usability/st/s1/a/o1.jpg',
   participant: 'P01',
   origin: 'ai',
+  status: 'accepted',
+  decidedBy: 'alice',
+  decidedAt: new Date('2026-11-08T10:00:00Z'),
 }
 
 describe('spec 038 — usability facts on PostgreSQL', () => {
@@ -59,14 +63,13 @@ describe('spec 038 — usability facts on PostgreSQL', () => {
 
   it('keeps a fact per observation with its support, apart from interview facts, and deletes it', async () => {
     const store = createUsabilityFactStore(database.db)
-    const made = observationFact(input, null, [], now, () => 'fact-u1')
+    const made = observationFact(input, null, [], () => 'fact-u1')
     if (!made.ok) throw new Error('fixture')
     await store.put(made.value.fact, now)
     const again = observationFact(
-      { ...input, origin: 'person' },
+      { ...input, origin: 'person', status: 'edited' },
       made.value.fact,
       [],
-      now,
       () => 'x',
     )
     if (!again.ok) throw new Error('fixture')
@@ -82,7 +85,35 @@ describe('spec 038 — usability facts on PostgreSQL', () => {
     expect((await store.ofStudies(['st'])).map((f) => f.id)).toEqual(['fact-u1'])
     // Interview reads never see it.
     expect(await createEvidenceStore(database.db).factsOfStudy('st')).toEqual([])
-    await store.deleteByObservation('o1')
+    await store.deleteIds(['fact-u1'])
     expect(await store.byIds(['fact-u1'])).toEqual([])
+  })
+
+  it('keeps one task fact per study and task, with its counts, and no session (spec 039)', async () => {
+    const store = createUsabilityFactStore(database.db)
+    const fact = taskFact(
+      {
+        studyId: 'st',
+        task: { id: 'task-1', index: 1, instruction: 'Export the report' },
+        outcomes: { success: 2, partial: 0, failure: 1, notAttempted: 0 },
+      },
+      null,
+      () => 'fact-t1',
+    )
+    if (!fact) throw new Error('fixture')
+    await store.put(fact, now)
+    expect(await store.tasksOf('st')).toMatchObject([
+      {
+        id: 'fact-t1',
+        sessionId: null,
+        status: 'proposed',
+        support: { kind: 'task', taskId: 'task-1', sessions: 3, figuresChanged: false },
+      },
+    ])
+    const changed = { ...fact, support: { ...fact.support, figuresChanged: true }, version: 2 }
+    expect(await store.save(changed, 1)).toBe('ok')
+    expect((await store.get('fact-t1'))?.support).toMatchObject({ figuresChanged: true })
+    // A second fact for the same study and task is refused.
+    await expect(store.put({ ...fact, id: 'fact-t2' }, now)).rejects.toThrow()
   })
 })

@@ -177,32 +177,99 @@ describe('Usability test analysis (spec 038)', () => {
     expect(shot.headers['content-type']).toBe('image/jpeg')
   })
 
-  it('gives a fact for an accepted observation, withdrawn when rejected', async () => {
+  it('gives facts to decide after the analysis, decided with their observation (spec 039)', async () => {
     const review = (await call(alex, 'GET', `/api/usability/sessions/${sessionId}`)).json()
     const o = review.tasks[0].observations[0]
+    const factOf = async (observationId: string) =>
+      (
+        await world.db.execute(
+          sql`select f.source, f.status, f.statement_en, s.quote from evidence_facts f join evidence_usability_supports s on s.fact_id = f.id where s.observation_id = ${observationId}`,
+        )
+      ).rows[0]
+    // The analysis made it, to decide.
+    expect(await factOf(o.id)).toMatchObject({
+      source: 'usability',
+      status: 'proposed',
+      statement_en: 'Looks for the export in the menu first.',
+      quote: "where's the export?",
+    })
     const accepted = await call(alex, 'POST', `/api/usability/observations/${o.id}/decision`, {
       action: 'accept',
       version: o.version,
     })
     expect(accepted.json().status).toBe('accepted')
-    const facts = async () =>
-      (
-        await world.db.execute(
-          sql`select f.source, f.statement_en, f.theme_id, s.quote from evidence_facts f join evidence_usability_supports s on s.fact_id = f.id where f.study_id = ${studyId}`,
-        )
-      ).rows
-    expect(await facts()).toMatchObject([
-      {
-        source: 'usability',
-        statement_en: 'Looks for the export in the menu first.',
-        quote: "where's the export?",
-      },
-    ])
+    expect(await factOf(o.id)).toMatchObject({ status: 'accepted' })
     await call(alex, 'POST', `/api/usability/observations/${o.id}/decision`, {
       action: 'reject',
       version: accepted.json().version,
     })
-    expect(await facts()).toEqual([])
+    // Kept, as rejected: insights built on it read "not accepted", not "deleted".
+    expect(await factOf(o.id)).toMatchObject({ status: 'rejected' })
+  })
+
+  it('lists and decides the facts like any study: board, decision, reopen, accept all (spec 039)', async () => {
+    const board = async (status = 'all') =>
+      (await call(alex, 'GET', `/api/studies/${studyId}/fact-board?status=${status}`)).json()
+    const all = await board()
+    expect(all.items.length).toBeGreaterThan(0)
+    expect(all.items.every((f: { source: string }) => f.source === 'usability')).toBe(true)
+    const toDecide = await board('to-decide')
+    expect(toDecide.counts.toDecide).toBe(toDecide.items.length)
+    const fact = toDecide.items[0]
+    expect(fact).toMatchObject({
+      status: 'to-decide',
+      canDecide: true,
+      evidence: { kind: 'observation' },
+    })
+    // Deciding the fact decides its observation (FR-007).
+    const accepted = await call(alex, 'POST', `/api/facts/${fact.id}/decision`, {
+      decision: 'accept',
+      version: fact.version,
+    })
+    expect(accepted.statusCode).toBe(204)
+    const review = (await call(alex, 'GET', `/api/usability/sessions/${sessionId}`)).json()
+    const observations = [
+      ...review.tasks.flatMap((t: { observations: unknown[] }) => t.observations),
+      ...review.rejected,
+    ] as { id: string; status: string }[]
+    expect(observations.find((o) => o.id === fact.evidence.observationId)?.status).toBe('accepted')
+    // A stale version is refused; reopen sends it back to decide.
+    const now = (await board('accepted')).items.find((f: { id: string }) => f.id === fact.id)
+    expect(
+      (
+        await call(alex, 'POST', `/api/facts/${fact.id}/decision`, {
+          decision: 'reject',
+          version: fact.version,
+        })
+      ).statusCode,
+    ).toBe(409)
+    expect(
+      (
+        await call(alex, 'POST', `/api/facts/${fact.id}/decision`, {
+          decision: 'reopen',
+          version: now.version,
+        })
+      ).statusCode,
+    ).toBe(204)
+    // Accept all the facts to decide shown, at their versions.
+    const shown = (await board('to-decide')).items
+    const bulk = await call(alex, 'POST', '/api/facts/accept', {
+      facts: shown.map((f: { id: string; version: number }) => ({ id: f.id, version: f.version })),
+    })
+    expect(bulk.json()).toEqual({ done: shown.length, changed: 0 })
+    expect((await board('to-decide')).counts.toDecide).toBe(0)
+    // Outside the study's team: no list, no decision.
+    expect(
+      (await call(robin, 'GET', `/api/studies/${studyId}/fact-board`)).statusCode,
+    ).toBeGreaterThanOrEqual(400)
+    expect(
+      (
+        await call(robin, 'POST', `/api/facts/${fact.id}/decision`, {
+          decision: 'reject',
+          version: 1,
+        })
+      ).statusCode,
+    ).toBe(404)
   })
 
   it('shows the results of decided items only, by task', async () => {
@@ -218,6 +285,22 @@ describe('Usability test analysis (spec 038)', () => {
       outcomes: { success: 1 },
     })
     expect(results.tasks[1].sessions).toBe(0)
+    // Spec 039: the task's fact counts the decided outcome, with no session.
+    const tasks = (
+      await world.db.execute(
+        sql`select f.session_id, f.status, f.statement_en, s.task_id, s.sessions from evidence_facts f join evidence_usability_supports s on s.fact_id = f.id where f.study_id = ${studyId} and s.task_id is not null`,
+      )
+    ).rows
+    expect(tasks).toMatchObject([
+      {
+        session_id: null,
+        status: 'proposed',
+        sessions: 1,
+        statement_en: expect.stringMatching(
+          /^Task 1 — Find the report of last week: 1 success out of 1 session\.$/,
+        ),
+      },
+    ])
   })
 
   it('is reserved to the team', async () => {

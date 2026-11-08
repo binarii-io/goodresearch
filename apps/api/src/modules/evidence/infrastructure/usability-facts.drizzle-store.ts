@@ -1,8 +1,8 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull } from 'drizzle-orm'
 import type { Db } from '#platform/db.ts'
 import type { UsabilityFactStore } from '../application/usability-ports.ts'
-import type { Polarity, Translation } from '../domain/facts.ts'
-import type { UsabilityFact } from '../domain/usability-facts.ts'
+import type { FactStatus, Polarity, Translation } from '../domain/facts.ts'
+import type { TaskOutcomes, UsabilityFact } from '../domain/usability-facts.ts'
 import { evidenceFacts, evidenceUsabilitySupports } from './schema.ts'
 
 type FactRow = typeof evidenceFacts.$inferSelect
@@ -10,25 +10,37 @@ type SupportRow = typeof evidenceUsabilitySupports.$inferSelect
 
 const factOf = (r: FactRow, s: SupportRow): UsabilityFact => ({
   id: r.id,
-  observationId: s.observationId,
   studyId: r.studyId,
-  sessionId: r.sessionId ?? '',
+  sessionId: r.sessionId,
   statement: { en: r.statementEn, fr: r.statementFr },
   translation: r.translation as Translation,
   polarity: r.polarity as Polarity,
   theme: { id: r.themeId ?? '', title: r.themeTitle ?? '' },
   origin: r.origin as 'ai' | 'person',
-  status: r.status as UsabilityFact['status'],
-  support: {
-    quote: s.quote,
-    momentMs: s.momentMs,
-    screenshotKey: s.screenshotKey,
-    participant: s.participant,
-  },
-  decidedBy: r.decidedBy ?? '',
-  decidedAt: r.decidedAt ?? r.createdAt,
+  status: r.status as FactStatus,
+  support:
+    s.taskId !== null
+      ? {
+          kind: 'task',
+          taskId: s.taskId,
+          outcomes: (s.outcomes ?? NO_OUTCOMES) as TaskOutcomes,
+          sessions: s.sessions ?? 0,
+          figuresChanged: s.figuresChanged,
+        }
+      : {
+          kind: 'observation',
+          observationId: s.observationId ?? '',
+          quote: s.quote,
+          momentMs: s.momentMs ?? 0,
+          screenshotKey: s.screenshotKey,
+          participant: s.participant,
+        },
+  decidedBy: r.decidedBy,
+  decidedAt: r.decidedAt,
   version: r.version,
 })
+
+const NO_OUTCOMES: TaskOutcomes = { success: 0, partial: 0, failure: 0, notAttempted: 0 }
 
 const factRow = (f: UsabilityFact) => ({
   statementEn: f.statement.en,
@@ -44,13 +56,32 @@ const factRow = (f: UsabilityFact) => ({
   version: f.version,
 })
 
-const supportRow = (f: UsabilityFact) => ({
-  observationId: f.observationId,
-  quote: f.support.quote,
-  momentMs: f.support.momentMs,
-  screenshotKey: f.support.screenshotKey,
-  participant: f.support.participant,
-})
+const supportRow = (f: UsabilityFact) =>
+  f.support.kind === 'task'
+    ? {
+        observationId: null,
+        quote: null,
+        momentMs: null,
+        screenshotKey: null,
+        participant: null,
+        studyId: f.studyId,
+        taskId: f.support.taskId,
+        outcomes: f.support.outcomes,
+        sessions: f.support.sessions,
+        figuresChanged: f.support.figuresChanged,
+      }
+    : {
+        observationId: f.support.observationId,
+        quote: f.support.quote,
+        momentMs: f.support.momentMs,
+        screenshotKey: f.support.screenshotKey,
+        participant: f.support.participant,
+        studyId: null,
+        taskId: null,
+        outcomes: null,
+        sessions: null,
+        figuresChanged: false,
+      }
 
 /** Spec 038: usability facts, in the facts table with source `usability` and their support. */
 export const createUsabilityFactStore = (db: Db): UsabilityFactStore => {
@@ -91,22 +122,39 @@ export const createUsabilityFactStore = (db: Db): UsabilityFactStore => {
           .onConflictDoUpdate({ target: evidenceUsabilitySupports.factId, set: supportRow(fact) })
       })
     },
-    save: async (fact, expected) => {
-      const done = await db
-        .update(evidenceFacts)
-        .set(factRow(fact))
-        .where(and(eq(evidenceFacts.id, fact.id), eq(evidenceFacts.version, expected), usability))
-        .returning({ id: evidenceFacts.id })
-      return done.length ? 'ok' : 'conflict'
+    save: async (fact, expected) =>
+      db.transaction(async (tx) => {
+        const done = await tx
+          .update(evidenceFacts)
+          .set(factRow(fact))
+          .where(and(eq(evidenceFacts.id, fact.id), eq(evidenceFacts.version, expected), usability))
+          .returning({ id: evidenceFacts.id })
+        if (!done.length) return 'conflict' as const
+        await tx
+          .update(evidenceUsabilitySupports)
+          .set(supportRow(fact))
+          .where(eq(evidenceUsabilitySupports.factId, fact.id))
+        return 'ok' as const
+      }),
+    // The support goes with its fact (cascade).
+    deleteIds: async (ids) => {
+      if (ids.length)
+        await db.delete(evidenceFacts).where(and(usability, inArray(evidenceFacts.id, [...ids])))
     },
-    deleteByObservation: async (observationId) => {
-      const ids = db
-        .select({ id: evidenceUsabilitySupports.factId })
-        .from(evidenceUsabilitySupports)
-        .where(eq(evidenceUsabilitySupports.observationId, observationId))
-      // The support goes with its fact (cascade).
-      await db.delete(evidenceFacts).where(and(usability, inArray(evidenceFacts.id, ids)))
-    },
+    ofSession: async (sessionId) =>
+      read(
+        and(
+          eq(evidenceFacts.sessionId, sessionId),
+          isNotNull(evidenceUsabilitySupports.observationId),
+        ) as ReturnType<typeof eq>,
+      ),
+    tasksOf: async (studyId) =>
+      read(
+        and(
+          eq(evidenceFacts.studyId, studyId),
+          isNotNull(evidenceUsabilitySupports.taskId),
+        ) as ReturnType<typeof eq>,
+      ),
     ofStudies: async (studyIds) =>
       studyIds.length === 0 ? [] : read(inArray(evidenceFacts.studyId, [...studyIds])),
     byIds: async (ids) => (ids.length === 0 ? [] : read(inArray(evidenceFacts.id, [...ids]))),
@@ -121,7 +169,8 @@ export const createMemoryUsabilityFactStore = (): UsabilityFactStore & {
   const all = () => [...facts.values()]
   return {
     facts,
-    byObservation: async (id) => all().find((f) => f.observationId === id) ?? null,
+    byObservation: async (id) =>
+      all().find((f) => f.support.kind === 'observation' && f.support.observationId === id) ?? null,
     get: async (id) => facts.get(id) ?? null,
     put: async (fact) => {
       facts.set(fact.id, fact)
@@ -131,9 +180,13 @@ export const createMemoryUsabilityFactStore = (): UsabilityFactStore & {
       facts.set(fact.id, fact)
       return 'ok'
     },
-    deleteByObservation: async (id) => {
-      for (const f of all()) if (f.observationId === id) facts.delete(f.id)
+    deleteIds: async (ids) => {
+      for (const id of ids) facts.delete(id)
     },
+    ofSession: async (sessionId) =>
+      all().filter((f) => f.sessionId === sessionId && f.support.kind === 'observation'),
+    tasksOf: async (studyId) =>
+      all().filter((f) => f.studyId === studyId && f.support.kind === 'task'),
     ofStudies: async (ids) => all().filter((f) => ids.includes(f.studyId)),
     byIds: async (ids) => ids.flatMap((id) => facts.get(id) ?? []),
   }

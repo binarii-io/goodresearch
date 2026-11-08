@@ -57,8 +57,8 @@ export const polarityOf = (kind: ObservationKind): 'positive' | 'negative' | 'ne
       : 'neutral'
 
 /** Facts come from findings, not from questionnaire answers (results of the study instead). */
-export const givesFact = (o: Pick<Observation, 'kind' | 'status'>): boolean =>
-  o.kind !== 'sus-answer' && (o.status === 'accepted' || o.status === 'edited')
+export const givesFact = (o: Pick<Observation, 'kind' | 'status' | 'judge' | 'arbiter'>): boolean =>
+  o.kind !== 'sus-answer' && (o.status !== 'proposed' || !checksRejected(o))
 
 const plain = (t: string) =>
   t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\W+/g, ' ').trim()

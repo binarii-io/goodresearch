@@ -24,20 +24,24 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AcceptAnyFactsInput,
   AcceptFactsInput,
   AddVerbatimInput,
   AttributeSpeakerInput,
   CreateFactInput,
   CreateSurveyFactInput,
   Created,
+  DecideAnyFactInput,
   DecideFactInput,
   DecideSurveyFactInput,
   EstimateFactsRunParams,
+  FactBoardPage,
   FactsBulkResult,
   FactsEstimate,
   FactsOverview,
   FactsPage,
   FactsRunStarted,
+  GetFactBoardParams,
   InterviewFacts,
   ListFactsParams,
   ListSurveyFactsParams,
@@ -1351,6 +1355,278 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getAcceptFactsMutationOptions(options), queryClient);
+    }
+    export const getGetFactBoardUrl = (studyId: string,
+    params?: GetFactBoardParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/studies/${studyId}/fact-board?${stringifiedParams}` : `/api/studies/${studyId}/fact-board`
+}
+
+export const getFactBoard = async (studyId: string,
+    params?: GetFactBoardParams, options?: Parameters<typeof apiFetch>[1]): Promise<FactBoardPage> => {
+
+  return apiFetch<FactBoardPage>(getGetFactBoardUrl(studyId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFactBoardQueryKey = (studyId: string,
+    params?: GetFactBoardParams,) => {
+    return [
+    `/api/studies/${studyId}/fact-board`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFactBoardQueryOptions = <TData = Awaited<ReturnType<typeof getFactBoard>>, TError = unknown>(studyId: string,
+    params?: GetFactBoardParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFactBoardQueryKey(studyId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFactBoard>>> = ({ signal }) => getFactBoard(studyId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFactBoard>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFactBoardQueryResult = NonNullable<Awaited<ReturnType<typeof getFactBoard>>>
+export type GetFactBoardQueryError = unknown
+
+
+export function useGetFactBoard<TData = Awaited<ReturnType<typeof getFactBoard>>, TError = unknown>(
+ studyId: string,
+    params: undefined |  GetFactBoardParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactBoard>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getFactBoard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactBoard<TData = Awaited<ReturnType<typeof getFactBoard>>, TError = unknown>(
+ studyId: string,
+    params?: GetFactBoardParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactBoard>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getFactBoard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactBoard<TData = Awaited<ReturnType<typeof getFactBoard>>, TError = unknown>(
+ studyId: string,
+    params?: GetFactBoardParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFactBoard<TData = Awaited<ReturnType<typeof getFactBoard>>, TError = unknown>(
+ studyId: string,
+    params?: GetFactBoardParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactBoard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFactBoardQueryOptions(studyId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getDecideAnyFactUrl = (factId: string,) => {
+
+
+
+
+  return `/api/facts/${factId}/decision`
+}
+
+export const decideAnyFact = async (factId: string,
+    decideAnyFactInput: DecideAnyFactInput, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<void>(getDecideAnyFactUrl(factId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(decideAnyFactInput)
+  }
+);}
+
+
+
+
+
+export const getDecideAnyFactMutationKey = () => ['decideAnyFact'] as const;
+
+export const getDecideAnyFactMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideAnyFact>>, TError,DecideAnyFactMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideAnyFact>>, TError,DecideAnyFactMutationVariables, TContext> => {
+
+const mutationKey = getDecideAnyFactMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideAnyFact>>, DecideAnyFactMutationVariables> = (props) => {
+          const {factId,data} = props ?? {};
+
+          return  decideAnyFact(factId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideAnyFactMutationResult = NonNullable<Awaited<ReturnType<typeof decideAnyFact>>>
+    export type DecideAnyFactMutationBody = DecideAnyFactInput
+    export type DecideAnyFactMutationError = unknown
+    export type DecideAnyFactMutationVariables = {factId: string;data: DecideAnyFactInput}
+
+    export const useDecideAnyFact = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideAnyFact>>, TError,DecideAnyFactMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof decideAnyFact>>,
+        TError,
+        DecideAnyFactMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideAnyFactMutationOptions(options), queryClient);
+    }
+    export const getAcceptAnyFactsUrl = () => {
+
+
+
+
+  return `/api/facts/accept`
+}
+
+export const acceptAnyFacts = async (acceptAnyFactsInput: AcceptAnyFactsInput, options?: Parameters<typeof apiFetch>[1]): Promise<FactsBulkResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<FactsBulkResult>(getAcceptAnyFactsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(acceptAnyFactsInput)
+  }
+);}
+
+
+
+
+
+export const getAcceptAnyFactsMutationKey = () => ['acceptAnyFacts'] as const;
+
+export const getAcceptAnyFactsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptAnyFacts>>, TError,AcceptAnyFactsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptAnyFacts>>, TError,AcceptAnyFactsMutationVariables, TContext> => {
+
+const mutationKey = getAcceptAnyFactsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptAnyFacts>>, AcceptAnyFactsMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  acceptAnyFacts(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptAnyFactsMutationResult = NonNullable<Awaited<ReturnType<typeof acceptAnyFacts>>>
+    export type AcceptAnyFactsMutationBody = AcceptAnyFactsInput
+    export type AcceptAnyFactsMutationError = unknown
+    export type AcceptAnyFactsMutationVariables = {data: AcceptAnyFactsInput}
+
+    export const useAcceptAnyFacts = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptAnyFacts>>, TError,AcceptAnyFactsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof acceptAnyFacts>>,
+        TError,
+        AcceptAnyFactsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAcceptAnyFactsMutationOptions(options), queryClient);
     }
     export const getTranslateFactUrl = (studyId: string,
     factId: string,) => {

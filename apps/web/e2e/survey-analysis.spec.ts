@@ -141,7 +141,7 @@ test.describe('spec 029 - survey analysis', () => {
     await expect(
       facts.getByText('83.3 % of the 6 respondents agree with “Planning is easy” (small base).'),
     ).toBeVisible()
-    await facts.getByRole('button', { name: 'Accept' }).click()
+    await facts.getByRole('button', { name: 'Accept', exact: true }).click()
     await facts.getByRole('tab', { name: 'Accepted' }).click()
     await expect(facts.getByText(/agree with “Planning is easy”/)).toBeVisible()
 

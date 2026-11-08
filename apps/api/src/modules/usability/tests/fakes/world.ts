@@ -52,6 +52,13 @@ export class MemoryStore implements UsabilityStore {
         counts.set(x.analysisId, (counts.get(x.analysisId) ?? 0) + 1)
     return counts
   }
+  async analysedStudies() {
+    return [
+      ...new Set(
+        [...this.analyses.values()].filter((a) => a.state === 'done').map((a) => a.studyId),
+      ),
+    ]
+  }
   async restoreAnalysis(a: SessionAnalysis) {
     this.analyses.set(a.id, a)
   }
@@ -323,6 +330,8 @@ export class World {
   workdirs = { open: 0 }
   stored = new Map<string, Uint8Array>()
   facts = new Map<string, Parameters<Facts['upsert']>[0]>()
+  /** Spec 039: the task facts last synced. */
+  taskFacts: Parameters<Facts['syncTasks']>[1] = []
   people: { sessionId: string; text: string }[] = []
   jobs: AnalysisJob[] = []
   /** Videos Drive stops giving in the middle of the copy. */
@@ -424,7 +433,23 @@ export class World {
           this.facts.set(input.observationId, input)
           return { ok: true, value: { factId: `fact-${input.observationId}` } }
         },
-        withdraw: async (id) => void this.facts.delete(id),
+        remove: async (id) => void this.facts.delete(id),
+        syncSession: async (sessionId, items) => {
+          for (const [id, f] of [...this.facts])
+            if (f.sessionId === sessionId && !items.some((i) => i.observationId === id))
+              this.facts.delete(id)
+          for (const i of items) this.facts.set(i.observationId, i)
+        },
+        syncTasks: async (_studyId, tasks) => {
+          this.taskFacts = tasks.filter(
+            (t) =>
+              t.outcomes.success +
+                t.outcomes.partial +
+                t.outcomes.failure +
+                t.outcomes.notAttempted >
+              0,
+          )
+        },
       },
       enqueue: async (job) => {
         if (this.queueRefuses) return false

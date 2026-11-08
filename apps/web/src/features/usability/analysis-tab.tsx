@@ -38,6 +38,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
+import { FactBoard } from '../facts/fact-board.tsx'
 import { READINESS } from '../fieldwork/labels.ts'
 import { errorMessage } from '../workspace/errors.ts'
 import { type ReadingItem, ReadingList } from '../workspace/reading-list.tsx'
@@ -215,6 +216,14 @@ export function UsabilityAnalysisTab({
         )}
       </section>
       <Results studyId={studyId} />
+      {/* Spec 039: the study's facts, decided as in every study; insights read them. */}
+      <section aria-labelledby="usability-facts-heading" className="grid gap-4">
+        <div className="grid gap-1">
+          <SectionTitle id="usability-facts-heading">{t`Facts`}</SectionTitle>
+          <p className="text-muted-foreground text-sm">{t`What the sessions establish: each observation and each task's outcomes give a fact. Decide them here or in the session; the project's insights read them.`}</p>
+        </div>
+        <FactBoard studyId={studyId} onOpenObservation={(sessionId) => setOpen(sessionId)} />
+      </section>
     </div>
   )
 }

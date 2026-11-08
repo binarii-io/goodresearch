@@ -208,6 +208,11 @@ msgstr "{0} ({1} fois, {2} extraits affichés)"
 msgid "{0} ({1} times)"
 msgstr "{0} ({1} fois)"
 
+#. placeholder {0}: s.name
+#: src/features/synthesis/insight-run-dialog.tsx
+msgid "{0} (no fact yet)"
+msgstr "{0} (aucun fait pour l’instant)"
+
 #. placeholder {0}: i18n._(STAGES[a.stage])
 #. placeholder {1}: step + 1
 #. placeholder {2}: STAGE_ORDER.length
@@ -223,6 +228,7 @@ msgstr "{0} → {1}"
 
 #. placeholder {0}: r.done
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/facts/fact-board.tsx
 msgid "{0} accepted"
 msgstr "{0} acceptés"
 
@@ -231,6 +237,12 @@ msgstr "{0} acceptés"
 #: src/features/enrichment/lexicon-table.tsx
 msgid "{0} accepted, {1} left to decide"
 msgstr "{0} acceptés, {1} restent à décider"
+
+#. placeholder {0}: r.done
+#. placeholder {1}: r.changed
+#: src/features/facts/fact-board.tsx
+msgid "{0} accepted; {1} changed meanwhile, left as they are"
+msgstr "{0} acceptés ; {1} modifiés entre-temps, laissés tels quels"
 
 #. placeholder {0}: b.agreed
 #. placeholder {1}: b.noOpinion
@@ -477,7 +489,9 @@ msgid "{0} remarks"
 msgstr "{0} remarques"
 
 #. placeholder {0}: c.respondents
+#. placeholder {0}: e.base
 #. placeholder {0}: i.confidence.respondents
+#: src/features/facts/fact-board.tsx
 #: src/features/synthesis/insight-card.tsx
 #: src/features/synthesis/insight-panel.tsx
 msgid "{0} respondents"
@@ -538,6 +552,11 @@ msgstr "{0} à décider · {1} acceptées · {2} refusées"
 msgid "{0} turns were not reviewed; attribute their speakers in Analysis."
 msgstr "{0} tours de parole n'ont pas été relus ; attribuez leurs locuteurs dans Analyse."
 
+#. placeholder {0}: e.count
+#: src/features/facts/fact-board.tsx
+msgid "{0} verbatims"
+msgstr "{0} verbatims"
+
 #. placeholder {0}: i.lost
 #: src/features/analysis/analysis-tab.tsx
 msgid "{0} verbatims no longer in the text"
@@ -576,6 +595,10 @@ msgstr "{counted, plural, one {# réponse comptée} other {# réponses comptées
 #: src/features/quality/figures.tsx
 msgid "{counts}; {0} disagreed, not counted"
 msgstr "{counts} ; {0} pas d'accord, non comptés"
+
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "{decided} validated insights, {toDecide} to decide."
+msgstr "{decided} insights validés, {toDecide} à décider."
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{excluded} excluded"
@@ -971,11 +994,10 @@ msgstr "À propos de cette étude"
 msgid "About you"
 msgstr "Votre profil"
 
-#: src/features/analysis/fact-card.tsx
 #: src/features/enrichment/interview-cleaning.tsx
+#: src/features/facts/fact-decision.tsx
 #: src/features/preparation/drive-review.tsx
 #: src/features/surveys/open-item.tsx
-#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 #: src/features/usability/session-review.tsx
@@ -1004,6 +1026,10 @@ msgstr "Tout accepter"
 #: src/features/enrichment/lexicon-table.tsx
 msgid "Accept all shown ({0})"
 msgstr "Tout accepter ({0})"
+
+#: src/features/facts/accept-all.tsx
+msgid "Accept all shown ({count})"
+msgstr "Tout accepter ({count})"
 
 #: src/features/assistant/interview-lines-card.tsx
 #: src/features/assistant/proposal-card.tsx
@@ -1038,12 +1064,13 @@ msgstr "Accepter : {0}"
 msgid "Accept: {label}"
 msgstr "Accepter : {label}"
 
-#: src/features/analysis/fact-card.tsx
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/facts/fact-decision.tsx
+#: src/features/facts/labels.ts
 #: src/features/surveys/open-item.tsx
 #: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/facts-panel.tsx
@@ -1057,6 +1084,11 @@ msgstr "Accepté"
 msgctxt "feminine"
 msgid "Accepted"
 msgstr "Acceptée"
+
+#. placeholder {0}: (data?.counts.accepted ?? 0) + (data?.counts.edited ?? 0)
+#: src/features/facts/fact-board.tsx
+msgid "Accepted ({0})"
+msgstr "Acceptés ({0})"
 
 #: src/features/preparation/drive-review.tsx
 msgid "Accepted changes are applied to the app; rejected ones are replaced in Drive at the next update."
@@ -1399,6 +1431,7 @@ msgstr "IA, d’après le lexique"
 #: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/facts/fact-board.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/remarks-list.tsx
 #: src/features/surveys/responses-list.tsx
@@ -2109,6 +2142,7 @@ msgstr "Je ne sais pas : {excerpt}"
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/enrichment/term-dialogs.tsx
+#: src/features/facts/fact-board.tsx
 #: src/features/fieldwork/analysis.tsx
 #: src/features/fieldwork/proposals.tsx
 #: src/features/fieldwork/session-dialog.tsx
@@ -2952,12 +2986,17 @@ msgstr "décidé par {0}"
 msgid "Decided observations and outcomes stay; only what is still to review is replaced."
 msgstr "Les observations et résultats décidés restent ; seul ce qui reste à revoir est remplacé."
 
+#. placeholder {0}: e.sessions
+#: src/features/facts/fact-board.tsx
+msgid "Decided outcomes of {0} sessions"
+msgstr "Résultats décidés de {0} séances"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Decided terms stay as they are; new spellings are proposed on them."
 msgstr "Les termes décidés restent tels quels ; les nouvelles graphies leur sont proposées."
 
-#: src/features/analysis/fact-card.tsx
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/facts/fact-decision.tsx
 #: src/features/preparation/drive-review.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -3254,11 +3293,10 @@ msgstr "question de facilité après chaque tâche"
 msgid "Ease: {0}/7"
 msgstr "Facilité : {0}/7"
 
-#: src/features/analysis/fact-card.tsx
+#: src/features/facts/fact-decision.tsx
 #: src/features/preparation/preparation-tab.tsx
 #: src/features/preparation/protocol-tab.tsx
 #: src/features/preparation/questionnaire-tab.tsx
-#: src/features/surveys/survey-facts.tsx
 #: src/features/usability/session-review.tsx
 msgid "Edit"
 msgstr "Modifier"
@@ -3291,6 +3329,7 @@ msgstr "Modifier le protocole de test"
 
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
+#: src/features/facts/labels.ts
 #: src/features/synthesis/labels.ts
 #: src/features/usability/session-review.tsx
 msgid "Edited"
@@ -3592,6 +3631,7 @@ msgstr "Fait proposé : décidez-le dans l’onglet Faits."
 #: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/insight-run-dialog.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Facts"
 msgstr "Faits"
 
@@ -3711,6 +3751,10 @@ msgstr "Chiffre modifié : aujourd’hui {0}, base {1}."
 #: src/features/surveys/survey-analysis-tab.tsx
 msgid "Figures"
 msgstr "Chiffres"
+
+#: src/features/facts/fact-board.tsx
+msgid "Figures changed"
+msgstr "Chiffres modifiés"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/proposals.tsx
@@ -5621,6 +5665,7 @@ msgstr "Nouveau verbatim"
 
 #: src/features/analysis/facts-list.tsx
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/facts/fact-board.tsx
 #: src/features/surveys/responses-list.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/workspace/pager.tsx
@@ -5638,6 +5683,10 @@ msgstr "Prochaine étape"
 #: src/features/synthesis/deck-slide.tsx
 msgid "Next steps"
 msgstr "Prochaines étapes"
+
+#: src/features/synthesis/insight-run-dialog.tsx
+msgid "No accepted fact is left to read in these studies: read the facts still to decide, or decide some first."
+msgstr "Il ne reste aucun fait accepté à lire dans ces études : lisez les faits encore à décider, ou décidez-en d’abord."
 
 #: src/features/synthesis/labels.ts
 msgid "No accepted fact to read."
@@ -5705,6 +5754,7 @@ msgstr "Sans fait"
 
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx
+#: src/features/facts/fact-board.tsx
 msgid "No fact here."
 msgstr "Aucun fait ici."
 
@@ -5715,6 +5765,10 @@ msgstr "Aucun fait ici. Utilisez « Trouver les faits », ou faites-en un depuis
 #: src/features/synthesis/insight-panel.tsx
 msgid "No fact linked."
 msgstr "Aucun fait lié."
+
+#: src/features/facts/fact-board.tsx
+msgid "No fact to decide."
+msgstr "Aucun fait à décider."
 
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/workspace/errors.ts
@@ -5916,8 +5970,8 @@ msgid "No study yet. A study collects evidence for this project, for example a s
 msgstr "Aucune étude pour l'instant. Une étude recueille des preuves pour ce projet, par exemple une série d'entretiens."
 
 #: src/features/synthesis/insight-run-dialog.tsx
-msgid "No study you can open has accepted facts."
-msgstr "Aucune étude que vous pouvez ouvrir n'a de faits acceptés."
+msgid "No study you can open has facts yet."
+msgstr "Aucune étude que vous pouvez ouvrir n’a encore de faits."
 
 #: src/features/surveys/survey-fieldwork-tab.tsx
 msgid "No target audience: every response with consent counts."
@@ -6031,6 +6085,14 @@ msgstr "Personne pour l'instant."
 #: src/features/fieldwork/session-dialog.tsx
 msgid "None"
 msgstr "Aucun"
+
+#: src/features/synthesis/recommendation-run-dialog.tsx
+msgid "None is validated yet: the insights still to decide are read, and the recommendations found are marked “to validate”."
+msgstr "Aucun n’est encore validé : les insights encore à décider sont lus, et les recommandations trouvées sont marquées « à valider »."
+
+#: src/features/synthesis/insight-run-dialog.tsx
+msgid "None of these studies has accepted facts yet: their facts still to decide are read, and the insights found are marked “to validate”."
+msgstr "Aucune de ces études n’a encore de faits acceptés : leurs faits encore à décider sont lus, et les insights trouvés sont marqués « à valider »."
 
 #: src/features/analysis/labels.ts
 msgid "Not analysed"
@@ -6526,6 +6588,7 @@ msgstr "Organisation"
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/labels.ts
+#: src/features/facts/fact-board.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/labels.ts
 #: src/features/synthesis/deck-slide.tsx
@@ -6600,6 +6663,7 @@ msgid "Owner: {owner}"
 msgstr "Propriétaire : {owner}"
 
 #: src/features/analysis/facts-list.tsx
+#: src/features/facts/fact-board.tsx
 #: src/features/surveys/responses-list.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/workspace/pager.tsx
@@ -6844,6 +6908,7 @@ msgstr "Présenter"
 
 #: src/features/analysis/facts-list.tsx
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/facts/fact-board.tsx
 #: src/features/surveys/responses-list.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/workspace/pager.tsx
@@ -7340,11 +7405,10 @@ msgstr "Refuser le consentement ne met plus fin à ce formulaire. Relisez d’ab
 msgid "Region"
 msgstr "Région"
 
-#: src/features/analysis/fact-card.tsx
 #: src/features/enrichment/interview-cleaning.tsx
+#: src/features/facts/fact-decision.tsx
 #: src/features/preparation/drive-review.tsx
 #: src/features/surveys/open-item.tsx
-#: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
 #: src/features/usability/session-review.tsx
@@ -7378,12 +7442,13 @@ msgstr "Rejeter : {0}"
 msgid "Reject: {label}"
 msgstr "Rejeter : {label}"
 
-#: src/features/analysis/fact-card.tsx
 #: src/features/analysis/facts-list.tsx
 #: src/features/analysis/interview-facts.tsx
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/facts/fact-decision.tsx
+#: src/features/facts/labels.ts
 #: src/features/surveys/open-item.tsx
 #: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
@@ -7398,6 +7463,11 @@ msgstr "Rejeté"
 msgctxt "feminine"
 msgid "Rejected"
 msgstr "Rejetée"
+
+#. placeholder {0}: data?.counts.rejected ?? 0
+#: src/features/facts/fact-board.tsx
+msgid "Rejected ({0})"
+msgstr "Rejetés ({0})"
 
 #. placeholder {0}: o.arbiterReason ?? ''
 #: src/features/usability/session-review.tsx
@@ -7532,6 +7602,10 @@ msgstr "Le renommage nécessite votre autorisation de modifier des fichiers dans
 #: src/features/fieldwork/proposals.tsx
 msgid "Renaming…"
 msgstr "Renommage…"
+
+#: src/features/facts/fact-decision.tsx
+msgid "Reopen"
+msgstr "Rouvrir"
 
 #. placeholder {0}: term.form
 #: src/features/enrichment/lexicon-table.tsx
@@ -7774,6 +7848,7 @@ msgstr "même heure"
 
 #: src/features/analysis/fact-dialog.tsx
 #: src/features/enrichment/term-dialogs.tsx
+#: src/features/facts/fact-board.tsx
 #: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/schedule.tsx
 #: src/features/surveys/open-item.tsx
@@ -7874,6 +7949,7 @@ msgstr "Écran à {0}"
 msgid "Script"
 msgstr "Script"
 
+#: src/features/facts/fact-board.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insights-picker.tsx
 msgid "Search"
@@ -7928,6 +8004,7 @@ msgstr "Voir dans les insights"
 msgid "See in the interview"
 msgstr "Voir dans l'entretien"
 
+#: src/features/facts/fact-board.tsx
 #: src/features/synthesis/facts-panel.tsx
 msgid "See in the session"
 msgstr "Voir dans la séance"
@@ -8297,6 +8374,7 @@ msgstr "État"
 msgid "State of the form"
 msgstr "État du formulaire"
 
+#: src/features/facts/fact-board.tsx
 #: src/features/preparation/protocol-markdown.ts
 #: src/features/preparation/protocol-view.tsx
 #: src/features/surveys/survey-facts.tsx
@@ -8313,6 +8391,7 @@ msgstr "Énoncé enregistré"
 #: src/features/analysis/interview-facts.tsx
 #: src/features/enrichment/interview-cleaning.tsx
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/facts/fact-board.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/schedule.tsx
@@ -9892,16 +9971,20 @@ msgstr "Pour créer les documents dans le dossier de l’étude, goodresearch de
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/enrichment/lexicon-table.tsx
+#: src/features/facts/labels.ts
 #: src/features/fieldwork/labels.ts
 #: src/features/fieldwork/session-dialog.tsx
 #: src/features/surveys/open-item.tsx
 #: src/features/surveys/survey-facts.tsx
+#: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/labels.ts
 #: src/features/usability/session-review.tsx
 msgid "To decide"
 msgstr "À décider"
 
+#. placeholder {0}: data?.counts.toDecide ?? 0
 #. placeholder {0}: toDecide(s, tests)
+#: src/features/facts/fact-board.tsx
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "To decide ({0})"
 msgstr "À décider ({0})"
@@ -9969,7 +10052,6 @@ msgstr "à valider"
 
 #: src/features/fieldwork/labels.ts
 #: src/features/synthesis/deck-slide.tsx
-#: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/insights-picker.tsx
 #: src/features/synthesis/labels.ts
 msgid "To validate"
@@ -10476,6 +10558,10 @@ msgstr "Ce que l'IA propose reste une proposition tant que vous ne l'acceptez pa
 #: src/features/research/study-settings.tsx
 msgid "What the Analysis phase reads to find verbatims and facts."
 msgstr "Ce que la phase d'analyse lit pour trouver les verbatims et les faits."
+
+#: src/features/usability/analysis-tab.tsx
+msgid "What the sessions establish: each observation and each task's outcomes give a fact. Decide them here or in the session; the project's insights read them."
+msgstr "Ce que les séances établissent : chaque observation et les résultats de chaque tâche donnent un fait. Décidez-les ici ou dans la séance ; les insights du projet les lisent."
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "What this study wants to find out. Its AI steps read it."

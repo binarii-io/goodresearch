@@ -62,6 +62,14 @@ export const createUsabilityStore = (db: Db): UsabilityStore => ({
       toAnalysis,
     ),
 
+  analysedStudies: async () =>
+    (
+      await db
+        .selectDistinct({ studyId: usabilityAnalyses.studyId })
+        .from(usabilityAnalyses)
+        .where(eq(usabilityAnalyses.state, 'done'))
+    ).map((r) => r.studyId),
+
   analysisById: async (id) => {
     const [row] = await db.select().from(usabilityAnalyses).where(eq(usabilityAnalyses.id, id))
     return row ? toAnalysis(row) : null

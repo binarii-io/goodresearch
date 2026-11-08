@@ -273,4 +273,39 @@ describe('Verbatims and facts on PostgreSQL (spec 012)', () => {
         ).statusCode,
       ).toBe(403)
   })
+  it('decides and reopens an interview fact by the common path (spec 039)', async () => {
+    const board = async (status: string) =>
+      (await call(alex, 'GET', `/api/studies/${studyId}/fact-board?status=${status}`)).json<{
+        items: {
+          id: string
+          version: number
+          status: string
+          source: string
+          evidence: { kind: string }
+        }[]
+      }>()
+    const shown = (await board('all')).items
+    expect(shown.length).toBeGreaterThan(0)
+    expect(shown.every((f) => f.source === 'interview' && f.evidence.kind === 'verbatims')).toBe(
+      true,
+    )
+    const decided = shown.find((f) => f.status !== 'to-decide')
+    const target = decided ?? shown[0]
+    if (!target) throw new Error('fixture')
+    let version = target.version
+    if (!decided) {
+      const accepted = await call(alex, 'POST', `/api/facts/${target.id}/decision`, {
+        decision: 'accept',
+        version,
+      })
+      expect(accepted.statusCode).toBe(204)
+      version += 1
+    }
+    const reopened = await call(alex, 'POST', `/api/facts/${target.id}/decision`, {
+      decision: 'reopen',
+      version,
+    })
+    expect(reopened.statusCode).toBe(204)
+    expect((await board('to-decide')).items.some((f) => f.id === target.id)).toBe(true)
+  })
 })

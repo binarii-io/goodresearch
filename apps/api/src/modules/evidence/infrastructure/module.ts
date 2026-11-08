@@ -4,15 +4,19 @@ import type { Db } from '#platform/db.ts'
 import { type JobHandler, QUEUES } from '#platform/jobs.ts'
 import { makeAnalysisCommands } from '../application/commands/analysis-commands.ts'
 import { makeFactCommands } from '../application/commands/fact-commands.ts'
+import { makeFactDecisions } from '../application/commands/fact-decisions.ts'
 import { makeSurveyFactCommands } from '../application/commands/survey-fact-commands.ts'
 import { makeUsabilityFactCommands } from '../application/commands/usability-fact-commands.ts'
+import type { UsabilityDecisions } from '../application/fact-board-ports.ts'
 import type { AnalysisSources, EvidenceDeps, FactsAi } from '../application/ports.ts'
 import { makeAnalysisQueries } from '../application/queries/analysis-queries.ts'
+import { makeFactBoard } from '../application/queries/fact-board.ts'
 import { makeSurveyFactQueries } from '../application/queries/survey-fact-queries.ts'
 import { makeSynthesisReads } from '../application/queries/synthesis-reads.ts'
 import type { SurveyFactDeps, SurveySources } from '../application/survey-ports.ts'
 import { isFactsRunLive } from '../domain/analysis-run.ts'
 import { createEvidenceStore } from './evidence.drizzle-store.ts'
+import { createFactBoardStore } from './fact-board.drizzle-store.ts'
 import type { EvidenceHandlers } from './http.routes.ts'
 import { createSurveyFactStore } from './survey-facts.drizzle-store.ts'
 import { createUsabilityFactStore } from './usability-facts.drizzle-store.ts'
@@ -44,6 +48,8 @@ export const createEvidenceModule = (deps: {
   /** Spec 029: figures and themes of survey studies, bound late (Surveys is built after). */
   surveys: SurveySources
   enqueue: (queue: string, data: object, options?: { singletonKey?: string }) => Promise<boolean>
+  /** Spec 039: the Usability module decides an observation with its fact, bound late. */
+  usabilityDecisions?: () => UsabilityDecisions | null
   log?: { warn(object: object, message: string): void }
 }) => {
   const store = createEvidenceStore(deps.db)
@@ -83,9 +89,22 @@ export const createEvidenceModule = (deps: {
     newId,
     log: deps.log ?? console,
   })
+  // Spec 039: one Facts list and one decision path for every source.
+  const board = createFactBoardStore(deps.db)
+  const decisions = makeFactDecisions({
+    board,
+    studyAccess: deps.sources.studyAccess,
+    interviews: facts,
+    surveys: surveyFacts,
+    usabilityStore,
+    usability: observationFacts,
+    observations: () => deps.usabilityDecisions?.() ?? null,
+  })
   const handlers: EvidenceHandlers = {
     analysis,
     facts,
+    decisions,
+    board: makeFactBoard({ board, studyAccess: deps.sources.studyAccess }),
     queries: makeAnalysisQueries(evidence),
     surveyFacts,
     surveyFactQueries: makeSurveyFactQueries(surveyDeps),
@@ -128,10 +147,12 @@ export const createEvidenceModule = (deps: {
     reads,
     speakerAttributions,
     speakerAttributionsOf,
-    /** Spec 038: the facts of decided usability observations (the Usability module calls them). */
+    /** Specs 038, 039: the facts of usability observations and tasks (the Usability module calls them). */
     observationFacts: {
       upsert: observationFacts.upsert,
-      withdraw: observationFacts.withdraw,
+      remove: observationFacts.remove,
+      syncSession: observationFacts.syncSession,
+      syncTasks: observationFacts.syncTasks,
     },
   }
 }

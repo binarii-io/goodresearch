@@ -45,19 +45,25 @@ export function InsightRunDialog({
   const scopeId = useId()
   const [scope, setScope] = useState<'all' | 'unlinked'>(hasInsights ? 'unlinked' : 'all')
   // FR-003, update: facts still to decide may be read too; they are shown "to validate".
-  const [withProposed, setWithProposed] = useState(false)
+  // Spec 039: null = decided by the studies chosen (on when none has decided facts).
+  const [askedProposed, setWithProposed] = useState<boolean | null>(null)
   const [chosen, setChosen] = useState<string[] | null>(null)
   // The studies come with the first estimate: all those with facts are ticked.
   const probe = useEstimateInsightRun()
   const estimate = useEstimateInsightRun()
   const studies = probe.data?.studies ?? []
-  const usable = (s: (typeof studies)[number]) => s.facts > 0 || (withProposed && s.toDecide > 0)
+  // Spec 039 FR-012, FR-015: a study with facts to decide only can be chosen; one with no fact cannot.
+  const usable = (s: (typeof studies)[number]) => s.facts > 0 || s.toDecide > 0
   const selected = chosen ?? studies.filter(usable).map((s) => s.id)
+  const picked = studies.filter((s) => selected.includes(s.id))
+  const nothingDecided = picked.length > 0 && picked.every((s) => s.facts === 0)
+  // FR-013: nothing decided in the studies chosen, the facts still to decide are read by default.
+  const withProposed = askedProposed ?? nothingDecided
   useEffect(() => {
     if (!open) return
     setChosen(null)
     setScope(hasInsights ? 'unlinked' : 'all')
-    setWithProposed(false)
+    setWithProposed(null)
     probe.mutate({ projectId, data: { studyIds: [], scope: 'all' } })
   }, [open, hasInsights, projectId, probe.mutate])
   const key = `${selected.join(',')}|${scope}|${withProposed}`
@@ -70,7 +76,7 @@ export function InsightRunDialog({
   const cost = e?.cost === null ? t`unknown` : money(e?.cost ?? 0)
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="data-[size=default]:sm:max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle>{t`Find insights?`}</AlertDialogTitle>
           <AlertDialogDescription>
@@ -80,7 +86,7 @@ export function InsightRunDialog({
         <fieldset className="grid gap-2">
           <legend className="mb-1 font-medium text-sm">{t`Studies`}</legend>
           {studies.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t`No study you can open has accepted facts.`}</p>
+            <p className="text-muted-foreground text-sm">{t`No study you can open has facts yet.`}</p>
           ) : (
             studies.map((s) => {
               const id = `${scopeId}-${s.id}`
@@ -90,14 +96,18 @@ export function InsightRunDialog({
                     id={id}
                     checked={selected.includes(s.id)}
                     disabled={!usable(s)}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked) => {
                       setChosen(
                         checked === true ? [...selected, s.id] : selected.filter((x) => x !== s.id),
                       )
-                    }
+                      // FR-012: a study with facts to decide only is read through them.
+                      if (checked === true && s.facts === 0) setWithProposed(true)
+                    }}
                   />
                   <Label htmlFor={id} className="font-normal">
-                    {t`${s.name} (${s.facts} accepted facts, ${s.toDecide} to decide)`}
+                    {usable(s)
+                      ? t`${s.name} (${s.facts} accepted facts, ${s.toDecide} to decide)`
+                      : t`${s.name} (no fact yet)`}
                   </Label>
                 </div>
               )
@@ -134,6 +144,15 @@ export function InsightRunDialog({
               <span className="text-muted-foreground text-xs">{t`They are shown “to validate” in the insights, and count once accepted.`}</span>
             </Label>
           </div>
+          {withProposed && askedProposed === null && nothingDecided ? (
+            <p className="text-sm">{t`None of these studies has accepted facts yet: their facts still to decide are read, and the insights found are marked “to validate”.`}</p>
+          ) : null}
+          {!withProposed && nothingDecided ? (
+            <p
+              className="text-sm"
+              role="status"
+            >{t`No accepted fact is left to read in these studies: read the facts still to decide, or decide some first.`}</p>
+          ) : null}
         </fieldset>
         <div className="grid gap-2 text-sm" aria-live="polite">
           {selected.length === 0 ? null : !e ? (
