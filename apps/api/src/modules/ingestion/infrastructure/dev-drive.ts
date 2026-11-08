@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
-import { open, readFile, stat, writeFile } from 'node:fs/promises'
+import { open, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
@@ -235,14 +235,6 @@ export const createDevDrive = (appUrl: URL) => {
     getItem: async (token, id) => {
       known(token)
       return items.get(id) ?? null
-    },
-    downloadFile: async (token, id, toPath) => {
-      known(token)
-      const item = items.get(id)
-      if (!item?.mimeType.startsWith('video/')) return null
-      const bytes = await readFile(await devVideo(item))
-      await writeFile(toPath, bytes)
-      return { bytes: bytes.byteLength }
     },
     videoRange: async (token, id, range): Promise<VideoRange | null> => {
       known(token)

@@ -8,7 +8,9 @@ All configuration comes from environment variables, validated at boot by `packag
 | `AUTH_SECRET` | yes | (32+ random chars) | signs sessions |
 | `DATABASE_URL` | yes | `postgres://…` | |
 | `DATABASE_POOL_MAX`, `JOBS_POOL_MAX` | no (default `10` each) | `5` | connections per process for the app and for the job queue; keep (server instances + workers) × (both), plus 20 for `migrate`, under the database's connection limit |
-| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | yes | | S3-compatible store; `S3_FORCE_PATH_STYLE` (default `false`) |
+| `STORAGE_PROVIDER` | no (default `s3`) | `gcs` | `s3`: S3-compatible store with an access key; `gcs`: Google Cloud Storage with the service's own Google identity (Application Default Credentials), no key (spec 038 deployment) |
+| `GCS_BUCKET` | with `gcs` | `example-goodresearch` | The bucket, created by the deployer; the identity needs object read, write and delete on it |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | with `s3` | | S3-compatible store; `S3_FORCE_PATH_STYLE` (default `false`) |
 | `AUTH_PROVIDERS` | yes (empty = "sign-in not configured" page) | `google` | comma-separated provider keys |
 | `AUTH_<KEY>_DISPLAY_NAME` | per provider | `Google` | shown on the button |
 | `AUTH_<KEY>_ISSUER` | per provider | `https://accounts.google.com` | discovery at `<issuer>/.well-known/openid-configuration` |

@@ -1,6 +1,3 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   DriveAccessDenied,
@@ -349,23 +346,6 @@ describe('Drive fetch gateway: video bytes (spec 038)', () => {
     }
     return { fetch: fetch as typeof globalThis.fetch, ranges }
   }
-
-  it('downloads a file by ranges to a path, trying a failed range once more', async () => {
-    const { fetch, ranges } = media()
-    const gateway = createDriveFetchGateway({
-      clientId: 'c',
-      clientSecret: 's',
-      fetch,
-      retryDelayMs: 0,
-      downloadChunkBytes: 32,
-    })
-    const dir = await mkdtemp(join(tmpdir(), 'drive-test-'))
-    const path = join(dir, 'v.mp4')
-    expect(await gateway.downloadFile('refresh', 'v1', path)).toEqual({ bytes: 70 })
-    expect(new Uint8Array(await readFile(path))).toEqual(VIDEO)
-    expect(ranges).toEqual(['bytes=0-31', 'bytes=32-63', 'bytes=64-95'])
-    await rm(dir, { recursive: true, force: true })
-  })
 
   it('streams a range for the player, and says when the file is gone', async () => {
     const { fetch } = media()

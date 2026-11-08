@@ -4,5 +4,6 @@ import { createStorage } from './platform/storage.ts'
 
 const config = loadConfig(process.env)
 await runMigrations(config.databaseUrl)
-if (config.s3.createBucket) await createStorage(config.s3).ensureBucket()
+if (config.storage.provider === 's3' && config.storage.createBucket)
+  await createStorage(config.storage).ensureBucket()
 console.log('migrations applied')

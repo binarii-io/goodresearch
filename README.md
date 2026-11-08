@@ -9,7 +9,7 @@ goodresearch is an open-source, self-hostable app for user research teams. It he
 ## Principles
 
 - **AI proposes, humans decide.** Every AI output is a proposal until validated; human decisions are never overwritten.
-- **Provider-agnostic.** Bring your own identity provider (OIDC), LLM provider and S3-compatible storage. Runs anywhere with Docker.
+- **Provider-agnostic.** Bring your own identity provider (OIDC), LLM provider and object storage (S3-compatible, or Google Cloud Storage). Runs anywhere with Docker.
 - **Privacy by design.** Pseudonymised exports and AI synthesis inputs.
 
 ## Try it locally
@@ -24,7 +24,7 @@ Open <http://localhost:3000> and click **Sign in with Test provider**. On the te
 
 ## Deploy
 
-goodresearch ships as one image with three commands (`server`, `worker`, `migrate`) and needs PostgreSQL, an S3-compatible store and an OpenID Connect identity provider. `compose.yaml` runs all of it except the identity provider.
+goodresearch ships as one image with three commands (`server`, `worker`, `migrate`) and needs PostgreSQL, an object store (S3-compatible or Google Cloud Storage) and an OpenID Connect identity provider. `compose.yaml` runs all of it except the identity provider.
 
 1. **Create a sign-in client at your provider.** For Google: Google Cloud console → *APIs & Services* → *Credentials* → *Create credentials* → *OAuth client ID* → type *Web application*, authorised redirect URI `https://<your host>/api/auth/callback/google`. goodresearch only asks for `openid email profile`.
 2. **Configure.** Copy `.env.example` to `.env` and fill it: `APP_URL`, `AUTH_SECRET` (`openssl rand -base64 48`), S3 credentials, `AUTH_PROVIDERS=google` with `AUTH_GOOGLE_*`, your email in `ADMIN_EMAILS`, and the emails or domains of your colleagues in `ACCESS_ALLOWLIST`. Every variable is described in [the configuration contract](specs/001-walking-skeleton/contracts/configuration.md); invalid values stop the app at start with the variable's name.
@@ -43,7 +43,7 @@ The same image runs on platforms such as Cloud Run with a managed PostgreSQL and
 
 - **Services.** `server` (HTTP, scale on traffic; request timeout above the longest assistant answer, e.g. 15 min), `worker` (no HTTP, a fixed number of always-on instances with CPU always allocated) and `migrate` as a one-off job run before each rollout.
 - **Database.** PostgreSQL 18 on a private network, automated backups and point-in-time recovery on. Each process opens up to `DATABASE_POOL_MAX` + `JOBS_POOL_MAX` connections: size them so (max server instances + workers) × that total, plus 20 for the `migrate` job (it uses the default pools), stays under the instance's connection limit.
-- **Object storage.** Any S3-compatible store; for Google Cloud Storage use `S3_ENDPOINT=https://storage.googleapis.com`, an HMAC key of a service account, `S3_FORCE_PATH_STYLE=true` and `S3_CREATE_BUCKET=false` (create the bucket yourself).
+- **Object storage.** Any S3-compatible store with an access key. On Google Cloud, use `STORAGE_PROVIDER=gcs` and `GCS_BUCKET`: the service's own identity is used, no key (create the bucket yourself and give the identity object read, write and delete on it). Google Cloud Storage's S3 mode with an HMAC key is not enough: it does not delete several objects at once, which the screenshot sweep does.
 - **Restarts.** A redeploy or scale-in stops instances within seconds. A run whose worker stops (analysis, cleaning, insights…) can be started again after about 10 minutes, 35 for a Drive inventory, once the app sees it as interrupted (runs are not retried, so the AI provider is not billed twice). An assistant answer cut off by a restart shows as stopped after 30 minutes. Roll out outside working hours when you can.
 - **Least-privileged database role.** Tables follow the connection's `search_path`, so a role can run everything without `CREATE` on the database or on `public`: create the schemas `goodresearch` (or your name), `pgboss` and `drizzle`, owned by that role, and set its `search_path` to the first one. `migrate` creates a schema only when it is missing.
 - **Worker on a platform that only runs HTTP services.** With `PORT` set (some platforms set it themselves), the worker answers `GET /health` on it. It takes no requests but must keep running: at least one instance, with CPU always allocated.

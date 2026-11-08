@@ -47,9 +47,25 @@ describe('loadConfig', () => {
     expect(config.access.adminEmails).toEqual(['admin@example.org'])
     expect(config.logLevel).toBe('info')
     expect(config.port).toBe(3000)
-    expect(config.s3.createBucket).toBe(false)
+    expect(config.storage).toMatchObject({ provider: 's3', createBucket: false })
     expect(config.databasePoolMax).toBe(10)
     expect(config.jobsPoolMax).toBe(10)
+  })
+
+  it('stores in Google Cloud Storage with the service identity, or in S3 with its key', () => {
+    const gcs = loadConfig({
+      ...valid,
+      S3_ENDPOINT: undefined,
+      S3_REGION: undefined,
+      S3_BUCKET: undefined,
+      S3_ACCESS_KEY_ID: undefined,
+      S3_SECRET_ACCESS_KEY: undefined,
+      STORAGE_PROVIDER: 'gcs',
+      GCS_BUCKET: 'example-screens',
+    })
+    expect(gcs.storage).toEqual({ provider: 'gcs', bucket: 'example-screens' })
+    expect(errorOf({ ...valid, STORAGE_PROVIDER: 'gcs' })).toContain('GCS_BUCKET')
+    expect(errorOf({ ...valid, S3_BUCKET: undefined })).toContain('S3_BUCKET')
   })
 
   it('has the worker listen only when PORT is set', () => {

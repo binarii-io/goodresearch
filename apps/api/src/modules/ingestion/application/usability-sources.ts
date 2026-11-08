@@ -42,6 +42,15 @@ export type UsabilityAccess =
   | { readonly kind: 'not-found' }
   | { readonly kind: 'folder-required' }
 
+/** A video read from Drive as it comes; `size` when Drive says it. */
+export type VideoStream = {
+  readonly size: number | null
+  readonly chunks: AsyncIterable<Uint8Array>
+}
+
+/** Bytes asked of Drive per request while streaming a video (each is read as it arrives). */
+const STREAM_RANGE = 32 * 1024 * 1024
+
 export type UsabilitySources = {
   access(accountId: string, studyId: string): Promise<UsabilityAccess>
   /** The test sessions of a usability test study; empty for other types or without access. */
@@ -52,13 +61,15 @@ export type UsabilitySources = {
    * range, so it never builds the study's sessions (access is checked by `videoRange`).
    */
   sessionVideo(sessionId: string): Promise<{ studyId: string; fileId: string } | null>
-  /** The video's bytes to a local path, with the person's own Drive access. */
-  downloadVideo(
+  /**
+   * The video's bytes as Drive sends them, range after range, with the person's own access: the
+   * analysis copies them to its staging storage without ever holding the whole video.
+   */
+  streamVideo(
     accountId: string,
     studyId: string,
     fileId: string,
-    toPath: string,
-  ): Promise<{ bytes: number } | 'not-found' | 'access-lost'>
+  ): Promise<VideoStream | 'not-found' | 'access-lost'>
   /** A byte range of the video for the player, with the person's own Drive access. */
   videoRange(
     accountId: string,
@@ -83,6 +94,8 @@ export const makeUsabilitySources = (
   deps: IngestionDeps,
   queries: SessionQueries,
   analysis: AnalysisCommands,
+  /** Bytes per Drive request while streaming a video (tests use small ones). */
+  rangeBytes = STREAM_RANGE,
 ): UsabilitySources => {
   const actorOf = async (accountId: string, studyId: string) => {
     const visible = await deps.studies.getStudyAccess(accountId, studyId)
@@ -188,19 +201,46 @@ export const makeUsabilitySources = (
       return s?.videoFileId ? { studyId: s.studyId, fileId: s.videoFileId } : null
     },
 
-    downloadVideo: async (accountId, studyId, fileId, toPath) => {
-      if (!(await videoOfStudy(accountId, studyId, fileId))) return 'not-found'
+    streamVideo: async (accountId, studyId, fileId) => {
+      const file = await videoOfStudy(accountId, studyId, fileId)
+      if (!file) return 'not-found'
       const token = await tokenOf(accountId)
-      if (!deps.drive || !token) return 'access-lost'
-      try {
-        return (await deps.drive.gateway.downloadFile(token, fileId, toPath)) ?? 'not-found'
-      } catch (error) {
-        if (error instanceof DriveConnectionLost) {
-          await deps.store.markConnectionLost(accountId, error.reason)
-          return 'access-lost'
+      const drive = deps.drive
+      if (!drive || !token) return 'access-lost'
+      const step = rangeBytes
+      const read = async (start: number) => {
+        try {
+          return await drive.gateway.videoRange(token, fileId, `bytes=${start}-${start + step - 1}`)
+        } catch (error) {
+          if (error instanceof DriveConnectionLost)
+            await deps.store.markConnectionLost(accountId, error.reason)
+          throw error
         }
-        throw error
       }
+      // Nothing is asked of Drive until the copy reads: a copy that cannot start leaves no open
+      // response behind. Each range must start where the last one ended; a file Drive can no
+      // longer give fails the copy (the analysis then says the video is unreadable).
+      async function* chunks() {
+        let at = 0
+        for (;;) {
+          const part = await read(at)
+          if (!part) throw new Error('video no longer readable in Drive')
+          const started = Number(/^bytes (\d+)-/.exec(part.contentRange ?? '')?.[1] ?? Number.NaN)
+          if (part.status === 206 ? started !== at : at > 0)
+            throw new Error('Drive answered another range than asked')
+          let got = 0
+          for await (const bytes of part.body) {
+            got += bytes.byteLength
+            yield bytes
+          }
+          at += got
+          const total = Number(/\/(\d+)$/.exec(part.contentRange ?? '')?.[1])
+          // The whole file at once, its end reached, or a range shorter than asked (the last).
+          if (part.status === 200 || (Number.isFinite(total) && at >= total) || got < step) return
+        }
+      }
+      // No size announced: the inventory's may be stale; the last part tells the total.
+      return { size: null, chunks: chunks() }
     },
 
     videoRange: async (accountId, studyId, fileId, range) => {

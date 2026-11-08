@@ -1,4 +1,3 @@
-import { join } from 'node:path'
 import { type AnalysisFailure, type Stage, usabilityRef } from '../../domain/analysis.ts'
 import { chunksOf, ownedBy } from '../../domain/chunks.ts'
 import { dedupe, type Observation, QUOTE_MAX, TEXT_MAX } from '../../domain/observation.ts'
@@ -147,27 +146,25 @@ export const runSession = async (
   const work = await deps.media.workdir()
   try {
     await c.stage('preparing')
-    const local = join(work.path, 'video.mp4')
-    const got = await deps.sessions.download(
-      accountId,
-      session.studyId,
-      session.video.fileId,
-      local,
-    )
+    // Drive to the staging storage as the bytes come: the worker never holds the video.
+    const got = await deps.sessions.stream(accountId, session.studyId, session.video.fileId)
     if (got === 'not-found' || got === 'access-lost') throw new AnalysisStopped('VIDEO_UNREADABLE')
-    const durationMs = session.video.durationMs ?? (await deps.media.durationMs(local))
-    const video = await upload(
+    const video = await put(
       deps,
       accountId,
       staged,
-      local,
       `${c.analysisId}/video.mp4`,
       'video/mp4',
+      fromDrive(got.chunks),
+      got.size,
     )
+    // Where ffmpeg reads the copy, with a fresh access at each use (a run can last an hour).
+    const source = () => deps.staging.source(accountId, video)
+    const durationMs = session.video.durationMs ?? (await deps.media.durationMs(await source()))
 
     // The shared screen, so frames show the interface and not the call's tiles.
     const probe = await deps.media.frames(
-      local,
+      await source(),
       [0.1, 0.3, 0.5, 0.7, 0.9].map((f) => Math.round(f * durationMs)),
       null,
       960,
@@ -178,19 +175,15 @@ export const runSession = async (
     await c.stage('transcript')
     const spans = chunksOf(durationMs)
     const parts = await mapLimit(spans, AT_ONCE, async (span, i) => {
-      const file = await deps.media.audio(
-        local,
-        span.startMs,
-        span.endMs,
-        join(work.path, `audio-${i}.flac`),
-      )
-      const audio = await upload(
+      // The span's sound goes from ffmpeg to the staging storage as it is encoded.
+      const audio = await put(
         deps,
         accountId,
         staged,
-        file,
         `${c.analysisId}/audio-${i}.flac`,
         'audio/flac',
+        deps.media.audio(await source(), span.startMs, span.endMs),
+        null,
       )
       const read = await deps.ai.transcript(accountId, ref, audio, span, protocol.language)
       return {
@@ -209,11 +202,17 @@ export const runSession = async (
     await c.checkpoint()
 
     await c.stage('screen-log')
-    const keyframes = await deps.media.keyframes(local, KEYFRAME_EVERY_MS, crop)
+    // Small JPEG files on the work directory; read batch by batch, each removed once read, so at
+    // most `AT_ONCE` batches are in memory.
+    const keyframes = await deps.media.keyframes(await source(), KEYFRAME_EVERY_MS, crop, work.path)
     const batches: (typeof keyframes)[] = []
     for (let i = 0; i < keyframes.length; i += LOG_BATCH)
       batches.push(keyframes.slice(i, i + LOG_BATCH))
-    const log = (await mapLimit(batches, AT_ONCE, (b) => deps.ai.screenLog(accountId, ref, b)))
+    const log = (
+      await mapLimit(batches, AT_ONCE, async (b) =>
+        deps.ai.screenLog(accountId, ref, await deps.media.take(b)),
+      )
+    )
       .flat()
       .sort((a, b) => a.atMs - b.atMs)
     await c.checkpoint()
@@ -287,7 +286,11 @@ export const runSession = async (
       if (!reading || !placed) continue
       const kept = checkFound(reading.observations, placed, segments)
       const checked = await mapLimit(kept, AT_ONCE, async (o) => {
-        const frames = await deps.media.frames(local, judgeMoments(o.momentMs, durationMs), crop)
+        const frames = await deps.media.frames(
+          await source(),
+          judgeMoments(o.momentMs, durationMs),
+          crop,
+        )
         const near = segmentsBetween(segments, o.momentMs - CONTEXT_MS, o.momentMs + CONTEXT_MS)
         const judge = judged(
           await deps.ai.judge(accountId, ref, { observation: o, task, frames, transcript: near }),
@@ -303,7 +306,7 @@ export const runSession = async (
               }),
             )
           : null
-        const [shot] = await deps.media.frames(local, [o.momentMs], crop, 640)
+        const [shot] = await deps.media.frames(await source(), [o.momentMs], crop, 640)
         let key: string | null = null
         if (shot) {
           key = `usability/${session.studyId}/${session.sessionId}/${c.analysisId}/${deps.newId()}.jpg`
@@ -357,21 +360,31 @@ export const runSession = async (
   }
 }
 
+/** Drive failing in the middle of the copy: the video is unreadable, not the staging. */
+async function* fromDrive(chunks: AsyncIterable<Uint8Array>) {
+  try {
+    yield* chunks
+  } catch {
+    throw new AnalysisStopped('VIDEO_UNREADABLE')
+  }
+}
+
 const isProviderRefusal = (error: unknown) =>
   error instanceof ProviderAccessLost ||
   error instanceof ProviderMissing ||
   error instanceof ProviderMediaUnsupported
 
-const upload = async (
+const put = async (
   deps: UsabilityDeps,
   accountId: string,
   staged: StagedFile[],
-  path: string,
   name: string,
   mimeType: string,
+  chunks: AsyncIterable<Uint8Array>,
+  size: number | null,
 ): Promise<StagedFile> => {
   try {
-    const file = await deps.staging.upload(accountId, path, name, mimeType)
+    const file = await deps.staging.put(accountId, name, mimeType, chunks, size)
     staged.push(file)
     return file
   } catch (error) {

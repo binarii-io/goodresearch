@@ -52,12 +52,16 @@ export type Sessions = {
   one(accountId: string, sessionId: string): Promise<SessionRef | null>
   /** The study and video file of a session, cheaply, for the player's range requests. */
   video(sessionId: string): Promise<{ studyId: string; fileId: string } | null>
-  download(
+  /** The video's bytes as Drive sends them, never whole (FR-003): copied to the staging storage. */
+  stream(
     accountId: string,
     studyId: string,
     fileId: string,
-    toPath: string,
-  ): Promise<{ bytes: number } | 'not-found' | 'access-lost'>
+  ): Promise<
+    | { readonly size: number | null; readonly chunks: AsyncIterable<Uint8Array> }
+    | 'not-found'
+    | 'access-lost'
+  >
   range(
     accountId: string,
     studyId: string,
@@ -94,28 +98,62 @@ export type Protocols = {
 /** A temporary copy the AI provider reads (research R4); `uri` is what the model gets. */
 export type StagedFile = { readonly uri: string; readonly mimeType: string }
 
+/**
+ * Where ffmpeg reads a staged video: an https address with its headers (a short-lived access), or
+ * a local path for the dev and test provider. The worker never holds the video (ADR-0013 update).
+ */
+export type VideoSource = {
+  readonly input: string
+  readonly headers: Readonly<Record<string, string>>
+}
+
 export type Staging = {
-  upload(accountId: string, localPath: string, name: string, mimeType: string): Promise<StagedFile>
+  /**
+   * Writes bytes as they come to the staging storage (a resumable upload by parts): never the
+   * whole file in memory or on disk. `size` when known.
+   */
+  put(
+    accountId: string,
+    name: string,
+    mimeType: string,
+    chunks: AsyncIterable<Uint8Array>,
+    size: number | null,
+  ): Promise<StagedFile>
+  /** Where ffmpeg reads a staged file now, with a fresh access. */
+  source(accountId: string, file: StagedFile): Promise<VideoSource>
   remove(accountId: string, files: readonly StagedFile[]): Promise<void>
 }
 
-/** Frames and sound taken from the local copy (ffmpeg in the worker, research R5). */
+/** Frames and sound read from the staged video (ffmpeg in the worker, research R5). */
 export type Frame = { readonly atMs: number; readonly jpeg: Uint8Array }
+
+/** A keyframe written by ffmpeg, read only when its batch is looked at. */
+export type KeyframeFile = { readonly atMs: number; readonly path: string }
 
 export type MediaTools = {
   /** A fresh working directory; `release` removes it and everything in it. */
   workdir(): Promise<{ readonly path: string; release(): Promise<void> }>
-  durationMs(video: string): Promise<number>
+  durationMs(video: VideoSource): Promise<number>
   frames(
-    video: string,
+    video: VideoSource,
     atMs: readonly number[],
     crop: Crop | null,
     width?: number,
   ): Promise<Frame[]>
-  /** One frame every `everyMs`, near-duplicates dropped, cropped to the shared screen. */
-  keyframes(video: string, everyMs: number, crop: Crop | null): Promise<Frame[]>
-  /** The sound of a span, as a compressed audio file next to the video. */
-  audio(video: string, startMs: number, endMs: number, out: string): Promise<string>
+  /**
+   * One frame every `everyMs`, near-duplicates dropped, cropped to the shared screen, written as
+   * small JPEG files in `dir`; read by batches with `take`.
+   */
+  keyframes(
+    video: VideoSource,
+    everyMs: number,
+    crop: Crop | null,
+    dir: string,
+  ): Promise<KeyframeFile[]>
+  /** Reads keyframes, then removes their files. */
+  take(files: readonly KeyframeFile[]): Promise<Frame[]>
+  /** The sound of a span, compressed, as ffmpeg writes it (never a whole file kept). */
+  audio(video: VideoSource, startMs: number, endMs: number): AsyncIterable<Uint8Array>
 }
 
 /** The shared screen's box, in pixels of the layout frames (960 wide); scaled to each video. */

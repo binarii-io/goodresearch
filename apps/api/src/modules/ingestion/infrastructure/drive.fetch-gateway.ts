@@ -1,4 +1,3 @@
-import { open } from 'node:fs/promises'
 import {
   DriveAccessDenied,
   DriveConnectionLost,
@@ -35,8 +34,6 @@ type RawItem = {
 
 const GOOGLE_DOC = 'application/vnd.google-apps.document'
 const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-/** Spec 038: a video is downloaded by ranges of this size. */
-const DOWNLOAD_CHUNK = 32 * 1024 * 1024
 /** A Word file is read whole (a zip): larger ones are not transcripts worth reading. */
 const DOCX_MAX_BYTES = 20 * 1024 * 1024
 
@@ -114,10 +111,7 @@ export const createDriveFetchGateway = (options: {
   retryDelayMs?: number
   /** Shared with the documents adapter: one access token per person (PR #7 review). */
   requests?: GoogleRequests
-  /** Spec 038: bytes per ranged read of a download (tests use small ones). */
-  downloadChunkBytes?: number
 }): DriveGateway => {
-  const chunk = options.downloadChunkBytes ?? DOWNLOAD_CHUNK
   const google = options.requests ?? createGoogleRequests(options)
   const get = (refreshToken: string, url: URL) => google.request(refreshToken, url)
 
@@ -190,35 +184,6 @@ export const createDriveFetchGateway = (options: {
 
   return {
     checkGrant: (refreshToken) => google.checkGrant(refreshToken),
-
-    downloadFile: async (refreshToken, fileId, toPath) => {
-      const file = await open(toPath, 'w')
-      let written = 0
-      try {
-        for (;;) {
-          const response = await ranged(
-            refreshToken,
-            fileId,
-            `bytes=${written}-${written + chunk - 1}`,
-          )
-          if (response.status === 401) throw new DriveConnectionLost()
-          if (response.status === 404 || response.status === 403) return null
-          // Past the end of a file whose size is a multiple of the chunk.
-          if (response.status === 416) break
-          if (!response.ok) throw new Error(`drive files.get media failed: ${response.status}`)
-          const bytes = new Uint8Array(await response.arrayBuffer())
-          await file.write(bytes, 0, bytes.byteLength, written)
-          written += bytes.byteLength
-          // 200: the whole file came at once.
-          if (response.status === 200) break
-          const total = Number(/\/(\d+)$/.exec(response.headers.get('content-range') ?? '')?.[1])
-          if (bytes.byteLength === 0 || (Number.isFinite(total) && written >= total)) break
-        }
-        return { bytes: written }
-      } finally {
-        await file.close()
-      }
-    },
 
     videoRange: async (refreshToken, fileId, range) => {
       const response = await ranged(refreshToken, fileId, range)

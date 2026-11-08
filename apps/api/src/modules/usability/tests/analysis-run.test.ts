@@ -81,6 +81,15 @@ describe('usability analysis runs (spec 038 US1)', () => {
     })
   })
 
+  it('says the video is unreadable when Drive stops giving it in the middle of the copy', async () => {
+    world.videoBreaks.add('v1')
+    await start()
+    await world.runJobs()
+    const view = await world.queries.study(alice, 'study')
+    if (!view.ok) throw new Error(view.error)
+    expect(view.value.sessions[0]?.analysis?.failure).toBe('VIDEO_UNREADABLE')
+  })
+
   it('fails only the session whose reading of the session or protocol throws', async () => {
     const one = world.deps.sessions.one
     world.deps.sessions.one = async () => {
@@ -356,16 +365,71 @@ describe("the gateway's refusals as the analysis names them", () => {
       providerOf: async () => 'vertex',
       bucket: null,
     })
-    await expect(
-      refused.upload('ada', '/nowhere.mp4', 'v.mp4', 'video/mp4'),
-    ).rejects.toBeInstanceOf(ProviderAccessLost)
+    const bytes = async function* () {
+      yield new Uint8Array([1])
+    }
+    await expect(refused.put('ada', 'v.mp4', 'video/mp4', bytes(), 1)).rejects.toBeInstanceOf(
+      ProviderAccessLost,
+    )
     const none = createGcsStaging({
       googleAccessFor: async () => null,
       providerOf: async () => null,
       bucket: null,
     })
-    await expect(none.upload('ada', '/nowhere.mp4', 'v.mp4', 'video/mp4')).rejects.toBeInstanceOf(
+    await expect(none.put('ada', 'v.mp4', 'video/mp4', bytes(), 1)).rejects.toBeInstanceOf(
       ProviderMissing,
     )
+  })
+})
+
+describe('the staging copy, never whole in memory (ADR-0013 update)', () => {
+  it('sends the bytes as they come by parts of a resumable upload, then gives ffmpeg an https source', async () => {
+    const { createGcsStaging } = await import('../infrastructure/staging.gcs.ts')
+    const calls: { method: string; url: string; range: string | null; size: number }[] = []
+    // Google keeps only two bytes of the second part once: the rest is sent again.
+    let stored = 0
+    let short = true
+    const fake = (async (url: string, init?: RequestInit) => {
+      const headers = new Headers(init?.headers)
+      const size = init?.body instanceof Uint8Array ? init.body.byteLength : 0
+      calls.push({ method: init?.method ?? 'GET', url, range: headers.get('content-range'), size })
+      if (url.includes('/storage/v1/b/') && (init?.method ?? 'GET') === 'GET')
+        return new Response('{}', { status: 200 })
+      if (url.includes('uploadType=resumable'))
+        return new Response(null, { status: 200, headers: { location: 'https://upload/session' } })
+      if (url === 'https://upload/session') {
+        const last = !headers.get('content-range')?.endsWith('/*')
+        if (last) return new Response(null, { status: 200 })
+        stored += short && stored === 4 ? 2 : size
+        if (stored === 6) short = false
+        return new Response(null, { status: 308, headers: { range: `bytes=0-${stored - 1}` } })
+      }
+      return new Response(null, { status: 404 })
+    }) as typeof fetch
+    const staging = createGcsStaging({
+      googleAccessFor: async () => ({ project: 'p', region: 'eu', accessToken: 'token' }),
+      providerOf: async () => 'vertex',
+      bucket: 'bucket',
+      fetch: fake,
+      partBytes: 4,
+    })
+    const chunks = async function* () {
+      yield new Uint8Array([1, 2, 3])
+      yield new Uint8Array([4, 5, 6, 7, 8, 9])
+      yield new Uint8Array([10])
+    }
+    const file = await staging.put('ada', 'a1/video.mp4', 'video/mp4', chunks(), 10)
+    expect(file.uri).toBe('gs://bucket/usability/a1/video.mp4')
+    const parts = calls.filter((c) => c.url === 'https://upload/session')
+    expect(parts.map((p) => [p.range, p.size])).toEqual([
+      ['bytes 0-3/*', 4],
+      ['bytes 4-7/*', 4],
+      ['bytes 6-7/*', 2],
+      ['bytes 8-9/10', 2],
+    ])
+    expect(await staging.source('ada', file)).toEqual({
+      input: 'https://storage.googleapis.com/bucket/usability/a1/video.mp4',
+      headers: { Authorization: 'Bearer token' },
+    })
   })
 })

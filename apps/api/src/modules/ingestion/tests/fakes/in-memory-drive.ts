@@ -1,4 +1,3 @@
-import { writeFile } from 'node:fs/promises'
 import type {
   DriveAuthorization,
   DriveGateway,
@@ -136,18 +135,6 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
 
   /** Spec 038: the bytes of files (videos), by file id. */
   readonly bytes = new Map<string, Uint8Array>()
-
-  async downloadFile(
-    refreshToken: string,
-    id: string,
-    toPath: string,
-  ): Promise<{ bytes: number } | null> {
-    const account = this.#account(refreshToken)
-    const data = this.bytes.get(id)
-    if (!data || !this.items.has(id) || !this.#canOpen(account, id)) return null
-    await writeFile(toPath, data)
-    return { bytes: data.byteLength }
-  }
 
   async videoRange(
     refreshToken: string,

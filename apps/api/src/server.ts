@@ -8,7 +8,7 @@ import { createStorage } from './platform/storage.ts'
 
 const config = loadConfig(process.env)
 const { db, pool } = createDb(config.databaseUrl, config.databasePoolMax)
-const storage = createStorage(config.s3)
+const storage = createStorage(config.storage)
 // The server only enqueues jobs; the worker runs them.
 const boss = new PgBoss({
   connectionString: config.databaseUrl,

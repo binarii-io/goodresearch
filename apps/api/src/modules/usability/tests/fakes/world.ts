@@ -325,6 +325,8 @@ export class World {
   facts = new Map<string, Parameters<Facts['upsert']>[0]>()
   people: { sessionId: string; text: string }[] = []
   jobs: AnalysisJob[] = []
+  /** Videos Drive stops giving in the middle of the copy. */
+  readonly videoBreaks = new Set<string>()
   /** What the staging throws (the provider refusing the person's access). */
   stagingRefuses: Error | null = null
   /** Names a fact must not hold (the study's people). */
@@ -354,8 +356,16 @@ export class World {
           const s = this.sessions.find((x) => x.sessionId === id)
           return s?.video ? { studyId: s.studyId, fileId: s.video.fileId } : null
         },
-        download: async (_a, _s, fileId) =>
-          this.missingVideo.has(fileId) ? 'not-found' : { bytes: 1000 },
+        stream: async (_a, _s, fileId) =>
+          this.missingVideo.has(fileId)
+            ? 'not-found'
+            : {
+                size: 3,
+                chunks: (async function* (breaks: boolean) {
+                  yield new Uint8Array([1, 2, 3])
+                  if (breaks) throw new Error('video no longer readable in Drive')
+                })(this.videoBreaks.has(fileId)),
+              },
         range: async () => null,
         hasConsent: async (a, s, p) => this.consents.has(`${a}/${s}/${p}`),
         giveConsent: async (a, s, p) => {
@@ -368,12 +378,16 @@ export class World {
       },
       protocols: { version: async (_s, v) => (v === 1 ? PROTOCOL : null) },
       staging: {
-        upload: async (_a, _p, name, mimeType) => {
+        put: async (_a, name, mimeType, chunks) => {
           if (this.stagingRefuses) throw this.stagingRefuses
+          for await (const _ of chunks) {
+            // The bytes go through, as to the real storage.
+          }
           this.staged.add(name)
           this.stagedEver.push(name)
           return { uri: `gs://staging/${name}`, mimeType }
         },
+        source: async (_a, file) => ({ input: file.uri, headers: {} }),
         remove: async (_a, files) => {
           for (const f of files) this.staged.delete(f.uri.replace('gs://staging/', ''))
         },
@@ -386,8 +400,11 @@ export class World {
         durationMs: async () => 120_000,
         frames: async (_v, at) => at.map((atMs) => ({ atMs, jpeg: new Uint8Array([1, 2, 3]) })),
         keyframes: async () =>
-          [0, 3000, 30_000, 90_000].map((atMs) => ({ atMs, jpeg: new Uint8Array([1]) })),
-        audio: async (_v, _s, _e, out) => out,
+          [0, 3000, 30_000, 90_000].map((atMs) => ({ atMs, path: `keyframe-${atMs}.jpg` })),
+        take: async (files) => files.map((f) => ({ atMs: f.atMs, jpeg: new Uint8Array([1]) })),
+        audio: async function* () {
+          yield new Uint8Array([1])
+        },
       },
       ai: this.ai,
       screens: {

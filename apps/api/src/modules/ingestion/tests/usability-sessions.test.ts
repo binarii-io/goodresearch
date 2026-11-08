@@ -1,6 +1,3 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { fixedClock } from '@goodresearch/shared'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { makeUsabilitySources } from '../application/usability-sources.ts'
@@ -312,17 +309,34 @@ describe('what the video analysis reads of test sessions (spec 038)', () => {
     expect(await sources().sessions('bob', 'study-1')).toEqual([])
   })
 
-  it('downloads the video and reads ranges with the person’s access, only for videos of the study', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'usability-src-'))
-    const path = join(dir, 'v.mp4')
-    expect(await sources().downloadVideo('alice', 'study-1', 'v-a', path)).toEqual({ bytes: 5 })
-    expect(new Uint8Array(await readFile(path))).toEqual(new Uint8Array([1, 2, 3, 4, 5]))
-    expect(await sources().downloadVideo('alice', 'study-1', 'not-in-study', path)).toBe(
-      'not-found',
-    )
+  it('streams the video and reads ranges with the person’s access, only for videos of the study', async () => {
+    const stream = await sources().streamVideo('alice', 'study-1', 'v-a')
+    if (typeof stream === 'string') throw new Error(stream)
+    const got: number[] = []
+    for await (const bytes of stream.chunks) got.push(...bytes)
+    expect(got).toEqual([1, 2, 3, 4, 5])
+    expect(await sources().streamVideo('alice', 'study-1', 'not-in-study')).toBe('not-found')
     const part = await sources().videoRange('alice', 'study-1', 'v-a', 'bytes=1-2')
     expect(part).toMatchObject({ status: 206, contentRange: 'bytes 1-2/5' })
-    await rm(dir, { recursive: true, force: true })
+  })
+
+  it('streams a video range after range, each starting where the last ended', async () => {
+    const small = makeUsabilitySources(world.deps, world.sessionQueries, world.analysis, 2)
+    const stream = await small.streamVideo('alice', 'study-1', 'v-a')
+    if (typeof stream === 'string') throw new Error(stream)
+    const got: number[] = []
+    for await (const bytes of stream.chunks) got.push(...bytes)
+    expect(got).toEqual([1, 2, 3, 4, 5])
+  })
+
+  it('fails the copy when the video goes from Drive meanwhile, never a cut video', async () => {
+    const small = makeUsabilitySources(world.deps, world.sessionQueries, world.analysis, 2)
+    const stream = await small.streamVideo('alice', 'study-1', 'v-a')
+    if (typeof stream === 'string') throw new Error(stream)
+    const read = async () => {
+      for await (const _ of stream.chunks) world.drive.bytes.delete('v-a')
+    }
+    await expect(read()).rejects.toThrow('no longer readable')
   })
 
   it('keeps consent per provider, and names known for anonymisation checks', async () => {

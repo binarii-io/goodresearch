@@ -64,15 +64,22 @@ export type AppConfig = {
   /** Connections per process: the app's pool and the job queue's pool (sized to the database's limit). */
   readonly databasePoolMax: number
   readonly jobsPoolMax: number
-  readonly s3: {
-    readonly endpoint: string
-    readonly region: string
-    readonly bucket: string
-    readonly accessKeyId: string
-    readonly secretAccessKey: string
-    readonly forcePathStyle: boolean
-    readonly createBucket: boolean
-  }
+  /**
+   * Object storage (spec 038 screenshots): any S3-compatible store with an access key, or Google
+   * Cloud Storage natively, with the service's own Google identity (no key to keep).
+   */
+  readonly storage:
+    | {
+        readonly provider: 's3'
+        readonly endpoint: string
+        readonly region: string
+        readonly bucket: string
+        readonly accessKeyId: string
+        readonly secretAccessKey: string
+        readonly forcePathStyle: boolean
+        readonly createBucket: boolean
+      }
+    | { readonly provider: 'gcs'; readonly bucket: string }
   readonly providers: readonly AuthProvider[]
   readonly access: AccessRules
   readonly trustedProxies: readonly string[]
@@ -173,11 +180,13 @@ const baseSchema = z.object({
   DATABASE_URL: z.string().startsWith('postgres', 'must be a PostgreSQL connection URL'),
   DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
   JOBS_POOL_MAX: z.coerce.number().int().positive().default(10),
-  S3_ENDPOINT: z.url(),
-  S3_REGION: z.string().min(1),
-  S3_BUCKET: z.string().min(3),
-  S3_ACCESS_KEY_ID: z.string().min(1),
-  S3_SECRET_ACCESS_KEY: z.string().min(1),
+  STORAGE_PROVIDER: z.enum(['s3', 'gcs']).default('s3'),
+  GCS_BUCKET: optionalText,
+  S3_ENDPOINT: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
+  S3_REGION: optionalText,
+  S3_BUCKET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(3).optional()),
+  S3_ACCESS_KEY_ID: optionalText,
+  S3_SECRET_ACCESS_KEY: optionalText,
   S3_FORCE_PATH_STYLE: bool,
   S3_CREATE_BUCKET: bool,
   AUTH_PROVIDERS: z.string().default(''),
@@ -387,7 +396,42 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     )
   }
 
-  if (issues.length > 0) return fail(issues)
+  // Object storage: each provider's own settings are required, the other's ignored.
+  let storage: AppConfig['storage'] | null = null
+  if (values.STORAGE_PROVIDER === 'gcs') {
+    if (!values.GCS_BUCKET) issues.push('GCS_BUCKET: required with STORAGE_PROVIDER=gcs')
+    else storage = { provider: 'gcs', bucket: values.GCS_BUCKET }
+  } else {
+    const missing = (
+      [
+        ['S3_ENDPOINT', values.S3_ENDPOINT],
+        ['S3_REGION', values.S3_REGION],
+        ['S3_BUCKET', values.S3_BUCKET],
+        ['S3_ACCESS_KEY_ID', values.S3_ACCESS_KEY_ID],
+        ['S3_SECRET_ACCESS_KEY', values.S3_SECRET_ACCESS_KEY],
+      ] as const
+    ).filter(([, v]) => !v)
+    for (const [name] of missing) issues.push(`${name}: required with STORAGE_PROVIDER=s3`)
+    if (
+      values.S3_ENDPOINT &&
+      values.S3_REGION &&
+      values.S3_BUCKET &&
+      values.S3_ACCESS_KEY_ID &&
+      values.S3_SECRET_ACCESS_KEY
+    )
+      storage = {
+        provider: 's3',
+        endpoint: values.S3_ENDPOINT,
+        region: values.S3_REGION,
+        bucket: values.S3_BUCKET,
+        accessKeyId: values.S3_ACCESS_KEY_ID,
+        secretAccessKey: values.S3_SECRET_ACCESS_KEY,
+        forcePathStyle: values.S3_FORCE_PATH_STYLE,
+        createBucket: values.S3_CREATE_BUCKET,
+      }
+  }
+
+  if (issues.length > 0 || !storage) return fail(issues)
 
   return {
     appUrl,
@@ -395,15 +439,7 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     databaseUrl: values.DATABASE_URL,
     databasePoolMax: values.DATABASE_POOL_MAX,
     jobsPoolMax: values.JOBS_POOL_MAX,
-    s3: {
-      endpoint: values.S3_ENDPOINT,
-      region: values.S3_REGION,
-      bucket: values.S3_BUCKET,
-      accessKeyId: values.S3_ACCESS_KEY_ID,
-      secretAccessKey: values.S3_SECRET_ACCESS_KEY,
-      forcePathStyle: values.S3_FORCE_PATH_STYLE,
-      createBucket: values.S3_CREATE_BUCKET,
-    },
+    storage,
     providers,
     access: { adminEmails, allowedEmails, allowedDomains },
     trustedProxies: list(values.TRUSTED_PROXIES),

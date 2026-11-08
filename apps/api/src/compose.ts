@@ -960,7 +960,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
   })
 
   // Spec 038: the analysis of usability test sessions, from their videos.
-  const storage = infra.storage ?? createStorage(config.s3)
+  const storage = infra.storage ?? createStorage(config.storage)
   usability = createUsabilityModule({
     db: infra.db,
     clock,
@@ -971,7 +971,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         list: u.sessions,
         one: u.session,
         video: u.sessionVideo,
-        download: u.downloadVideo,
+        stream: u.streamVideo,
         range: u.videoRange,
         hasConsent: u.hasConsent,
         giveConsent: u.giveConsent,

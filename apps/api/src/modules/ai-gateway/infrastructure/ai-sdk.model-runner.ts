@@ -14,6 +14,7 @@ import {
   tool,
 } from 'ai'
 import { OAuth2Client } from 'google-auth-library'
+import { Agent, fetch as undiciFetch } from 'undici'
 import { classifyTokenRefusal } from '#platform/google/token-refusal.ts'
 import type {
   ChatMessage,
@@ -208,6 +209,14 @@ type Fetch = typeof fetch
  * Spec 038: moves the offsets of a file part's URI into Gemini's `videoMetadata`, so a task is
  * read on its own part of the video. Other requests go through unchanged.
  */
+/** fetch without undici's own header and body timeouts; callers abort by their signal. */
+const patient = new Agent({ headersTimeout: 0, bodyTimeout: 0 })
+const untimedFetch: Fetch = (input, init) =>
+  undiciFetch(input as Parameters<typeof undiciFetch>[0], {
+    ...(init as Parameters<typeof undiciFetch>[1]),
+    dispatcher: patient,
+  }) as unknown as Promise<Response>
+
 export const withVideoOffsets =
   (base: Fetch): Fetch =>
   async (input, init) => {
@@ -247,8 +256,10 @@ export const createAiSdkRunner = (options: {
   const fake = createFakeRunner()
   const log = options.log ?? { warn: () => undefined }
   const fetchOption = options.fetch ? { fetch: options.fetch } : {}
-  // Vertex AI only: the offsets of video parts (spec 038).
-  const vertexFetch = { fetch: withVideoOffsets(options.fetch ?? globalThis.fetch) }
+  // Vertex AI only: the offsets of video parts (spec 038), and no HTTP timeout of its own: a long
+  // answer (a transcript) can take more than Node's default 300 s before its first byte; the
+  // gateway's timeout of each call (its abort signal) is the one that applies.
+  const vertexFetch = { fetch: withVideoOffsets(options.fetch ?? untimedFetch) }
   // One OAuth client per Google grant, so access tokens are reused until they expire.
   const authClients = new Map<string, OAuth2Client>()
   const authClientFor = (
