@@ -138,9 +138,13 @@ export const makeGateway = (deps: AiDeps) => {
    */
   const sharedFailure = (accountId: string, task: string, error: unknown) => {
     const failure = failureOf(error)
+    // Refused (the deployer's to fix), or a call that failed otherwise (an answer cut, a network
+    // error): said as such, so the logs do not blame the provider's access for every failure.
     deps.log.warn(
       { failure, provider: deps.config.shared?.credential.provider, task, accountId },
-      'the shared AI provider refused a call',
+      isDeployerFailure(failure)
+        ? 'the shared AI provider refused a call'
+        : 'a call to the shared AI provider failed',
     )
     return isDeployerFailure(failure)
       ? new ProviderCallError(

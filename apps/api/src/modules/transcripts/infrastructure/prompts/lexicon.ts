@@ -3,6 +3,7 @@ import {
   AiProviderRequired,
   type Gateway,
   isAuthorisationFailure,
+  isInvalidAnswer,
   ProviderCallError,
 } from '../../../ai-gateway/index.ts'
 import { AiFailed, AiUnavailable, type LexiconAi } from '../../application/ports.ts'
@@ -118,7 +119,7 @@ export const createLexiconAi = (ai: {
       if (error instanceof ProviderCallError && isAuthorisationFailure(error.failure))
         throw new AiUnavailable()
       // An answer that came back (tokens counted) but does not fit the schema.
-      if (error instanceof ProviderCallError) throw new AiFailed(error.usage !== null)
+      if (error instanceof ProviderCallError) throw new AiFailed(isInvalidAnswer(error))
       throw new AiFailed(false)
     }
   },

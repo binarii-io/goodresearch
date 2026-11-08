@@ -88,6 +88,13 @@ export type StreamPart =
 export const failureOf = (error: unknown): AiFailure =>
   error instanceof ProviderCallError ? error.failure : 'UNKNOWN'
 
+/**
+ * A call the provider answered, but not usefully: tokens were counted, or the answer was cut or
+ * out of form. Modules show it as an invalid answer, not as the AI being unavailable.
+ */
+export const isInvalidAnswer = (error: ProviderCallError) =>
+  error.usage !== null || error.failure === 'ANSWER_INCOMPLETE'
+
 /** A provider call that failed for a classified reason (research R4). */
 export class ProviderCallError extends Error {
   override name = 'ProviderCallError'
@@ -96,15 +103,19 @@ export class ProviderCallError extends Error {
   readonly usage: Usage | null
   /** Spec 030: Google refused the person's grant (only with `INVALID_CREDENTIAL`). */
   readonly grantProblem: GrantProblem | null
+  /** The answer stopped at the output limit (only with `ANSWER_INCOMPLETE`): a larger one may fit. */
+  readonly cut: boolean
   constructor(
     failure: AiFailure,
     usage: Usage | null = null,
     grantProblem: GrantProblem | null = null,
+    cut = false,
   ) {
     super(`provider call failed: ${failure}`)
     this.failure = failure
     this.usage = usage
     this.grantProblem = grantProblem
+    this.cut = cut
   }
 }
 

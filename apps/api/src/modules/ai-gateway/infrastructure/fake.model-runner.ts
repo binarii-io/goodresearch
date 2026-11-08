@@ -857,7 +857,7 @@ export const createFakeRunner = (): ModelRunner => {
       const usability = fakeUsabilityAnswer(requestText(request))
       if (usability !== null) {
         const parsed = request.schema.safeParse(usability)
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 2000, outputTokens: 200 } }
       }
       // Spec 009: an interview analysis is answered from the speakers of the transcript, with one
@@ -884,7 +884,7 @@ export const createFakeRunner = (): ModelRunner => {
           date: null,
         }
         const parsed = request.schema.safeParse(answer)
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 1200, outputTokens: 80 } }
       }
       // Spec 010: a lexicon reading groups close spellings of the candidates, quotes their first
@@ -893,45 +893,45 @@ export const createFakeRunner = (): ModelRunner => {
         await sleep(500)
         const answer = { terms: lexiconAnswer(request.prompt) }
         const parsed = request.schema.safeParse(answer)
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 2400, outputTokens: 200 } }
       }
       // Spec 012: verbatims, facts and translations, answered from the prompt.
       if (request.prompt?.includes('\n<interview-turns>\n')) {
         await sleep(300)
         const parsed = request.schema.safeParse(verbatimsAnswer(request.prompt))
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 5000, outputTokens: 400 } }
       }
       // Spec 016: questions, simple reformulations and one kind of leading sentence, from the prompt.
       if (request.prompt?.includes('\n<review-turns>\n')) {
         await sleep(300)
         const parsed = request.schema.safeParse(reviewAnswer(request.prompt))
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 4000, outputTokens: 300 } }
       }
       if (request.prompt?.includes('\n<verbatims>\n')) {
         await sleep(300)
         const parsed = request.schema.safeParse(factsAnswer(request.prompt))
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 2000, outputTokens: 500 } }
       }
       if (request.prompt?.includes('\n<insight-lines>\n')) {
         await sleep(300)
         const parsed = request.schema.safeParse(recommendationsAnswer(request.prompt))
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 2000, outputTokens: 700 } }
       }
       if (request.prompt?.startsWith('<takeaways-input>\n')) {
         await sleep(200)
         const parsed = request.schema.safeParse(takeawaysAnswer())
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 1500, outputTokens: 200 } }
       }
       if (request.prompt?.includes('\n<fact-lines>\n')) {
         await sleep(300)
         const parsed = request.schema.safeParse(insightsAnswer(request.prompt))
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 3000, outputTokens: 800 } }
       }
       if (request.prompt?.startsWith('<translate-insight>\n')) {
@@ -949,7 +949,7 @@ export const createFakeRunner = (): ModelRunner => {
           text: null,
           ...Object.fromEntries(Object.entries(texts).map(([k, v]) => [k, `${lang}: ${v}`])),
         })
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 300, outputTokens: 80 } }
       }
       // Spec 029: themes of open answers: answers naming a tool, the others, each quoted by its first
@@ -981,7 +981,7 @@ export const createFakeRunner = (): ModelRunner => {
           ],
         }
         const parsed = request.schema.safeParse(answer)
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 3000, outputTokens: 300 } }
       }
       // Spec 029 FR-010a: "Find facts" of a survey points at each scale's agreement, the first
@@ -1015,12 +1015,12 @@ export const createFakeRunner = (): ModelRunner => {
           },
         ]
         const parsed = request.schema.safeParse({ facts })
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 1500, outputTokens: 200 } }
       }
       if (request.prompt?.startsWith('<themes-to-merge>\n')) {
         const parsed = request.schema.safeParse({ merges: [] })
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 300, outputTokens: 20 } }
       }
       if (request.prompt?.startsWith('<translate-theme>\n')) {
@@ -1028,7 +1028,7 @@ export const createFakeRunner = (): ModelRunner => {
         const parsed = request.schema.safeParse({
           text: `${to?.replace('to: ', '').toUpperCase()}: ${text.join(' ')}`,
         })
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 200, outputTokens: 40 } }
       }
       if (request.prompt?.startsWith('<translate>\n')) {
@@ -1036,7 +1036,7 @@ export const createFakeRunner = (): ModelRunner => {
         const parsed = request.schema.safeParse({
           statement: `${to?.replace('to: ', '').toUpperCase()}: ${text.join(' ')}`,
         })
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 200, outputTokens: 40 } }
       }
       // Spec 011: a cleaning corrects "eating" into "meeting" in each new turn that writes it, says
@@ -1046,12 +1046,12 @@ export const createFakeRunner = (): ModelRunner => {
         await sleep(500)
         const answer = cleaningAnswer(request.prompt)
         const parsed = request.schema.safeParse(answer)
-        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
         return { object: parsed.data, usage: { inputTokens: 6000, outputTokens: 300 } }
       }
       // Only schemas with defaults can be answered without a model.
       const parsed = request.schema.safeParse({})
-      if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+      if (!parsed.success) throw new ProviderCallError('ANSWER_INCOMPLETE')
       return { object: parsed.data, usage }
     },
     // Like the AI SDK: `done` settles only once the stream has been read to its end.

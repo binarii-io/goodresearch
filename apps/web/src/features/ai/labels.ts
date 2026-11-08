@@ -78,6 +78,10 @@ export const FAILURES: Record<AiFailure, { reason: MessageDescriptor; action: Me
       reason: msg`The AI of this instance is unavailable right now.`,
       action: msg`Contact the person who deployed goodresearch, or try again later. If this instance lets you, you can also connect your own AI provider.`,
     },
+    ANSWER_INCOMPLETE: {
+      reason: msg`The AI answered, but its answer was cut or not in the expected form.`,
+      action: msg`Try again; if it keeps failing, contact the person who deployed goodresearch.`,
+    },
     UNKNOWN: {
       reason: msg`The check did not work for an unexpected reason.`,
       action: msg`Try again; if it keeps failing, contact the person who deployed goodresearch.`,

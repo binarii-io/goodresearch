@@ -193,14 +193,77 @@ const mediaOptions = (credential: Credential, request: ModelRequest) =>
       }
     : {}
 
-const promptOf = (request: ModelRequest) => ({
+/**
+ * Gemini on Vertex AI counts its thinking in the output limit: without room for it, a long answer
+ * is cut before its end (spec 038 deployment). The caller's limit is for the answer; thinking gets
+ * this much more, within the model's maximum. Only the tokens used are billed.
+ */
+const VERTEX_THINKING_TOKENS = 16_000
+type RealProvider = Exclude<Credential['provider'], 'fake'>
+const MAX_OUTPUT_TOKENS: Record<RealProvider, number> = {
+  vertex: 65_536,
+  anthropic: 64_000,
+  openai: 32_000,
+}
+
+export const outputLimitFor = (provider: RealProvider, asked: number) =>
+  Math.min(
+    MAX_OUTPUT_TOKENS[provider],
+    provider === 'vertex' ? asked + VERTEX_THINKING_TOKENS : asked,
+  )
+
+const addUsage = (a: Usage | null, b: Usage | null): Usage | null =>
+  a && b
+    ? {
+        inputTokens: (a.inputTokens ?? 0) + (b.inputTokens ?? 0),
+        outputTokens: (a.outputTokens ?? 0) + (b.outputTokens ?? 0),
+      }
+    : (a ?? b)
+
+/**
+ * An answer cut by its output limit is asked once more with twice the room, within the
+ * provider's maximum; the cost of both calls is the call's (one entry in the ledger).
+ */
+export const askAgainIfCut = async <T extends { usage: Usage }>(
+  limit: number | undefined,
+  cap: number,
+  attempt: (limit: number | undefined) => Promise<T>,
+  onRetry: () => void = () => undefined,
+): Promise<T> => {
+  try {
+    return await attempt(limit)
+  } catch (error) {
+    if (!(error instanceof ProviderCallError) || !error.cut || limit === undefined || limit >= cap)
+      throw error
+    onRetry()
+    const spent = error.usage
+    try {
+      const result = await attempt(Math.min(cap, limit * 2))
+      return { ...result, usage: addUsage(spent, result.usage) ?? result.usage }
+    } catch (again) {
+      if (!(again instanceof ProviderCallError)) throw again
+      throw new ProviderCallError(
+        again.failure,
+        addUsage(spent, again.usage),
+        again.grantProblem,
+        again.cut,
+      )
+    }
+  }
+}
+
+/** The request's output limit, with room for Gemini's thinking (not for streamed chat). */
+const limitOf = (request: ModelRequest, provider: RealProvider) =>
+  request.maxOutputTokens ? outputLimitFor(provider, request.maxOutputTokens) : undefined
+
+const promptOf = (request: ModelRequest, limit: number | undefined) => ({
   ...(request.system ? { system: request.system } : {}),
   ...(request.messages
     ? { messages: request.messages.map(toModelMessage) }
     : request.parts
       ? { messages: [{ role: 'user' as const, content: userContent(request.parts) }] }
       : { prompt: request.prompt ?? '' }),
-  ...(request.maxOutputTokens ? { maxOutputTokens: request.maxOutputTokens } : {}),
+  ...(limit ? { maxOutputTokens: limit } : {}),
 })
 
 type Fetch = typeof fetch
@@ -335,7 +398,7 @@ export const createAiSdkRunner = (options: {
         checkMedia(credential, request)
         const result = await generateText({
           model: modelFor(credential, model),
-          ...promptOf(request),
+          ...promptOf(request, limitOf(request, credential.provider)),
           ...mediaOptions(credential, request),
           maxRetries: 0,
           abortSignal: AbortSignal.timeout(timeoutMs),
@@ -349,54 +412,76 @@ export const createAiSdkRunner = (options: {
     generateObject: async (credential, model, request, timeoutMs) => {
       if (credential.provider === 'fake')
         return fake.generateObject(credential, model, request, timeoutMs)
-      try {
-        checkMedia(credential, request)
-        const result = await generateText({
-          model: modelFor(credential, model),
-          ...promptOf(request),
-          ...mediaOptions(credential, request),
-          output: Output.object({ schema: request.schema }),
-          maxRetries: 0,
-          abortSignal: AbortSignal.timeout(timeoutMs),
-        })
-        // Never trust model output (AGENTS.md): validated again with the caller's schema.
-        const parsed = request.schema.safeParse(result.output)
-        if (parsed.success) return { object: parsed.data, usage: usageOf(result.usage) }
-        log.warn(
-          { kind: 'invalid-output', fields: parsed.error.issues.map((i) => i.path.join('.')) },
-          'model answer does not fit the schema',
-        )
-        throw new ProviderCallError('UNKNOWN', usageOf(result.usage))
-      } catch (error) {
-        // Why it failed, never what was said (no prompt or answer in logs).
-        if (NoObjectGeneratedError.isInstance(error)) {
+      const provider = credential.provider
+      // One time limit for the call, a retry included.
+      const abortSignal = AbortSignal.timeout(timeoutMs)
+      const attempt = async (limit: number | undefined) => {
+        try {
+          checkMedia(credential, request)
+          const result = await generateText({
+            model: modelFor(credential, model),
+            ...promptOf(request, limit),
+            ...mediaOptions(credential, request),
+            output: Output.object({ schema: request.schema }),
+            maxRetries: 0,
+            abortSignal,
+          })
+          // Never trust model output (AGENTS.md): validated again with the caller's schema.
+          const parsed = request.schema.safeParse(result.output)
+          if (parsed.success) return { object: parsed.data, usage: usageOf(result.usage) }
           log.warn(
-            {
-              kind: 'no-object',
-              finishReason: error.finishReason ?? null,
-              cause: error.cause instanceof Error ? error.cause.name : null,
-            },
-            'model answer is not the object asked for',
+            { kind: 'invalid-output', fields: parsed.error.issues.map((i) => i.path.join('.')) },
+            'model answer does not fit the schema',
           )
-          throw new ProviderCallError('UNKNOWN', error.usage ? usageOf(error.usage) : null)
+          throw new ProviderCallError('ANSWER_INCOMPLETE', usageOf(result.usage))
+        } catch (error) {
+          // Why it failed, never what was said (no prompt or answer in logs).
+          if (NoObjectGeneratedError.isInstance(error)) {
+            log.warn(
+              {
+                kind: 'no-object',
+                finishReason: error.finishReason ?? null,
+                cause: error.cause instanceof Error ? error.cause.name : null,
+              },
+              'model answer is not the object asked for',
+            )
+            const usage = error.usage ? usageOf(error.usage) : null
+            // Filtered by the provider: asking again would give the same.
+            if (error.finishReason === 'content-filter')
+              throw new ProviderCallError('UNKNOWN', usage)
+            // The provider answered: cut by the output limit, or not the object asked for.
+            throw new ProviderCallError(
+              'ANSWER_INCOMPLETE',
+              usage,
+              null,
+              error.finishReason === 'length',
+            )
+          }
+          if (error instanceof ProviderCallError) throw error
+          const failure = toProviderError(error)
+          if (failure.failure === 'UNKNOWN')
+            log.warn(
+              {
+                kind: error instanceof Error ? error.name : typeof error,
+                // The status and the provider's error code say why; never the body's message (it may quote the prompt).
+                ...(APICallError.isInstance(error)
+                  ? {
+                      status: error.statusCode ?? null,
+                      code: bodyFacts(error.responseBody).code ?? null,
+                    }
+                  : {}),
+              },
+              'model call failed',
+            )
+          throw failure
         }
-        const failure = toProviderError(error)
-        if (failure.failure === 'UNKNOWN' && !(error instanceof ProviderCallError))
-          log.warn(
-            {
-              kind: error instanceof Error ? error.name : typeof error,
-              // The status and the provider's error code say why; never the body's message (it may quote the prompt).
-              ...(APICallError.isInstance(error)
-                ? {
-                    status: error.statusCode ?? null,
-                    code: bodyFacts(error.responseBody).code ?? null,
-                  }
-                : {}),
-            },
-            'model call failed',
-          )
-        throw failure
       }
+      return askAgainIfCut(limitOf(request, provider), MAX_OUTPUT_TOKENS[provider], attempt, () =>
+        log.warn(
+          { kind: 'answer-cut' },
+          'answer cut by the output limit, asked again with more room',
+        ),
+      )
     },
 
     stream: (credential, model, request, timeoutMs) => {
@@ -404,7 +489,7 @@ export const createAiSdkRunner = (options: {
       let failure: unknown
       const result = streamText({
         model: modelFor(credential, model),
-        ...promptOf(request),
+        ...promptOf(request, request.maxOutputTokens),
         ...toolsOf(request),
         stopWhen: stepCountIs(MAX_STEPS),
         // The last step must write: an answer that ends on a tool call says nothing to the person.

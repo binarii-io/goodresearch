@@ -8854,6 +8854,10 @@ msgstr "La réponse de l'IA n'a pas pu être utilisée : des termes peuvent manq
 msgid "The AI answer could not be used: try again."
 msgstr "La réponse de l'IA n'a pas pu être utilisée : réessayez."
 
+#: src/features/ai/labels.ts
+msgid "The AI answered, but its answer was cut or not in the expected form."
+msgstr "L'IA a répondu, mais sa réponse était coupée ou pas dans la forme attendue."
+
 #: src/features/research/study-list.tsx
 msgid "The AI cost could not be loaded."
 msgstr "Le coût IA n'a pas pu être chargé."

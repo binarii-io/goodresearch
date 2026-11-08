@@ -203,3 +203,17 @@ The spec 004 update chose "no shared instance key": each person connects their o
 
 - Good: no setup and no Google reconnection for the AI when the deployer provides it; costs still per person.
 - Bad: the deployer pays and holds a powerful credential; one shared provider only; a misconfigured identity is known at the first call, not at startup.
+
+## Update: answers cut by the output limit
+
+### Context
+
+On Vertex AI, Gemini 3 counts its thinking in the output limit. With the limits callers set for the answer alone (8,000 tokens for cleaning, for example), long answers were cut before their end: the JSON was invalid, the call was classified `UNKNOWN`, logged as "the shared AI provider refused a call", and people read that the AI was unavailable.
+
+### Decision
+
+- **Room to think**: on Vertex AI the adapter adds 16,000 tokens to the caller's output limit, within the model's maximum (65,536). Only the tokens used are billed. Other providers keep the caller's limit.
+- **A new failure, `ANSWER_INCOMPLETE`**: the provider answered, but its answer was cut or not the object asked for. It is not a deployer failure, and the modules treat it as an invalid answer, not an unavailable AI.
+- **One retry for a cut answer**: the adapter, which knows the real limit and the model's maximum, asks once more with twice the room (none at the maximum), within the call's single time limit; the call's cost in the ledger is that of both. A filtered answer (`content-filter`) is not retried and stays `UNKNOWN`.
+- **Streamed chat keeps its limit**: the thinking room applies to structured and text calls, not to the assistant's streamed answers.
+- **Logs**: "the shared AI provider refused a call" only for the deployer's failures; other failures are logged as "a call to the shared AI provider failed".

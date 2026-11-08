@@ -135,7 +135,8 @@
           "UNREACHABLE",
           "UNKNOWN",
           "SHARED_PROVIDER_UNAVAILABLE",
-          "MEDIA_NOT_SUPPORTED"
+          "MEDIA_NOT_SUPPORTED",
+          "ANSWER_INCOMPLETE"
         ]
       },
       "AiProviderViewInput": {
@@ -19120,7 +19121,8 @@
           "UNREACHABLE",
           "UNKNOWN",
           "SHARED_PROVIDER_UNAVAILABLE",
-          "MEDIA_NOT_SUPPORTED"
+          "MEDIA_NOT_SUPPORTED",
+          "ANSWER_INCOMPLETE"
         ]
       },
       "AiProviderView": {

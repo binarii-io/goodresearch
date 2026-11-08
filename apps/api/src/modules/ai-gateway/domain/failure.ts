@@ -13,6 +13,11 @@ export type AiFailure =
   | 'SHARED_PROVIDER_UNAVAILABLE'
   /** Spec 038: the provider cannot read the files (video) sent with the request. */
   | 'MEDIA_NOT_SUPPORTED'
+  /**
+   * The provider answered, but not with the object asked for: cut by the output limit, or out of
+   * form. Not the provider being unavailable: trying again usually works.
+   */
+  | 'ANSWER_INCOMPLETE'
 
 /**
  * What an adapter saw, reduced to what classification needs. `message` and `code` are read here

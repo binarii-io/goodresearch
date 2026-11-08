@@ -23,6 +23,8 @@ export const AiFailure = z
     'SHARED_PROVIDER_UNAVAILABLE',
     /** Spec 038: the provider cannot read the files (video) sent with the request. */
     'MEDIA_NOT_SUPPORTED',
+    /** The provider answered, but its answer was cut by the output limit or out of form. */
+    'ANSWER_INCOMPLETE',
   ])
   .meta({ id: 'AiFailure' })
 

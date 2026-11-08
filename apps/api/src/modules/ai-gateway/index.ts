@@ -5,6 +5,7 @@ export type { RequestPart } from './application/ports.ts'
 export {
   type ChatMessage,
   failureOf,
+  isInvalidAnswer,
   ProviderCallError,
   type StreamPart,
   type ToolSpec,

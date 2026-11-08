@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { AiProviderRequired, type Gateway, ProviderCallError } from '../../../ai-gateway/index.ts'
+import {
+  AiProviderRequired,
+  type Gateway,
+  isInvalidAnswer,
+  ProviderCallError,
+} from '../../../ai-gateway/index.ts'
 import {
   AiFailed,
   AiUnavailable,
@@ -100,7 +105,7 @@ export const renderReview = (r: ReviewRequest) =>
 
 const failure = (error: unknown) => {
   if (error instanceof AiProviderRequired) return new AiUnavailable()
-  if (error instanceof ProviderCallError) return new AiFailed(error.usage !== null)
+  if (error instanceof ProviderCallError) return new AiFailed(isInvalidAnswer(error))
   return new AiFailed(false)
 }
 

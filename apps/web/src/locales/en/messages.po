@@ -8854,6 +8854,10 @@ msgstr "The AI answer could not be used: some terms may be missing, try again."
 msgid "The AI answer could not be used: try again."
 msgstr "The AI answer could not be used: try again."
 
+#: src/features/ai/labels.ts
+msgid "The AI answered, but its answer was cut or not in the expected form."
+msgstr "The AI answered, but its answer was cut or not in the expected form."
+
 #: src/features/research/study-list.tsx
 msgid "The AI cost could not be loaded."
 msgstr "The AI cost could not be loaded."
