@@ -68,6 +68,19 @@ describe('usability analysis runs (spec 038 US1)', () => {
     expect(view.value.run).toBeNull()
   })
 
+  it('asks to connect the AI provider again when it refused the access, not a copy failure', async () => {
+    const { ProviderAccessLost } = await import('../application/ports.ts')
+    world.stagingRefuses = new ProviderAccessLost()
+    await start()
+    await world.runJobs()
+    const view = await world.queries.study(alice, 'study')
+    if (!view.ok) throw new Error(view.error)
+    expect(view.value.sessions[0]?.analysis).toMatchObject({
+      state: 'failed',
+      failure: 'AI_RECONNECT_REQUIRED',
+    })
+  })
+
   it('fails only the session whose reading of the session or protocol throws', async () => {
     const one = world.deps.sessions.one
     world.deps.sessions.one = async () => {
@@ -315,5 +328,44 @@ describe('what the model finds, kept inside what the app can store (spec 038 FR-
       [],
     )
     expect(kept).toMatchObject([{ momentMs: 0, susItem: null, susValue: null }])
+  })
+})
+
+describe("the gateway's refusals as the analysis names them", () => {
+  it('turns a refused access into a reconnection, a missing provider into its own', async () => {
+    const { providerError } = await import('../infrastructure/provider-error.ts')
+    const { AiProviderRequired, ProviderCallError } = await import('../../ai-gateway/index.ts')
+    const { ProviderAccessLost, ProviderMissing } = await import('../application/ports.ts')
+    expect(providerError(new ProviderCallError('INVALID_CREDENTIAL'))).toBeInstanceOf(
+      ProviderAccessLost,
+    )
+    expect(providerError(new AiProviderRequired())).toBeInstanceOf(ProviderMissing)
+    // A missing role or a disabled API is not fixed by reconnecting.
+    const denied = new ProviderCallError('PERMISSION_DENIED')
+    expect(providerError(denied)).toBe(denied)
+  })
+
+  it('reaches the staging: a refused grant on the bucket token asks to reconnect', async () => {
+    const { createGcsStaging } = await import('../infrastructure/staging.gcs.ts')
+    const { ProviderCallError } = await import('../../ai-gateway/index.ts')
+    const { ProviderAccessLost, ProviderMissing } = await import('../application/ports.ts')
+    const refused = createGcsStaging({
+      googleAccessFor: async () => {
+        throw new ProviderCallError('INVALID_CREDENTIAL', null, 'reauth-required')
+      },
+      providerOf: async () => 'vertex',
+      bucket: null,
+    })
+    await expect(
+      refused.upload('ada', '/nowhere.mp4', 'v.mp4', 'video/mp4'),
+    ).rejects.toBeInstanceOf(ProviderAccessLost)
+    const none = createGcsStaging({
+      googleAccessFor: async () => null,
+      providerOf: async () => null,
+      bucket: null,
+    })
+    await expect(none.upload('ada', '/nowhere.mp4', 'v.mp4', 'video/mp4')).rejects.toBeInstanceOf(
+      ProviderMissing,
+    )
   })
 })

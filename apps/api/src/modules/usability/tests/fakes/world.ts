@@ -325,6 +325,8 @@ export class World {
   facts = new Map<string, Parameters<Facts['upsert']>[0]>()
   people: { sessionId: string; text: string }[] = []
   jobs: AnalysisJob[] = []
+  /** What the staging throws (the provider refusing the person's access). */
+  stagingRefuses: Error | null = null
   /** Names a fact must not hold (the study's people). */
   knownNames: string[] = []
   /** The previous job is still ending: the queue refuses a new one. */
@@ -367,6 +369,7 @@ export class World {
       protocols: { version: async (_s, v) => (v === 1 ? PROTOCOL : null) },
       staging: {
         upload: async (_a, _p, name, mimeType) => {
+          if (this.stagingRefuses) throw this.stagingRefuses
           this.staged.add(name)
           this.stagedEver.push(name)
           return { uri: `gs://staging/${name}`, mimeType }

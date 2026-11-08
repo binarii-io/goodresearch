@@ -56,6 +56,7 @@ export const STATES: Record<
 export const FAILURES: Record<
   | 'VIDEO_UNREADABLE'
   | 'AI_PROVIDER_REQUIRED'
+  | 'AI_RECONNECT_REQUIRED'
   | 'MEDIA_NOT_SUPPORTED'
   | 'AI_FAILED'
   | 'STAGING_FAILED'
@@ -64,6 +65,7 @@ export const FAILURES: Record<
 > = {
   VIDEO_UNREADABLE: msg`The video could not be read from Drive.`,
   AI_PROVIDER_REQUIRED: msg`No AI provider is set up.`,
+  AI_RECONNECT_REQUIRED: msg`Your AI provider asks you to connect again: see your AI settings, then analyse again.`,
   MEDIA_NOT_SUPPORTED: msg`This AI provider cannot read video: it needs Vertex AI.`,
   AI_FAILED: msg`The AI provider failed. Try again.`,
   STAGING_FAILED: msg`The temporary copy for the AI provider could not be made.`,

@@ -442,6 +442,13 @@
       "when": 1794098088091,
       "tag": "0062_usability_analysis",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1794137460004,
+      "tag": "0063_usability_reconnect_failure",
+      "breakpoints": true
     }
   ]
 }

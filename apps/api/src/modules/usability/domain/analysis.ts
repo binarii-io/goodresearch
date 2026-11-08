@@ -14,6 +14,7 @@ export type AnalysisState = 'waiting' | 'analysing' | 'done' | 'failed' | 'stopp
 export type AnalysisFailure =
   | 'VIDEO_UNREADABLE'
   | 'AI_PROVIDER_REQUIRED'
+  | 'AI_RECONNECT_REQUIRED'
   | 'MEDIA_NOT_SUPPORTED'
   | 'AI_FAILED'
   | 'STAGING_FAILED'

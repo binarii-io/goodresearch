@@ -2,7 +2,16 @@ import { err, ok, type Result, sumCosts } from '@goodresearch/shared'
 import { RUN_STALE_MS, type SessionAnalysis, usabilityRef } from '../../domain/analysis.ts'
 import { estimateInputs, minutesOf } from '../../domain/estimate.ts'
 import { AnalysisStopped, runSession } from '../pipeline/run-session.ts'
-import type { Actor, AnalysisJob, AnalysisRun, SessionRef, UsabilityDeps } from '../ports.ts'
+import {
+  type Actor,
+  type AnalysisJob,
+  type AnalysisRun,
+  ProviderAccessLost,
+  ProviderMediaUnsupported,
+  ProviderMissing,
+  type SessionRef,
+  type UsabilityDeps,
+} from '../ports.ts'
 
 /** How often a running job says it is alive, well within `RUN_STALE_MS`. */
 const HEARTBEAT_MS = 60_000
@@ -254,15 +263,11 @@ const analyseOne = async (
     await deps.store.completeAnalysis(analysis.id, output, deps.clock.now())
   } catch (error) {
     if (error instanceof AnalysisStopped) return fail(error.failure)
-    const name = (error as { name?: string }).name ?? ''
+    if (error instanceof ProviderAccessLost) return fail('AI_RECONNECT_REQUIRED')
+    if (error instanceof ProviderMissing) return fail('AI_PROVIDER_REQUIRED')
+    if (error instanceof ProviderMediaUnsupported) return fail('MEDIA_NOT_SUPPORTED')
     deps.log.error({ err: error, sessionId: analysis.sessionId }, 'usability analysis failed')
-    return fail(
-      name === 'AiUnavailable'
-        ? 'AI_PROVIDER_REQUIRED'
-        : name === 'MediaNotSupported'
-          ? 'MEDIA_NOT_SUPPORTED'
-          : 'AI_FAILED',
-    )
+    return fail('AI_FAILED')
   }
 }
 

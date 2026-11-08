@@ -11,7 +11,7 @@
 | `video_file_id`, `video_modified_at`, `video_size` | what was read; differences mark it out of date |
 | `state` | `waiting | analysing | done | failed | stopped` |
 | `stage` | `preparing | transcript | screen-log | task-map | tasks | checks` |
-| `failure` | `VIDEO_UNREADABLE | AI_PROVIDER_REQUIRED | MEDIA_NOT_SUPPORTED | AI_FAILED | STAGING_FAILED | STOPPED` |
+| `failure` | `VIDEO_UNREADABLE | AI_PROVIDER_REQUIRED | AI_RECONNECT_REQUIRED | MEDIA_NOT_SUPPORTED | AI_FAILED | STAGING_FAILED | STOPPED` |
 | `run_id`, `started_by`, `started_at`, `finished_at`, `version` | |
 
 ### `usability_transcripts`

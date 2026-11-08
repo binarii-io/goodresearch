@@ -193,18 +193,24 @@ export const makeGateway = (deps: AiDeps) => {
     ): Promise<{ project: string; region: string; accessToken: string } | null> => {
       const serving = await servingOf(deps, accountId)
       if (serving?.provider !== 'vertex') return null
-      const { credential } = await resolve(accountId)
+      const resolved = await resolve(accountId)
+      const { credential } = resolved
       if (credential.provider !== 'vertex') return null
       const { project, region } = credential
-      if ('serviceAccount' in credential) {
-        if (!deps.serviceAccessToken) return null
-        return { project, region, accessToken: await deps.serviceAccessToken(credential) }
-      }
-      if (!deps.google) return null
-      return {
-        project,
-        region,
-        accessToken: await deps.google.cloud.accessToken(credential.refreshToken),
+      try {
+        if ('serviceAccount' in credential) {
+          if (!deps.serviceAccessToken) return null
+          return { project, region, accessToken: await deps.serviceAccessToken(credential) }
+        }
+        if (!deps.google) return null
+        return {
+          project,
+          region,
+          accessToken: await deps.google.cloud.accessToken(credential.refreshToken),
+        }
+      } catch (error) {
+        // As for a call: a refused grant brings the provider step back (needs attention).
+        throw await onFailure(accountId, 'video-staging', error, resolved)
       }
     },
 

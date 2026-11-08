@@ -1,7 +1,8 @@
 import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import { Readable } from 'node:stream'
-import type { StagedFile, Staging } from '../application/ports.ts'
+import { ProviderMissing, type StagedFile, type Staging } from '../application/ports.ts'
+import { providerError } from './provider-error.ts'
 
 const API = 'https://storage.googleapis.com/storage/v1'
 const UPLOAD = 'https://storage.googleapis.com/upload/storage/v1'
@@ -50,10 +51,14 @@ export const createGcsStaging = (deps: {
   }
 
   const accessOf = async (accountId: string) => {
-    const access = await deps.googleAccessFor(accountId)
+    const access = await deps.googleAccessFor(accountId).catch((error: unknown) => {
+      throw providerError(error)
+    })
     if (access) return access
-    if ((await deps.providerOf(accountId)) === 'fake') return null
-    throw new Error('no Google access for the staging bucket')
+    const provider = await deps.providerOf(accountId)
+    if (provider === 'fake') return null
+    // No provider serves the person any more (or not Vertex AI): theirs to set up, not a copy failure.
+    throw new ProviderMissing()
   }
 
   return {

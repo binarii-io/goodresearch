@@ -10,16 +10,19 @@ import {
   segmentsBetween,
 } from '../../domain/transcript.ts'
 import { arbitrated, judged, needsArbiter } from '../../domain/verdict.ts'
-import type {
-  AnalysisOutput,
-  Crop,
-  FoundObservation,
-  ProtocolOfSession,
-  ScreenLogEntry,
-  SessionRef,
-  StagedFile,
-  TaskSpan,
-  UsabilityDeps,
+import {
+  type AnalysisOutput,
+  type Crop,
+  type FoundObservation,
+  type ProtocolOfSession,
+  ProviderAccessLost,
+  ProviderMediaUnsupported,
+  ProviderMissing,
+  type ScreenLogEntry,
+  type SessionRef,
+  type StagedFile,
+  type TaskSpan,
+  type UsabilityDeps,
 } from '../ports.ts'
 
 /** A stage the pipeline could not pass; the session's analysis fails with it. */
@@ -345,14 +348,19 @@ export const runSession = async (
 
     return { language, segments, tasks, observations, screenshots }
   } finally {
-    await deps.staging
-      .remove(accountId, staged)
-      .catch((error: unknown) =>
-        deps.log.error({ err: error, sessionId: session.sessionId }, 'staging copy not removed'),
-      )
+    await deps.staging.remove(accountId, staged).catch((error: unknown) => {
+      // Refused again: the bucket's one-day rule removes the copies; nothing more to say.
+      if (isProviderRefusal(error)) return
+      deps.log.error({ err: error, sessionId: session.sessionId }, 'staging copy not removed')
+    })
     await work.release().catch(() => undefined)
   }
 }
+
+const isProviderRefusal = (error: unknown) =>
+  error instanceof ProviderAccessLost ||
+  error instanceof ProviderMissing ||
+  error instanceof ProviderMediaUnsupported
 
 const upload = async (
   deps: UsabilityDeps,
@@ -367,7 +375,8 @@ const upload = async (
     staged.push(file)
     return file
   } catch (error) {
-    if (error instanceof AnalysisStopped) throw error
+    // The provider's refusals are named by the run (one place for every stage).
+    if (error instanceof AnalysisStopped || isProviderRefusal(error)) throw error
     deps.log.error({ err: error }, 'staging upload failed')
     throw new AnalysisStopped('STAGING_FAILED')
   }

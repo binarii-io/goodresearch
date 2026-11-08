@@ -15,6 +15,7 @@ export const AnalysisStage = z.enum([
 export const AnalysisFailureCode = z.enum([
   'VIDEO_UNREADABLE',
   'AI_PROVIDER_REQUIRED',
+  'AI_RECONNECT_REQUIRED',
   'MEDIA_NOT_SUPPORTED',
   'AI_FAILED',
   'STAGING_FAILED',

@@ -249,3 +249,16 @@ describe('spec 030 US4 — session check', () => {
     })
   })
 })
+
+describe('spec 038 — the video bucket token of a refused grant', () => {
+  it('brings the provider step back, as a refused call does', async () => {
+    world.google.cloud.revokedGrant = 'reauth-required'
+    await expect(world.gateway.googleAccessFor('ada')).rejects.toMatchObject({
+      failure: 'INVALID_CREDENTIAL',
+    })
+    expect(world.connections.get('ada')).toMatchObject({
+      status: 'needs-attention',
+      grantProblem: 'reauth-required',
+    })
+  })
+})

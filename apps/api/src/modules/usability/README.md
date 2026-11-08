@@ -18,3 +18,4 @@ The analysis of usability test sessions (spec 038, ADR-0013), context map: Usabi
 - A decision writes the fact first: a statement naming a person is refused (`NAME_IN_STATEMENT`) and the observation stays as it was. An observation always belongs to a task.
 - Results read every analysis whatever its state: decided items stay while a session is analysed again.
 - The player's range requests read the session's row only; items to review are counted in SQL.
+- When the AI provider refuses the person's access (a Google grant to renew), the analysis fails with `AI_RECONNECT_REQUIRED`, not as a copy failure, and the person's connection turns "needs attention" as after any refused call; they reconnect it (or remove it, the shared provider then serves them) before analysing again.

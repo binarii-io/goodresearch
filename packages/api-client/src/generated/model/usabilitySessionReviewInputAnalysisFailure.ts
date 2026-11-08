@@ -11,6 +11,7 @@ export type UsabilitySessionReviewInputAnalysisFailure = typeof UsabilitySession
 export const UsabilitySessionReviewInputAnalysisFailure = {
   VIDEO_UNREADABLE: 'VIDEO_UNREADABLE',
   AI_PROVIDER_REQUIRED: 'AI_PROVIDER_REQUIRED',
+  AI_RECONNECT_REQUIRED: 'AI_RECONNECT_REQUIRED',
   MEDIA_NOT_SUPPORTED: 'MEDIA_NOT_SUPPORTED',
   AI_FAILED: 'AI_FAILED',
   STAGING_FAILED: 'STAGING_FAILED',

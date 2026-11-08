@@ -10722,6 +10722,10 @@ msgstr "Il vous faut l’accès au dossier Drive de cette étude pour voir ses s
 msgid "Your account is not allowed to use this model."
 msgstr "Votre compte n'est pas autorisé à utiliser ce modèle."
 
+#: src/features/usability/labels.ts
+msgid "Your AI provider asks you to connect again: see your AI settings, then analyse again."
+msgstr "Votre fournisseur IA demande de vous reconnecter : voyez vos réglages IA, puis relancez l'analyse."
+
 #: src/routes/setup.ai-provider.tsx
 msgid "Your AI provider needs your attention."
 msgstr "Votre fournisseur IA demande votre attention."

@@ -338,3 +338,18 @@ export type UsabilityDeps = {
     error(object: object, message: string): void
   }
 }
+
+/** The AI provider in use refused the person's access: they connect it again (FR-019). */
+export class ProviderAccessLost extends Error {
+  override name = 'ProviderAccessLost'
+}
+
+/** The AI provider in use cannot read video. */
+export class ProviderMediaUnsupported extends Error {
+  override name = 'ProviderMediaUnsupported'
+}
+
+/** No AI provider serves the person any more. */
+export class ProviderMissing extends Error {
+  override name = 'ProviderMissing'
+}

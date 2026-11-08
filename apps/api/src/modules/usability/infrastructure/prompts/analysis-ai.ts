@@ -4,6 +4,7 @@ import type { AnalysisAi, Frame, ScreenLogEntry } from '../../application/ports.
 import { OBSERVATION_KINDS } from '../../domain/observation.ts'
 import { OUTCOMES } from '../../domain/task-result.ts'
 import type { Segment } from '../../domain/transcript.ts'
+import { providerError } from '../provider-error.ts'
 
 /** Ledger tasks of the analysis (spec 038), one per stage. */
 export const TASKS = {
@@ -143,18 +144,22 @@ export const createAnalysisAi = (ai: {
     parts: RequestPart[],
     schema: z.ZodType<T>,
   ): Promise<T> => {
-    const { object } = await ai.gateway().generateObject(
-      accountId,
-      TASKS[stage],
-      {
-        system,
-        parts: [{ type: 'text', text: marker(stage) }, ...parts],
-        schema,
-        maxOutputTokens: 16_000,
-      },
-      { ref, timeoutMs: TIMEOUT_MS, tier },
-    )
-    return object
+    try {
+      const { object } = await ai.gateway().generateObject(
+        accountId,
+        TASKS[stage],
+        {
+          system,
+          parts: [{ type: 'text', text: marker(stage) }, ...parts],
+          schema,
+          maxOutputTokens: 16_000,
+        },
+        { ref, timeoutMs: TIMEOUT_MS, tier },
+      )
+      return object
+    } catch (error) {
+      throw providerError(error)
+    }
   }
 
   return {
