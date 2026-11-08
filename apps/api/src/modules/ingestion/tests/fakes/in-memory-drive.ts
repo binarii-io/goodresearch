@@ -1,8 +1,10 @@
+import { writeFile } from 'node:fs/promises'
 import type {
   DriveAuthorization,
   DriveGateway,
   DriveItem,
   GrantProblem,
+  VideoRange,
 } from '../../domain/drive-gateway.ts'
 import {
   DriveConnectionLost,
@@ -130,6 +132,44 @@ export class InMemoryDrive implements DriveGateway, DriveAuthorization {
     if (this.unreadable.has(file.id)) throw new TranscriptUnreadable()
     if (!this.items.has(file.id) || !this.#canOpen(account, file.id)) return null
     return (this.texts.get(file.id) ?? '').slice(0, maxChars)
+  }
+
+  /** Spec 038: the bytes of files (videos), by file id. */
+  readonly bytes = new Map<string, Uint8Array>()
+
+  async downloadFile(
+    refreshToken: string,
+    id: string,
+    toPath: string,
+  ): Promise<{ bytes: number } | null> {
+    const account = this.#account(refreshToken)
+    const data = this.bytes.get(id)
+    if (!data || !this.items.has(id) || !this.#canOpen(account, id)) return null
+    await writeFile(toPath, data)
+    return { bytes: data.byteLength }
+  }
+
+  async videoRange(
+    refreshToken: string,
+    id: string,
+    range: string | null,
+  ): Promise<VideoRange | null> {
+    const account = this.#account(refreshToken)
+    const data = this.bytes.get(id)
+    if (!data || !this.items.has(id) || !this.#canOpen(account, id)) return null
+    const m = range ? /^bytes=(\d+)-(\d*)$/.exec(range) : null
+    const start = m ? Number(m[1]) : 0
+    const end = m?.[2] ? Math.min(Number(m[2]), data.byteLength - 1) : data.byteLength - 1
+    const part = data.slice(start, end + 1)
+    return {
+      status: m ? 206 : 200,
+      contentType: this.items.get(id)?.mimeType ?? 'video/mp4',
+      contentLength: part.byteLength,
+      contentRange: m ? `bytes ${start}-${end}/${data.byteLength}` : null,
+      body: (async function* () {
+        yield part
+      })(),
+    }
   }
 
   async getItem(refreshToken: string, id: string): Promise<DriveItem | null> {

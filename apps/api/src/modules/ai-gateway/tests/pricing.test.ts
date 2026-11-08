@@ -49,6 +49,7 @@ describe('dated prices', () => {
       config: {
         offered: [],
         models: {} as never,
+        strongModels: {} as never,
         timeoutMs: 1,
         prices: DEFAULT_PRICES,
         shared: null,

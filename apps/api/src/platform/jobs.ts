@@ -28,6 +28,8 @@ export const QUEUES = {
   themes: 'surveys.themes',
   /** A theme's or a survey fact's texts translated after a person's edit (spec 029). */
   surveyTranslate: 'surveys.translate',
+  /** A study's usability test sessions read from their videos, one run per study (spec 038). */
+  usabilityAnalysis: 'usability.analysis',
 } as const
 
 export type JobQueue = {
@@ -74,6 +76,8 @@ const QUEUE_OPTIONS = {
   [QUEUES.takeaways]: run(10 * 60),
   [QUEUES.themes]: run(30 * 60),
   [QUEUES.surveyTranslate]: retried,
+  // Videos of several hours, read stage by stage with a heartbeat every stage.
+  [QUEUES.usabilityAnalysis]: run(6 * 60 * 60),
 } satisfies Record<string, Omit<Queue, 'name'>>
 
 /** Creates missing queues and brings existing ones to the current settings (creation alone keeps old ones). */

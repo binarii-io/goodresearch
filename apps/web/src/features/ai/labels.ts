@@ -70,6 +70,10 @@ export const FAILURES: Record<AiFailure, { reason: MessageDescriptor; action: Me
       reason: msg`The provider did not answer.`,
       action: msg`Try again in a moment.`,
     },
+    MEDIA_NOT_SUPPORTED: {
+      reason: msg`This AI provider cannot read videos.`,
+      action: msg`Use Vertex AI for the analysis of usability tests.`,
+    },
     SHARED_PROVIDER_UNAVAILABLE: {
       reason: msg`The AI of this instance is unavailable right now.`,
       action: msg`Contact the person who deployed goodresearch, or try again later. If this instance lets you, you can also connect your own AI provider.`,

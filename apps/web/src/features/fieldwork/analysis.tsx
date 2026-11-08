@@ -135,7 +135,7 @@ export function useAnalyzeOne(studyId: string) {
 }
 
 /** Under the name of a row: the analysis state and what it cost (FR-010). */
-export function AnalysisLine({ s }: { s: Session }) {
+export function AnalysisLine({ s, tests = false }: { s: Session; tests?: boolean }) {
   const { t, i18n } = useLingui()
   const money = useMoney()
   if (!s.analysis) return null
@@ -144,7 +144,10 @@ export function AnalysisLine({ s }: { s: Session }) {
       {[
         s.analysis.failure === 'NOT_A_TRANSCRIPT'
           ? t`Summary, not a transcript`
-          : i18n._(ANALYSIS_STATES[s.analysis.state]),
+          : tests && s.analysis.state === 'done'
+            ? // Spec 037: on a usability test this reads the people, not the video (spec 038).
+              t`People read`
+            : i18n._(ANALYSIS_STATES[s.analysis.state]),
         s.analysis.filesChanged ? t`files changed since` : null,
         s.cost === null ? t`cost unknown` : money(s.cost),
       ]
@@ -209,24 +212,22 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
     <>
       <Button className="ml-auto" onClick={() => setOpen(true)}>
         <SparklesIcon aria-hidden />
-        {tests ? t`Analyze sessions` : t`Analyze interviews`}
+        {tests ? t`Find the people` : t`Analyze interviews`}
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {tests ? t`Analyze the sessions?` : t`Analyze the interviews?`}
+              {tests ? t`Find the people of the sessions?` : t`Analyze the interviews?`}
             </AlertDialogTitle>
             {!e ? (
               <AlertDialogDescription>
-                {tests
-                  ? t`Counting the sessions to analyze…`
-                  : t`Counting the interviews to analyze…`}
+                {tests ? t`Counting the sessions to read…` : t`Counting the interviews to analyze…`}
               </AlertDialogDescription>
             ) : e.count === 0 ? (
               <AlertDialogDescription>
                 {tests
-                  ? t`Every session is already analyzed. Tick the box below to analyze them again.`
+                  ? t`The people of every session are already read. Tick the box below to read them again.`
                   : t`Every interview is already analyzed. Tick the box below to analyze them again.`}
               </AlertDialogDescription>
             ) : (
@@ -234,7 +235,7 @@ export function AnalyzeAll({ studyId, data }: { studyId: string; data: Fieldwork
                 <AlertDialogDescription className="grid gap-2">
                   <span>
                     {tests
-                      ? t`${e.count} sessions will be analyzed: never analyzed, incomplete, or whose files changed. Sessions a person decided are left as they are.`
+                      ? t`The people of ${e.count} sessions will be read from their files and transcript: never read, incomplete, or whose files changed. Sessions a person decided are left as they are. This is not the video analysis (Analysis tab).`
                       : t`${e.count} interviews will be analyzed: never analyzed, incomplete, or whose files changed. Interviews a person decided are left as they are.`}
                   </span>
                   {tests && withoutTranscript > 0 ? (

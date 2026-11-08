@@ -28,7 +28,7 @@ describe('US1 — connect with an API key', () => {
     expect(world.usage).toEqual([
       expect.objectContaining({ accountId: 'ada', task: 'provider-check', outcome: 'success' }),
     ])
-    expect(await world.queries.gate('ada')).toEqual({
+    expect(await world.queries.gate('ada')).toMatchObject({
       required: true,
       status: 'working',
       grantProblem: null,
@@ -48,7 +48,7 @@ describe('US1 — connect with an API key', () => {
     })
     expect(world.connections.has('ada')).toBe(false)
     expect(world.usage[0]?.outcome).toBe('INVALID_CREDENTIAL')
-    expect(await world.queries.gate('ada')).toEqual({
+    expect(await world.queries.gate('ada')).toMatchObject({
       required: true,
       status: 'none',
       grantProblem: null,
@@ -66,7 +66,7 @@ describe('US1 — connect with an API key', () => {
   })
 
   it('does not require anything when no provider is offered', async () => {
-    expect(await aiWorld({ offered: [] }).queries.gate('ada')).toEqual({
+    expect(await aiWorld({ offered: [] }).queries.gate('ada')).toMatchObject({
       required: false,
       status: 'none',
       grantProblem: null,
@@ -221,7 +221,7 @@ describe('US3 — test, switch, remove', () => {
       ok: true,
       value: { ok: false, failure: 'INVALID_CREDENTIAL' },
     })
-    expect(await world.queries.gate('ada')).toEqual({
+    expect(await world.queries.gate('ada')).toMatchObject({
       required: true,
       status: 'needs-attention',
       grantProblem: null,
@@ -241,7 +241,7 @@ describe('US3 — test, switch, remove', () => {
       ok: true,
       value: { ok: false, failure: 'INVALID_CREDENTIAL' },
     })
-    expect(await world.queries.gate('ada')).toEqual({
+    expect(await world.queries.gate('ada')).toMatchObject({
       required: true,
       status: 'needs-attention',
       grantProblem: null,
@@ -269,7 +269,7 @@ describe('US3 — test, switch, remove', () => {
     expect(world.connections.get('ada')?.provider).toBe('anthropic')
     await world.commands.removeProvider({ actor: ada })
     expect(world.connections.has('ada')).toBe(false)
-    expect(await world.queries.gate('ada')).toEqual({
+    expect(await world.queries.gate('ada')).toMatchObject({
       required: true,
       status: 'none',
       grantProblem: null,
@@ -378,7 +378,7 @@ describe('US4 — gateway and ledger', () => {
     await world.commands.connectApiKey({ actor: ada, provider: 'openai', apiKey: 'sk-ada-1234' })
     world.model.failNext('PERMISSION_DENIED')
     await expect(world.gateway.generateText('ada', 't', { prompt: 'x' })).rejects.toThrow()
-    expect(await world.queries.gate('ada')).toEqual({
+    expect(await world.queries.gate('ada')).toMatchObject({
       required: true,
       status: 'needs-attention',
       grantProblem: null,
@@ -399,7 +399,7 @@ describe('US4 — gateway and ledger', () => {
     await world.commands.connectApiKey({ actor: ada, provider: 'openai', apiKey: 'sk-ada-1234' })
     const later = aiWorld({ offered: ['anthropic'] })
     later.connections.set('ada', world.connections.get('ada') ?? ({} as never))
-    expect(await later.queries.gate('ada')).toEqual({
+    expect(await later.queries.gate('ada')).toMatchObject({
       required: true,
       status: 'none',
       grantProblem: null,

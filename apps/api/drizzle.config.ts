@@ -15,6 +15,7 @@ export default defineConfig({
     './src/modules/interview-quality/infrastructure/schema.ts',
     './src/modules/synthesis/infrastructure/schema.ts',
     './src/modules/surveys/infrastructure/schema.ts',
+    './src/modules/usability/infrastructure/schema.ts',
   ],
   out: './drizzle',
   casing: 'snake_case',

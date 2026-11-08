@@ -23,6 +23,7 @@ import { createAiStore } from './ai.drizzle-store.ts'
 import { createAiSdkRunner } from './ai-sdk.model-runner.ts'
 import { DEFAULT_PRICES } from './default-prices.ts'
 import { createGoogleCloudApi } from './google-cloud.fetch-api.ts'
+import { createServiceAccessToken } from './google-service-token.ts'
 import type { AiHandlers } from './http.routes.ts'
 
 export const AI_GOOGLE_CALLBACK_PATH = '/api/ai-provider/google/callback'
@@ -94,6 +95,7 @@ export const createAiGatewayModule = (deps: {
   const ai: AiDeps = {
     store: createAiStore(deps.db),
     runner: deps.runner ?? createAiSdkRunner({ google: config.google, log }),
+    serviceAccessToken: createServiceAccessToken(),
     google,
     cipher: createTokenCipher(config.authSecret, CIPHER_PURPOSES.aiProviderCredentials),
     config: {
@@ -119,6 +121,8 @@ export const createAiGatewayModule = (deps: {
     usageCosts,
     /** The same for every account (the cost of a study's analyses, spec 009). */
     studyCosts: makeStudyCosts(ai),
+    /** Spec 038: the kind of the provider serving a person (Vertex AI reads videos). */
+    providerKindOf: gateway.providerOf,
     /** What a call would cost with the person's model today (spec 009 estimates). */
     estimateCost: makeEstimateCost(ai),
     /** For `Me` (workspace): is the provider step needed? */

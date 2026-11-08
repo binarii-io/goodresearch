@@ -26,6 +26,7 @@ import { makeSessionQueries } from '../application/queries/session-queries.ts'
 import { makeSourceQueries, makeStudyActionGate } from '../application/queries/source-queries.ts'
 import { makeStudyCostRefs, makeStudyOverview } from '../application/queries/study-overview.ts'
 import { makeStudyFiles } from '../application/study-files.ts'
+import { makeUsabilitySources } from '../application/usability-sources.ts'
 import type { DriveDocuments } from '../domain/drive-documents.ts'
 import type { DriveAuthorization, DriveGateway } from '../domain/drive-gateway.ts'
 import { createDevDrive } from './dev-drive.ts'
@@ -177,6 +178,8 @@ export const createIngestionModule = (deps: {
     /** Spec 017: a study's interviews for the project's Overview. */
     studyOverview: makeStudyOverview(ingestion),
     studyCostRefs: makeStudyCostRefs(ingestion),
+    /** Spec 038: what the usability test analysis reads and asks of the test sessions. */
+    usability: makeUsabilitySources(ingestion, sessionQueries, analysis),
     /** What the Enrichment phase reads from the validated interviews (spec 010). */
     enrichment: makeEnrichmentSources(ingestion),
     /** The research module tells when a planned interview changed (spec 009 FR-022). */

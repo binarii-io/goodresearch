@@ -8,11 +8,12 @@ import type { Takeaways } from '../domain/takeaways.ts'
 
 /**
  * A fact of the project as Evidence gives it (spec 013 research R1): an interview's, or since
- * spec 029 a survey's, with no session.
+ * spec 029 a survey's, with no session, or since spec 038 a usability test session's (its session
+ * and its participant's code, like an interview's).
  */
 export type SourceFact = FactNow & {
   readonly sessionId: string | null
-  readonly source: 'interview' | 'survey'
+  readonly source: 'interview' | 'survey' | 'usability'
 }
 
 /** A study of the project, with the person's own access to its folder (spec 002 FR-010a). */

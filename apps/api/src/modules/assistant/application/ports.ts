@@ -322,6 +322,19 @@ export interface ResearchReads {
   }): Promise<
     { ok: true; folderName: string; folderOwner: string | null } | { ok: false; error: string }
   >
+  /** Spec 038: where the analysis of a usability test stands; no name, null without access. */
+  usabilityAnalysis(
+    actor: Actor,
+    studyId: string,
+  ): Promise<{
+    ready: number
+    analysed: number
+    toAnalyse: number
+    toReview: number
+    running: boolean
+    estimate: number | null
+    cost: number | null
+  } | null>
   /** Spec 025: numbers of interviews by state; no name. */
   interviewCounts(
     actor: Actor,

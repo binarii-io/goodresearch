@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { StoredVerbatim } from '../application/ports.ts'
 import { makeSynthesisReads } from '../application/queries/synthesis-reads.ts'
 import type { Fact, FactStatus } from '../domain/facts.ts'
+import { createMemoryUsabilityFactStore } from '../infrastructure/usability-facts.drizzle-store.ts'
 import { inMemoryEvidenceStore } from './fakes/in-memory-evidence.ts'
 import { inMemorySurveyFacts } from './fakes/in-memory-survey-facts.ts'
 
@@ -52,10 +53,11 @@ const setup = () => {
     fact('f5', 'accepted', ['v1'], 'other-study'),
   ])
     memory.facts.set(f.id, f)
-  return makeSynthesisReads(memory.store, surveys.store)
+  return makeSynthesisReads(memory.store, surveys.store, usability)
 }
 
 const surveys = inMemorySurveyFacts()
+const usability = createMemoryUsabilityFactStore()
 
 describe('Evidence reads for Synthesis (spec 013 research R1)', () => {
   it('gives survey facts too, with no session, no participant and their base (spec 029)', async () => {
@@ -133,7 +135,10 @@ describe('Evidence reads for Synthesis (spec 013 research R1)', () => {
     memory.store.factsOfStudy = async () => {
       throw new Error('facts read')
     }
-    const counts = await makeSynthesisReads(memory.store, surveys.store).studyCounts('st', ['s1'])
+    const counts = await makeSynthesisReads(memory.store, surveys.store, usability).studyCounts(
+      'st',
+      ['s1'],
+    )
     expect([...counts].sort((a, b) => a.status.localeCompare(b.status))).toEqual([
       { status: 'accepted', count: 1 },
       { status: 'edited', count: 1 },
@@ -153,7 +158,10 @@ describe('Evidence reads for Synthesis (spec 013 research R1)', () => {
   it('keeps in the costs the translations of a session read and deleted since', async () => {
     const memory = inMemoryEvidenceStore()
     memory.store.runsOf = async () => [{ id: 'r', sessions: [{ sessionId: 'gone' }] }] as never
-    const refs = await makeSynthesisReads(memory.store, surveys.store).studyCostRefs('st', ['s1'])
+    const refs = await makeSynthesisReads(memory.store, surveys.store, usability).studyCostRefs(
+      'st',
+      ['s1'],
+    )
     expect(refs).toHaveLength(3)
     expect(refs.filter((r) => r.includes('gone'))).toHaveLength(2)
   })

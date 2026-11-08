@@ -1,4 +1,5 @@
 import type { GrantProblem } from '../../domain/grant-problem.ts'
+import type { ProviderKind } from '../../domain/provider.ts'
 import { VERTEX_REGIONS } from '../../domain/provider.ts'
 import { type AiDeps, type StoredConnection, servingOf, sharedOpenTo } from '../ports.ts'
 
@@ -57,6 +58,8 @@ export const makeProviderQueries = (deps: AiDeps) => ({
     status: 'none' | 'working' | 'needs-attention'
     /** Spec 030: a refused Vertex AI grant is reconnected where the person is, not in the setup. */
     grantProblem: GrantProblem | null
+    /** Spec 038: the kind of the provider serving the person (Vertex AI reads videos). */
+    kind: ProviderKind | null
   }> => {
     // A provider the deployer no longer offers counts as none: the person chooses again, unless
     // the instance's shared provider serves them (spec 035).
@@ -66,11 +69,13 @@ export const makeProviderQueries = (deps: AiDeps) => ({
         required: deps.config.offered.length > 0,
         status: serving.connection.status,
         grantProblem: serving.connection.grantProblem,
+        kind: serving.provider,
       }
     return {
       required: deps.config.offered.length > 0 && serving === null,
       status: 'none',
       grantProblem: null,
+      kind: serving?.provider ?? null,
     }
   },
 })

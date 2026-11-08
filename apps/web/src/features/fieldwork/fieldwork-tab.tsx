@@ -182,9 +182,9 @@ function SessionsOverview({ data }: { data: Fieldwork }) {
       />
       <StatTile
         icon={<FileSearchIcon aria-hidden />}
-        label={t`Analyzed`}
+        label={t`People read`}
         value={analyzed}
-        detail={t`Cost of the analyses: ${data.analysisCost === null ? t`unknown` : money(data.analysisCost)}`}
+        detail={t`From the files and transcripts, not the video · ${data.analysisCost === null ? t`cost unknown` : money(data.analysisCost)}`}
       />
     </StatTiles>
   )
@@ -614,7 +614,7 @@ function Interviews({
                         .filter(Boolean)
                         .join(' · ')}
                     </span>
-                    <AnalysisLine s={s} />
+                    <AnalysisLine s={s} tests={tests} />
                   </span>
                 </TableCell>
                 <TableCell>
@@ -727,7 +727,9 @@ function Interviews({
                           ? t`Analyzing ${name}…`
                           : analyzer.stage(s) === 'waiting'
                             ? t`${name} waits for its analysis`
-                            : t`Analyze ${name}`
+                            : tests
+                              ? t`Find the people of ${name}`
+                              : t`Analyze ${name}`
                       }
                       aria-busy={analyzer.stage(s) !== null || undefined}
                       title={
@@ -735,7 +737,9 @@ function Interviews({
                           ? t`Analyzing…`
                           : analyzer.stage(s) === 'waiting'
                             ? t`Waiting for analysis`
-                            : t`Analyze`
+                            : tests
+                              ? t`Find the people`
+                              : t`Analyze`
                       }
                       disabled={analyzer.stage(s) !== null}
                       onClick={() => void analyzer.analyze(s)}

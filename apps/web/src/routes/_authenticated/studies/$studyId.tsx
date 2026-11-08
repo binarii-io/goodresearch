@@ -6,6 +6,7 @@ import {
   useGetQualityInterview,
   useGetStudy,
   useGetStudySource,
+  useGetUsabilitySession,
   useRenameStudy,
   useUpdateStudyGoal,
 } from '@goodresearch/api-client'
@@ -54,6 +55,7 @@ import { QualityTab } from '../../../features/quality/quality-tab.tsx'
 import { StudySettingsButton } from '../../../features/research/study-settings.tsx'
 import { SurveyAnalysisTab } from '../../../features/surveys/survey-analysis-tab.tsx'
 import { SurveyFieldworkTab } from '../../../features/surveys/survey-fieldwork-tab.tsx'
+import { UsabilityAnalysisTab } from '../../../features/usability/analysis-tab.tsx'
 import { errorCode, errorMessage } from '../../../features/workspace/errors.ts'
 import { useMe } from '../../../features/workspace/me.ts'
 import { NotFound } from '../../../features/workspace/not-found.tsx'
@@ -122,8 +124,12 @@ function StudyPage() {
     interview
       ? interview
       : null
+  // Spec 038: on a usability test, the deep page is a session being explored.
   const facts = useGetInterviewFacts(studyId, deep ?? '', {
-    query: { enabled: deep !== null && phase === 'analysis' },
+    query: { enabled: deep !== null && phase === 'analysis' && !usability },
+  })
+  const explored = useGetUsabilitySession(deep ?? '', {
+    query: { enabled: deep !== null && phase === 'analysis' && usability },
   })
   const enrichment = useGetEnrichment(studyId, {
     query: { enabled: deep !== null && phase === 'enrichment' },
@@ -133,7 +139,9 @@ function StudyPage() {
   })
   const deepTitle =
     phase === 'analysis'
-      ? facts.data?.title
+      ? usability
+        ? explored.data?.session.title
+        : facts.data?.title
       : phase === 'quality'
         ? quality.data?.title
         : enrichment.data?.interviews.find((i) => i.sessionId === deep)?.title
@@ -479,6 +487,19 @@ function StudyPage() {
               <ReservedToTeam team={s.team.name} />
             ) : (
               <SurveyAnalysisTab studyId={studyId} />
+            )
+          ) : s.type === 'usability-test' ? (
+            // Spec 038: test sessions read task by task from their video.
+            reader ? (
+              <ReservedToTeam team={s.team.name} />
+            ) : canAct ? (
+              <UsabilityAnalysisTab
+                studyId={studyId}
+                sessionId={interview ?? null}
+                onOpen={(sessionId) => openInterview(sessionId)}
+              />
+            ) : (
+              <p className="text-muted-foreground text-base">{t`You need access to this study's Drive folder to see its sessions.`}</p>
             )
           ) : s.type !== 'interviews' ? (
             <p className="text-muted-foreground text-base">{t`Analysis for this type of study is coming in a later version.`}</p>

@@ -1,8 +1,10 @@
 import { factsRef, translationRef } from '../../domain/analysis-run.ts'
 import type { Fact, FactStatus, Polarity, Statement, Theme } from '../../domain/facts.ts'
 import type { SurveyFact } from '../../domain/survey-facts.ts'
+import { evidenceLine, type UsabilityFact } from '../../domain/usability-facts.ts'
 import type { EvidenceStore } from '../ports.ts'
 import type { SurveyFactStore } from '../survey-ports.ts'
+import type { UsabilityFactStore } from '../usability-ports.ts'
 
 /** A fact as Synthesis reads it (spec 013 research R1): no verbatim text, only who said it. */
 export type FactForSynthesis = {
@@ -10,7 +12,8 @@ export type FactForSynthesis = {
   readonly studyId: string
   /** Null for a survey fact (spec 029). */
   readonly sessionId: string | null
-  readonly source: 'interview' | 'survey'
+  /** Spec 038: `usability` for an observation of a usability test session. */
+  readonly source: 'interview' | 'survey' | 'usability'
   /** Spec 029: a survey fact's base. */
   readonly respondents: number | null
   readonly statement: Statement
@@ -40,7 +43,27 @@ const surveyForSynthesis = (f: SurveyFact): FactForSynthesis => ({
   decidedAt: f.decidedAt,
 })
 
-export const makeSynthesisReads = (store: EvidenceStore, surveys: SurveyFactStore) => {
+/** Spec 038: a usability fact as Synthesis reads it: its session and its participant's code. */
+const usabilityForSynthesis = (f: UsabilityFact): FactForSynthesis => ({
+  id: f.id,
+  studyId: f.studyId,
+  sessionId: f.sessionId,
+  source: 'usability',
+  respondents: null,
+  statement: f.statement,
+  polarity: f.polarity,
+  theme: f.theme,
+  status: f.status,
+  participants: f.support.participant ? [f.support.participant] : [],
+  version: f.version,
+  decidedAt: f.decidedAt,
+})
+
+export const makeSynthesisReads = (
+  store: EvidenceStore,
+  surveys: SurveyFactStore,
+  usability: UsabilityFactStore,
+) => {
   const withParticipants = async (facts: readonly Fact[]): Promise<FactForSynthesis[]> => {
     const verbatims = await store.verbatimsByIds([...new Set(facts.flatMap((f) => f.verbatimIds))])
     const byId = new Map(verbatims.map((v) => [v.id, v]))
@@ -88,16 +111,22 @@ export const makeSynthesisReads = (store: EvidenceStore, surveys: SurveyFactStor
       return [
         ...(await withParticipants(facts.filter((f) => f.status !== 'rejected'))),
         ...(await surveys.ofStudies(studyIds)).map(surveyForSynthesis),
+        ...(await usability.ofStudies(studyIds)).map(usabilityForSynthesis),
       ]
     },
     /** Facts by id whatever their status, in the order asked; a deleted one is absent. */
     factsByIds: async (ids: readonly string[]) => {
-      const [interviews, survey] = await Promise.all([store.factsByIds(ids), surveys.byIds(ids)])
+      const [interviews, survey, tests] = await Promise.all([
+        store.factsByIds(ids),
+        surveys.byIds(ids),
+        usability.byIds(ids),
+      ])
       const found = new Map(
-        [...(await withParticipants(interviews)), ...survey.map(surveyForSynthesis)].map((f) => [
-          f.id,
-          f,
-        ]),
+        [
+          ...(await withParticipants(interviews)),
+          ...survey.map(surveyForSynthesis),
+          ...tests.map(usabilityForSynthesis),
+        ].map((f) => [f.id, f]),
       )
       return ids.flatMap((id) => found.get(id) ?? [])
     },
@@ -106,19 +135,38 @@ export const makeSynthesisReads = (store: EvidenceStore, surveys: SurveyFactStor
      * a verbatim set aside or still to attribute is left out. The caller replaces names.
      */
     verbatimsOf: async (factIds: readonly string[]) => {
-      const facts = await store.factsByIds(factIds)
+      const [facts, tests] = await Promise.all([
+        store.factsByIds(factIds),
+        usability.byIds(factIds),
+      ])
+      // Spec 038: a usability fact's evidence is its quote, else the moment it was seen.
+      const seen = tests.flatMap((f) =>
+        f.support.participant
+          ? [
+              {
+                factId: f.id,
+                studyId: f.studyId,
+                participant: f.support.participant,
+                text: evidenceLine(f),
+              },
+            ]
+          : [],
+      )
       const verbatims = await store.verbatimsByIds([
         ...new Set(facts.flatMap((f) => f.verbatimIds)),
       ])
       const byId = new Map(verbatims.map((v) => [v.id, v]))
-      return facts.flatMap((f) =>
-        f.verbatimIds.flatMap((id) => {
-          const v = byId.get(id)
-          return v && !v.setAside && v.participant
-            ? [{ factId: f.id, studyId: f.studyId, participant: v.participant, text: v.text }]
-            : []
-        }),
-      )
+      return [
+        ...facts.flatMap((f) =>
+          f.verbatimIds.flatMap((id) => {
+            const v = byId.get(id)
+            return v && !v.setAside && v.participant
+              ? [{ factId: f.id, studyId: f.studyId, participant: v.participant, text: v.text }]
+              : []
+          }),
+        ),
+        ...seen,
+      ]
     },
   }
 }

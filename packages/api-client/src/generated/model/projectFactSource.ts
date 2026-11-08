@@ -11,4 +11,5 @@ export type ProjectFactSource = typeof ProjectFactSource[keyof typeof ProjectFac
 export const ProjectFactSource = {
   interview: 'interview',
   survey: 'survey',
+  usability: 'usability',
 } as const;

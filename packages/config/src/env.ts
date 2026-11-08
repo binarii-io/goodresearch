@@ -23,6 +23,15 @@ const DEFAULT_MODELS: Record<AiProviderKind, string> = {
   fake: 'fake-model',
 }
 
+/**
+ * Spec 038: the strong model of each provider, for the steps that need it (the video analysis's
+ * transcript, task readings and arbiter). Unset: the standard model.
+ */
+const DEFAULT_STRONG_MODELS: Partial<Record<AiProviderKind, string>> = {
+  vertex: 'gemini-4-argon',
+  fake: 'fake-strong-model',
+}
+
 export type AiPrice = {
   readonly model: string
   readonly from: string
@@ -77,6 +86,13 @@ export type AppConfig = {
   readonly ai: {
     readonly offered: readonly AiProviderKind[]
     readonly models: Readonly<Record<AiProviderKind, string>>
+    /** Spec 038: the strong tier of each provider (`AI_MODEL_<KIND>_STRONG`). */
+    readonly strongModels: Readonly<Record<AiProviderKind, string>>
+    /**
+     * Spec 038: the bucket of the videos' temporary copies (`AI_VIDEO_STAGING_BUCKET`); null: one
+     * named after the Vertex project, created on first use with a one-day deletion rule.
+     */
+    readonly videoStagingBucket: string | null
     readonly timeoutMs: number
     /** Extra or replacing dated prices (USD per million tokens), on top of the built-in catalog. */
     readonly prices: readonly AiPrice[]
@@ -178,6 +194,10 @@ const baseSchema = z.object({
   AI_MODEL_VERTEX: optionalText,
   AI_MODEL_ANTHROPIC: optionalText,
   AI_MODEL_OPENAI: optionalText,
+  AI_MODEL_VERTEX_STRONG: optionalText,
+  AI_VIDEO_STAGING_BUCKET: optionalText,
+  AI_MODEL_ANTHROPIC_STRONG: optionalText,
+  AI_MODEL_OPENAI_STRONG: optionalText,
   AI_CALL_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000),
   AI_FAKE_PROVIDER: bool,
   DRIVE_FAKE: bool,
@@ -359,7 +379,8 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
       issues.push(`AI_SHARED_API_KEY: required for the shared ${sharedKind} provider`)
     else shared = { provider: sharedKind, apiKey: values.AI_SHARED_API_KEY, teams }
   } else if (sharedKind === 'fake' && values.AI_FAKE_PROVIDER && appUrl.protocol !== 'https:') {
-    shared = { provider: 'fake', apiKey: 'fake', teams }
+    // The fake runner answers keys starting with `test-ok` (dev stack and tests).
+    shared = { provider: 'fake', apiKey: 'test-ok-shared', teams }
   } else if (sharedKind) {
     issues.push(
       `AI_SHARED_PROVIDER: "${sharedKind}" is not one of vertex, anthropic, openai (fake only with AI_FAKE_PROVIDER)`,
@@ -391,12 +412,34 @@ export const loadConfig = (rawEnv: Env): AppConfig => {
     driveFake: values.DRIVE_FAKE,
     ai: {
       offered,
+      videoStagingBucket: values.AI_VIDEO_STAGING_BUCKET ?? null,
       models: {
         ...DEFAULT_MODELS,
         ...(values.AI_MODEL_VERTEX ? { vertex: values.AI_MODEL_VERTEX } : {}),
         ...(values.AI_MODEL_ANTHROPIC ? { anthropic: values.AI_MODEL_ANTHROPIC } : {}),
         ...(values.AI_MODEL_OPENAI ? { openai: values.AI_MODEL_OPENAI } : {}),
       },
+      strongModels: Object.fromEntries(
+        AI_PROVIDER_KINDS.map((kind) => {
+          const standard =
+            kind === 'vertex'
+              ? values.AI_MODEL_VERTEX
+              : kind === 'anthropic'
+                ? values.AI_MODEL_ANTHROPIC
+                : kind === 'openai'
+                  ? values.AI_MODEL_OPENAI
+                  : undefined
+          const strong =
+            kind === 'vertex'
+              ? values.AI_MODEL_VERTEX_STRONG
+              : kind === 'anthropic'
+                ? values.AI_MODEL_ANTHROPIC_STRONG
+                : kind === 'openai'
+                  ? values.AI_MODEL_OPENAI_STRONG
+                  : undefined
+          return [kind, strong ?? DEFAULT_STRONG_MODELS[kind] ?? standard ?? DEFAULT_MODELS[kind]]
+        }),
+      ) as Record<AiProviderKind, string>,
       timeoutMs: values.AI_CALL_TIMEOUT_MS,
       prices,
       shared,

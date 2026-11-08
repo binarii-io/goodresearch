@@ -23,6 +23,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { type FormEvent, useId, useState } from 'react'
 import { errorMessage } from '../workspace/errors.ts'
+import { readsVideo, useMe } from '../workspace/me.ts'
 import { useCanChange } from '../workspace/read-only.tsx'
 import { AttachStudyDialog } from './attach-study-dialog.tsx'
 import { CostBreakdown } from './cost-breakdown.tsx'
@@ -157,10 +158,17 @@ function CreateStudyDialog({ projectId }: { projectId: string }) {
     })
   }
 
+  // Spec 038: usability tests need Vertex AI, the only provider tested to read their videos.
+  const video = readsVideo(useMe())
   const types = [
-    { value: 'interviews', label: t`Interviews`, available: true },
-    { value: 'survey', label: t`Survey`, available: true },
-    { value: 'usability-test', label: t`Usability test`, available: true },
+    { value: 'interviews', label: t`Interviews`, available: true, why: null },
+    { value: 'survey', label: t`Survey`, available: true, why: null },
+    {
+      value: 'usability-test',
+      label: t`Usability test`,
+      available: video,
+      why: video ? null : t`needs Vertex AI`,
+    },
   ]
 
   return (
@@ -208,7 +216,10 @@ function CreateStudyDialog({ projectId }: { projectId: string }) {
                   <Label htmlFor={`${ids.type}-${type.value}`}>
                     {type.label}
                     {type.available ? null : (
-                      <span className="text-muted-foreground"> — {t`coming later`}</span>
+                      <span className="text-muted-foreground">
+                        {' '}
+                        — {type.why ?? t`coming later`}
+                      </span>
                     )}
                   </Label>
                 </div>

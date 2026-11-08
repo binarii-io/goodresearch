@@ -1,3 +1,6 @@
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   DriveAccessDenied,
@@ -309,5 +312,79 @@ describe('Google Drive authorization', () => {
     }).revoke('r')
     expect(calls[0]?.url.href).toBe('https://oauth2.googleapis.com/revoke')
     expect(calls[0]?.body).toBe('token=r')
+  })
+})
+
+describe('Drive fetch gateway: video bytes (spec 038)', () => {
+  const VIDEO = new Uint8Array(Array.from({ length: 70 }, (_, i) => i))
+  /** Answers ranged media reads of one file like Drive, failing once with a network error. */
+  const media = () => {
+    const ranges: string[] = []
+    let failedOnce = false
+    const fetch = async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(String(input))
+      if (url.hostname === 'oauth2.googleapis.com')
+        return new Response(JSON.stringify(tokenOk.body), { status: 200 })
+      if (!url.pathname.endsWith('/files/v1') || url.searchParams.get('alt') !== 'media')
+        return new Response('{}', { status: 404 })
+      const range = new Headers(init?.headers).get('range')
+      if (range === 'bytes=32-63' && !failedOnce) {
+        failedOnce = true
+        throw new TypeError('fetch failed')
+      }
+      ranges.push(range ?? 'all')
+      if (!range) return new Response(VIDEO, { status: 200 })
+      const [, a, b] = /bytes=(\d+)-(\d*)/.exec(range) ?? []
+      const start = Number(a)
+      if (start >= VIDEO.byteLength) return new Response('', { status: 416 })
+      const end = Math.min(b ? Number(b) : VIDEO.byteLength - 1, VIDEO.byteLength - 1)
+      return new Response(VIDEO.slice(start, end + 1), {
+        status: 206,
+        headers: {
+          'content-range': `bytes ${start}-${end}/${VIDEO.byteLength}`,
+          'content-type': 'video/mp4',
+          'content-length': String(end - start + 1),
+        },
+      })
+    }
+    return { fetch: fetch as typeof globalThis.fetch, ranges }
+  }
+
+  it('downloads a file by ranges to a path, trying a failed range once more', async () => {
+    const { fetch, ranges } = media()
+    const gateway = createDriveFetchGateway({
+      clientId: 'c',
+      clientSecret: 's',
+      fetch,
+      retryDelayMs: 0,
+      downloadChunkBytes: 32,
+    })
+    const dir = await mkdtemp(join(tmpdir(), 'drive-test-'))
+    const path = join(dir, 'v.mp4')
+    expect(await gateway.downloadFile('refresh', 'v1', path)).toEqual({ bytes: 70 })
+    expect(new Uint8Array(await readFile(path))).toEqual(VIDEO)
+    expect(ranges).toEqual(['bytes=0-31', 'bytes=32-63', 'bytes=64-95'])
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  it('streams a range for the player, and says when the file is gone', async () => {
+    const { fetch } = media()
+    const gateway = createDriveFetchGateway({
+      clientId: 'c',
+      clientSecret: 's',
+      fetch,
+      retryDelayMs: 0,
+    })
+    const part = await gateway.videoRange('refresh', 'v1', 'bytes=10-19')
+    expect(part).toMatchObject({
+      status: 206,
+      contentType: 'video/mp4',
+      contentLength: 10,
+      contentRange: 'bytes 10-19/70',
+    })
+    const chunks: Uint8Array[] = []
+    for await (const c of part?.body ?? []) chunks.push(c)
+    expect(Buffer.concat(chunks)).toEqual(Buffer.from(VIDEO.slice(10, 20)))
+    expect(await gateway.videoRange('refresh', 'gone', null)).toBeNull()
   })
 })

@@ -5,6 +5,7 @@ import {
   type AiDeps,
   failureOf,
   type ModelRequest,
+  type ModelTier,
   ProviderCallError,
   type StreamPart,
   servingOf,
@@ -183,6 +184,30 @@ export const makeGateway = (deps: AiDeps) => {
     providerOf: async (accountId: string): Promise<ProviderKind | null> =>
       (await servingOf(deps, accountId))?.provider ?? null,
 
+    /**
+     * Spec 038: the Google project, region and a short-lived access token of the Vertex AI serving
+     * the person, for the staging bucket of the video analysis; null when it is not Vertex AI.
+     */
+    googleAccessFor: async (
+      accountId: string,
+    ): Promise<{ project: string; region: string; accessToken: string } | null> => {
+      const serving = await servingOf(deps, accountId)
+      if (serving?.provider !== 'vertex') return null
+      const { credential } = await resolve(accountId)
+      if (credential.provider !== 'vertex') return null
+      const { project, region } = credential
+      if ('serviceAccount' in credential) {
+        if (!deps.serviceAccessToken) return null
+        return { project, region, accessToken: await deps.serviceAccessToken(credential) }
+      }
+      if (!deps.google) return null
+      return {
+        project,
+        region,
+        accessToken: await deps.google.cloud.accessToken(credential.refreshToken),
+      }
+    },
+
     /** Minimal real call proving a credential works (spec 004 FR-004, research R3 check 4). */
     /** `ref`: what the check was for, to show its cost (spec 030: a reconnection). */
     check: (accountId: string, credential: Credential, model: string, ref: string | null = null) =>
@@ -224,11 +249,16 @@ export const makeGateway = (deps: AiDeps) => {
       accountId: string,
       task: string,
       request: ModelRequest & { schema: ZodType<T> },
-      /** `timeoutMs`: a longer limit for calls run in the worker (spec 010 lexicon readings). */
-      options: { ref?: string; timeoutMs?: number } = {},
+      /**
+       * `timeoutMs`: a longer limit for calls run in the worker (spec 010 lexicon readings).
+       * `tier`: the provider's strong model for heavier steps (spec 038); the ledger records it.
+       */
+      options: { ref?: string; timeoutMs?: number; tier?: ModelTier } = {},
     ) => {
       const resolved = await resolve(accountId)
-      const { credential, model } = resolved
+      const { credential } = resolved
+      const model =
+        options.tier === 'strong' ? deps.config.strongModels[credential.provider] : resolved.model
       const timeoutMs = options.timeoutMs ?? deps.config.timeoutMs
       try {
         return await callWith(

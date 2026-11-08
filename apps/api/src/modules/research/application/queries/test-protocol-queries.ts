@@ -1,6 +1,6 @@
 import type { StandardTexts, TestProtocol, TestProtocolDraft } from '@goodresearch/contracts'
 import { err, ok, type Result, STANDARD_QUESTIONS } from '@goodresearch/shared'
-import { asc, eq } from 'drizzle-orm'
+import { and, asc, eq } from 'drizzle-orm'
 import { auth_users } from '#platform/auth/auth-schema.ts'
 import type { Db } from '#platform/db.ts'
 import {
@@ -164,6 +164,26 @@ export const makeTestProtocolQueries = (deps: {
         .from(researchTestProtocolVersions)
         .where(eq(researchTestProtocolVersions.studyId, studyId))
         .orderBy(asc(researchTestProtocolVersions.version)),
+
+    /**
+     * Spec 038: a saved version's content, for the analysis of the sessions run against it; for
+     * Usability, which checks the person's access to the study before.
+     */
+    protocolVersionContent: async (
+      studyId: string,
+      version: number,
+    ): Promise<TestProtocol['content'] | null> => {
+      const [row] = await db
+        .select({ content: researchTestProtocolVersions.content })
+        .from(researchTestProtocolVersions)
+        .where(
+          and(
+            eq(researchTestProtocolVersions.studyId, studyId),
+            eq(researchTestProtocolVersions.version, version),
+          ),
+        )
+      return row ? (row.content as TestProtocol['content']) : null
+    },
 
     /** What the assistant may know: `null` without the right to change, or another type. */
     testProtocolForAssistant: async (

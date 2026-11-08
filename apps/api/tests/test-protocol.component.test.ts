@@ -70,7 +70,13 @@ describe('Usability test preparation (spec 036)', () => {
     drive.share(FOLDER, 'alex@drive.example')
     world = await startWorld({
       drive,
-      config: { GOOGLE_DRIVE_CLIENT_ID: 'id', GOOGLE_DRIVE_CLIENT_SECRET: 'secret' },
+      config: {
+        GOOGLE_DRIVE_CLIENT_ID: 'id',
+        GOOGLE_DRIVE_CLIENT_SECRET: 'secret',
+        // Spec 038: usability tests need a provider that reads videos (the fake stands in).
+        AI_FAKE_PROVIDER: 'true',
+        AI_SHARED_PROVIDER: 'fake',
+      },
     })
     alex = await world.session('alex@example.org')
     robin = await world.session('robin@research.example.com')

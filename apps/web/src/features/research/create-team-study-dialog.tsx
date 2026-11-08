@@ -18,6 +18,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { type FormEvent, useId, useState } from 'react'
 import { errorMessage } from '../workspace/errors.ts'
+import { readsVideo, useMe } from '../workspace/me.ts'
 
 /** Spec 021: a study of the team, in no project; it can be attached to one later. */
 export function CreateTeamStudyDialog({ teamId }: { teamId: string }) {
@@ -33,6 +34,7 @@ export function CreateTeamStudyDialog({ teamId }: { teamId: string }) {
     'interviews',
   )
   const ids = { name: useId(), nameError: useId(), goal: useId(), type: useId() }
+  const video = readsVideo(useMe())
   const missing = touched && name.trim().length === 0
 
   const submit = async (event: FormEvent) => {
@@ -90,14 +92,21 @@ export function CreateTeamStudyDialog({ teamId }: { teamId: string }) {
                   ['survey', t`Survey`],
                   ['usability-test', t`Usability test`],
                 ] as const
-              ).map(([value, label]) => (
-                <div key={value} className="flex items-center gap-2">
-                  <RadioGroupItem value={value} id={`${ids.type}-${value}`} />
-                  <Label htmlFor={`${ids.type}-${value}`} className="font-normal">
-                    {label}
-                  </Label>
-                </div>
-              ))}
+              ).map(([value, label]) => {
+                // Spec 038: usability tests need Vertex AI, the only provider tested for videos.
+                const off = value === 'usability-test' && !video
+                return (
+                  <div key={value} className="flex items-center gap-2">
+                    <RadioGroupItem value={value} id={`${ids.type}-${value}`} disabled={off} />
+                    <Label htmlFor={`${ids.type}-${value}`} className="font-normal">
+                      {label}
+                      {off ? (
+                        <span className="text-muted-foreground"> — {t`needs Vertex AI`}</span>
+                      ) : null}
+                    </Label>
+                  </div>
+                )
+              })}
             </RadioGroup>
           </fieldset>
           <div className="grid gap-2">

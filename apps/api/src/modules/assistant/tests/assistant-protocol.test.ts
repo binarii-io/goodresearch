@@ -53,7 +53,27 @@ beforeEach(async () => {
 })
 
 describe('spec 036 - creating a usability test study', () => {
+  it('spec 038: refuses a usability test without a provider that reads videos', async () => {
+    world.research.folderWork.provider = 'anthropic'
+    world.model.answer([
+      call('report_study_progress', { reuse: 'done', goal: 'done', place: 'done' }),
+    ])
+    await send('A usability test please', { kind: 'project', id: 'p1' })
+    world.model.answer([
+      call('create_study', {
+        name: 'Test of the export',
+        goal: 'Learn',
+        projectId: 'p1',
+        type: 'usability-test',
+      }),
+    ])
+    const events = await send('Yes', { kind: 'project', id: 'p1' })
+    expect(events.filter((e) => e.type === 'proposal')).toEqual([])
+    expect(world.model.outputs.at(-1)).toContain('usability tests need Vertex AI')
+  })
+
   it('keeps the type on the card and when applying it', async () => {
+    world.research.folderWork.provider = 'vertex'
     world.model.answer([
       call('report_study_progress', { reuse: 'done', goal: 'done', place: 'done' }),
     ])

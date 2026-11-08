@@ -4,7 +4,9 @@ import type { FastifyInstance, LightMyRequestResponse } from 'fastify'
 import { composeApp } from '../../src/compose.ts'
 import type { GoogleCloudApi, ModelRunner } from '../../src/modules/ai-gateway/application/ports.ts'
 import type { InMemoryDrive } from '../../src/modules/ingestion/tests/fakes/in-memory-drive.ts'
+import { fakeMediaTools } from '../../src/modules/usability/tests/fakes/media.ts'
 import type { Db } from '../../src/platform/db.ts'
+import { createMemoryStorage } from '../../src/platform/storage.ts'
 
 export const testConfig = (issuer: string, overrides: Record<string, string> = {}): AppConfig =>
   loadConfig({
@@ -37,6 +39,8 @@ export const startTestApp = async (
     googleFetch?: typeof fetch
   } = {},
 ) => {
+  // Spec 038: screenshots in memory, and frames without ffmpeg (CI runs no video tool).
+  const storage = createMemoryStorage()
   const clock = fixedClock(new Date())
   const queued: { queue: string; data: object }[] = []
   const { app, modules } = await composeApp(
@@ -60,6 +64,8 @@ export const startTestApp = async (
             },
           }
         : {}),
+      storage,
+      media: fakeMediaTools,
       ai: {
         ...(options.runner ? { runner: options.runner } : {}),
         ...(options.googleCloud ? { googleCloud: options.googleCloud } : {}),
@@ -79,11 +85,12 @@ export const startTestApp = async (
         ...modules.evidence.jobs,
         ...modules.quality.jobs,
         ...modules.surveys.jobs,
+        ...modules.usability.jobs,
       ].find((h) => h.queue === job?.queue)
       if (job && handler) await handler.handle(job.data)
     }
   }
-  return { app, clock, runJobs, modules }
+  return { app, clock, runJobs, modules, storage }
 }
 
 const cookiesOf = (response: { headers: Record<string, unknown> }): string[] => {

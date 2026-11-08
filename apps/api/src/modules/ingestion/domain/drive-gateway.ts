@@ -97,6 +97,29 @@ export interface DriveGateway {
    * `maxChars`; null for other files or when it cannot be read.
    */
   readNotesStart(refreshToken: string, fileId: string, maxChars: number): Promise<string | null>
+  /**
+   * Spec 038: the file's bytes streamed to a local path (a video for its analysis), by ranges;
+   * null when the file is gone or the person cannot open it.
+   */
+  downloadFile(
+    refreshToken: string,
+    fileId: string,
+    toPath: string,
+  ): Promise<{ bytes: number } | null>
+  /**
+   * Spec 038: one byte range of a file for the player (`range` as the browser sent it, or null for
+   * the whole file); null when the file is gone or the person cannot open it. Nothing is stored.
+   */
+  videoRange(refreshToken: string, fileId: string, range: string | null): Promise<VideoRange | null>
+}
+
+/** Spec 038: a byte range of a video, streamed from the source to the person's player. */
+export type VideoRange = {
+  readonly status: 200 | 206
+  readonly contentType: string
+  readonly contentLength: number | null
+  readonly contentRange: string | null
+  readonly body: AsyncIterable<Uint8Array>
 }
 
 /**

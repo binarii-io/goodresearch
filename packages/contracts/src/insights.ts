@@ -134,7 +134,7 @@ export const InsightLink = z
     studyId: Id.nullable(),
     sessionId: Id.nullable(),
     /** Spec 029: an interview's fact, or a survey's (no session, respondents instead). */
-    source: z.enum(['interview', 'survey']).nullable(),
+    source: z.enum(['interview', 'survey', 'usability']).nullable(),
     respondents: z.number().int().nullable(),
     participant: z.string().nullable(),
     /** The fact's version, to decide it from here; null when deleted. */
@@ -234,7 +234,7 @@ export const ProjectFact = z
     studyName: z.string(),
     /** Null for a survey fact (spec 029). */
     sessionId: Id.nullable(),
-    source: z.enum(['interview', 'survey']),
+    source: z.enum(['interview', 'survey', 'usability']),
     respondents: z.number().int().nullable(),
     participant: z.string().nullable(),
     /** Null when the viewer cannot open its study (FR-018). */

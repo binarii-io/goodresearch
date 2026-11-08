@@ -90,8 +90,8 @@ export const fakeRunner = () => {
   let nextFailure: AiFailure | null = null
   let nextUsage: { inputTokens: number; outputTokens: number } | null = null
   let nextProblem: GrantProblem | null = null
-  const outcome = (credential: Credential) => {
-    calls.push({ credential, model: '' })
+  const outcome = (credential: Credential, model = '') => {
+    calls.push({ credential, model })
     if (nextFailure) {
       const failure = nextFailure
       const billed = nextUsage
@@ -110,9 +110,9 @@ export const fakeRunner = () => {
       outcome(credential)
       return { text: 'OK', usage }
     },
-    generateObject: async (credential, _model, request, timeoutMs) => {
+    generateObject: async (credential, model, request, timeoutMs) => {
       timeouts.push(timeoutMs)
-      outcome(credential)
+      outcome(credential, model)
       return { object: request.schema.parse({ answer: 'yes' }), usage }
     },
     // Like the AI SDK: `done` settles only once the stream has been read to its end.
@@ -214,10 +214,17 @@ export const aiWorld = (
     config: {
       offered: options.offered ?? ['vertex', 'anthropic', 'openai'],
       models: { vertex: 'v-model', anthropic: 'a-model', openai: 'o-model', fake: 'f' },
+      strongModels: {
+        vertex: 'v-strong',
+        anthropic: 'a-model',
+        openai: 'o-model',
+        fake: 'f-strong',
+      },
       timeoutMs: 1000,
       prices: [],
       shared: options.shared ?? null,
     },
+    serviceAccessToken: async () => 'service-access',
     clock,
     newId,
     log: { warn: (object, message) => warnings.push({ object, message }) },

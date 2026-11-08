@@ -21,6 +21,8 @@ export const AiFailure = z
     'UNKNOWN',
     /** Spec 035: the instance's shared provider refused the call; only the deployer can fix it. */
     'SHARED_PROVIDER_UNAVAILABLE',
+    /** Spec 038: the provider cannot read the files (video) sent with the request. */
+    'MEDIA_NOT_SUPPORTED',
   ])
   .meta({ id: 'AiFailure' })
 

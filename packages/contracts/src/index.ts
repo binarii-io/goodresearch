@@ -433,6 +433,28 @@ export {
   WebAddress,
 } from './test-protocol.ts'
 export {
+  AddObservation,
+  AnalysisFailureCode,
+  AnalysisStage,
+  AnalysisState,
+  CorrectTaskResult,
+  DecideObservation,
+  ObservationKind,
+  ObservationParams,
+  ObservationStatus,
+  StartUsabilityRun,
+  TaskOutcome,
+  TaskResultParams,
+  UsabilityObservation,
+  UsabilityResults,
+  UsabilityRunParams,
+  UsabilityRunStarted,
+  UsabilitySessionParams,
+  UsabilitySessionReview,
+  UsabilityStudyAnalysis,
+  UsabilityTaskResult,
+} from './usability.ts'
+export {
   AccessEventType,
   AccessHistoryEntry,
   AccountStatus,

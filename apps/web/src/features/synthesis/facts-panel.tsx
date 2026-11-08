@@ -15,7 +15,10 @@ import { useBilingual } from './insight-card.tsx'
 
 const ALL = 'all'
 
-/** A fact's link to its interview, or to its survey's figures (spec 029), in the Analysis tab. */
+/**
+ * A fact's link to its interview, its usability test session (spec 038), or its survey's figures
+ * (spec 029), in the Analysis tab.
+ */
 export function FactSource({
   fact,
   projectId,
@@ -25,6 +28,8 @@ export function FactSource({
     sessionId: string | null
     participant: string | null
     respondents?: number | null
+    /** Spec 038: a usability test session's observation opens that session's exploration. */
+    source?: 'interview' | 'survey' | 'usability' | null
   }
   /** The project it is read from, for the study page's breadcrumb (spec 019). */
   projectId: string
@@ -57,9 +62,13 @@ export function FactSource({
     >
       {!canChange
         ? t`See in the study`
-        : fact.participant
-          ? t`See ${fact.participant} in the interview`
-          : t`See in the interview`}
+        : fact.source === 'usability'
+          ? fact.participant
+            ? t`See ${fact.participant} in the session`
+            : t`See in the session`
+          : fact.participant
+            ? t`See ${fact.participant} in the interview`
+            : t`See in the interview`}
     </Link>
   )
 }

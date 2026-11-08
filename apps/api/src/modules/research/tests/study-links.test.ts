@@ -94,6 +94,7 @@ describe('spec 019 — attach and detach', () => {
       studies: research.studyRepository,
       gate: research.gate,
       runs: research.runs,
+      video: { readsVideo: async () => true },
     })
     first = await research.addProject('team-a')
     second = await research.addProject('team-a')
@@ -154,6 +155,7 @@ describe('spec 019 — attach and detach', () => {
       },
       gate: research.gate,
       runs: research.runs,
+      video: { readsVideo: async () => true },
     })
   }
 
@@ -172,6 +174,7 @@ describe('spec 019 — attach and detach', () => {
       },
       gate: research.gate,
       runs: research.runs,
+      video: { readsVideo: async () => true },
     })
     expect(await late.attachStudy({ actor: alice, projectId: second, studyId })).toEqual({
       ok: false,

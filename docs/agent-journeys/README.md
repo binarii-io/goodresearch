@@ -21,6 +21,7 @@ A journey is defined and delivered on its own: one journey, one pull request, on
 | 11 | [Survey analysis](11-survey-analysis.md) | Built by [spec 029](../../specs/029-survey-analysis/spec.md) |
 | 12 | [Usability test preparation](12-usability-preparation.md) | Built by [spec 036](../../specs/036-usability-test-preparation/spec.md) |
 | 13 | [Usability test sessions](13-usability-sessions.md) | Built by [spec 037](../../specs/037-usability-test-fieldwork/spec.md) |
+| 14 | [Usability test analysis](14-usability-analysis.md) | Built by [spec 038](../../specs/038-usability-video-analysis/spec.md) |
 
 ## How a journey is written
 

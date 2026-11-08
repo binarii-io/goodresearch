@@ -14,6 +14,7 @@ import type {
   ResearchCommandDeps,
   StudyActionGate,
   TeamDirectory,
+  VideoProviderGate,
 } from '../application/ports.ts'
 import { makePreparationQueries } from '../application/queries/preparation-queries.ts'
 import { makeProjectQueries, type TeamNames } from '../application/queries/project-queries.ts'
@@ -43,6 +44,8 @@ export const createResearchModule = (deps: {
   teamNames: TeamNames
   /** Lazily bound: Synthesis is built after this one. */
   runs: () => ProjectRunGate
+  /** Spec 038, lazily bound: the AI Gateway is built after this one. */
+  video: () => VideoProviderGate
   /** Lazily bound: the ingestion module is built after this one. */
   ingestion: () => {
     gate: StudyActionGate
@@ -89,6 +92,7 @@ export const createResearchModule = (deps: {
       studies: drizzleStudyRepository(deps.db),
       gate,
       runs: { isRunning: (projectId) => deps.runs().isRunning(projectId) },
+      video: { readsVideo: (accountId) => deps.video().readsVideo(accountId) },
     }),
     studyQueries,
     preparation: makePreparationCommands({

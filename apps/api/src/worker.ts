@@ -28,7 +28,10 @@ await registerHandlers(boss, [
   ...modules.quality.jobs,
   ...modules.synthesis.jobs,
   ...modules.surveys.jobs,
+  ...modules.usability.jobs,
 ])
+// Spec 038: screenshots nothing refers to any more are deleted, hourly.
+modules.usability.startSweeping()
 console.log('worker started')
 
 const stop = async () => {

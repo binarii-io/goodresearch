@@ -16,6 +16,11 @@ const badgeVariants = cva(
         outline: 'border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground',
         ghost: 'hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50',
         link: 'text-primary underline-offset-4 hover:underline',
+        // Spec 038: task outcomes, colour with their text.
+        success: 'bg-polarity-positive text-foreground',
+        warning: 'bg-warning-soft text-foreground',
+        failure: 'bg-polarity-negative text-foreground',
+        muted: 'bg-polarity-neutral text-foreground',
       },
     },
     defaultVariants: {

@@ -348,7 +348,7 @@ export const TOOLS: readonly ToolSpec[] = [
   {
     name: 'create_study',
     description:
-      'Propose a new study (type: interviews by default, survey for a questionnaire, or usability-test to watch people use an interface or a prototype), once every point of the framing is done and they agreed (load the skill study-framing first). Send its goal, and a project id from the context, or a team id for a study in no project. The result says whether a card was shown or why it was refused. The person confirms before anything is created.',
+      'Propose a new study (type: interviews by default, survey for a questionnaire, or usability-test to watch people use an interface or a prototype, which needs Vertex AI), once every point of the framing is done and they agreed (load the skill study-framing first). Send its goal, and a project id from the context, or a team id for a study in no project. The result says whether a card was shown or why it was refused. The person confirms before anything is created.',
     inputSchema: INPUTS.create_study,
   },
   {
@@ -600,6 +600,15 @@ export const prepareStudy = async (
   const team = teamId ? (await research.teamsOf(actor.id)).find((t) => t.id === teamId) : null
   if (teamId && !team) return { refused: 'Refused: use a team id listed in the context.' }
   if (!goal) return { refused: 'Refused: the goal must not be empty.' }
+  // Spec 038: usability tests need Vertex AI, the only provider tested to read their videos.
+  if (type === 'usability-test') {
+    const provider = await research.aiProvider(actor.id)
+    if (provider !== 'vertex' && provider !== 'fake')
+      return {
+        refused:
+          'Refused: usability tests need Vertex AI as the AI provider, the only one tested to read their videos. Tell the person; they can connect Vertex AI, or choose interviews.',
+      }
+  }
   const open = openStudyPoints(framing)
   if (open.length > 0)
     return {

@@ -208,6 +208,13 @@ msgstr "{0} ({1} times, {2} excerpts shown)"
 msgid "{0} ({1} times)"
 msgstr "{0} ({1} times)"
 
+#. placeholder {0}: i18n._(STAGES[a.stage])
+#. placeholder {1}: step + 1
+#. placeholder {2}: STAGE_ORDER.length
+#: src/features/usability/analysis-tab.tsx
+msgid "{0} (step {1} of {2})"
+msgstr "{0} (step {1} of {2})"
+
 #. placeholder {0}: term.form
 #. placeholder {1}: term.correction
 #: src/features/enrichment/lexicon-table.tsx
@@ -392,9 +399,11 @@ msgid "{0} items in a new order"
 msgstr "{0} items in a new order"
 
 #. placeholder {0}: s.minutes
+#. placeholder {0}: s.videoMinutes
 #: src/features/assistant/proposal-card.tsx
 #: src/features/preparation/guide-markdown.ts
 #: src/features/preparation/guide-view.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "{0} min"
 msgstr "{0} min"
 
@@ -429,6 +438,11 @@ msgstr "{0} of {1} participants"
 #: src/features/quality/quality-tab.tsx
 msgid "{0} of {questions}"
 msgstr "{0} of {questions}"
+
+#. placeholder {0}: total - left
+#: src/features/usability/analysis-tab.tsx
+msgid "{0} of {total} sessions analysed"
+msgstr "{0} of {total} sessions analysed"
 
 #. placeholder {0}: c.support
 #. placeholder {1}: c.counter
@@ -474,10 +488,16 @@ msgstr "{0} respondents"
 msgid "{0} responses answered the former wording, which stays attached to them."
 msgstr "{0} responses answered the former wording, which stays attached to them."
 
-#. placeholder {0}: e.count
-#: src/features/fieldwork/analysis.tsx
-msgid "{0} sessions will be analyzed: never analyzed, incomplete, or whose files changed. Sessions a person decided are left as they are."
-msgstr "{0} sessions will be analyzed: never analyzed, incomplete, or whose files changed. Sessions a person decided are left as they are."
+#. placeholder {0}: d.sessions
+#: src/features/usability/analysis-tab.tsx
+msgid "{0} sessions"
+msgstr "{0} sessions"
+
+#. placeholder {0}: data.estimate.count
+#. placeholder {1}: data.estimate.minutes
+#: src/features/usability/analysis-tab.tsx
+msgid "{0} sessions ({1} min of video) will be analysed: never analysed, failed or out of date."
+msgstr "{0} sessions ({1} min of video) will be analysed: never analysed, failed or out of date."
 
 #. placeholder {0}: a.counts.setAside
 #: src/features/surveys/survey-analysis-tab.tsx
@@ -622,6 +642,10 @@ msgstr "{left} questions of the form are not in the questionnaire: their answers
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{linked} with a transcript · {0} without"
 msgstr "{linked} with a transcript · {0} without"
+
+#: src/features/usability/labels.ts
+msgid "{minutes} min {seconds}"
+msgstr "{minutes} min {seconds}"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "{missing} missing in Drive"
@@ -954,6 +978,7 @@ msgstr "About you"
 #: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
+#: src/features/usability/session-review.tsx
 msgid "Accept"
 msgstr "Accept"
 
@@ -1023,6 +1048,7 @@ msgstr "Accept: {label}"
 #: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/facts-panel.tsx
 #: src/features/synthesis/labels.ts
+#: src/features/usability/session-review.tsx
 msgid "Accepted"
 msgstr "Accepted"
 
@@ -1108,6 +1134,7 @@ msgstr "Action saved"
 #: src/features/preparation/schedule.tsx
 #: src/features/quality/quality-tab.tsx
 #: src/features/surveys/responses-list.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Actions"
 msgstr "Actions"
 
@@ -1116,6 +1143,7 @@ msgid "Active"
 msgstr "Active"
 
 #: src/features/enrichment/interview-cleaning.tsx
+#: src/features/usability/session-review.tsx
 msgid "Add"
 msgstr "Add"
 
@@ -1159,6 +1187,10 @@ msgstr "Add a verbatim from this turn"
 #: src/features/preparation/questionnaire-editor.tsx
 msgid "Add an item"
 msgstr "Add an item"
+
+#: src/features/usability/session-review.tsx
+msgid "Add an observation"
+msgstr "Add an observation"
 
 #: src/features/analysis/interview-facts.tsx
 msgid "Add and write a fact"
@@ -1220,6 +1252,7 @@ msgid "Add to the schedule: {0}"
 msgstr "Add to the schedule: {0}"
 
 #: src/features/quality/remark-card.tsx
+#: src/features/usability/session-review.tsx
 msgid "Added by a person"
 msgstr "Added by a person"
 
@@ -1254,6 +1287,10 @@ msgstr "Against"
 #: src/features/quality/remarks-list.tsx
 msgid "Agree"
 msgstr "Agree"
+
+#: src/features/usability/analysis-tab.tsx
+msgid "Agree and analyse"
+msgstr "Agree and analyse"
 
 #: src/features/fieldwork/analysis.tsx
 msgid "Agree and analyze"
@@ -1453,6 +1490,10 @@ msgstr "Allows counts, shares and crossing with the profiling items."
 msgid "Already set"
 msgstr "Already set"
 
+#: src/features/usability/analysis-tab.tsx
+msgid "Also analyse again the sessions already analysed (decided observations stay)"
+msgstr "Also analyse again the sessions already analysed (decided observations stay)"
+
 #: src/features/fieldwork/analysis.tsx
 msgid "Also analyze again the interviews already analyzed"
 msgstr "Also analyze again the interviews already analyzed"
@@ -1536,17 +1577,64 @@ msgstr "An inventory is already running for this study."
 msgid "An option has more than 600 characters."
 msgstr "An option has more than 600 characters."
 
+#: src/features/usability/analysis-tab.tsx
+msgid "Analyse"
+msgstr "Analyse"
+
+#. placeholder {0}: session.title
+#: src/features/usability/analysis-tab.tsx
+msgid "Analyse {0} again?"
+msgstr "Analyse {0} again?"
+
+#. placeholder {0}: session.title
+#: src/features/usability/analysis-tab.tsx
+msgid "Analyse {0}?"
+msgstr "Analyse {0}?"
+
+#: src/features/usability/analysis-tab.tsx
+msgid "Analyse again"
+msgstr "Analyse again"
+
+#. placeholder {0}: session.title
+#: src/features/usability/analysis-tab.tsx
+msgid "Analyse again: {0}"
+msgstr "Analyse again: {0}"
+
+#: src/features/usability/analysis-tab.tsx
+msgid "Analyse sessions"
+msgstr "Analyse sessions"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Analyse the interviews"
 msgstr "Analyse the interviews"
 
+#: src/features/usability/analysis-tab.tsx
+msgid "Analyse the sessions?"
+msgstr "Analyse the sessions?"
+
+#. placeholder {0}: session.title
+#: src/features/usability/analysis-tab.tsx
+msgid "Analyse: {0}"
+msgstr "Analyse: {0}"
+
 #: src/features/analysis/labels.ts
+#: src/features/usability/labels.ts
 msgid "Analysed"
 msgstr "Analysed"
 
 #: src/features/analysis/analysis-tab.tsx
 msgid "Analysed on"
 msgstr "Analysed on"
+
+#: src/features/usability/labels.ts
+msgid "Analysing"
+msgstr "Analysing"
+
+#. placeholder {0}: data.run.total - left
+#. placeholder {1}: data.run.total
+#: src/features/usability/analysis-tab.tsx
+msgid "Analysing: {0} of {1} sessions"
+msgstr "Analysing: {0} of {1} sessions"
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/assistant/proposal-card.tsx
@@ -1562,10 +1650,12 @@ msgstr "Analysis for this type of study is coming in a later version."
 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/surveys/survey-analysis-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Analysis in numbers"
 msgstr "Analysis in numbers"
 
 #: src/features/analysis/analysis-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Analysis in progress"
 msgstr "Analysis in progress"
 
@@ -1591,10 +1681,6 @@ msgstr "Analyze again"
 msgid "Analyze interviews"
 msgstr "Analyze interviews"
 
-#: src/features/fieldwork/analysis.tsx
-msgid "Analyze sessions"
-msgstr "Analyze sessions"
-
 #: src/features/fieldwork/proposals.tsx
 msgid "Analyze the interview to find who took part, when, and a clear name for its files."
 msgstr "Analyze the interview to find who took part, when, and a clear name for its files."
@@ -1602,10 +1688,6 @@ msgstr "Analyze the interview to find who took part, when, and a clear name for 
 #: src/features/fieldwork/analysis.tsx
 msgid "Analyze the interviews?"
 msgstr "Analyze the interviews?"
-
-#: src/features/fieldwork/analysis.tsx
-msgid "Analyze the sessions?"
-msgstr "Analyze the sessions?"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/labels.ts
@@ -1767,6 +1849,10 @@ msgstr "asks for directly identifying data"
 msgid "Assistant"
 msgstr "Assistant"
 
+#: src/features/usability/session-review.tsx
+msgid "At (mm:ss)"
+msgstr "At (mm:ss)"
+
 #: src/features/workspace/errors.ts
 msgid "At least 5 counted answers are needed to find themes."
 msgstr "At least 5 counted answers are needed to find themes."
@@ -1774,6 +1860,10 @@ msgstr "At least 5 counted answers are needed to find themes."
 #: src/features/fieldwork/analysis.tsx
 msgid "At most {cost} with your AI provider: the AI is asked only when the app's rules do not find everything."
 msgstr "At most {cost} with your AI provider: the AI is asked only when the app's rules do not find everything."
+
+#: src/features/usability/analysis-tab.tsx
+msgid "At most {cost} with your AI provider. The video is copied for this analysis only, then deleted."
+msgstr "At most {cost} with your AI provider. The video is copied for this analysis only, then deleted."
 
 #: src/features/preparation/protocol-editor.tsx
 msgid "At most 10 debrief questions."
@@ -1873,6 +1963,7 @@ msgid "Back to research projects"
 msgstr "Back to research projects"
 
 #: src/features/fieldwork/session-dialog.tsx
+#: src/features/usability/session-review.tsx
 msgid "Back to review"
 msgstr "Back to review"
 
@@ -1983,6 +2074,10 @@ msgstr "by {0}, {1}"
 msgid "by {actor}"
 msgstr "by {actor}"
 
+#: src/features/usability/analysis-tab.tsx
+msgid "by anyone, all runs"
+msgstr "by anyone, all runs"
+
 #. placeholder {0}: data.interviews.length
 #: src/features/quality/quality-tab.tsx
 msgid "By interview ({0})"
@@ -2035,6 +2130,8 @@ msgstr "Can't tell: {excerpt}"
 #: src/features/synthesis/new-recommendation-dialog.tsx
 #: src/features/synthesis/recommendation-run-dialog.tsx
 #: src/features/synthesis/takeaways.tsx
+#: src/features/usability/analysis-tab.tsx
+#: src/features/usability/session-review.tsx
 #: src/routes/_authenticated/ai-provider.tsx
 #: src/routes/_authenticated/members/$memberId.tsx
 #: src/routes/_authenticated/sources.tsx
@@ -2171,6 +2268,10 @@ msgstr "Checked {when}."
 #: src/features/ai/provider-forms.tsx
 msgid "Checking the key…"
 msgstr "Checking the key…"
+
+#: src/features/usability/labels.ts
+msgid "Checking the observations…"
+msgstr "Checking the observations…"
 
 #: src/features/ai/provider-forms.tsx
 msgid "Checks"
@@ -2425,6 +2526,15 @@ msgstr "Confirm"
 msgid "Confirm {0} for {name}"
 msgstr "Confirm {0} for {name}"
 
+#: src/features/usability/session-review.tsx
+msgid "Confirm the outcome"
+msgstr "Confirm the outcome"
+
+#. placeholder {0}: o.judgeReason ?? ''
+#: src/features/usability/session-review.tsx
+msgid "Confirmed by the judge: {0}"
+msgstr "Confirmed by the judge: {0}"
+
 #: src/features/preparation/drive-publishing.tsx
 msgid "Conflict: changed in the app and in Drive"
 msgstr "Conflict: changed in the app and in Drive"
@@ -2541,6 +2651,10 @@ msgstr "Conversations"
 msgid "Copy"
 msgstr "Copy"
 
+#: src/features/usability/labels.ts
+msgid "Copying the video…"
+msgstr "Copying the video…"
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Correction"
 msgstr "Correction"
@@ -2562,8 +2676,13 @@ msgstr "Corrections to decide ({0})"
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/cleaning-table.tsx
 #: src/features/quality/quality-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Cost"
 msgstr "Cost"
+
+#: src/features/usability/analysis-tab.tsx
+msgid "Cost of the analyses"
+msgstr "Cost of the analyses"
 
 #. placeholder {0}: data.analysisCost === null ? t`unknown` : money(data.analysisCost)
 #: src/features/fieldwork/fieldwork-tab.tsx
@@ -2603,6 +2722,7 @@ msgid "Cost of this conversation: {total}. Last message: {last}."
 msgstr "Cost of this conversation: {total}. Last message: {last}."
 
 #: src/features/fieldwork/analysis.tsx
+#: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/proposals.tsx
 msgid "cost unknown"
 msgstr "cost unknown"
@@ -2614,6 +2734,7 @@ msgstr "Cost:"
 
 #. placeholder {0}: money(data.cost)
 #: src/features/enrichment/interview-cleaning.tsx
+#: src/features/usability/session-review.tsx
 msgid "Cost: {0}"
 msgstr "Cost: {0}"
 
@@ -2681,8 +2802,8 @@ msgid "Counting the interviews to read…"
 msgstr "Counting the interviews to read…"
 
 #: src/features/fieldwork/analysis.tsx
-msgid "Counting the sessions to analyze…"
-msgstr "Counting the sessions to analyze…"
+msgid "Counting the sessions to read…"
+msgstr "Counting the sessions to read…"
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Counting the terms"
@@ -2695,6 +2816,15 @@ msgstr "Counting the terms…"
 #: src/features/synthesis/takeaways.tsx
 msgid "Counting what the draft reads…"
 msgstr "Counting what the draft reads…"
+
+#. placeholder {0}: data.toReview
+#: src/features/usability/analysis-tab.tsx
+msgid "Counts what you decided; {0} items are still to review."
+msgstr "Counts what you decided; {0} items are still to review."
+
+#: src/features/usability/analysis-tab.tsx
+msgid "Counts what you decided."
+msgstr "Counts what you decided."
 
 #: src/features/preparation/labels.ts
 msgid "covered"
@@ -2809,10 +2939,18 @@ msgstr "Decide every correction before validating the clean version."
 msgid "Decide every correction to validate."
 msgstr "Decide every correction to validate."
 
+#: src/features/usability/session-review.tsx
+msgid "Decided"
+msgstr "Decided"
+
 #. placeholder {0}: c.decidedBy.name
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "decided by {0}"
 msgstr "decided by {0}"
+
+#: src/features/usability/analysis-tab.tsx
+msgid "Decided observations and outcomes stay; only what is still to review is replaced."
+msgstr "Decided observations and outcomes stay; only what is still to review is replaced."
 
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Decided terms stay as they are; new spellings are proposed on them."
@@ -2966,6 +3104,10 @@ msgstr "Details of “{0}”"
 msgid "Development only: keys starting with \"test-ok\" work."
 msgstr "Development only: keys starting with \"test-ok\" work."
 
+#: src/features/usability/labels.ts
+msgid "Difficulty"
+msgstr "Difficulty"
+
 #: src/features/quality/remark-card.tsx
 #: src/features/quality/remarks-list.tsx
 msgid "Disagree"
@@ -3004,6 +3146,10 @@ msgstr "Dismiss"
 msgid "Dismissed"
 msgstr "Dismissed"
 
+#: src/features/usability/session-review.tsx
+msgid "Dock the video on the side"
+msgstr "Dock the video on the side"
+
 #: src/features/assistant/proposal-card.tsx
 msgid "Document"
 msgstr "Document"
@@ -3026,6 +3172,11 @@ msgstr "Done"
 #: src/routes/google.done.tsx
 msgid "Done. You can close this window and go back to goodresearch."
 msgstr "Done. You can close this window and go back to goodresearch."
+
+#. placeholder {0}: o.arbiterReason ?? ''
+#: src/features/usability/session-review.tsx
+msgid "Doubted by the judge, kept by the arbiter: {0}"
+msgstr "Doubted by the judge, kept by the arbiter: {0}"
 
 #: src/features/preparation/schedule.tsx
 msgid "Download (CSV)"
@@ -3070,6 +3221,10 @@ msgstr "Durations are whole minutes from 1 to 180."
 msgid "Each question broken down by the answers to “{crossName}”. A respondent who chose several answers counts in each."
 msgstr "Each question broken down by the answers to “{crossName}”. A respondent who chose several answers counts in each."
 
+#: src/features/usability/analysis-tab.tsx
+msgid "Each ready session is read task by task from its video: outcome, time, path and observations, checked twice. You decide what counts."
+msgstr "Each ready session is read task by task from its video: outcome, time, path and observations, checked twice. You decide what counts."
+
 #: src/features/surveys/survey-fieldwork-tab.tsx
 msgid "Each response of the form is read here. Those outside the target audience or without consent are set aside, never deleted."
 msgstr "Each response of the form is read here. Those outside the target audience or without consent are set aside, never deleted."
@@ -3094,11 +3249,17 @@ msgstr "Ease question"
 msgid "ease question after each task"
 msgstr "ease question after each task"
 
+#. placeholder {0}: r.ease
+#: src/features/usability/session-review.tsx
+msgid "Ease: {0}/7"
+msgstr "Ease: {0}/7"
+
 #: src/features/analysis/fact-card.tsx
 #: src/features/preparation/preparation-tab.tsx
 #: src/features/preparation/protocol-tab.tsx
 #: src/features/preparation/questionnaire-tab.tsx
 #: src/features/surveys/survey-facts.tsx
+#: src/features/usability/session-review.tsx
 msgid "Edit"
 msgstr "Edit"
 
@@ -3131,6 +3292,7 @@ msgstr "Edit the test protocol"
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/synthesis/labels.ts
+#: src/features/usability/session-review.tsx
 msgid "Edited"
 msgstr "Edited"
 
@@ -3223,6 +3385,10 @@ msgstr "Enter to save, Escape to cancel"
 msgid "Enter who you will interview."
 msgstr "Enter who you will interview."
 
+#: src/features/usability/labels.ts
+msgid "Error"
+msgstr "Error"
+
 #: src/features/preparation/questionnaire-tab.tsx
 msgid "Estimated time to answer: about {minutes} min"
 msgstr "Estimated time to answer: about {minutes} min"
@@ -3295,6 +3461,10 @@ msgstr "Every project belongs to a team, and people get access to projects throu
 msgid "Every project belongs to one team; its members work on the team's projects."
 msgstr "Every project belongs to one team; its members work on the team's projects."
 
+#: src/features/usability/analysis-tab.tsx
+msgid "Every ready session is analysed. Tick the box to analyse them again."
+msgstr "Every ready session is analysed. Tick the box to analyse them again."
+
 #: src/features/synthesis/recommendation-run-dialog.tsx
 msgid "Every recommendation the AI proposes waits for a person's decision."
 msgstr "Every recommendation the AI proposes waits for a person's decision."
@@ -3311,10 +3481,6 @@ msgstr "Every section needs a title."
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Every session has its transcript."
 msgstr "Every session has its transcript."
-
-#: src/features/fieldwork/analysis.tsx
-msgid "Every session is already analyzed. Tick the box below to analyze them again."
-msgstr "Every session is already analyzed. Tick the box below to analyze them again."
 
 #: src/features/preparation/protocol-tab.tsx
 msgid "Every task has a success criterion"
@@ -3391,12 +3557,23 @@ msgstr "Expand the sidebar"
 msgid "Expected duration"
 msgstr "Expected duration"
 
+#: src/features/usability/analysis-tab.tsx
+msgid "Explore"
+msgstr "Explore"
+
+#. placeholder {0}: s.title
+#: src/features/usability/analysis-tab.tsx
+msgid "Explore {0}"
+msgstr "Explore {0}"
+
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Facilitator"
 msgstr "Facilitator"
 
+#. placeholder {0}: data.session.facilitators.join(', ')
 #. placeholder {0}: who.interviewers.join(', ')
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/usability/session-review.tsx
 msgid "Facilitator: {0}"
 msgstr "Facilitator: {0}"
 
@@ -3489,8 +3666,13 @@ msgstr "Facts validated"
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
 #: src/features/quality/labels.ts
+#: src/features/usability/labels.ts
 msgid "Failed"
 msgstr "Failed"
+
+#: src/features/usability/labels.ts
+msgid "Failure"
+msgstr "Failure"
 
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "Feeds these projects:"
@@ -3636,6 +3818,24 @@ msgstr "Find the facts of the interviews"
 msgid "Find the facts?"
 msgstr "Find the facts?"
 
+#: src/features/fieldwork/analysis.tsx
+#: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/fieldwork/proposals.tsx
+msgid "Find the people"
+msgstr "Find the people"
+
+#: src/features/fieldwork/proposals.tsx
+msgid "Find the people again"
+msgstr "Find the people again"
+
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "Find the people of {name}"
+msgstr "Find the people of {name}"
+
+#: src/features/fieldwork/analysis.tsx
+msgid "Find the people of the sessions?"
+msgstr "Find the people of the sessions?"
+
 #. placeholder {0}: interview.title
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Find the terms of “{0}”?"
@@ -3727,6 +3927,10 @@ msgstr "Findings"
 #: src/features/synthesis/deck-slide.tsx
 msgid "Findings and mixed topics"
 msgstr "Findings and mixed topics"
+
+#: src/features/usability/session-review.tsx
+msgid "Float the video"
+msgstr "Float the video"
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Folder"
@@ -3870,6 +4074,11 @@ msgstr "From a study you cannot open"
 #: src/features/fieldwork/labels.ts
 msgid "from the file name"
 msgstr "from the file name"
+
+#. placeholder {0}: data.analysisCost === null ? t`cost unknown` : money(data.analysisCost)
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "From the files and transcripts, not the video · {0}"
+msgstr "From the files and transcripts, not the video · {0}"
 
 #: src/features/fieldwork/labels.ts
 msgid "from the header of the transcript"
@@ -4111,6 +4320,10 @@ msgstr "Help me improve the questionnaire of this study."
 msgid "Help me improve the test protocol of this study."
 msgstr "Help me improve the test protocol of this study."
 
+#: src/features/usability/labels.ts
+msgid "Helped"
+msgstr "Helped"
+
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Hidden by another correction here"
 msgstr "Hidden by another correction here"
@@ -4130,6 +4343,10 @@ msgstr "Hide the facts"
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Hide the insights"
 msgstr "Hide the insights"
+
+#: src/features/usability/session-review.tsx
+msgid "Hide the video"
+msgstr "Hide the video"
 
 #: src/features/synthesis/labels.ts
 msgid "high"
@@ -5068,6 +5285,11 @@ msgstr "Mean: {0}"
 msgid "Media"
 msgstr "Media"
 
+#. placeholder {0}: duration(i18n, task.medianMs) ?? ''
+#: src/features/usability/analysis-tab.tsx
+msgid "Median time: {0}"
+msgstr "Median time: {0}"
+
 #. placeholder {0}: i18n.number(c.median ?? 0, { maximumFractionDigits: 1 })
 #: src/features/surveys/figure-card.tsx
 msgid "Median: {0}"
@@ -5328,6 +5550,11 @@ msgstr "Navigation"
 msgid "Needs attention"
 msgstr "Needs attention"
 
+#: src/features/research/create-team-study-dialog.tsx
+#: src/features/research/study-list.tsx
+msgid "needs Vertex AI"
+msgstr "needs Vertex AI"
+
 #: src/features/analysis/labels.ts
 #: src/features/synthesis/labels.ts
 msgid "Negative"
@@ -5423,6 +5650,10 @@ msgstr "No accepted fact yet. Facts are found and accepted in the Analysis phase
 #: src/features/fieldwork/analysis.tsx
 msgid "No AI provider is set up: only the app's rules will run, at no cost."
 msgstr "No AI provider is set up: only the app's rules will run, at no cost."
+
+#: src/features/usability/labels.ts
+msgid "No AI provider is set up."
+msgstr "No AI provider is set up."
 
 #: src/features/surveys/responses-list.tsx
 msgid "No answer"
@@ -5563,6 +5794,10 @@ msgstr "No name, no verbatim and no interview title is sent."
 msgid "No new fact: what stands out already has one."
 msgstr "No new fact: what stands out already has one."
 
+#: src/features/usability/session-review.tsx
+msgid "No observation for this task."
+msgstr "No observation for this task."
+
 #: src/features/quality/remarks-list.tsx
 msgid "No opinion"
 msgstr "No opinion"
@@ -5649,6 +5884,10 @@ msgstr "No review yet: the remarks come after one."
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "No session matches these filters."
 msgstr "No session matches these filters."
+
+#: src/features/usability/analysis-tab.tsx
+msgid "No session yet. Validate the sessions found on the Fieldwork tab: ready ones are analysed here."
+msgstr "No session yet. Validate the sessions found on the Fieldwork tab: ready ones are analysed here."
 
 #: src/features/quality/remarks-list.tsx
 msgid "No simple reformulation here."
@@ -5763,6 +6002,10 @@ msgstr "No transcript: only a document attached, which the next phases do not re
 msgid "No transcript: only a recording and a document attached, which the next phases do not read."
 msgstr "No transcript: only a recording and a document attached, which the next phases do not read."
 
+#: src/features/usability/session-review.tsx
+msgid "No transcript."
+msgstr "No transcript."
+
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/quality/quality-tab.tsx
@@ -5799,6 +6042,10 @@ msgstr "Not analysed"
 msgid "Not applied"
 msgstr "Not applied"
 
+#: src/features/usability/labels.ts
+msgid "Not attempted"
+msgstr "Not attempted"
+
 #: src/features/analysis/labels.ts
 #: src/features/quality/labels.ts
 msgid "Not clean yet"
@@ -5807,6 +6054,11 @@ msgstr "Not clean yet"
 #: src/features/enrichment/labels.ts
 msgid "Not cleaned"
 msgstr "Not cleaned"
+
+#. placeholder {0}: o.judgeReason ?? ''
+#: src/features/usability/session-review.tsx
+msgid "Not confirmed: {0}"
+msgstr "Not confirmed: {0}"
 
 #: src/routes/_authenticated/sources.tsx
 msgid "Not connected. You will be asked to connect when you attach a folder to a study."
@@ -5839,6 +6091,11 @@ msgstr "Not read"
 #: src/features/surveys/survey-fieldwork-tab.tsx
 msgid "Not read yet"
 msgstr "Not read yet"
+
+#. placeholder {0}: readinessOf(s.readiness)
+#: src/features/usability/analysis-tab.tsx
+msgid "Not ready: {0} (see Fieldwork)"
+msgstr "Not ready: {0} (see Fieldwork)"
 
 #: src/features/quality/labels.ts
 msgid "Not reviewed"
@@ -5969,9 +6226,22 @@ msgstr "Objectives and research themes"
 msgid "Objectives and themes"
 msgstr "Objectives and themes"
 
+#: src/features/usability/session-review.tsx
+msgid "Observation"
+msgstr "Observation"
+
+#: src/features/usability/analysis-tab.tsx
+msgid "observations and outcomes"
+msgstr "observations and outcomes"
+
 #: src/features/synthesis/deck-slide.tsx
 msgid "Obstacles and irritants"
 msgstr "Obstacles and irritants"
+
+#. placeholder {0}: data.sessions.length
+#: src/features/usability/analysis-tab.tsx
+msgid "of {0}"
+msgstr "of {0}"
 
 #. placeholder {0}: data.interviews.length
 #: src/features/analysis/analysis-tab.tsx
@@ -6282,12 +6552,17 @@ msgid "Other recordings of the session. Ticking the video of another session mer
 msgstr "Other recordings of the session. Ticking the video of another session merges that session here."
 
 #: src/features/synthesis/debrief-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Out of date"
 msgstr "Out of date"
 
 #: src/features/enrichment/labels.ts
 msgid "Out of date in Drive"
 msgstr "Out of date in Drive"
+
+#: src/features/usability/session-review.tsx
+msgid "Out of date: analyse it again"
+msgstr "Out of date: analyse it again"
 
 #: src/features/preparation/drive-publishing.tsx
 msgid "Out of date: changed in the app"
@@ -6296,6 +6571,11 @@ msgstr "Out of date: changed in the app"
 #: src/features/surveys/labels.ts
 msgid "Out of target"
 msgstr "Out of target"
+
+#. placeholder {0}: index + 1
+#: src/features/usability/session-review.tsx
+msgid "Outcome of task {0}"
+msgstr "Outcome of task {0}"
 
 #: src/features/synthesis/labels.ts
 msgid "Outside the project"
@@ -6359,6 +6639,10 @@ msgstr "Part {0} of {1}"
 msgid "partial"
 msgstr "partial"
 
+#: src/features/usability/labels.ts
+msgid "Partial"
+msgstr "Partial"
+
 #: src/features/analysis/facts-list.tsx
 #: src/features/fieldwork/session-dialog.tsx
 msgid "Participant"
@@ -6375,6 +6659,8 @@ msgid "Participant sheet"
 msgstr "Participant sheet"
 
 #: src/features/fieldwork/labels.ts
+#: src/features/usability/analysis-tab.tsx
+#: src/features/usability/session-review.tsx
 msgid "Participant to confirm"
 msgstr "Participant to confirm"
 
@@ -6396,6 +6682,11 @@ msgstr "Participants"
 msgid "Passed"
 msgstr "Passed"
 
+#. placeholder {0}: r.path
+#: src/features/usability/session-review.tsx
+msgid "Path: {0}"
+msgstr "Path: {0}"
+
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/preparation/questionnaire-tab.tsx
 msgid "People"
@@ -6416,6 +6707,11 @@ msgstr "People of the interview"
 #: src/features/fieldwork/session-dialog.tsx
 msgid "People of the session"
 msgstr "People of the session"
+
+#: src/features/fieldwork/analysis.tsx
+#: src/features/fieldwork/fieldwork-tab.tsx
+msgid "People read"
+msgstr "People read"
 
 #: src/features/surveys/form-state.tsx
 msgid "People will see that it is closed. The responses already received stay."
@@ -6452,6 +6748,10 @@ msgstr "Pilot session run with someone outside the project"
 msgid "Place"
 msgstr "Place"
 
+#: src/features/usability/labels.ts
+msgid "Placing the tasks…"
+msgstr "Placing the tasks…"
+
 #: src/features/preparation/schedule.tsx
 msgid "Plan an interview"
 msgstr "Plan an interview"
@@ -6480,6 +6780,17 @@ msgstr "Planned length: about {planned} min, for sessions of {session} min (an e
 msgid "Planned only ({0})"
 msgstr "Planned only ({0})"
 
+#. placeholder {0}: clock(o.momentMs)
+#: src/features/usability/session-review.tsx
+msgid "Play at {0}"
+msgstr "Play at {0}"
+
+#. placeholder {0}: clock(r.startMs)
+#. placeholder {0}: clock(s.startMs)
+#: src/features/usability/session-review.tsx
+msgid "Play from {0}"
+msgstr "Play from {0}"
+
 #: src/features/preparation/questionnaire-editor.tsx
 msgid "Points"
 msgstr "Points"
@@ -6495,6 +6806,7 @@ msgstr "Polarity"
 
 #: src/features/analysis/labels.ts
 #: src/features/synthesis/labels.ts
+#: src/features/usability/labels.ts
 msgid "Positive"
 msgstr "Positive"
 
@@ -6583,8 +6895,14 @@ msgstr "Profiling items"
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/enrichment/enrichment-tab.tsx
 #: src/features/quality/quality-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Progress"
 msgstr "Progress"
+
+#. placeholder {0}: i.title
+#: src/features/workspace/reading-list.tsx
+msgid "Progress of {0}"
+msgstr "Progress of {0}"
 
 #: src/features/research/project-journey.tsx
 msgid "Progress of the research"
@@ -6658,8 +6976,10 @@ msgstr "protocol changed since"
 msgid "Protocol reviewed by another person"
 msgstr "Protocol reviewed by another person"
 
+#. placeholder {0}: data.protocolVersion
 #. placeholder {0}: s.protocolVersion.version
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/usability/session-review.tsx
 msgid "Protocol v{0}"
 msgstr "Protocol v{0}"
 
@@ -6887,6 +7207,10 @@ msgstr "Read the whole protocol"
 msgid "Read the whole questionnaire"
 msgstr "Read the whole questionnaire"
 
+#: src/features/usability/labels.ts
+msgid "Reading each task…"
+msgstr "Reading each task…"
+
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Reading in progress"
 msgstr "Reading in progress"
@@ -6896,6 +7220,14 @@ msgstr "Reading in progress"
 #: src/features/enrichment/enrichment-tab.tsx
 msgid "Reading the interviews: {0} of {1}"
 msgstr "Reading the interviews: {0} of {1}"
+
+#: src/features/usability/labels.ts
+msgid "Reading the screen…"
+msgstr "Reading the screen…"
+
+#: src/features/usability/analysis-tab.tsx
+msgid "Ready"
+msgstr "Ready"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/labels.ts
@@ -7015,6 +7347,7 @@ msgstr "Region"
 #: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
+#: src/features/usability/session-review.tsx
 msgid "Reject"
 msgstr "Reject"
 
@@ -7056,6 +7389,7 @@ msgstr "Reject: {label}"
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/labels.ts
 #: src/features/synthesis/recommendation-panel.tsx
+#: src/features/usability/session-review.tsx
 msgid "Rejected"
 msgstr "Rejected"
 
@@ -7064,6 +7398,25 @@ msgstr "Rejected"
 msgctxt "feminine"
 msgid "Rejected"
 msgstr "Rejected"
+
+#. placeholder {0}: o.arbiterReason ?? ''
+#: src/features/usability/session-review.tsx
+msgid "Rejected by the arbiter: {0}"
+msgstr "Rejected by the arbiter: {0}"
+
+#: src/features/usability/session-review.tsx
+msgid "Rejected by the checks"
+msgstr "Rejected by the checks"
+
+#. placeholder {0}: data.rejected.length
+#: src/features/usability/session-review.tsx
+msgid "Rejected by the checks ({0})"
+msgstr "Rejected by the checks ({0})"
+
+#. placeholder {0}: o.judgeReason ?? ''
+#: src/features/usability/session-review.tsx
+msgid "Rejected by the judge: {0}"
+msgstr "Rejected by the judge: {0}"
 
 #: src/routes/_authenticated/projects/$projectId.tsx
 msgid "Reload"
@@ -7275,6 +7628,10 @@ msgstr "Responses received"
 msgid "Rests on {0} items to validate"
 msgstr "Rests on {0} items to validate"
 
+#: src/features/usability/analysis-tab.tsx
+msgid "Results by task"
+msgstr "Results by task"
+
 #: src/features/enrichment/term-dialogs.tsx
 #: src/features/research/project-journey.tsx
 #: src/features/research/study-list.tsx
@@ -7421,6 +7778,7 @@ msgstr "same time"
 #: src/features/preparation/schedule.tsx
 #: src/features/surveys/open-item.tsx
 #: src/features/surveys/survey-facts.tsx
+#: src/features/usability/session-review.tsx
 msgid "Save"
 msgstr "Save"
 
@@ -7506,6 +7864,11 @@ msgstr "schedule"
 msgid "Scheduled"
 msgstr "Scheduled"
 
+#. placeholder {0}: clock(o.momentMs)
+#: src/features/usability/session-review.tsx
+msgid "Screen at {0}"
+msgstr "Screen at {0}"
+
 #: src/features/preparation/protocol-editor.tsx
 #: src/features/preparation/protocol-markdown.ts
 msgid "Script"
@@ -7552,6 +7915,11 @@ msgstr "Section {0}"
 msgid "See {0} in the interview"
 msgstr "See {0} in the interview"
 
+#. placeholder {0}: fact.participant
+#: src/features/synthesis/facts-panel.tsx
+msgid "See {0} in the session"
+msgstr "See {0} in the session"
+
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "See in the insights"
 msgstr "See in the insights"
@@ -7559,6 +7927,10 @@ msgstr "See in the insights"
 #: src/features/synthesis/facts-panel.tsx
 msgid "See in the interview"
 msgstr "See in the interview"
+
+#: src/features/synthesis/facts-panel.tsx
+msgid "See in the session"
+msgstr "See in the session"
 
 #: src/features/synthesis/facts-panel.tsx
 msgid "See in the study"
@@ -7592,6 +7964,11 @@ msgstr "See the questionnaire"
 msgid "See the test protocol"
 msgstr "See the test protocol"
 
+#. placeholder {0}: o.seen
+#: src/features/usability/session-review.tsx
+msgid "Seen: {0}"
+msgstr "Seen: {0}"
+
 #: src/features/analysis/interview-facts.tsx
 msgid "Select the words of the verbatim in the turn (3 to 120 words), then add it."
 msgstr "Select the words of the verbatim in the turn (3 to 120 words), then add it."
@@ -7622,6 +7999,7 @@ msgstr "Sent widely, then filtered"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/fieldwork/session-dialog.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Session"
 msgstr "Session"
 
@@ -7629,10 +8007,18 @@ msgstr "Session"
 msgid "Session (min)"
 msgstr "Session (min)"
 
+#: src/features/usability/analysis-tab.tsx
+msgid "Session analysis"
+msgstr "Session analysis"
+
 #. placeholder {0}: data.sessions.length
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Sessions ({0})"
 msgstr "Sessions ({0})"
+
+#: src/features/usability/analysis-tab.tsx
+msgid "Sessions analysed"
+msgstr "Sessions analysed"
 
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Sessions found"
@@ -7714,6 +8100,10 @@ msgstr "Show every occurrence ({total})"
 #: src/routes/_authenticated/index.tsx
 msgid "Show more"
 msgstr "Show more"
+
+#: src/features/usability/session-review.tsx
+msgid "Show the video"
+msgstr "Show the video"
 
 #: src/features/surveys/open-item.tsx
 msgid "Shown masked, as the AI receives them."
@@ -7899,6 +8289,7 @@ msgstr "Starts at {0}"
 #: src/features/fieldwork/fieldwork-tab.tsx
 #: src/features/quality/quality-tab.tsx
 #: src/features/surveys/responses-list.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "State"
 msgstr "State"
 
@@ -7935,13 +8326,19 @@ msgstr "Status"
 #: src/features/assistant/panel.tsx
 #: src/features/synthesis/insights-tab.tsx
 #: src/features/synthesis/recommendations-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 #: src/features/workspace/stop-button.tsx
 msgid "Stop"
 msgstr "Stop"
 
 #: src/features/assistant/panel.tsx
+#: src/features/usability/labels.ts
 msgid "Stopped"
 msgstr "Stopped"
+
+#: src/features/usability/labels.ts
+msgid "Stopped before the end."
+msgstr "Stopped before the end."
 
 #: src/features/synthesis/insights-tab.tsx
 msgid "Stopping after the current call…"
@@ -7949,6 +8346,7 @@ msgstr "Stopping after the current call…"
 
 #: src/features/fieldwork/analysis.tsx
 #: src/features/synthesis/recommendations-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 #: src/features/workspace/stop-button.tsx
 msgid "Stopping…"
 msgstr "Stopping…"
@@ -8030,6 +8428,10 @@ msgstr "Study settings"
 msgid "Sub-theme (optional)"
 msgstr "Sub-theme (optional)"
 
+#: src/features/usability/labels.ts
+msgid "Success"
+msgstr "Success"
+
 #: src/features/preparation/labels.ts
 msgid "Success criteria"
 msgstr "Success criteria"
@@ -8055,6 +8457,11 @@ msgstr "Success criterion: {0}"
 #: src/features/synthesis/recommendation-panel.tsx
 msgid "Success measure"
 msgstr "Success measure"
+
+#. placeholder {0}: task.criterion
+#: src/features/usability/session-review.tsx
+msgid "Success: {0}"
+msgstr "Success: {0}"
 
 #: src/features/synthesis/insight-panel.tsx
 #: src/features/synthesis/recommendation-panel.tsx
@@ -8111,9 +8518,19 @@ msgstr "Survey answers."
 msgid "Survey facts add {0} respondents; a survey fact on 30 respondents or more raises the confidence one level, at most to high."
 msgstr "Survey facts add {0} respondents; a survey fact on 30 respondents or more raises the confidence one level, at most to high."
 
+#: src/features/usability/labels.ts
+msgid "SUS answer"
+msgstr "SUS answer"
+
 #: src/features/preparation/drive-review.tsx
 msgid "System Usability Scale"
 msgstr "System Usability Scale"
+
+#. placeholder {0}: data.sus.mean ?? '—'
+#. placeholder {1}: data.sus.sessions
+#: src/features/usability/analysis-tab.tsx
+msgid "System Usability Scale: {0} out of 100, over {1} sessions."
+msgstr "System Usability Scale: {0} out of 100, over {1} sessions."
 
 #: src/features/enrichment/interview-cleaning.tsx
 msgid "Take back"
@@ -8180,10 +8597,18 @@ msgid "Task"
 msgstr "Task"
 
 #. placeholder {0}: i + 1
+#. placeholder {0}: onScreen + 1
 #: src/features/preparation/protocol-markdown.ts
 #: src/features/preparation/protocol-view.tsx
+#: src/features/usability/session-review.tsx
 msgid "Task {0}"
 msgstr "Task {0}"
+
+#. placeholder {0}: index + 1
+#. placeholder {1}: task.instruction
+#: src/features/usability/session-review.tsx
+msgid "Task {0}: {1}"
+msgstr "Task {0}: {1}"
 
 #. placeholder {0}: ti + 1
 #: src/features/preparation/protocol-editor.tsx
@@ -8198,8 +8623,13 @@ msgstr "Task check"
 #: src/features/preparation/protocol-editor.tsx
 #: src/features/preparation/protocol-markdown.ts
 #: src/features/preparation/protocol-view.tsx
+#: src/features/usability/session-review.tsx
 msgid "Tasks"
 msgstr "Tasks"
+
+#: src/features/usability/session-review.tsx
+msgid "Tasks of the session"
+msgstr "Tasks of the session"
 
 #: src/features/assistant/labels.ts
 #: src/features/assistant/proposal-card.tsx
@@ -8440,6 +8870,10 @@ msgstr "The AI of this instance is unavailable right now."
 msgid "The AI provider did not answer. Try again in a moment."
 msgstr "The AI provider did not answer. Try again in a moment."
 
+#: src/features/usability/labels.ts
+msgid "The AI provider failed. Try again."
+msgstr "The AI provider failed. Try again."
+
 #: src/routes/_authenticated/ai-provider.tsx
 msgid "The AI provider of this instance is not open to your teams."
 msgstr "The AI provider of this instance is not open to your teams."
@@ -8529,6 +8963,10 @@ msgstr "The app's checks left out {0} remarks (not in the text, or a reformulati
 #: src/features/analysis/analysis-tab.tsx
 msgid "The app's checks left out {0} verbatims (not found in the text, or not an interviewee's) and {1} facts (without verbatim, with a name, or already decided)."
 msgstr "The app's checks left out {0} verbatims (not found in the text, or not an interviewee's) and {1} facts (without verbatim, with a name, or already decided)."
+
+#: src/features/usability/session-review.tsx
+msgid "The arbiter or the judge found contrary evidence. You can still accept one."
+msgstr "The arbiter or the judge found contrary evidence. You can still accept one."
 
 #: src/features/preparation/preparation-tab.tsx
 msgid "The assistant asks you a few questions, shows its progress and proposes the whole guide; nothing is saved until you apply it."
@@ -8767,6 +9205,15 @@ msgstr "The other language is translated after you save."
 msgid "The participant sheet is written from the protocol: change the protocol instead. The next update replaces this."
 msgstr "The participant sheet is written from the protocol: change the protocol instead. The next update replaces this."
 
+#. placeholder {0}: e.count
+#: src/features/fieldwork/analysis.tsx
+msgid "The people of {0} sessions will be read from their files and transcript: never read, incomplete, or whose files changed. Sessions a person decided are left as they are. This is not the video analysis (Analysis tab)."
+msgstr "The people of {0} sessions will be read from their files and transcript: never read, incomplete, or whose files changed. Sessions a person decided are left as they are. This is not the video analysis (Analysis tab)."
+
+#: src/features/fieldwork/analysis.tsx
+msgid "The people of every session are already read. Tick the box below to read them again."
+msgstr "The people of every session are already read. Tick the box below to read them again."
+
 #: src/routes/_authenticated/sources.tsx
 msgid "The permission is revoked at Google. You will need to connect again to see or refresh study folders."
 msgstr "The permission is revoked at Google. You will need to connect again to see or refresh study folders."
@@ -8863,6 +9310,10 @@ msgstr "The schedule is full: at most 300 interviews per study."
 msgid "The selection covers several verbatims: select words within one of them."
 msgstr "The selection covers several verbatims: select words within one of them."
 
+#: src/features/usability/analysis-tab.tsx
+msgid "The sessions' videos and transcripts will be sent to your AI provider for this study."
+msgstr "The sessions' videos and transcripts will be sent to your AI provider for this study."
+
 #: src/features/quality/figures.tsx
 msgid "The share of all the words of the interviews spoken by interviewers, computed by the app. Reference value: 30% at most."
 msgstr "The share of all the words of the interviews spoken by interviewers, computed by the app. Reference value: 30% at most."
@@ -8886,6 +9337,10 @@ msgstr "The study, its inventory and its interviews are removed from goodresearc
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
 msgstr "The study, its inventory and its interviews are removed from goodresearch. Nothing changes in Drive."
+
+#: src/features/usability/labels.ts
+msgid "The temporary copy for the AI provider could not be made."
+msgstr "The temporary copy for the AI provider could not be made."
 
 #: src/features/preparation/questionnaire-editor.tsx
 msgid "The thanks cannot be empty."
@@ -8915,6 +9370,10 @@ msgstr "The version saved before the session"
 #: src/features/ai/labels.ts
 msgid "The Vertex AI API is not enabled in this project."
 msgstr "The Vertex AI API is not enabled in this project."
+
+#: src/features/usability/labels.ts
+msgid "The video could not be read from Drive."
+msgstr "The video could not be read from Drive."
 
 #: src/features/workspace/errors.ts
 msgid "The workspace needs at least one active admin."
@@ -9021,6 +9480,14 @@ msgstr "Thinking…"
 #: src/features/workspace/errors.ts
 msgid "This account was deleted."
 msgstr "This account was deleted."
+
+#: src/features/usability/labels.ts
+msgid "This AI provider cannot read video: it needs Vertex AI."
+msgstr "This AI provider cannot read video: it needs Vertex AI."
+
+#: src/features/ai/labels.ts
+msgid "This AI provider cannot read videos."
+msgstr "This AI provider cannot read videos."
 
 #: src/features/preparation/drive-review.tsx
 msgid "This cannot be applied: copy it into the editor if you need it. The next update replaces it."
@@ -9320,6 +9787,10 @@ msgstr "This study is already in this project."
 msgid "This study is no longer in this project."
 msgstr "This study is no longer in this project."
 
+#: src/features/usability/analysis-tab.tsx
+msgid "This study's sessions can be analysed only with Vertex AI as AI provider."
+msgstr "This study's sessions can be analysed only with Vertex AI as AI provider."
+
 #: src/features/workspace/errors.ts
 msgid "This team does not exist or you do not have access to it."
 msgstr "This team does not exist or you do not have access to it."
@@ -9367,6 +9838,11 @@ msgstr "This turn is no longer in the transcript. Show the interview again."
 #: src/features/surveys/target-rule.tsx
 msgid "Tick the answers that belong to the target. A response must pass every item with something ticked. Nothing is deleted: changing this brings responses back."
 msgstr "Tick the answers that belong to the target. A response must pass every item with something ticked. Nothing is deleted: changing this brings responses back."
+
+#. placeholder {0}: duration(i18n, r.timeOnTaskMs) ?? ''
+#: src/features/usability/session-review.tsx
+msgid "Time on task: {0}"
+msgstr "Time on task: {0}"
 
 #: src/features/fieldwork/session-dialog.tsx
 #: src/features/preparation/guide-editor.tsx
@@ -9417,6 +9893,7 @@ msgstr "To create the documents in the study folder, goodresearch asks Google fo
 #: src/features/surveys/open-item.tsx
 #: src/features/surveys/survey-facts.tsx
 #: src/features/synthesis/labels.ts
+#: src/features/usability/session-review.tsx
 msgid "To decide"
 msgstr "To decide"
 
@@ -9457,6 +9934,10 @@ msgstr "To finish"
 #: src/features/synthesis/deck-slide.tsx
 msgid "To reconsider"
 msgstr "To reconsider"
+
+#: src/features/usability/analysis-tab.tsx
+msgid "To review"
+msgstr "To review"
 
 #: src/features/quality/labels.ts
 msgid "To review again"
@@ -9513,10 +9994,15 @@ msgstr "Total cost {0}"
 msgid "Total duration: {total} min"
 msgstr "Total duration: {total} min"
 
+#: src/features/usability/labels.ts
+msgid "Transcribing…"
+msgstr "Transcribing…"
+
 #: src/features/analysis/interview-facts.tsx
 #: src/features/ingestion/source-panel.tsx
 #: src/features/preparation/schedule.tsx
 #: src/features/quality/interview-view.tsx
+#: src/features/usability/session-review.tsx
 msgid "Transcript"
 msgstr "Transcript"
 
@@ -9626,6 +10112,7 @@ msgstr "Unavailable in Drive"
 #: src/features/synthesis/insight-run-dialog.tsx
 #: src/features/synthesis/recommendation-run-dialog.tsx
 #: src/features/synthesis/takeaways.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "unknown"
 msgstr "unknown"
 
@@ -9676,6 +10163,10 @@ msgstr "Usability test"
 msgid "Usability test sessions."
 msgstr "Usability test sessions."
 
+#: src/features/workspace/errors.ts
+msgid "Usability tests need Vertex AI as your AI provider: it is the only one tested to read their videos."
+msgstr "Usability tests need Vertex AI as your AI provider: it is the only one tested to read their videos."
+
 #: src/features/preparation/protocol-tab.tsx
 msgid "usability-test-best-practices.md"
 msgstr "usability-test-best-practices.md"
@@ -9703,6 +10194,10 @@ msgstr "Use this"
 #: src/features/synthesis/takeaways.tsx
 msgid "Use this draft"
 msgstr "Use this draft"
+
+#: src/features/ai/labels.ts
+msgid "Use Vertex AI for the analysis of usability tests."
+msgstr "Use Vertex AI for the analysis of usability tests."
 
 #: src/features/assistant/proposal-card.tsx
 msgid "Using the skill: {name}"
@@ -9760,6 +10255,10 @@ msgstr "Validated clean version only"
 #: src/features/fieldwork/fieldwork-tab.tsx
 msgid "Validated: {name}"
 msgstr "Validated: {name}"
+
+#: src/features/usability/labels.ts
+msgid "Verbatim"
+msgstr "Verbatim"
 
 #: src/features/analysis/interview-facts.tsx
 msgid "verbatim, {toneLabel}:"
@@ -9835,6 +10334,11 @@ msgstr "Version {value}"
 msgid "Vertex AI"
 msgstr "Vertex AI"
 
+#: src/features/usability/analysis-tab.tsx
+#: src/features/usability/session-review.tsx
+msgid "Video"
+msgstr "Video"
+
 #: src/features/fieldwork/labels.ts
 msgid "Video length unknown"
 msgstr "Video length unknown"
@@ -9846,6 +10350,14 @@ msgstr "Video missing"
 #: src/features/fieldwork/labels.ts
 msgid "Video missing in Drive"
 msgstr "Video missing in Drive"
+
+#: src/features/usability/session-review.tsx
+msgid "Video of the session"
+msgstr "Video of the session"
+
+#: src/features/usability/session-review.tsx
+msgid "Video of the session, from Drive"
+msgstr "Video of the session, from Drive"
 
 #: src/features/quality/quality-tab.tsx
 #: src/features/synthesis/debrief-tab.tsx
@@ -9863,6 +10375,7 @@ msgstr "Wait for the insights or recommendations being found in this project to 
 
 #: src/features/analysis/labels.ts
 #: src/features/enrichment/labels.ts
+#: src/features/usability/labels.ts
 msgid "Waiting"
 msgstr "Waiting"
 
@@ -9996,6 +10509,10 @@ msgstr "What would you change first?"
 #: src/features/fieldwork/analysis.tsx
 msgid "What you accepted or rejected stays; only the proposals still to decide are replaced."
 msgstr "What you accepted or rejected stays; only the proposals still to decide are replaced."
+
+#: src/features/usability/session-review.tsx
+msgid "What you saw"
+msgstr "What you saw"
 
 #: src/features/enrichment/term-dialogs.tsx
 msgid "Where it was found"
@@ -10196,6 +10713,10 @@ msgstr "You need access to this study's Drive folder to see and change its prepa
 #: src/routes/_authenticated/studies/$studyId.tsx
 msgid "You need access to this study's Drive folder to see its interviews."
 msgstr "You need access to this study's Drive folder to see its interviews."
+
+#: src/routes/_authenticated/studies/$studyId.tsx
+msgid "You need access to this study's Drive folder to see its sessions."
+msgstr "You need access to this study's Drive folder to see its sessions."
 
 #: src/features/ai/labels.ts
 msgid "Your account is not allowed to use this model."

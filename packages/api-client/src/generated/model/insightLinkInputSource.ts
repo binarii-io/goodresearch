@@ -11,4 +11,5 @@ export type InsightLinkInputSource = typeof InsightLinkInputSource[keyof typeof 
 export const InsightLinkInputSource = {
   interview: 'interview',
   survey: 'survey',
+  usability: 'usability',
 } as const;

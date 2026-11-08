@@ -83,6 +83,10 @@ export type UsabilityNextStep =
   | 'decide-sessions'
   | 'make-ready'
   | 'next-phase'
+  | 'analyse-sessions'
+  | 'analysis-running'
+  | 'review-observations'
+  | 'analysis-done'
 
 export const usabilityNextStep = (s: {
   hasProtocol: boolean
@@ -91,6 +95,8 @@ export const usabilityNextStep = (s: {
   checksDone: boolean
   /** Spec 037: the study's test sessions, when read. */
   sessions?: { total: number; open: number; notReady: number } | undefined
+  /** Spec 038: the analysis of the ready sessions, when read. */
+  analysis?: { toAnalyse: number; toReview: number; running: boolean } | undefined
 }): UsabilityNextStep => {
   if (!s.hasProtocol) return 'write-protocol'
   if (!s.hasFolder) return 'add-folder'
@@ -98,5 +104,9 @@ export const usabilityNextStep = (s: {
   // Sessions already found: the checks were the way to them, they no longer come first.
   if (!s.sessions || s.sessions.total === 0) return s.checksDone ? 'run-sessions' : 'readiness'
   if (s.sessions.open > 0) return 'decide-sessions'
-  return s.sessions.notReady > 0 ? 'make-ready' : 'next-phase'
+  if (s.sessions.notReady > 0) return 'make-ready'
+  if (!s.analysis) return 'next-phase'
+  if (s.analysis.running) return 'analysis-running'
+  if (s.analysis.toAnalyse > 0) return 'analyse-sessions'
+  return s.analysis.toReview > 0 ? 'review-observations' : 'analysis-done'
 }

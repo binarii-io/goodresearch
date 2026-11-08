@@ -16,6 +16,8 @@ export type AiProviderGate = (accountId: string) => Promise<{
   required: boolean
   status: 'none' | 'working' | 'needs-attention'
   grantProblem: GrantProblem | null
+  /** Spec 038: the kind of the provider serving the person; usability tests need Vertex AI. */
+  kind: 'vertex' | 'anthropic' | 'openai' | 'fake' | null
 }>
 
 /** The person's Drive connection, for the reconnect notices (Ingestion port, spec 030). */

@@ -1,4 +1,9 @@
+import { execFile } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
+import { open, readFile, stat, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { promisify } from 'node:util'
 import type { DocModel, TableRead } from '../domain/drive-documents.ts'
 import {
   type DriveAuthorization,
@@ -6,9 +11,62 @@ import {
   type DriveGateway,
   type DriveItem,
   FOLDER_MIME,
+  type VideoRange,
 } from '../domain/drive-gateway.ts'
 import { DRIVE_CALLBACK_PATH } from './google-oauth.ts'
 import { InMemoryDriveDocuments } from './in-memory.drive-documents.ts'
+
+/** Spec 038: dev videos last at most this long (real bytes, made once per process). */
+const DEV_VIDEO_MAX_S = 120
+const made = new Map<string, Promise<string>>()
+
+/**
+ * A playable test video for a simulated file (test pattern and a tone), made with ffmpeg in the
+ * temporary directory once per process.
+ */
+const devVideo = (item: DriveItem): Promise<string> => {
+  let path = made.get(item.id)
+  if (!path) {
+    const seconds = Math.min(DEV_VIDEO_MAX_S, Math.round((item.durationMs ?? 60_000) / 1000))
+    const out = join(tmpdir(), `goodresearch-dev-${item.id}-${seconds}s.mp4`)
+    path = (async () => {
+      const exists = await stat(out).then(
+        (s) => s.size > 0,
+        () => false,
+      )
+      if (!exists)
+        await promisify(execFile)('ffmpeg', [
+          '-y',
+          '-loglevel',
+          'error',
+          '-f',
+          'lavfi',
+          '-i',
+          'testsrc=size=640x360:rate=10',
+          '-f',
+          'lavfi',
+          '-i',
+          'sine=frequency=440',
+          '-t',
+          String(seconds),
+          '-c:v',
+          'libx264',
+          '-pix_fmt',
+          'yuv420p',
+          '-c:a',
+          'aac',
+          '-shortest',
+          out,
+        ]).catch((error: unknown) => {
+          throw new Error(`the dev Drive needs ffmpeg to make its test videos: ${String(error)}`)
+        })
+      return out
+    })()
+    made.set(item.id, path)
+    path.catch(() => made.delete(item.id))
+  }
+  return path
+}
 
 /** The folder every simulated account can open (link: https://drive.google.com/drive/folders/<id>). */
 export const DEV_FOLDER_ID = 'dev-study-folder'
@@ -177,6 +235,32 @@ export const createDevDrive = (appUrl: URL) => {
     getItem: async (token, id) => {
       known(token)
       return items.get(id) ?? null
+    },
+    downloadFile: async (token, id, toPath) => {
+      known(token)
+      const item = items.get(id)
+      if (!item?.mimeType.startsWith('video/')) return null
+      const bytes = await readFile(await devVideo(item))
+      await writeFile(toPath, bytes)
+      return { bytes: bytes.byteLength }
+    },
+    videoRange: async (token, id, range): Promise<VideoRange | null> => {
+      known(token)
+      const item = items.get(id)
+      if (!item?.mimeType.startsWith('video/')) return null
+      const path = await devVideo(item)
+      const size = (await stat(path)).size
+      const m = range ? /^bytes=(\d+)-(\d*)$/.exec(range) : null
+      const start = m ? Number(m[1]) : 0
+      const end = m?.[2] ? Math.min(Number(m[2]), size - 1) : size - 1
+      const file = await open(path)
+      return {
+        status: m ? 206 : 200,
+        contentType: 'video/mp4',
+        contentLength: end - start + 1,
+        contentRange: m ? `bytes ${start}-${end}/${size}` : null,
+        body: file.createReadStream({ start, end }),
+      }
     },
     documentTabs: async (token, id) => {
       known(token)

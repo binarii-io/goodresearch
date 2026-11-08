@@ -17,3 +17,4 @@ export * from './sources/sources.ts';
 export * from './studies/studies.ts';
 export * from './surveys/surveys.ts';
 export * from './teams/teams.ts';
+export * from './usability/usability.ts';

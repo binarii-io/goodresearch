@@ -86,14 +86,15 @@ export const evidenceVerbatims = pgTable(
 
 /**
  * A neutral statement (context map Fact): supported by verbatims of one interview, or since spec
- * 029 by a figure or a theme of a survey (`source`, `evidence_survey_supports`).
+ * 029 by a figure or a theme of a survey (`source`, `evidence_survey_supports`), or since spec 038
+ * by an observation of a usability test session (`evidence_usability_supports`).
  */
 export const evidenceFacts = pgTable(
   'evidence_facts',
   {
     id: text('id').primaryKey(),
     source: text('source').notNull().default('interview'),
-    /** Null for a survey fact. */
+    /** Null for a survey fact; set for interview and usability facts. */
     sessionId: text('session_id'),
     studyId: text('study_id').notNull(),
     statementEn: text('statement_en').notNull(),
@@ -130,6 +131,21 @@ export const evidenceSurveySupports = pgTable('evidence_survey_supports', {
   themeShare: jsonb('theme_share'),
   quotes: jsonb('quotes').notNull().default([]),
   keptAt: timestamp('kept_at', { withTimezone: true }),
+})
+
+/**
+ * Spec 038: what a usability fact rests on: its observation's moment, verified quote and
+ * screenshot (no foreign key across modules to the observation).
+ */
+export const evidenceUsabilitySupports = pgTable('evidence_usability_supports', {
+  factId: text('fact_id')
+    .primaryKey()
+    .references(() => evidenceFacts.id, { onDelete: 'cascade' }),
+  observationId: text('observation_id').notNull().unique(),
+  quote: text('quote'),
+  momentMs: integer('moment_ms').notNull(),
+  screenshotKey: text('screenshot_key'),
+  participant: text('participant'),
 })
 
 export const evidenceFactVerbatims = pgTable(

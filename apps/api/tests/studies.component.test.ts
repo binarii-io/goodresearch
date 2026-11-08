@@ -23,7 +23,8 @@ describe('studies API (spec 002 US1)', () => {
     })
 
   beforeAll(async () => {
-    world = await startWorld()
+    // Spec 038: usability tests need a provider that reads videos (the fake stands in for Vertex AI).
+    world = await startWorld({ config: { AI_FAKE_PROVIDER: 'true', AI_SHARED_PROVIDER: 'fake' } })
     await world.session('admin@example.org')
     alex = await world.session('alex@example.org')
     outsider = await world.session('out@research.example.com')

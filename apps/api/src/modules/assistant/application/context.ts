@@ -57,7 +57,14 @@ const USABILITY_NEXT_STEPS: Record<UsabilityNextStep, string> = {
   'make-ready':
     'complete the validated sessions that are not ready for the video analysis (participant to confirm, video length unknown, protocol version) on the Fieldwork tab',
   'next-phase':
-    'every session kept is ready; the video analysis, which also transcribes them, comes in a later version',
+    'every session kept is ready; analyse them on the Analysis tab (the video analysis, which also transcribes them)',
+  'analyse-sessions':
+    'analyse the ready sessions on the Analysis tab: each is read task by task from its video, with its estimated cost shown before it starts',
+  'analysis-running': 'wait for the analysis running on the Analysis tab; it can be stopped there',
+  'review-observations':
+    'review the observations and task outcomes of the analysed sessions on the Analysis tab: only what the person accepts counts in the results and becomes facts',
+  'analysis-done':
+    'the sessions are analysed and reviewed: read the results by task and the SUS on the Analysis tab; their facts feed the project',
 }
 
 /** The app's own words for its tabs (bilingual glossary): the model would translate them itself. */
@@ -339,6 +346,13 @@ export const buildContext = async (
         const counted = published.includes('protocol')
           ? await research.interviewCounts(actor, study.id)
           : null
+        const analysis = published.includes('protocol')
+          ? await research.usabilityAnalysis(actor, study.id)
+          : null
+        if (analysis)
+          lines.push(
+            `Analysis of this study's sessions (no names): ${analysis.ready} ready, ${analysis.analysed} analysed, ${analysis.toAnalyse} to analyse (estimate ${analysis.estimate === null ? 'unknown' : `${analysis.estimate.toFixed(2)} USD`}), ${analysis.toReview} items to review, cost so far ${analysis.cost === null ? 'unknown' : `${analysis.cost.toFixed(2)} USD`}${analysis.running ? ', a run is going on' : ''}.`,
+          )
         const sessions = counted?.ok
           ? {
               total: counted.counts.total ?? 0,
@@ -359,6 +373,7 @@ export const buildContext = async (
                 published,
                 checksDone: protocol.checksDone,
                 sessions,
+                analysis: analysis ?? undefined,
               })
             ]
           }.`,

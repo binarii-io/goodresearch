@@ -67,6 +67,7 @@ describe('questionnaire commands', () => {
       studies: research.studyRepository,
       gate: research.gate,
       runs: { isRunning: async () => false },
+      video: { readsVideo: async () => true },
     })
     const make = async (type: string) => {
       const created = await studies.createTeamStudy({

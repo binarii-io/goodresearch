@@ -235,7 +235,7 @@ describe('loadConfig', () => {
     expect(errorOf({ ...valid, AI_SHARED_PROVIDER: 'fake' })).toContain('AI_SHARED_PROVIDER')
     expect(
       loadConfig({ ...valid, AI_FAKE_PROVIDER: 'true', AI_SHARED_PROVIDER: 'fake' }).ai.shared,
-    ).toEqual({ provider: 'fake', apiKey: 'fake', teams: null })
+    ).toEqual({ provider: 'fake', apiKey: 'test-ok-shared', teams: null })
   })
 
   it('lets the deployer change the model of each provider', () => {

@@ -109,6 +109,7 @@ function Links({
                         sessionId: l.sessionId,
                         participant: l.participant,
                         respondents: l.respondents,
+                        source: l.source,
                       }}
                       projectId={projectId}
                     />

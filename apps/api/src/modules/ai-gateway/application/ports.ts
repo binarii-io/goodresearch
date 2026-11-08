@@ -45,10 +45,35 @@ export type ToolSpec = {
 /** Model steps of one answer at most (tool runs in between). */
 export const MAX_STEPS = 6
 
+/**
+ * Spec 038: a part of the user turn: text, a file the provider reads by its URI (a video in a
+ * staging bucket, with an optional part of it), or an image sent inline.
+ */
+export type RequestPart =
+  | { readonly type: 'text'; readonly text: string }
+  | {
+      readonly type: 'file'
+      readonly uri: string
+      readonly mimeType: string
+      readonly startMs?: number
+      readonly endMs?: number
+    }
+  | { readonly type: 'image'; readonly data: Uint8Array; readonly mimeType: 'image/jpeg' }
+
+/** Spec 038: the standard model of a provider, or its strong one for heavier steps. */
+export type ModelTier = 'standard' | 'strong'
+
+/** The text of a request, for adapters and fakes that read it: the prompt, else its text parts. */
+export const requestText = (request: ModelRequest): string =>
+  request.prompt ??
+  (request.parts ?? []).flatMap((p) => (p.type === 'text' ? [p.text] : [])).join('\n')
+
 /** What a task asks the model; the prompt and the answer are never stored by the gateway (FR-010). */
 export type ModelRequest = {
   readonly system?: string
   readonly prompt?: string
+  /** Spec 038: the user turn as parts (text, files, images), instead of `prompt`. */
+  readonly parts?: readonly RequestPart[]
   readonly messages?: readonly ChatMessage[]
   readonly tools?: readonly ToolSpec[]
   readonly maxOutputTokens?: number
@@ -236,6 +261,13 @@ export interface AiStore {
 export type AiDeps = {
   readonly store: AiStore
   readonly runner: ModelRunner
+  /**
+   * Spec 038: a short-lived Google access token for the instance's shared Vertex AI (its service
+   * account or its own identity), for the video analysis's staging bucket. Absent in tests.
+   */
+  readonly serviceAccessToken?: (
+    credential: Extract<Credential, { serviceAccount: unknown }>,
+  ) => Promise<string>
   /** Null when no Google client is configured: Vertex AI is not offered then. */
   readonly google: { readonly oauth: GoogleGrant; readonly cloud: GoogleCloudApi } | null
   readonly cipher: {
@@ -245,6 +277,8 @@ export type AiDeps = {
   readonly config: {
     readonly offered: readonly ProviderKind[]
     readonly models: Readonly<Record<ProviderKind, string>>
+    /** Spec 038: the strong tier of each provider. */
+    readonly strongModels: Readonly<Record<ProviderKind, string>>
     readonly timeoutMs: number
     /** Deployer prices, added to or replacing the built-in dated catalog. */
     readonly prices: readonly Price[]

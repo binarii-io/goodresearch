@@ -1,10 +1,11 @@
-import type { Clock } from '@goodresearch/shared'
+import { type Clock, newId } from '@goodresearch/shared'
 import { z } from 'zod'
 import type { Db } from '#platform/db.ts'
 import { type JobHandler, QUEUES } from '#platform/jobs.ts'
 import { makeAnalysisCommands } from '../application/commands/analysis-commands.ts'
 import { makeFactCommands } from '../application/commands/fact-commands.ts'
 import { makeSurveyFactCommands } from '../application/commands/survey-fact-commands.ts'
+import { makeUsabilityFactCommands } from '../application/commands/usability-fact-commands.ts'
 import type { AnalysisSources, EvidenceDeps, FactsAi } from '../application/ports.ts'
 import { makeAnalysisQueries } from '../application/queries/analysis-queries.ts'
 import { makeSurveyFactQueries } from '../application/queries/survey-fact-queries.ts'
@@ -14,6 +15,7 @@ import { isFactsRunLive } from '../domain/analysis-run.ts'
 import { createEvidenceStore } from './evidence.drizzle-store.ts'
 import type { EvidenceHandlers } from './http.routes.ts'
 import { createSurveyFactStore } from './survey-facts.drizzle-store.ts'
+import { createUsabilityFactStore } from './usability-facts.drizzle-store.ts'
 
 const FactsJobPayload = z.object({
   runId: z.string().min(1),
@@ -28,6 +30,8 @@ const TranslateJobPayload = z.object({
   text: z.string().max(1000).optional(),
   /** Spec 029: a survey fact's statement. */
   survey: z.boolean().optional(),
+  /** Spec 038: a usability fact's statement. */
+  usability: z.boolean().optional(),
 })
 
 /** Builds the evidence module: verbatims and facts of the interviews (spec 012). */
@@ -68,6 +72,17 @@ export const createEvidenceModule = (deps: {
     log: deps.log ?? console,
   }
   const surveyFacts = makeSurveyFactCommands(surveyDeps)
+  // Spec 038: facts from the decided observations of usability test sessions.
+  const usabilityStore = createUsabilityFactStore(deps.db)
+  const observationFacts = makeUsabilityFactCommands({
+    store: usabilityStore,
+    knownNames: deps.sources.knownNames,
+    translate: (...args) => deps.ai.translate(...args),
+    enqueueTranslation: (job) => deps.enqueue(QUEUES.translate, job),
+    clock: deps.clock,
+    newId,
+    log: deps.log ?? console,
+  })
   const handlers: EvidenceHandlers = {
     analysis,
     facts,
@@ -92,6 +107,7 @@ export const createEvidenceModule = (deps: {
         const job = TranslateJobPayload.safeParse(data)
         if (!job.success)
           return evidence.log.warn({ issues: job.error.issues }, 'invalid translation job ignored')
+        if (job.data.usability) return observationFacts.translateJob(job.data)
         return job.data.survey ? surveyFacts.translateJob(job.data) : facts.translateJob(job.data)
       },
     },
@@ -100,10 +116,22 @@ export const createEvidenceModule = (deps: {
   const factsLive = async (studyId: string) =>
     isFactsRunLive(await store.openRun(studyId), deps.clock.now())
   /** The facts the project's insights read (spec 013 research R1). */
-  const reads = makeSynthesisReads(store, surveyDeps.store)
+  const reads = makeSynthesisReads(store, surveyDeps.store, usabilityStore)
   /** A person's attributions of an interview's speaker labels (spec 016 research R5). */
   const speakerAttributions = (sessionId: string) => store.speakersOf(sessionId)
   const speakerAttributionsOf = (sessionIds: readonly string[]) =>
     store.speakersOfSessions(sessionIds)
-  return { handlers, jobs, factsLive, reads, speakerAttributions, speakerAttributionsOf }
+  return {
+    handlers,
+    jobs,
+    factsLive,
+    reads,
+    speakerAttributions,
+    speakerAttributionsOf,
+    /** Spec 038: the facts of decided usability observations (the Usability module calls them). */
+    observationFacts: {
+      upsert: observationFacts.upsert,
+      withdraw: observationFacts.withdraw,
+    },
+  }
 }

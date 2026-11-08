@@ -26,6 +26,8 @@ export const Me = z
       status: z.enum(['none', 'working', 'needs-attention']),
       /** Spec 030: set when Google refuses the Vertex AI grant; no redirect to the setup then. */
       grantProblem: GrantProblem.nullable(),
+      /** Spec 038: the kind of the provider serving the person; usability tests need Vertex AI. */
+      kind: z.enum(['vertex', 'anthropic', 'openai', 'fake']).nullable(),
     }),
     /** Spec 030: the person's Google Drive connection, for the reconnect notices. */
     drive: z.object({

@@ -6,6 +6,7 @@ import {
   LoaderCircleIcon,
   XIcon,
 } from '@goodresearch/ui/components/icons'
+import { Progress } from '@goodresearch/ui/components/progress'
 import { useLingui } from '@lingui/react/macro'
 import { type ReactNode, useState } from 'react'
 
@@ -18,6 +19,8 @@ export type ReadingItem = {
   label: string
   /** It can still be taken out of the reading. */
   stoppable: boolean
+  /** How far it has gone, when known (a video analysis's stages): a bar next to its words. */
+  progress?: { value: number; max: number }
 }
 
 /**
@@ -79,6 +82,14 @@ export function ReadingList({
                 {i.title}
               </span>
               <span className="shrink-0 text-muted-foreground">{i.label}</span>
+              {i.progress ? (
+                <Progress
+                  aria-label={t`Progress of ${i.title}`}
+                  value={i.progress.value}
+                  max={i.progress.max}
+                  className="w-28 shrink-0"
+                />
+              ) : null}
               {i.stoppable && onTakeOut ? (
                 <Button
                   variant="ghost"

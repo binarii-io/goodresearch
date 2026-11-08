@@ -42,7 +42,7 @@ flowchart TD
 Enforced in code, not left to the model:
 
 - A session exists only with its video; a transcript no video claims is listed and gives none.
-- The video's length comes from the source's metadata; no video or audio content is read or sent anywhere.
+- The video's length comes from the source's metadata; when Drive gives none, from the MP4 header, read by a few small ranges with the person's access (spec 038 local test). No video or audio content is read or sent anywhere.
 - The AI reads only a transcript's beginning, with the usability roles named; without a transcript, only the app's rules propose people.
 - Names reach the AI only under the folder consent, and the names the app knows never on an anonymised study.
 - Every saved protocol version is kept unchanged; the app proposes the one saved before the session's date, a person's choice is kept.

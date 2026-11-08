@@ -22,6 +22,10 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install
 
 FROM node:24.22.1-bookworm-slim AS runtime
 ENV NODE_ENV=production
+# Spec 038, ADR-0013: frames, crops, sound and screenshots of usability test videos (worker).
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 # Git hooks are for contributors, not for image builds.
 ENV LEFTHOOK=0

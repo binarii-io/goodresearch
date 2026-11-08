@@ -24,6 +24,7 @@ describe('study commands', () => {
       studies: research.studyRepository,
       gate: research.gate,
       runs: research.runs,
+      video: { readsVideo: async () => true },
     })
     projectId = await research.addProject('team-a')
   })
@@ -53,6 +54,28 @@ describe('study commands', () => {
     expect(
       await commands.setAnonymisation({ actor: alice, studyId, anonymised: false, version: 0 }),
     ).toEqual({ ok: false, error: 'VERSION_CONFLICT' })
+  })
+
+  it('spec 038: offers a usability test only with a provider that reads videos', async () => {
+    const without = makeStudyCommands({
+      ...research.deps(fixedClock(new Date('2026-10-24T10:00:00Z'))),
+      studies: research.studyRepository,
+      gate: research.gate,
+      runs: research.runs,
+      video: { readsVideo: async () => false },
+    })
+    const test = { actor: alice, name: 'Test', type: 'usability-test' }
+    expect(await without.createStudy({ ...test, projectId })).toEqual({
+      ok: false,
+      error: 'USABILITY_NEEDS_VERTEX',
+    })
+    expect(await without.createTeamStudy({ ...test, teamId: 'team-a' })).toEqual({
+      ok: false,
+      error: 'USABILITY_NEEDS_VERTEX',
+    })
+    // Other types do not depend on it.
+    expect((await without.createStudy({ ...test, type: 'interviews', projectId })).ok).toBe(true)
+    expect((await commands.createStudy({ ...test, projectId })).ok).toBe(true)
   })
 
   it('creates an interview study in an accessible project', async () => {

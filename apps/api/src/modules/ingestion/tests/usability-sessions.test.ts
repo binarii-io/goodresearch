@@ -1,5 +1,9 @@
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fixedClock } from '@goodresearch/shared'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { makeUsabilitySources } from '../application/usability-sources.ts'
 import { InMemoryIngestion } from './fakes/in-memory-ingestion.ts'
 
 const alice = { id: 'alice', role: 'member' as const }
@@ -239,5 +243,119 @@ describe('usability test sessions (spec 037)', () => {
       ok: true,
       value: { total: 3, readyForAnalysis: 0, videoMinutes: 51, 'not-ready': 3 },
     })
+  })
+})
+
+describe('what the video analysis reads of test sessions (spec 038)', () => {
+  let world: InMemoryIngestion
+  const alice = { id: 'alice', role: 'member' as const }
+
+  beforeEach(async () => {
+    world = new InMemoryIngestion(fixedClock(new Date('2026-11-07T10:00:00Z')))
+    world.studies.set('study-1', ['alice'])
+    world.studyTypes.set('study-1', 'usability-test')
+    world.team.push({ id: 'alice', name: 'Alice Martin' })
+    world.drive.addFolder('folder-study', 'Study')
+    world.drive.share('folder-study', 'alice@example.org')
+    world.drive.addFile('v-a', 'Test A.mp4', 'folder-study', 'video/mp4')
+    const item = world.drive.items.get('v-a')
+    if (item)
+      world.drive.items.set('v-a', {
+        ...item,
+        modifiedTime: '2026-11-03T11:00:00Z',
+        durationMs: 60_000,
+      })
+    world.drive.bytes.set('v-a', new Uint8Array([1, 2, 3, 4, 5]))
+    world.protocolVersions.set('study-1', [{ version: 1, savedAt: new Date('2026-11-01') }])
+    world.drive.nextConsentAccount = 'alice@example.org'
+    const started = await world.commands.startDriveConnection({ actor: alice, returnTo: '/' })
+    if (!started.ok) throw new Error('fixture')
+    await world.commands.completeDriveConnection({
+      actor: alice,
+      state: new URL(started.value.url).searchParams.get('state') ?? '',
+      code: 'c',
+    })
+    await world.commands.attachFolder({ actor: alice, studyId: 'study-1', link: 'folder-study' })
+    await world.runJobs()
+  })
+
+  const sources = () => makeUsabilitySources(world.deps, world.sessionQueries, world.analysis)
+
+  it('lists the sessions with their video, protocol version and people, pseudonyms when anonymised', async () => {
+    const [s] = await sources().sessions('alice', 'study-1')
+    expect(s).toMatchObject({
+      studyId: 'study-1',
+      protocolVersion: 1,
+      video: { fileId: 'v-a', durationMs: 60_000 },
+      participant: null,
+      hasPeople: false,
+    })
+    const view = await world.sessionQueries.fieldwork(alice, 'study-1')
+    if (!view.ok) throw new Error('fixture')
+    const id = view.value.sessions[0]?.id ?? ''
+    await world.sessions.edit({
+      actor: alice,
+      sessionId: id,
+      version: view.value.sessions[0]?.version ?? 0,
+      roster: [
+        { name: 'Casey Test', role: 'interviewee' },
+        { name: 'Robin Sample', role: 'interviewer' },
+      ],
+    })
+    expect((await sources().session('alice', id))?.participant).toBe('Casey Test')
+    world.anonymised.add('study-1')
+    expect(await sources().session('alice', id)).toMatchObject({
+      participant: 'P01',
+      facilitators: ['I01'],
+      hasPeople: true,
+    })
+    expect(await sources().sessions('bob', 'study-1')).toEqual([])
+  })
+
+  it('downloads the video and reads ranges with the person’s access, only for videos of the study', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'usability-src-'))
+    const path = join(dir, 'v.mp4')
+    expect(await sources().downloadVideo('alice', 'study-1', 'v-a', path)).toEqual({ bytes: 5 })
+    expect(new Uint8Array(await readFile(path))).toEqual(new Uint8Array([1, 2, 3, 4, 5]))
+    expect(await sources().downloadVideo('alice', 'study-1', 'not-in-study', path)).toBe(
+      'not-found',
+    )
+    const part = await sources().videoRange('alice', 'study-1', 'v-a', 'bytes=1-2')
+    expect(part).toMatchObject({ status: 206, contentRange: 'bytes 1-2/5' })
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  it('keeps consent per provider, and names known for anonymisation checks', async () => {
+    expect(await sources().hasConsent('alice', 'study-1', 'vertex')).toBe(false)
+    await sources().giveConsent('alice', 'study-1', 'vertex')
+    expect(await sources().hasConsent('alice', 'study-1', 'vertex')).toBe(true)
+    expect(await sources().knownNames('study-1', 'alice')).toContain('Alice Martin')
+  })
+
+  it('proposes the people from a given transcript, without reopening a validated session', async () => {
+    const view = await world.sessionQueries.fieldwork(alice, 'study-1')
+    if (!view.ok) throw new Error('fixture')
+    const s = view.value.sessions[0]
+    if (!s) throw new Error('fixture')
+    await world.sessions.decide({
+      actor: alice,
+      sessionId: s.id,
+      decision: 'validate',
+      version: s.version,
+    })
+    world.analyzer.answer = () => ({
+      interviewers: [{ name: 'Robin Sample', quote: 'I will give you a few tasks.' }],
+      interviewees: [{ name: 'Casey Test', quote: 'it is a pleasure to try it' }],
+      date: null,
+    })
+    await sources().proposePeopleFromText('alice', s.id, SPEAKERS)
+    expect(world.analyzer.calls).toMatchObject([{ kind: 'usability-test', text: SPEAKERS }])
+    const after = await sources().session('alice', s.id)
+    expect(after?.state).toBe('validated')
+    const shown = await world.sessionQueries.session(alice, s.id)
+    if (!shown.ok) throw new Error('fixture')
+    expect(shown.value.analysis?.proposals.find((p) => p.field === 'interviewees')?.people).toEqual(
+      [{ name: 'Casey Test', memberId: null }],
+    )
   })
 })

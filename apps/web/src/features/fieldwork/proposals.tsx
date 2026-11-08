@@ -284,9 +284,12 @@ export function Proposals({
   onRename,
   renaming = false,
   lead,
+  tests = false,
 }: {
   /** The planned interview's card, first in the list (same pattern as the proposals). */
   lead?: ReactNode
+  /** Spec 037: a usability test session, whose reading finds its people (not its video). */
+  tests?: boolean
   view: Session
   editable: boolean
   busy: boolean
@@ -329,7 +332,13 @@ export function Proposals({
               onClick={onAnalyze}
             >
               <SparklesIcon aria-hidden />
-              {a ? t`Analyze again` : t`Analyze`}
+              {tests
+                ? a
+                  ? t`Find the people again`
+                  : t`Find the people`
+                : a
+                  ? t`Analyze again`
+                  : t`Analyze`}
             </Button>
           ) : null}
           {editable && open.length + (plannedPending ? 1 : 0) > 1 ? (

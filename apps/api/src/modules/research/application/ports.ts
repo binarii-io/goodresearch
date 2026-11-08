@@ -28,6 +28,14 @@ export type ResearchCommandDeps = {
   readonly teams: TeamDirectory
 }
 
+/**
+ * Spec 038: whether the AI provider serving a person reads videos (Vertex AI, the only one tested
+ * for usability tests); implemented by the AI Gateway.
+ */
+export type VideoProviderGate = {
+  readsVideo(accountId: string): Promise<boolean>
+}
+
 export type ProjectRunGate = {
   /** Spec 019: an insight or recommendation run is not finished on this project. */
   isRunning(projectId: string): Promise<boolean>

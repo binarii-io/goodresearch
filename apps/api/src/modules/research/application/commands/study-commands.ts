@@ -2,7 +2,12 @@ import { ConcurrencyError, err, newId, ok, type Result } from '@goodresearch/sha
 import type { StudyRepository } from '../../domain/study.repository.ts'
 import { Study, type TextAnalysed } from '../../domain/study.ts'
 import { canUseTeam } from '../access.ts'
-import type { ProjectRunGate, ResearchCommandDeps, StudyActionGate } from '../ports.ts'
+import type {
+  ProjectRunGate,
+  ResearchCommandDeps,
+  StudyActionGate,
+  VideoProviderGate,
+} from '../ports.ts'
 
 type Actor = { readonly id: string; readonly role: 'admin' | 'member' }
 
@@ -12,6 +17,7 @@ export type StudyCommandError =
   | 'VALIDATION'
   | 'VERSION_CONFLICT'
   | 'FOLDER_ACCESS_REQUIRED'
+  | 'USABILITY_NEEDS_VERTEX'
 
 export type StudyLinkError =
   | 'PROJECT_NOT_FOUND'
@@ -28,8 +34,14 @@ export const makeStudyCommands = (
     studies: StudyRepository
     gate: StudyActionGate
     runs: ProjectRunGate
+    /** Spec 038: usability test studies need an AI provider that reads videos. */
+    video: VideoProviderGate
   },
 ) => {
+  /** Spec 038 FR-018: a usability test is offered only with Vertex AI. */
+  const typeAllowed = async (actorId: string, type: string) =>
+    type !== 'usability-test' || (await deps.video.readsVideo(actorId))
+
   const inTeam = async (actorId: string, teamId: string): Promise<boolean> => {
     const access = await deps.teams.getAccessContext(actorId)
     return Boolean(access && (access.role === 'admin' || access.teamIds.includes(teamId)))
@@ -78,6 +90,7 @@ export const makeStudyCommands = (
     }): Promise<Result<{ id: string }, StudyCommandError>> => {
       const project = await projectVisible(c.actor.id, c.projectId)
       if (!project) return err('PROJECT_NOT_FOUND')
+      if (!(await typeAllowed(c.actor.id, c.type))) return err('USABILITY_NEEDS_VERTEX')
       const created = Study.create({
         id: newId(),
         teamId: project.teamId,
@@ -101,9 +114,12 @@ export const makeStudyCommands = (
       name: string
       type: string
       goal?: string | undefined
-    }): Promise<Result<{ id: string }, 'TEAM_NOT_FOUND' | 'VALIDATION'>> => {
+    }): Promise<
+      Result<{ id: string }, 'TEAM_NOT_FOUND' | 'VALIDATION' | 'USABILITY_NEEDS_VERTEX'>
+    > => {
       const access = await deps.teams.getAccessContext(c.actor.id)
       if (!access || !(await canUseTeam(deps.teams, access, c.teamId))) return err('TEAM_NOT_FOUND')
+      if (!(await typeAllowed(c.actor.id, c.type))) return err('USABILITY_NEEDS_VERTEX')
       const created = Study.create({
         id: newId(),
         teamId: c.teamId,

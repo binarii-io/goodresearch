@@ -100,7 +100,7 @@ describe('Reconnect Google (spec 030)', () => {
       ok: false,
       failure: 'INVALID_CREDENTIAL',
     })
-    expect((await me()).aiProvider).toEqual({
+    expect((await me()).aiProvider).toMatchObject({
       required: true,
       status: 'needs-attention',
       grantProblem: 'reauth-required',

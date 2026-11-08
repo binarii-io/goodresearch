@@ -5,10 +5,12 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { GrantProblemInput } from './grantProblemInput.ts';
+import type { MeInputAiProviderKind } from './meInputAiProviderKind.ts';
 import type { MeInputAiProviderStatus } from './meInputAiProviderStatus.ts';
 
 export type MeInputAiProvider = {
   required: boolean;
   status: MeInputAiProviderStatus;
   grantProblem: GrantProblemInput | null;
+  kind: MeInputAiProviderKind;
 };

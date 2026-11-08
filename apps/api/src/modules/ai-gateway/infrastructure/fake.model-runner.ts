@@ -1,6 +1,7 @@
 import type { ChatMessage, ModelRequest, ModelRunner, StreamPart } from '../application/ports.ts'
-import { MAX_STEPS, ProviderCallError } from '../application/ports.ts'
+import { MAX_STEPS, ProviderCallError, requestText } from '../application/ports.ts'
 import type { Credential } from '../domain/provider.ts'
+import { fakeUsabilityAnswer } from './fake-usability.ts'
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -852,6 +853,13 @@ export const createFakeRunner = (): ModelRunner => {
     },
     generateObject: async (credential, _model, request) => {
       check(credential)
+      // Spec 038: the usability analysis stages, answered from their marker (fake-usability.ts).
+      const usability = fakeUsabilityAnswer(requestText(request))
+      if (usability !== null) {
+        const parsed = request.schema.safeParse(usability)
+        if (!parsed.success) throw new ProviderCallError('UNKNOWN')
+        return { object: parsed.data, usage: { inputTokens: 2000, outputTokens: 200 } }
+      }
       // Spec 009: an interview analysis is answered from the speakers of the transcript, with one
       // quote that is not in it (the app must drop it).
       if (request.prompt?.startsWith('<transcript>')) {

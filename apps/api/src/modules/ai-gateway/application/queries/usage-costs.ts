@@ -1,5 +1,5 @@
 import { costOf, type Price, priceAt } from '../../domain/pricing.ts'
-import { type AiDeps, servingOf, type UsageEntry } from '../ports.ts'
+import { type AiDeps, type ModelTier, servingOf, type UsageEntry } from '../ports.ts'
 
 /** A dated catalog with other prices added, replacing those of the same model and date. */
 export const priceCatalog = (base: readonly Price[], overrides: readonly Price[]): Price[] => [
@@ -59,11 +59,17 @@ export const makeStudyCosts =
  */
 export const makeEstimateCost =
   (deps: Pick<AiDeps, 'store' | 'config' | 'clock' | 'teamIdsOf'>) =>
-  async (accountId: string, inputChars: number, outputTokens: number): Promise<number | null> => {
+  async (
+    accountId: string,
+    inputChars: number,
+    outputTokens: number,
+    /** Spec 038: priced with the provider's strong model. */
+    tier: ModelTier = 'standard',
+  ): Promise<number | null> => {
     // The model of what serves the person: their own provider, or the shared one (spec 035).
     const serving = await servingOf(deps, accountId)
     if (!serving) return null
-    const model = serving.model
+    const model = tier === 'strong' ? deps.config.strongModels[serving.provider] : serving.model
     const price = priceAt(deps.config.prices, model, deps.clock.now())
     if (!price) return null
     const input = Math.ceil(inputChars / CHARS_PER_TOKEN)

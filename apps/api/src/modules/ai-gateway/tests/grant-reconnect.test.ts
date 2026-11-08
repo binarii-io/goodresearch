@@ -58,7 +58,7 @@ describe('spec 030 — a refused grant is recorded with its reason', () => {
 
   it('does not send the person to the setup for a grant problem (gate)', async () => {
     await refuse('refused')
-    expect(await world.queries.gate('ada')).toEqual({
+    expect(await world.queries.gate('ada')).toMatchObject({
       required: true,
       status: 'needs-attention',
       grantProblem: 'refused',
@@ -77,7 +77,7 @@ describe('spec 030 — a refused grant is recorded with its reason', () => {
     await refuse('refused')
     const later = aiWorld({ offered: ['anthropic'] })
     later.connections.set('ada', world.connections.get('ada') ?? ({} as never))
-    expect(await later.queries.gate('ada')).toEqual({
+    expect(await later.queries.gate('ada')).toMatchObject({
       required: true,
       status: 'none',
       grantProblem: null,

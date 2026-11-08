@@ -8,3 +8,10 @@ export const meQueryOptions = queryOptions({
 })
 
 export const useMe = () => useSuspenseQuery(meQueryOptions).data
+
+/**
+ * Spec 038: whether the AI provider serving the person reads videos: Vertex AI, the only provider
+ * tested for usability tests (the dev and test fake stands in for it).
+ */
+export const readsVideo = (me: { aiProvider: { kind: string | null } }): boolean =>
+  me.aiProvider.kind === 'vertex' || me.aiProvider.kind === 'fake'

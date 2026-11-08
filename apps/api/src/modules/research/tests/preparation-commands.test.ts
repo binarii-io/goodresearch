@@ -51,6 +51,7 @@ describe('preparation commands', () => {
       studies: research.studyRepository,
       gate: research.gate,
       runs: research.runs,
+      video: { readsVideo: async () => true },
     })
     const projectId = await research.addProject('team-a')
     const created = await studies.createStudy({

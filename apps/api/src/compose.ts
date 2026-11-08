@@ -47,6 +47,13 @@ import {
   createTranscriptsModule,
   registerTranscriptsRoutes,
 } from './modules/transcripts/index.ts'
+import {
+  createAnalysisAi,
+  createGcsStaging,
+  createMediaTools,
+  createUsabilityModule,
+  registerUsabilityRoutes,
+} from './modules/usability/index.ts'
 import { createWorkspaceModule, registerWorkspaceRoutes } from './modules/workspace/index.ts'
 import { createAuth } from './platform/auth/auth.ts'
 import { registerAuthRoutes } from './platform/auth/routes.ts'
@@ -56,6 +63,7 @@ import { buildApp } from './platform/http/app.ts'
 import { createAccessGuard, type OwnedKind } from './platform/http/change-guard.ts'
 import type { JobQueue } from './platform/jobs.ts'
 import { loggerOptions } from './platform/logger.ts'
+import { createStorage, type ObjectStorage } from './platform/storage.ts'
 
 export type Infrastructure = {
   readonly db: Db
@@ -70,6 +78,10 @@ export type Infrastructure = {
     Parameters<typeof createAiGatewayModule>[0],
     'runner' | 'googleCloud' | 'googleFetch'
   >
+  /** Replaces the object storage of the screenshots (tests). */
+  readonly storage?: ObjectStorage
+  /** Replaces ffmpeg (tests). */
+  readonly media?: Parameters<typeof createUsabilityModule>[0]['media']
 }
 
 const noJobs: JobQueue = { send: async () => false }
@@ -91,6 +103,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
   let ingestion: ReturnType<typeof createIngestionModule> | undefined
   let ai: ReturnType<typeof createAiGatewayModule> | undefined
   let assistant: ReturnType<typeof createAssistantModule> | undefined
+  let usability: ReturnType<typeof createUsabilityModule> | undefined
   let evidence: ReturnType<typeof createEvidenceModule> | undefined
   let quality: ReturnType<typeof createInterviewQualityModule> | undefined
   const bound = <T>(module: T | undefined): T => {
@@ -120,6 +133,13 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     teams: { getAccessContext: workspace.getAccessContext, teamExists: workspace.teamExists },
     teamNames: workspace.teamNames,
     runs: () => ({ isRunning: (projectId) => synthesis.overviewReads.isRunning(projectId) }),
+    // Spec 038: usability tests need a provider that reads videos (Vertex AI; the dev fake too).
+    video: () => ({
+      readsVideo: async (accountId) => {
+        const kind = await bound(ai).providerKindOf(accountId)
+        return kind === 'vertex' || kind === 'fake'
+      },
+    }),
     ingestion: () => bound(ingestion),
   })
   ingestion = createIngestionModule({
@@ -686,6 +706,21 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
         bound(ingestion).handlers.queries.folderState(actor, studyId),
       checkFolder: async (c) => outcome(await bound(ingestion).handlers.commands.checkFolder(c)),
       aiProvider: (accountId) => ai.gateway.providerOf(accountId),
+      // Spec 038: where the analysis of a usability test stands, without names.
+      usabilityAnalysis: async (actor, studyId) => {
+        const v = await bound(usability).handlers.queries.study(actor, studyId)
+        if (!v.ok) return null
+        const ready = v.value.sessions.filter((s) => s.readiness === 'ready')
+        return {
+          ready: ready.length,
+          analysed: v.value.sessions.filter((s) => s.analysis?.state === 'done').length,
+          toAnalyse: v.value.estimate.count,
+          toReview: v.value.sessions.reduce((n, s) => n + (s.analysis?.toReview ?? 0), 0),
+          running: v.value.run !== null,
+          estimate: v.value.estimate.cost,
+          cost: v.value.cost,
+        }
+      },
       interviewCounts: async (actor, studyId) => {
         const done = await bound(ingestion).handlers.sessionQueries.interviewCounts(actor, studyId)
         return done.ok ? { ok: true as const, counts: done.value } : done
@@ -924,6 +959,49 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     enqueue: (queue, data, options) => jobs.send(queue, data, options),
   })
 
+  // Spec 038: the analysis of usability test sessions, from their videos.
+  const storage = infra.storage ?? createStorage(config.s3)
+  usability = createUsabilityModule({
+    db: infra.db,
+    clock,
+    sessions: () => {
+      const u = bound(ingestion).usability
+      return {
+        access: u.access,
+        list: u.sessions,
+        one: u.session,
+        video: u.sessionVideo,
+        download: u.downloadVideo,
+        range: u.videoRange,
+        hasConsent: u.hasConsent,
+        giveConsent: u.giveConsent,
+        knownNames: u.knownNames,
+        proposePeopleFromText: u.proposePeopleFromText,
+      }
+    },
+    protocolVersion: (studyId, version) =>
+      bound(research).handlers.protocolQueries.protocolVersionContent(studyId, version),
+    staging: createGcsStaging({
+      googleAccessFor: (accountId) => bound(ai).gateway.googleAccessFor(accountId),
+      providerOf: (accountId) => bound(ai).gateway.providerOf(accountId),
+      bucket: config.ai.videoStagingBucket,
+    }),
+    media: infra.media ?? createMediaTools(),
+    ai: createAnalysisAi({
+      gateway: () => bound(ai).gateway,
+      estimateCost: (...args) => bound(ai).estimateCost(...args),
+      studyCosts: (refs) => bound(ai).studyCosts(refs),
+    }),
+    screens: {
+      put: (key, jpeg) => storage.put(key, jpeg, 'image/jpeg'),
+      get: async (key) => (await storage.get(key))?.bytes ?? null,
+      deleteByPrefix: (prefix) => storage.deleteByPrefix(prefix),
+    },
+    facts: () => bound(evidence).observationFacts,
+    enqueue: (queue, data, options) => jobs.send(queue, data, options),
+    log: { warn: (o, m) => console.warn(m, o), error: (o, m) => console.error(m, o) },
+  })
+
   // Spec 017: read models across the modules, built after all of them.
   const reporting = createReportingModule({
     sources: {
@@ -1033,6 +1111,7 @@ export const composeModules = (config: AppConfig, infra: Infrastructure) => {
     synthesis,
     reporting,
     surveys,
+    usability,
   }
 }
 
@@ -1089,6 +1168,7 @@ export const composeApp = async (
       registerAssistantRoutes(instance, { guard, handlers: assistant.handlers })
       registerPublishingRoutes(instance, { guard, handlers: publishing.handlers })
       registerSurveysRoutes(instance, { guard, handlers: surveys.handlers })
+      registerUsabilityRoutes(instance, { guard, handlers: modules.usability.handlers })
       registerTranscriptsRoutes(instance, { guard, handlers: transcripts.handlers })
       registerEvidenceRoutes(instance, { guard, handlers: evidence.handlers })
       registerQualityRoutes(instance, { guard, handlers: quality.handlers })

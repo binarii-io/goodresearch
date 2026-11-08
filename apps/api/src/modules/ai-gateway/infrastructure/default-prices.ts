@@ -11,4 +11,6 @@ export const DEFAULT_PRICES: readonly Price[] = [
   // Introductory rate until the end of 2026, then doubled.
   { model: 'gemini-3.8-flash', from: '2026-01-01', inputPerMillion: 0.75, outputPerMillion: 3.75 },
   { model: 'gemini-3.8-flash', from: '2027-01-01', inputPerMillion: 1.5, outputPerMillion: 7.5 },
+  // Spec 038: the strong model of Vertex AI (video analysis), at the rate used in the trial.
+  { model: 'gemini-4-argon', from: '2026-01-01', inputPerMillion: 2, outputPerMillion: 10 },
 ]

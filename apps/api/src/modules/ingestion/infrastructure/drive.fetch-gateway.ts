@@ -1,3 +1,4 @@
+import { open } from 'node:fs/promises'
 import {
   DriveAccessDenied,
   DriveConnectionLost,
@@ -9,6 +10,7 @@ import {
 import { cutText, subtitlesToText } from '../domain/transcript-text.ts'
 import { docxText } from './docx-text.ts'
 import { createGoogleRequests, type GoogleRequests } from './google-requests.ts'
+import { mp4DurationMs } from './mp4-duration.ts'
 
 const API = 'https://www.googleapis.com/drive/v3'
 const DOCS_API = 'https://docs.googleapis.com/v1'
@@ -33,6 +35,8 @@ type RawItem = {
 
 const GOOGLE_DOC = 'application/vnd.google-apps.document'
 const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+/** Spec 038: a video is downloaded by ranges of this size. */
+const DOWNLOAD_CHUNK = 32 * 1024 * 1024
 /** A Word file is read whole (a zip): larger ones are not transcripts worth reading. */
 const DOCX_MAX_BYTES = 20 * 1024 * 1024
 
@@ -110,12 +114,128 @@ export const createDriveFetchGateway = (options: {
   retryDelayMs?: number
   /** Shared with the documents adapter: one access token per person (PR #7 review). */
   requests?: GoogleRequests
+  /** Spec 038: bytes per ranged read of a download (tests use small ones). */
+  downloadChunkBytes?: number
 }): DriveGateway => {
+  const chunk = options.downloadChunkBytes ?? DOWNLOAD_CHUNK
   const google = options.requests ?? createGoogleRequests(options)
   const get = (refreshToken: string, url: URL) => google.request(refreshToken, url)
 
+  const mediaUrl = (fileId: string) => {
+    const url = new URL(`${API}/files/${encodeURIComponent(fileId)}`)
+    url.searchParams.set('alt', 'media')
+    url.searchParams.set('supportsAllDrives', 'true')
+    return url
+  }
+  /** One ranged read, tried once more after a network error (spec 038). */
+  const ranged = async (refreshToken: string, fileId: string, range: string | null) => {
+    const init = range ? { headers: { range } } : {}
+    try {
+      return await google.request(refreshToken, mediaUrl(fileId), init)
+    } catch (error) {
+      if (error instanceof DriveConnectionLost) throw error
+      return google.request(refreshToken, mediaUrl(fileId), init)
+    }
+  }
+
+  /**
+   * Spec 037 FR-004: Drive gives no length for some videos (never processed, or not for this
+   * person); the MP4 header gives it, read by a few small ranges. Kept per file version.
+   */
+  const probed = new Map<string, number | null>()
+  const lengthOf = async (refreshToken: string, item: DriveItem): Promise<DriveItem> => {
+    const video = item.mimeType === 'video/mp4' || item.mimeType === 'video/quicktime'
+    if (item.durationMs !== undefined || !video || !item.size) return item
+    const key = `${item.id}:${item.modifiedTime ?? ''}:${item.size}`
+    if (!probed.has(key)) {
+      try {
+        probed.set(
+          key,
+          await mp4DurationMs(async (start, end) => {
+            const response = await ranged(refreshToken, item.id, `bytes=${start}-${end}`)
+            if (response.status !== 206 && response.status !== 200) {
+              await response.body?.cancel()
+              return new Uint8Array()
+            }
+            // A 200 would be the whole file: keep only the asked bytes, stop reading.
+            const reader = response.body?.getReader()
+            const want = end - start + 1
+            const parts: Uint8Array[] = []
+            let got = 0
+            while (reader && got < want) {
+              const { done, value } = await reader.read()
+              if (done) break
+              parts.push(value)
+              got += value.byteLength
+            }
+            await reader?.cancel()
+            const all = new Uint8Array(got)
+            let at = 0
+            for (const part of parts) {
+              all.set(part, at)
+              at += part.byteLength
+            }
+            return all.subarray(0, Math.min(got, want))
+          }, item.size),
+        )
+      } catch (error) {
+        if (error instanceof DriveConnectionLost) throw error
+        // Unreadable now: unknown, as when Drive says nothing; tried again on the next listing.
+        return item
+      }
+    }
+    const ms = probed.get(key)
+    return ms ? { ...item, durationMs: ms } : item
+  }
+
   return {
     checkGrant: (refreshToken) => google.checkGrant(refreshToken),
+
+    downloadFile: async (refreshToken, fileId, toPath) => {
+      const file = await open(toPath, 'w')
+      let written = 0
+      try {
+        for (;;) {
+          const response = await ranged(
+            refreshToken,
+            fileId,
+            `bytes=${written}-${written + chunk - 1}`,
+          )
+          if (response.status === 401) throw new DriveConnectionLost()
+          if (response.status === 404 || response.status === 403) return null
+          // Past the end of a file whose size is a multiple of the chunk.
+          if (response.status === 416) break
+          if (!response.ok) throw new Error(`drive files.get media failed: ${response.status}`)
+          const bytes = new Uint8Array(await response.arrayBuffer())
+          await file.write(bytes, 0, bytes.byteLength, written)
+          written += bytes.byteLength
+          // 200: the whole file came at once.
+          if (response.status === 200) break
+          const total = Number(/\/(\d+)$/.exec(response.headers.get('content-range') ?? '')?.[1])
+          if (bytes.byteLength === 0 || (Number.isFinite(total) && written >= total)) break
+        }
+        return { bytes: written }
+      } finally {
+        await file.close()
+      }
+    },
+
+    videoRange: async (refreshToken, fileId, range) => {
+      const response = await ranged(refreshToken, fileId, range)
+      if (response.status === 401) throw new DriveConnectionLost()
+      if (response.status === 404 || response.status === 403) return null
+      if (response.status !== 200 && response.status !== 206)
+        throw new Error(`drive files.get media failed: ${response.status}`)
+      const length = response.headers.get('content-length')
+      return {
+        status: response.status,
+        contentType: response.headers.get('content-type') ?? 'video/mp4',
+        contentLength: length === null ? null : Number(length),
+        contentRange: response.headers.get('content-range'),
+        body: (response.body ??
+          new ReadableStream<Uint8Array>()) as unknown as AsyncIterable<Uint8Array>,
+      }
+    },
     getItem: async (refreshToken, id) => {
       const url = new URL(`${API}/files/${encodeURIComponent(id)}`)
       url.searchParams.set('fields', ITEM_FIELDS)
@@ -232,7 +352,10 @@ export const createDriveFetchGateway = (options: {
           incompleteSearch?: boolean
         }
         if (body.incompleteSearch) throw new DriveIncompleteListing()
-        yield (body.files ?? []).map(toItem)
+        const items = (body.files ?? []).map(toItem)
+        const withLength: DriveItem[] = []
+        for (const item of items) withLength.push(await lengthOf(refreshToken, item))
+        yield withLength
         pageToken = body.nextPageToken
       } while (pageToken)
     },

@@ -200,6 +200,8 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
     s: Session,
     ctx: StudyContext,
     runId: string | null,
+    /** Spec 038: a text given by the caller (a video's transcript) instead of the file's. */
+    given: string | null = null,
   ): Promise<Analysis> => {
     const transcript = s.transcriptFileId ? ctx.fileById.get(s.transcriptFileId) : undefined
     // A test session's main video comes first among its recordings (spec 037).
@@ -232,8 +234,8 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
     })
 
     let failure: AnalysisFailure | null = null
-    let text: string | null = null
-    if (s.transcriptFileId) {
+    let text: string | null = given === null ? null : given.slice(0, READ_MAX)
+    if (given === null && s.transcriptFileId) {
       if (!transcript) failure = 'FILE_NOT_FOUND'
       else ({ text, failure } = await readText(ctx, transcript, READ_WINDOW))
     }
@@ -244,7 +246,7 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
     }
     let rules = ruleProposals(input(text))
     // Nobody told apart in the first part: read once more, up to twice as far (FR-002).
-    if (transcript && text && rules.needsAi && text.length >= READ_WINDOW) {
+    if (given === null && transcript && text && rules.needsAi && text.length >= READ_WINDOW) {
       const longer = await readText(ctx, transcript, READ_MAX)
       if (longer.text) {
         text = longer.text
@@ -518,6 +520,23 @@ export const makeAnalysisCommands = (deps: IngestionDeps) => {
     )
 
   return {
+    /**
+     * Spec 038 FR-013: the people of a test session proposed from the transcript its video
+     * analysis made: the rules, then the AI for what is missing. The proposals wait on Fieldwork;
+     * a validated session is not reopened for them. Nothing when the session already has an
+     * accepted participant and facilitator.
+     */
+    proposePeopleFromText: async (actor: Actor, sessionId: string, text: string) => {
+      const s = await deps.store.getSession(sessionId)
+      if (!s || s.state === 'excluded') return
+      const has = (role: 'interviewee' | 'interviewer') => s.roster.some((r) => r.role === role)
+      if (has('interviewee') && has('interviewer')) return
+      const ctx = await contextOf(actor.id, s.studyId)
+      if (!ctx.ok) return
+      const analysis = await analyze(actor.id, s, ctx.value, null, text)
+      await store(s.id, merged(analysis))
+    },
+
     analyzeSession: async (c: {
       actor: Actor
       sessionId: string

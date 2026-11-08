@@ -21,7 +21,7 @@ const sharedVertex = (teams: readonly string[] | null = null) => ({
 describe('spec 035 — a shared AI provider for the instance', () => {
   it('serves a person without a provider: no setup asked, the call recorded as shared', async () => {
     const world = aiWorld({ shared: sharedVertex() })
-    expect(await world.queries.gate('ada')).toEqual({
+    expect(await world.queries.gate('ada')).toMatchObject({
       required: false,
       status: 'none',
       grantProblem: null,

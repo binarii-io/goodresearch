@@ -38,7 +38,7 @@ describe('AI provider connection (spec 004)', () => {
   })
 
   it('asks every new account for a provider (FR-002)', async () => {
-    expect(await gate(alex)).toEqual({ required: true, status: 'none', grantProblem: null })
+    expect(await gate(alex)).toMatchObject({ required: true, status: 'none', grantProblem: null })
     const page = (await call(alex, 'GET', '/api/ai-provider')).json()
     // Vertex AI is not offered without a Google client.
     expect(page).toMatchObject({
@@ -58,7 +58,7 @@ describe('AI provider connection (spec 004)', () => {
       code: 'AI_CHECK_FAILED',
       detail: { failure: 'INVALID_CREDENTIAL' },
     })
-    expect(await gate(alex)).toEqual({ required: true, status: 'none', grantProblem: null })
+    expect(await gate(alex)).toMatchObject({ required: true, status: 'none', grantProblem: null })
   })
 
   it('saves a working key and never returns it (FR-006, SC-004)', async () => {
@@ -73,7 +73,11 @@ describe('AI provider connection (spec 004)', () => {
       status: 'working',
     })
     expect(response.body).not.toContain('test-ok-secret')
-    expect(await gate(alex)).toEqual({ required: true, status: 'working', grantProblem: null })
+    expect(await gate(alex)).toMatchObject({
+      required: true,
+      status: 'working',
+      grantProblem: null,
+    })
     const page = await call(alex, 'GET', '/api/ai-provider')
     expect(page.body).not.toContain('test-ok-secret')
     expect(page.json().usage).toEqual({ calls: 2, inputTokens: 8, outputTokens: 1 })
@@ -109,7 +113,7 @@ describe('AI provider connection (spec 004)', () => {
 
   it('removes the provider, which brings the step back', async () => {
     expect((await call(alex, 'DELETE', '/api/ai-provider')).statusCode).toBe(204)
-    expect(await gate(alex)).toEqual({ required: true, status: 'none', grantProblem: null })
+    expect(await gate(alex)).toMatchObject({ required: true, status: 'none', grantProblem: null })
   })
 
   it('forgets the credentials of a deleted account but keeps its usage (FR-013)', async () => {

@@ -50,3 +50,21 @@ describe('spec 036 - the next step of a usability test study', () => {
     expect(usabilityNextStep(state)).toBe(step)
   })
 })
+
+describe('spec 038 - the next step once the sessions are ready', () => {
+  const ready = {
+    hasProtocol: true,
+    hasFolder: true,
+    published: ['protocol'],
+    checksDone: true,
+    sessions: { total: 3, open: 0, notReady: 0 },
+  }
+  it.each([
+    ['to analyse', { toAnalyse: 2, toReview: 0, running: false }, 'analyse-sessions'],
+    ['running', { toAnalyse: 2, toReview: 0, running: true }, 'analysis-running'],
+    ['to review', { toAnalyse: 0, toReview: 4, running: false }, 'review-observations'],
+    ['reviewed', { toAnalyse: 0, toReview: 0, running: false }, 'analysis-done'],
+  ] as const)('with %s', (_case, analysis, step) => {
+    expect(usabilityNextStep({ ...ready, analysis })).toBe(step)
+  })
+})

@@ -40,7 +40,16 @@ x-dev-env: &dev-env
   # Test AI provider (spec 004): keys starting with "test-ok" work, no real provider is called.
   AI_FAKE_PROVIDER: "true"
   # A price for the test model, so costs show in the dev stack (USD per million tokens).
-  AI_PRICES: '[{"model":"fake-model","from":"2026-01-01","inputPerMillion":2,"outputPerMillion":10}]'
+  # Nor the instance's real shared provider or video bucket a local .env may set (spec 035, 038).
+  AI_SHARED_PROVIDER: ""
+  AI_SHARED_VERTEX_PROJECT: ""
+  AI_SHARED_VERTEX_REGION: ""
+  AI_SHARED_VERTEX_KEY: ""
+  AI_SHARED_VERTEX_KEY_FILE: ""
+  AI_SHARED_API_KEY: ""
+  AI_SHARED_TEAMS: ""
+  AI_VIDEO_STAGING_BUCKET: ""
+  AI_PRICES: '[{"model":"fake-model","from":"2026-01-01","inputPerMillion":2,"outputPerMillion":10},{"model":"fake-strong-model","from":"2026-01-01","inputPerMillion":4,"outputPerMillion":20}]'
 
 services:
   mock-oidc:

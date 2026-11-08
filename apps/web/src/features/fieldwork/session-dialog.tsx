@@ -668,6 +668,7 @@ export function SessionDialog({
               onRename={() => setRenaming('asked')}
               renaming={renameBusy}
               lead={tests ? undefined : plannedCard}
+              tests={tests}
             />
           </TabsContent>
           <TabsContent value="interview" className="grid gap-5">

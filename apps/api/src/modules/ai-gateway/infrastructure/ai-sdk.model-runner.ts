@@ -19,6 +19,7 @@ import type {
   ChatMessage,
   ModelRequest,
   ModelRunner,
+  RequestPart,
   StreamPart,
   ToolSpec,
   Usage,
@@ -148,13 +149,87 @@ const toolsOf = (request: ModelRequest): { tools?: ToolSet } =>
 const run = (t: ToolSpec, input: unknown, id: string): Promise<string> =>
   t.run ? t.run(input, { id }) : Promise.resolve('')
 
+/**
+ * Spec 038: the part of a video to read travels in the file's URI fragment, which the Vertex fetch
+ * turns into Gemini's `videoMetadata` (the AI SDK has no field for it on file parts).
+ */
+const OFFSETS = '#goodresearch-offsets='
+
+const fileUri = (p: Extract<RequestPart, { type: 'file' }>) =>
+  p.startMs === undefined && p.endMs === undefined
+    ? p.uri
+    : `${p.uri}${OFFSETS}${(p.startMs ?? 0) / 1000},${p.endMs === undefined ? '' : p.endMs / 1000}`
+
+const userContent = (parts: readonly RequestPart[]) =>
+  parts.map((p) =>
+    p.type === 'text'
+      ? { type: 'text' as const, text: p.text }
+      : p.type === 'file'
+        ? { type: 'file' as const, data: fileUri(p), mediaType: p.mimeType }
+        : { type: 'file' as const, data: p.data, mediaType: p.mimeType },
+  )
+
+const hasMedia = (request: ModelRequest) =>
+  (request.parts ?? []).some((p) => p.type === 'file' || p.type === 'image')
+
+/**
+ * Spec 038: Gemini reads files by URI; other providers cannot read a video from a bucket.
+ * Images travel inline and work everywhere.
+ */
+const checkMedia = (credential: Credential, request: ModelRequest) => {
+  if (credential.provider !== 'vertex' && (request.parts ?? []).some((p) => p.type === 'file'))
+    throw new ProviderCallError('MEDIA_NOT_SUPPORTED')
+}
+
+/** Spec 038: frames and videos read at high resolution (small text on screens). */
+const mediaOptions = (credential: Credential, request: ModelRequest) =>
+  credential.provider === 'vertex' && hasMedia(request)
+    ? {
+        providerOptions: {
+          vertex: { mediaResolution: 'MEDIA_RESOLUTION_HIGH' as const },
+          google: { mediaResolution: 'MEDIA_RESOLUTION_HIGH' as const },
+        },
+      }
+    : {}
+
 const promptOf = (request: ModelRequest) => ({
   ...(request.system ? { system: request.system } : {}),
   ...(request.messages
     ? { messages: request.messages.map(toModelMessage) }
-    : { prompt: request.prompt ?? '' }),
+    : request.parts
+      ? { messages: [{ role: 'user' as const, content: userContent(request.parts) }] }
+      : { prompt: request.prompt ?? '' }),
   ...(request.maxOutputTokens ? { maxOutputTokens: request.maxOutputTokens } : {}),
 })
+
+type Fetch = typeof fetch
+
+/**
+ * Spec 038: moves the offsets of a file part's URI into Gemini's `videoMetadata`, so a task is
+ * read on its own part of the video. Other requests go through unchanged.
+ */
+export const withVideoOffsets =
+  (base: Fetch): Fetch =>
+  async (input, init) => {
+    const body = init?.body
+    if (typeof body !== 'string' || !body.includes(OFFSETS)) return base(input, init)
+    const json = JSON.parse(body) as {
+      contents?: { parts?: { fileData?: { fileUri?: string }; videoMetadata?: unknown }[] }[]
+    }
+    for (const content of json.contents ?? [])
+      for (const part of content.parts ?? []) {
+        const uri = part.fileData?.fileUri
+        const at = uri?.indexOf(OFFSETS) ?? -1
+        if (!uri || !part.fileData || at < 0) continue
+        const [start, end] = uri.slice(at + OFFSETS.length).split(',')
+        part.fileData.fileUri = uri.slice(0, at)
+        part.videoMetadata = {
+          ...(start ? { startOffset: `${start}s` } : {}),
+          ...(end ? { endOffset: `${end}s` } : {}),
+        }
+      }
+    return base(input, { ...init, body: JSON.stringify(json) })
+  }
 
 /**
  * Model calls through the Vercel AI SDK (ADR-0005, research R1). Vertex AI runs with the person's
@@ -172,6 +247,8 @@ export const createAiSdkRunner = (options: {
   const fake = createFakeRunner()
   const log = options.log ?? { warn: () => undefined }
   const fetchOption = options.fetch ? { fetch: options.fetch } : {}
+  // Vertex AI only: the offsets of video parts (spec 038).
+  const vertexFetch = { fetch: withVideoOffsets(options.fetch ?? globalThis.fetch) }
   // One OAuth client per Google grant, so access tokens are reused until they expire.
   const authClients = new Map<string, OAuth2Client>()
   const authClientFor = (
@@ -210,7 +287,7 @@ export const createAiSdkRunner = (options: {
             credential.serviceAccount === 'instance'
               ? { scopes: [CLOUD_PLATFORM] }
               : { credentials: credential.serviceAccount, scopes: [CLOUD_PLATFORM] },
-          ...fetchOption,
+          ...vertexFetch,
         }),
       }
     return sharedVertex.provider
@@ -231,7 +308,7 @@ export const createAiSdkRunner = (options: {
           project: credential.project,
           location: credential.region,
           googleAuthOptions: { authClient },
-          ...fetchOption,
+          ...vertexFetch,
         })(model)
       }
       case 'fake':
@@ -244,9 +321,11 @@ export const createAiSdkRunner = (options: {
       if (credential.provider === 'fake')
         return fake.generateText(credential, model, request, timeoutMs)
       try {
+        checkMedia(credential, request)
         const result = await generateText({
           model: modelFor(credential, model),
           ...promptOf(request),
+          ...mediaOptions(credential, request),
           maxRetries: 0,
           abortSignal: AbortSignal.timeout(timeoutMs),
         })
@@ -260,9 +339,11 @@ export const createAiSdkRunner = (options: {
       if (credential.provider === 'fake')
         return fake.generateObject(credential, model, request, timeoutMs)
       try {
+        checkMedia(credential, request)
         const result = await generateText({
           model: modelFor(credential, model),
           ...promptOf(request),
+          ...mediaOptions(credential, request),
           output: Output.object({ schema: request.schema }),
           maxRetries: 0,
           abortSignal: AbortSignal.timeout(timeoutMs),

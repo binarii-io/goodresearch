@@ -78,6 +78,7 @@ const MESSAGES: Record<string, MessageDescriptor> = {
   ITEM_REMOVED: msg`The question of this fact is no longer in the questionnaire.`,
   NOT_A_SURVEY_STUDY: msg`Only survey studies have a questionnaire.`,
   NOT_A_USABILITY_TEST_STUDY: msg`Only usability test studies have a test protocol.`,
+  USABILITY_NEEDS_VERTEX: msg`Usability tests need Vertex AI as your AI provider: it is the only one tested to read their videos.`,
   NO_VALIDATED_INTERVIEW: msg`Validate interviews in Fieldwork first: only validated interviews are read.`,
   NOTHING_TO_READ: msg`Every interview is already read.`,
   LEXICON_CONSENT_REQUIRED: msg`Agree to send excerpts to your AI provider first.`,

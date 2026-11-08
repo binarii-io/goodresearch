@@ -265,6 +265,7 @@ export const fakeResearch = () => {
     checkPublication: async () => publication.check,
     aiProvider: async () => folderWork.provider,
     folderWorkAvailable: async () => folderWork.available,
+    usabilityAnalysis: async () => null,
     interviewCounts: async () => folderWork.counts,
     interviewsStep: async () => undefined,
     listInterviews: async (_actor, _studyId, search) => {
