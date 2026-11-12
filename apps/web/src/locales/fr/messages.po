@@ -226,9 +226,11 @@ msgstr "{0} (étape {1} sur {2})"
 msgid "{0} → {1}"
 msgstr "{0} → {1}"
 
+#. placeholder {0}: facts.data.accepted + facts.data.edited
 #. placeholder {0}: r.done
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/facts/fact-board.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "{0} accepted"
 msgstr "{0} acceptés"
 
@@ -1674,6 +1676,7 @@ msgstr "Analyse : {0} séances sur {1}"
 #: src/features/fieldwork/proposals.tsx
 #: src/features/research/study-card.tsx
 #: src/features/surveys/survey-analysis-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Analysis"
 msgstr "Analyse"
 
@@ -3642,7 +3645,9 @@ msgid "Facts ({0} accepted, {1} to validate)"
 msgstr "Faits ({0} acceptés, {1} à valider)"
 
 #. placeholder {0}: data.counts.toDecide
+#. placeholder {0}: facts.data.toDecide
 #: src/features/analysis/analysis-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Facts ({0} to decide)"
 msgstr "Faits ({0} à décider)"
 
@@ -3685,6 +3690,7 @@ msgstr "Les faits à valider ajoutent {0} participants pour et {1} contre : une 
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/analysis/labels.ts
 #: src/features/surveys/survey-analysis-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Facts to decide"
 msgstr "Faits à décider"
 
@@ -5923,6 +5929,10 @@ msgstr "Pas encore de réponse"
 msgid "No response yet. Share the link of the open form, then refresh."
 msgstr "Aucune réponse pour l’instant. Partagez le lien du formulaire ouvert, puis actualisez."
 
+#: src/features/usability/analysis-tab.tsx
+msgid "No result yet: results count the outcomes you decided in the analysed sessions."
+msgstr "Pas encore de résultat : les résultats comptent ce que vous avez décidé dans les séances analysées."
+
 #: src/features/preparation/drive-publishing.tsx
 msgid "No results spreadsheet yet. To have one for your team, open the form, go to Responses, and choose \"Link to Sheets\". The app does not need it."
 msgstr "Pas encore de feuille de résultats. Pour en avoir une pour votre équipe, ouvrez le formulaire, allez dans Réponses et choisissez « Associer à Sheets ». L’application n’en a pas besoin."
@@ -8084,12 +8094,9 @@ msgstr "Séance"
 msgid "Session (min)"
 msgstr "Séance (min)"
 
-#: src/features/usability/analysis-tab.tsx
-msgid "Session analysis"
-msgstr "Analyse des séances"
-
 #. placeholder {0}: data.sessions.length
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Sessions ({0})"
 msgstr "Séances ({0})"
 

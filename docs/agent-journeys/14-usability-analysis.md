@@ -36,6 +36,8 @@ flowchart TD
     N["Next step, computed by the app"] -->|"to analyse / running / to review / done"| E
 ```
 
+The Analysis tab is laid out as the interview one: the numbers (sessions analysed, to review, facts to decide, cost), then three tabs, Sessions, Results by task and Facts (to decide), with the run as the action of the bar.
+
 ## Guarantees
 
 Enforced in code, not left to the model:

@@ -59,6 +59,19 @@ export class MemoryStore implements UsabilityStore {
       ),
     ]
   }
+  async staleRuns(before: Date) {
+    return [...this.runs.values()].filter(
+      (r) =>
+        r.state === 'running' &&
+        r.heartbeatAt.getTime() < before.getTime() &&
+        r.heartbeatAt.getTime() > r.startedAt.getTime(),
+    )
+  }
+  async stopRunAnalyses(runId: string, now: Date) {
+    for (const a of this.analyses.values())
+      if (a.runId === runId && (a.state === 'waiting' || a.state === 'analysing'))
+        this.analyses.set(a.id, { ...a, state: 'stopped', failure: 'STOPPED', finishedAt: now })
+  }
   async restoreAnalysis(a: SessionAnalysis) {
     this.analyses.set(a.id, a)
   }

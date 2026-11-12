@@ -47,16 +47,20 @@ export type FactHead = {
   readonly version: number
 }
 
+export type FactCounts = { toDecide: number; accepted: number; edited: number; rejected: number }
+
 export type FactBoardStore = {
   head(factId: string): Promise<FactHead | null>
   heads(factIds: readonly string[]): Promise<FactHead[]>
+  /** Its facts per status, in one SQL count (the tiles and tab of an Analysis tab). */
+  counts(studyId: string): Promise<FactCounts>
   page(
     studyId: string,
     query: { status: FactBoardStatus; q?: string | undefined; page: number },
     size: number,
   ): Promise<{
     total: number
-    counts: { toDecide: number; accepted: number; edited: number; rejected: number }
+    counts: FactCounts
     rows: StoredFactRow[]
   }>
 }

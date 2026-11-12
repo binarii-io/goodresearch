@@ -196,6 +196,8 @@ export const makeAnalysisRun = (deps: UsabilityDeps) => {
       const run = await deps.store.getRun(job.runId)
       if (run?.state !== 'running') return
       const beat = () => deps.store.heartbeat(run.id, deps.clock.now())
+      // The job has started: from now on, a heartbeat that stops means its worker died.
+      await beat()
       // Stopped by the person, or no longer the study's run (replaced after it looked stale).
       const stopAsked = async () => {
         const now = await deps.store.getRun(run.id)
@@ -348,5 +350,21 @@ export const backfillFacts = async (deps: UsabilityDeps) => {
     } catch (error) {
       deps.log.error({ err: error, studyId }, 'facts of the study not backfilled')
     }
+  }
+}
+
+/**
+ * A run whose worker died (a restart, a redeployment) leaves no heartbeat: it is closed, and its
+ * sessions still waiting or being analysed are marked stopped, so they can be analysed again
+ * instead of showing a step forever. A run still queued (no heartbeat since its start) is left to
+ * its job. Run when the worker starts, once more when a run it left can have become stale, then with
+ * the hourly sweep.
+ */
+export const recoverStaleRuns = async (deps: UsabilityDeps) => {
+  const now = deps.clock.now()
+  for (const run of await deps.store.staleRuns(new Date(now.getTime() - RUN_STALE_MS))) {
+    await deps.store.stopRunAnalyses(run.id, now)
+    await deps.store.finishRun(run.id, 'stopped', now)
+    deps.log.warn({ runId: run.id, studyId: run.studyId }, 'stale analysis run stopped')
   }
 }

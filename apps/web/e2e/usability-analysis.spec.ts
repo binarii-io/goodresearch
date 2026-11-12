@@ -68,7 +68,7 @@ test.describe('spec 038 - usability test analysis', () => {
 
     // US1: the estimate first, then the run in the worker.
     await page.getByRole('tab', { name: '3 · Analysis' }).click()
-    await expect(main.getByRole('heading', { name: 'Session analysis' })).toBeVisible()
+    await expect(main.getByRole('tab', { name: /^Sessions \(/ })).toBeVisible()
     await expectAccessible(page)
     await main.getByRole('button', { name: 'Analyse sessions' }).click()
     const ask = page.getByRole('alertdialog')
@@ -95,7 +95,8 @@ test.describe('spec 038 - usability test analysis', () => {
 
     // US3: the results count what was decided.
     await page.getByRole('link', { name: 'Back to the analysis' }).click()
-    await expect(main.getByRole('heading', { name: 'Results by task' })).toBeVisible()
+    await main.getByRole('tab', { name: 'Results by task' }).click()
+    await expect(main.getByText(/Counts what you decided/)).toBeVisible()
     await page.emulateMedia({ colorScheme: 'dark' })
     await expectAccessible(page)
   })

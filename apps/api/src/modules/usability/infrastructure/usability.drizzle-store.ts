@@ -1,7 +1,12 @@
-import { and, desc, eq, inArray, lt, notExists, sql } from 'drizzle-orm'
+import { and, desc, eq, gt, inArray, lt, notExists, sql } from 'drizzle-orm'
 import type { Db } from '#platform/db.ts'
 import type { AnalysisRun, UsabilityStore } from '../application/ports.ts'
-import type { AnalysisFailure, SessionAnalysis, Stage } from '../domain/analysis.ts'
+import {
+  type AnalysisFailure,
+  RUN_STALE_MS,
+  type SessionAnalysis,
+  type Stage,
+} from '../domain/analysis.ts'
 import { mergeAnalyses, type Observation } from '../domain/observation.ts'
 import type { TaskResult } from '../domain/task-result.ts'
 import {
@@ -267,19 +272,60 @@ export const createUsabilityStore = (db: Db): UsabilityStore => ({
     return rows.length ? 'saved' : 'stale'
   },
 
+  staleRuns: async (before) =>
+    (
+      await db
+        .select()
+        .from(usabilityAnalysisRuns)
+        .where(
+          and(
+            eq(usabilityAnalysisRuns.state, 'running'),
+            lt(usabilityAnalysisRuns.heartbeatAt, before),
+            gt(usabilityAnalysisRuns.heartbeatAt, usabilityAnalysisRuns.startedAt),
+          ),
+        )
+    ).map(toRun),
+
+  stopRunAnalyses: async (runId, now) => {
+    await db
+      .update(usabilityAnalyses)
+      .set({ state: 'stopped', failure: 'STOPPED', finishedAt: now })
+      .where(
+        and(
+          eq(usabilityAnalyses.runId, runId),
+          inArray(usabilityAnalyses.state, ['waiting', 'analysing']),
+        ),
+      )
+  },
+
   startRun: async (run) => {
-    // A run without heartbeat for 10 minutes is replaced (as Ingestion's analysis runs).
+    // A run without heartbeat for RUN_STALE_MS is replaced (as Ingestion's analysis runs); its
+    // sessions still waiting or being analysed are stopped with it, never left showing a step.
     return db.transaction(async (tx) => {
-      await tx
+      const replaced = await tx
         .update(usabilityAnalysisRuns)
         .set({ state: 'stopped', finishedAt: run.startedAt })
         .where(
           and(
             eq(usabilityAnalysisRuns.studyId, run.studyId),
             eq(usabilityAnalysisRuns.state, 'running'),
-            sql`${usabilityAnalysisRuns.heartbeatAt} < ${new Date(run.startedAt.getTime() - 10 * 60_000)}`,
+            lt(usabilityAnalysisRuns.heartbeatAt, new Date(run.startedAt.getTime() - RUN_STALE_MS)),
           ),
         )
+        .returning({ id: usabilityAnalysisRuns.id })
+      if (replaced.length)
+        await tx
+          .update(usabilityAnalyses)
+          .set({ state: 'stopped', failure: 'STOPPED', finishedAt: run.startedAt })
+          .where(
+            and(
+              inArray(
+                usabilityAnalyses.runId,
+                replaced.map((r) => r.id),
+              ),
+              inArray(usabilityAnalyses.state, ['waiting', 'analysing']),
+            ),
+          )
       const rows = await tx
         .insert(usabilityAnalysisRuns)
         .values({ ...run, sessionIds: [...run.sessionIds] })

@@ -30,7 +30,24 @@ const likeOf = (q: string) => `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`
  * Spec 039: the facts of one study, whatever their source, read in SQL one page at a time with
  * their counts per status (load only what is shown); and a fact's source and study, to decide it.
  */
+const countsOf = async (db: Db, where: SQL | undefined) => {
+  const counts = await db
+    .select({ status: evidenceFacts.status, n: count() })
+    .from(evidenceFacts)
+    .where(where)
+    .groupBy(evidenceFacts.status)
+  const of = (s: FactStatus) => counts.find((c) => c.status === s)?.n ?? 0
+  return {
+    toDecide: of('proposed'),
+    accepted: of('accepted'),
+    edited: of('edited'),
+    rejected: of('rejected'),
+  }
+}
+
 export const createFactBoardStore = (db: Db): FactBoardStore => ({
+  counts: (studyId) => countsOf(db, eq(evidenceFacts.studyId, studyId)),
+
   head: async (factId) => {
     const [row] = await db
       .select({
@@ -85,20 +102,9 @@ export const createFactBoardStore = (db: Db): FactBoardStore => ({
       .limit(size)
       .offset((query.page - 1) * size)
     const [total] = await db.select({ n: count() }).from(evidenceFacts).where(where)
-    const counts = await db
-      .select({ status: evidenceFacts.status, n: count() })
-      .from(evidenceFacts)
-      .where(and(eq(evidenceFacts.studyId, studyId), search))
-      .groupBy(evidenceFacts.status)
-    const of = (s: FactStatus) => counts.find((c) => c.status === s)?.n ?? 0
     return {
       total: total?.n ?? 0,
-      counts: {
-        toDecide: of('proposed'),
-        accepted: of('accepted'),
-        edited: of('edited'),
-        rejected: of('rejected'),
-      },
+      counts: await countsOf(db, and(eq(evidenceFacts.studyId, studyId), search)),
       rows: rows.map(({ fact: f, survey, usability, verbatims }): StoredFactRow => {
         const figure = survey?.figure as { base?: number } | null | undefined
         const share = survey?.themeShare as { base?: number } | null | undefined

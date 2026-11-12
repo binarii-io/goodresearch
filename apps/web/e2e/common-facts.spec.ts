@@ -68,7 +68,7 @@ test.describe('spec 039 - one fact lifecycle for every type of study', () => {
 
     // US1: the estimate first, then the run in the worker.
     await page.getByRole('tab', { name: '3 · Analysis' }).click()
-    await expect(main.getByRole('heading', { name: 'Session analysis' })).toBeVisible()
+    await expect(main.getByRole('tab', { name: /^Sessions \(/ })).toBeVisible()
     await expectAccessible(page)
     await main.getByRole('button', { name: 'Analyse sessions' }).click()
     const ask = page.getByRole('alertdialog')
@@ -102,7 +102,8 @@ test.describe('spec 039 - one fact lifecycle for every type of study', () => {
     // US1: the study's Facts list, the same decisions as every fact, reopen included.
     await page.goto(studyUrl)
     await page.getByRole('tab', { name: '3 · Analysis' }).click()
-    const facts = main.getByRole('region', { name: 'Facts' })
+    await main.getByRole('tab', { name: /^Facts \(/ }).click()
+    const facts = main.getByRole('tabpanel', { name: /^Facts/ })
     const first = facts.getByRole('article').first()
     await expect(first.getByText('To decide')).toBeVisible()
     await first.getByRole('button', { name: 'Accept' }).click()

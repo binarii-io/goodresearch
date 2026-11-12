@@ -9991,6 +9991,37 @@
           "canDecide"
         ]
       },
+      "FactCountsInput": {
+        "type": "object",
+        "properties": {
+          "toDecide": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accepted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "edited": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "rejected": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "toDecide",
+          "accepted",
+          "edited",
+          "rejected"
+        ]
+      },
       "FactBoardPageInput": {
         "type": "object",
         "properties": {
@@ -10006,35 +10037,7 @@
             "maximum": 9007199254740991
           },
           "counts": {
-            "type": "object",
-            "properties": {
-              "toDecide": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "accepted": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "edited": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "rejected": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              }
-            },
-            "required": [
-              "toDecide",
-              "accepted",
-              "edited",
-              "rejected"
-            ]
+            "$ref": "#/components/schemas/FactCountsInput"
           },
           "page": {
             "type": "integer",
@@ -29675,6 +29678,38 @@
         ],
         "additionalProperties": false
       },
+      "FactCounts": {
+        "type": "object",
+        "properties": {
+          "toDecide": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accepted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "edited": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "rejected": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "toDecide",
+          "accepted",
+          "edited",
+          "rejected"
+        ],
+        "additionalProperties": false
+      },
       "FactBoardPage": {
         "type": "object",
         "properties": {
@@ -29690,36 +29725,7 @@
             "maximum": 9007199254740991
           },
           "counts": {
-            "type": "object",
-            "properties": {
-              "toDecide": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "accepted": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "edited": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "rejected": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              }
-            },
-            "required": [
-              "toDecide",
-              "accepted",
-              "edited",
-              "rejected"
-            ],
-            "additionalProperties": false
+            "$ref": "#/components/schemas/FactCounts"
           },
           "page": {
             "type": "integer",
@@ -45731,6 +45737,38 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FactBoardPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/studies/{studyId}/fact-board/counts": {
+      "get": {
+        "operationId": "getFactCounts",
+        "tags": [
+          "analysis"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studyId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactCounts"
                 }
               }
             }

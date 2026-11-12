@@ -357,16 +357,21 @@ export const FactRow = z
   })
   .meta({ id: 'FactRow' })
 
+/** Spec 039: a study's facts per status. */
+export const FactCounts = z
+  .object({
+    toDecide: z.number().int(),
+    accepted: z.number().int(),
+    edited: z.number().int(),
+    rejected: z.number().int(),
+  })
+  .meta({ id: 'FactCounts' })
+
 export const FactBoardPage = z
   .object({
     items: z.array(FactRow),
     total: z.number().int(),
-    counts: z.object({
-      toDecide: z.number().int(),
-      accepted: z.number().int(),
-      edited: z.number().int(),
-      rejected: z.number().int(),
-    }),
+    counts: FactCounts,
     page: z.number().int(),
     pageSize: z.number().int(),
   })

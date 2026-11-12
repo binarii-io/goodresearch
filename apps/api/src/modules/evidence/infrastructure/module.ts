@@ -10,7 +10,7 @@ import { makeUsabilityFactCommands } from '../application/commands/usability-fac
 import type { UsabilityDecisions } from '../application/fact-board-ports.ts'
 import type { AnalysisSources, EvidenceDeps, FactsAi } from '../application/ports.ts'
 import { makeAnalysisQueries } from '../application/queries/analysis-queries.ts'
-import { makeFactBoard } from '../application/queries/fact-board.ts'
+import { makeFactBoard, makeFactCounts } from '../application/queries/fact-board.ts'
 import { makeSurveyFactQueries } from '../application/queries/survey-fact-queries.ts'
 import { makeSynthesisReads } from '../application/queries/synthesis-reads.ts'
 import type { SurveyFactDeps, SurveySources } from '../application/survey-ports.ts'
@@ -105,6 +105,7 @@ export const createEvidenceModule = (deps: {
     facts,
     decisions,
     board: makeFactBoard({ board, studyAccess: deps.sources.studyAccess }),
+    factCounts: makeFactCounts({ board, studyAccess: deps.sources.studyAccess }),
     queries: makeAnalysisQueries(evidence),
     surveyFacts,
     surveyFactQueries: makeSurveyFactQueries(surveyDeps),

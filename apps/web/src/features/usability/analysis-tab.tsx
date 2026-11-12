@@ -1,6 +1,9 @@
 import {
+  getGetFactBoardQueryKey,
+  getGetFactCountsQueryKey,
   getGetUsabilityAnalysisQueryKey,
   type UsabilityStudyAnalysis,
+  useGetFactCounts,
   useGetUsabilityAnalysis,
   useGetUsabilityResults,
   useStartUsabilityRun,
@@ -19,8 +22,13 @@ import {
 import { Badge } from '@goodresearch/ui/components/badge'
 import { Button } from '@goodresearch/ui/components/button'
 import { Checkbox } from '@goodresearch/ui/components/checkbox'
-import { SectionTitle } from '@goodresearch/ui/components/count'
-import { LoaderCircleIcon, SparklesIcon } from '@goodresearch/ui/components/icons'
+import {
+  CheckIcon,
+  HourglassIcon,
+  LoaderCircleIcon,
+  SparklesIcon,
+  VideoIcon,
+} from '@goodresearch/ui/components/icons'
 import { Label } from '@goodresearch/ui/components/label'
 import { Progress } from '@goodresearch/ui/components/progress'
 import { Skeleton } from '@goodresearch/ui/components/skeleton'
@@ -33,9 +41,10 @@ import {
   TableHeader,
   TableRow,
 } from '@goodresearch/ui/components/table'
+import { Tabs, TabsBar, TabsContent, TabsList, TabsTrigger } from '@goodresearch/ui/components/tabs'
 import { useLingui } from '@lingui/react/macro'
 import { useQueryClient } from '@tanstack/react-query'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { toast } from 'sonner'
 import { useMoney } from '../assistant/cost.tsx'
 import { FactBoard } from '../facts/fact-board.tsx'
@@ -68,6 +77,17 @@ export function UsabilityAnalysisTab({
   const analysis = useGetUsabilityAnalysis(studyId, {
     query: { refetchInterval: (q) => (running(q.state.data) ? 3000 : false) },
   })
+  const [tab, setTab] = useState('sessions')
+  // Only the counts (tiles and tab); the Facts tab reads its own page.
+  const facts = useGetFactCounts(studyId)
+  const queryClient = useQueryClient()
+  // A session done brings facts (spec 039): counts and list are read again, during a run too.
+  const done = analysis.data?.sessions.filter((s) => s.analysis?.state === 'done').length
+  useEffect(() => {
+    if (done === undefined) return
+    void queryClient.invalidateQueries({ queryKey: getGetFactCountsQueryKey(studyId) })
+    void queryClient.invalidateQueries({ queryKey: getGetFactBoardQueryKey(studyId) })
+  }, [done, queryClient, studyId])
   if (analysis.isPending) return <Skeleton className="h-40 w-full" />
   if (!analysis.data) return null
   const data = analysis.data
@@ -77,153 +97,194 @@ export function UsabilityAnalysisTab({
     r && r in READINESS ? i18n._(READINESS[r as keyof typeof READINESS]).toLowerCase() : '—'
   const toReview = data.sessions.reduce((n, s) => n + (s.analysis?.toReview ?? 0), 0)
   return (
-    <div className="grid gap-8">
-      <section aria-labelledby="usability-sessions-heading" className="grid gap-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="grid gap-1">
-            <SectionTitle id="usability-sessions-heading">{t`Session analysis`}</SectionTitle>
-            <p className="text-muted-foreground text-sm">{t`Each ready session is read task by task from its video: outcome, time, path and observations, checked twice. You decide what counts.`}</p>
-          </div>
-          <RunControls studyId={studyId} data={data} />
-        </div>
-        <StatTiles aria-label={t`Analysis in numbers`}>
-          <StatTile
-            label={t`Sessions analysed`}
-            value={analysed}
-            detail={t`of ${data.sessions.length}`}
-          />
-          <StatTile label={t`To review`} value={toReview} detail={t`observations and outcomes`} />
-          <StatTile
-            label={t`Cost of the analyses`}
-            value={data.cost === null ? t`unknown` : money(data.cost)}
-            detail={t`by anyone, all runs`}
-          />
-        </StatTiles>
+    <div className="grid gap-6">
+      <StatTiles aria-label={t`Analysis in numbers`}>
+        <StatTile
+          icon={<VideoIcon aria-hidden />}
+          label={t`Sessions analysed`}
+          value={analysed}
+          detail={t`of ${data.sessions.length}`}
+        />
+        <StatTile
+          icon={<HourglassIcon aria-hidden />}
+          label={t`To review`}
+          value={toReview}
+          detail={t`observations and outcomes`}
+        />
+        <StatTile
+          icon={<CheckIcon aria-hidden />}
+          label={t`Facts to decide`}
+          value={facts.data ? facts.data.toDecide : '—'}
+          detail={facts.data ? t`${facts.data.accepted + facts.data.edited} accepted` : undefined}
+        />
+        <StatTile
+          icon={<SparklesIcon aria-hidden />}
+          label={t`Cost of the analyses`}
+          value={data.cost === null ? t`unknown` : money(data.cost)}
+          detail={t`by anyone, all runs`}
+        />
+      </StatTiles>
+      {!data.provider.video ? (
+        <p
+          role="status"
+          className="text-sm"
+        >{t`This study's sessions can be analysed only with Vertex AI as AI provider.`}</p>
+      ) : null}
+      {/* As the interview Analysis: one bar of tabs, the run as the action of every tab. */}
+      <Tabs value={tab} onValueChange={(v) => setTab(String(v))} className="gap-4">
+        <TabsBar action={<RunControls studyId={studyId} data={data} />}>
+          <TabsList aria-label={t`Analysis`}>
+            <TabsTrigger value="sessions">{t`Sessions (${data.sessions.length})`}</TabsTrigger>
+            <TabsTrigger value="results">{t`Results by task`}</TabsTrigger>
+            <TabsTrigger value="facts">
+              {facts.data ? t`Facts (${facts.data.toDecide} to decide)` : t`Facts`}
+            </TabsTrigger>
+          </TabsList>
+        </TabsBar>
         {running(data) ? <AnalysisProgress data={data} /> : null}
-        {!data.provider.video ? (
-          <p
-            role="status"
-            className="text-sm"
-          >{t`This study's sessions can be analysed only with Vertex AI as AI provider.`}</p>
-        ) : null}
-        {data.sessions.length === 0 ? (
-          <p className="rounded-md border border-dashed p-4 text-muted-foreground text-sm">{t`No session yet. Validate the sessions found on the Fieldwork tab: ready ones are analysed here.`}</p>
-        ) : (
-          <div className="overflow-x-auto rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t`Session`}</TableHead>
-                  <TableHead>{t`Video`}</TableHead>
-                  <TableHead>{t`State`}</TableHead>
-                  <TableHead>{t`To review`}</TableHead>
-                  <TableHead>{t`Cost`}</TableHead>
-                  <TableHead>
-                    <span className="sr-only">{t`Actions`}</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.sessions.map((s) => {
-                  // An analysed session opens on a click of its row (the button is the keyboard way).
-                  const explorable = s.analysis?.state === 'done'
-                  return (
-                    <TableRow
-                      key={s.sessionId}
-                      className={explorable ? 'cursor-pointer' : undefined}
-                      onClick={explorable ? () => setOpen(s.sessionId) : undefined}
-                    >
-                      <TableCell>
-                        <span className="grid min-w-0 max-w-96">
-                          <span className="truncate font-medium" title={s.title}>
-                            {s.title}
-                          </span>
-                          <span className="text-muted-foreground text-xs">
-                            {s.participant ?? t`Participant to confirm`}
-                          </span>
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {s.videoMinutes === null ? '—' : t`${s.videoMinutes} min`}
-                      </TableCell>
-                      <TableCell>
-                        {s.analysis ? (
-                          <span className="grid gap-0.5">
-                            <span className="flex items-center gap-1.5">
-                              {s.analysis.state === 'analysing' ? (
-                                <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
-                              ) : null}
-                              {i18n._(STATES[s.analysis.state])}
-                              {s.analysis.outOfDate ? (
-                                <Badge variant="highlight">{t`Out of date`}</Badge>
-                              ) : null}
-                            </span>
-                            <span className="text-muted-foreground text-xs">
-                              {s.analysis.state === 'analysing' && s.analysis.stage
-                                ? i18n._(STAGES[s.analysis.stage])
-                                : s.analysis.failure
-                                  ? i18n._(FAILURES[s.analysis.failure])
-                                  : null}
-                            </span>
-                          </span>
-                        ) : s.readiness === 'ready' ? (
-                          t`Ready`
-                        ) : (
-                          <span className="text-muted-foreground">
-                            {t`Not ready: ${readinessOf(s.readiness)} (see Fieldwork)`}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>{s.analysis?.toReview ?? '—'}</TableCell>
-                      <TableCell>
-                        {s.analysis?.cost === undefined || s.analysis?.cost === null
-                          ? '—'
-                          : money(s.analysis.cost)}
-                      </TableCell>
-                      {/* Its buttons and dialog are not part of the row's click (portals bubble in React). */}
-                      <TableCell
-                        className="whitespace-nowrap text-right"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <span className="inline-flex items-center gap-1">
-                          {explorable ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              aria-label={t`Explore ${s.title}`}
-                              onClick={() => setOpen(s.sessionId)}
-                            >
-                              {t`Explore`}
-                            </Button>
+        <TabsContent value="sessions">
+          <Sessions studyId={studyId} data={data} onOpen={setOpen} readinessOf={readinessOf} />
+        </TabsContent>
+        <TabsContent value="results">
+          <Results studyId={studyId} />
+        </TabsContent>
+        <TabsContent value="facts">
+          {/* Spec 039: the study's facts, decided as in every study; insights read them. */}
+          <p className="mb-4 text-muted-foreground text-sm">{t`What the sessions establish: each observation and each task's outcomes give a fact. Decide them here or in the session; the project's insights read them.`}</p>
+          <FactBoard studyId={studyId} onOpenObservation={(sessionId) => setOpen(sessionId)} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
+
+/** Each validated session with where its analysis stands (an analysed one opens on a click). */
+function Sessions({
+  studyId,
+  data,
+  onOpen: setOpen,
+  readinessOf,
+}: {
+  studyId: string
+  data: UsabilityStudyAnalysis
+  onOpen: (sessionId: string) => void
+  readinessOf: (r: string | null) => string
+}) {
+  const { t, i18n } = useLingui()
+  const money = useMoney()
+  const intro = (
+    <p className="text-muted-foreground text-sm">{t`Each ready session is read task by task from its video: outcome, time, path and observations, checked twice. You decide what counts.`}</p>
+  )
+  if (data.sessions.length === 0)
+    return (
+      <div className="grid gap-4">
+        {intro}
+        <p className="rounded-md border border-dashed p-4 text-muted-foreground text-sm">{t`No session yet. Validate the sessions found on the Fieldwork tab: ready ones are analysed here.`}</p>
+      </div>
+    )
+  return (
+    <div className="grid gap-4">
+      {intro}
+      <div className="overflow-x-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t`Session`}</TableHead>
+              <TableHead>{t`Video`}</TableHead>
+              <TableHead>{t`State`}</TableHead>
+              <TableHead>{t`To review`}</TableHead>
+              <TableHead>{t`Cost`}</TableHead>
+              <TableHead>
+                <span className="sr-only">{t`Actions`}</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.sessions.map((s) => {
+              // An analysed session opens on a click of its row (the button is the keyboard way).
+              const explorable = s.analysis?.state === 'done'
+              return (
+                <TableRow
+                  key={s.sessionId}
+                  className={explorable ? 'cursor-pointer' : undefined}
+                  onClick={explorable ? () => setOpen(s.sessionId) : undefined}
+                >
+                  <TableCell>
+                    <span className="grid min-w-0 max-w-96">
+                      <span className="truncate font-medium" title={s.title}>
+                        {s.title}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {s.participant ?? t`Participant to confirm`}
+                      </span>
+                    </span>
+                  </TableCell>
+                  <TableCell>{s.videoMinutes === null ? '—' : t`${s.videoMinutes} min`}</TableCell>
+                  <TableCell>
+                    {s.analysis ? (
+                      <span className="grid gap-0.5">
+                        <span className="flex items-center gap-1.5">
+                          {s.analysis.state === 'analysing' ? (
+                            <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
                           ) : null}
-                          {/* On every row, as for interviews; a session not ready says why in its state. */}
-                          <AnalyseOneButton
-                            studyId={studyId}
-                            session={s}
-                            consentNeeded={data.consentNeeded}
-                            disabled={
-                              s.readiness !== 'ready' || !data.provider.video || running(data)
-                            }
-                          />
+                          {i18n._(STATES[s.analysis.state])}
+                          {s.analysis.outOfDate ? (
+                            <Badge variant="highlight">{t`Out of date`}</Badge>
+                          ) : null}
                         </span>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </section>
-      <Results studyId={studyId} />
-      {/* Spec 039: the study's facts, decided as in every study; insights read them. */}
-      <section aria-labelledby="usability-facts-heading" className="grid gap-4">
-        <div className="grid gap-1">
-          <SectionTitle id="usability-facts-heading">{t`Facts`}</SectionTitle>
-          <p className="text-muted-foreground text-sm">{t`What the sessions establish: each observation and each task's outcomes give a fact. Decide them here or in the session; the project's insights read them.`}</p>
-        </div>
-        <FactBoard studyId={studyId} onOpenObservation={(sessionId) => setOpen(sessionId)} />
-      </section>
+                        <span className="text-muted-foreground text-xs">
+                          {s.analysis.state === 'analysing' && s.analysis.stage
+                            ? i18n._(STAGES[s.analysis.stage])
+                            : s.analysis.failure
+                              ? i18n._(FAILURES[s.analysis.failure])
+                              : null}
+                        </span>
+                      </span>
+                    ) : s.readiness === 'ready' ? (
+                      t`Ready`
+                    ) : (
+                      <span className="text-muted-foreground">
+                        {t`Not ready: ${readinessOf(s.readiness)} (see Fieldwork)`}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>{s.analysis?.toReview ?? '—'}</TableCell>
+                  <TableCell>
+                    {s.analysis?.cost === undefined || s.analysis?.cost === null
+                      ? '—'
+                      : money(s.analysis.cost)}
+                  </TableCell>
+                  {/* Its buttons and dialog are not part of the row's click (portals bubble in React). */}
+                  <TableCell
+                    className="whitespace-nowrap text-right"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {explorable ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          aria-label={t`Explore ${s.title}`}
+                          onClick={() => setOpen(s.sessionId)}
+                        >
+                          {t`Explore`}
+                        </Button>
+                      ) : null}
+                      {/* On every row, as for interviews; a session not ready says why in its state. */}
+                      <AnalyseOneButton
+                        studyId={studyId}
+                        session={s}
+                        consentNeeded={data.consentNeeded}
+                        disabled={s.readiness !== 'ready' || !data.provider.video || running(data)}
+                      />
+                    </span>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }
@@ -454,17 +515,24 @@ function Results({ studyId }: { studyId: string }) {
   const { t, i18n } = useLingui()
   const results = useGetUsabilityResults(studyId)
   const data = results.data
-  if (!data || data.tasks.every((task) => task.sessions === 0)) return null
+  if (results.isPending) return <Skeleton className="h-32 w-full" />
+  if (results.isError)
+    return (
+      <p role="alert" className="text-sm">
+        {errorMessage(i18n, results.error)}
+      </p>
+    )
+  if (!data || data.tasks.every((task) => task.sessions === 0))
+    return (
+      <p className="rounded-md border border-dashed p-4 text-muted-foreground text-sm">{t`No result yet: results count the outcomes you decided in the analysed sessions.`}</p>
+    )
   return (
-    <section aria-labelledby="usability-results-heading" className="grid gap-4">
-      <div className="grid gap-1">
-        <SectionTitle id="usability-results-heading">{t`Results by task`}</SectionTitle>
-        <p className="text-muted-foreground text-sm">
-          {data.toReview
-            ? t`Counts what you decided; ${data.toReview} items are still to review.`
-            : t`Counts what you decided.`}
-        </p>
-      </div>
+    <div className="grid gap-4">
+      <p className="text-muted-foreground text-sm">
+        {data.toReview
+          ? t`Counts what you decided; ${data.toReview} items are still to review.`
+          : t`Counts what you decided.`}
+      </p>
       <ul className="grid gap-3">
         {data.tasks.map((task) => (
           <li key={task.taskId} className="grid gap-2 rounded-md border p-3">
@@ -495,6 +563,6 @@ function Results({ studyId }: { studyId: string }) {
       {data.sus.sessions ? (
         <p className="text-sm">{t`System Usability Scale: ${data.sus.mean ?? '—'} out of 100, over ${data.sus.sessions} sessions.`}</p>
       ) : null}
-    </section>
+    </div>
   )
 }

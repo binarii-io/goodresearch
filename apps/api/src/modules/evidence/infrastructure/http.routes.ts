@@ -12,6 +12,7 @@ import {
   DecideSurveyFact,
   FactBoardPage,
   FactBoardQuery,
+  FactCounts,
   FactParams,
   FactsBulkResult,
   FactsEstimate,
@@ -43,7 +44,7 @@ import type { FactCommands } from '../application/commands/fact-commands.ts'
 import type { FactDecisions } from '../application/commands/fact-decisions.ts'
 import type { SurveyFactCommands } from '../application/commands/survey-fact-commands.ts'
 import type { AnalysisQueries } from '../application/queries/analysis-queries.ts'
-import type { makeFactBoard } from '../application/queries/fact-board.ts'
+import type { makeFactBoard, makeFactCounts } from '../application/queries/fact-board.ts'
 import type { makeSurveyFactQueries } from '../application/queries/survey-fact-queries.ts'
 import type { SurveyFact as SurveyFactModel } from '../domain/survey-facts.ts'
 
@@ -53,6 +54,7 @@ export type EvidenceHandlers = {
   /** Spec 039: one decision path and one Facts list for every source. */
   decisions: FactDecisions
   board: ReturnType<typeof makeFactBoard>
+  factCounts: ReturnType<typeof makeFactCounts>
   queries: AnalysisQueries
   /** Spec 029: facts of survey studies. */
   surveyFacts: SurveyFactCommands
@@ -367,6 +369,23 @@ export const registerEvidenceRoutes = (
         res,
         await deps.handlers.board(request.account.id, request.params.studyId, request.query),
         (v) => res.send(v),
+      ),
+  )
+
+  api.get(
+    '/api/studies/:studyId/fact-board/counts',
+    {
+      ...secured,
+      schema: {
+        operationId: 'getFactCounts',
+        tags,
+        params: StudyParams,
+        response: { 200: FactCounts },
+      },
+    },
+    async (request, res) =>
+      reply(res, await deps.handlers.factCounts(request.account.id, request.params.studyId), (v) =>
+        res.send(v),
       ),
   )
 

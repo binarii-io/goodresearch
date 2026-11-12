@@ -366,6 +366,13 @@ export interface UsabilityStore {
   analysisById(id: string): Promise<SessionAnalysis | null>
   startRun(run: AnalysisRun): Promise<boolean>
   lastRun(studyId: string): Promise<AnalysisRun | null>
+  /**
+   * Runs still marked running whose job started (a heartbeat after the start) and whose last
+   * heartbeat is older than `before`: their worker died. A run still queued is not one of them.
+   */
+  staleRuns(before: Date): Promise<AnalysisRun[]>
+  /** Its sessions still waiting or being analysed become stopped (`STOPPED`), in one statement. */
+  stopRunAnalyses(runId: string, now: Date): Promise<void>
   getRun(id: string): Promise<AnalysisRun | null>
   heartbeat(runId: string, now: Date): Promise<void>
   requestStop(runId: string): Promise<void>

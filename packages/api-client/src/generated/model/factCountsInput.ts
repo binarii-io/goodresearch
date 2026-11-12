@@ -5,7 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type FactBoardPageCounts = {
+export interface FactCountsInput {
   /**
      * @minimum -9007199254740991
      * @maximum 9007199254740991
@@ -26,4 +26,4 @@ export type FactBoardPageCounts = {
      * @maximum 9007199254740991
      */
   rejected: number;
-};
+}

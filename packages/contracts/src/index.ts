@@ -90,6 +90,7 @@ export {
   FactBoardPage,
   FactBoardQuery,
   FactBoardStatus,
+  FactCounts,
   FactEvidence,
   FactOrigin,
   FactParams,

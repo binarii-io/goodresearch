@@ -4,7 +4,7 @@
  * goodresearch API
  * OpenAPI spec version: 0.1.0
  */
-import type { FactBoardPageCounts } from './factBoardPageCounts.ts';
+import type { FactCounts } from './factCounts.ts';
 import type { FactRow } from './factRow.ts';
 
 export interface FactBoardPage {
@@ -14,7 +14,7 @@ export interface FactBoardPage {
      * @maximum 9007199254740991
      */
   total: number;
-  counts: FactBoardPageCounts;
+  counts: FactCounts;
   /**
      * @minimum -9007199254740991
      * @maximum 9007199254740991

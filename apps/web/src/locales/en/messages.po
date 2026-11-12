@@ -226,9 +226,11 @@ msgstr "{0} (step {1} of {2})"
 msgid "{0} → {1}"
 msgstr "{0} → {1}"
 
+#. placeholder {0}: facts.data.accepted + facts.data.edited
 #. placeholder {0}: r.done
 #: src/features/enrichment/lexicon-table.tsx
 #: src/features/facts/fact-board.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "{0} accepted"
 msgstr "{0} accepted"
 
@@ -1674,6 +1676,7 @@ msgstr "Analysing: {0} of {1} sessions"
 #: src/features/fieldwork/proposals.tsx
 #: src/features/research/study-card.tsx
 #: src/features/surveys/survey-analysis-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Analysis"
 msgstr "Analysis"
 
@@ -3642,7 +3645,9 @@ msgid "Facts ({0} accepted, {1} to validate)"
 msgstr "Facts ({0} accepted, {1} to validate)"
 
 #. placeholder {0}: data.counts.toDecide
+#. placeholder {0}: facts.data.toDecide
 #: src/features/analysis/analysis-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Facts ({0} to decide)"
 msgstr "Facts ({0} to decide)"
 
@@ -3685,6 +3690,7 @@ msgstr "Facts still to validate add {0} participants for and {1} against: once a
 #: src/features/analysis/analysis-tab.tsx
 #: src/features/analysis/labels.ts
 #: src/features/surveys/survey-analysis-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Facts to decide"
 msgstr "Facts to decide"
 
@@ -5923,6 +5929,10 @@ msgstr "No response yet"
 msgid "No response yet. Share the link of the open form, then refresh."
 msgstr "No response yet. Share the link of the open form, then refresh."
 
+#: src/features/usability/analysis-tab.tsx
+msgid "No result yet: results count the outcomes you decided in the analysed sessions."
+msgstr "No result yet: results count the outcomes you decided in the analysed sessions."
+
 #: src/features/preparation/drive-publishing.tsx
 msgid "No results spreadsheet yet. To have one for your team, open the form, go to Responses, and choose \"Link to Sheets\". The app does not need it."
 msgstr "No results spreadsheet yet. To have one for your team, open the form, go to Responses, and choose \"Link to Sheets\". The app does not need it."
@@ -8084,12 +8094,9 @@ msgstr "Session"
 msgid "Session (min)"
 msgstr "Session (min)"
 
-#: src/features/usability/analysis-tab.tsx
-msgid "Session analysis"
-msgstr "Session analysis"
-
 #. placeholder {0}: data.sessions.length
 #: src/features/fieldwork/fieldwork-tab.tsx
+#: src/features/usability/analysis-tab.tsx
 msgid "Sessions ({0})"
 msgstr "Sessions ({0})"
 

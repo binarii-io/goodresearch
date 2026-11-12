@@ -57,6 +57,40 @@ describe('usability analysis runs (spec 038 US1)', () => {
     expect(world.ai.calls.every((c) => c.ref === 'usability-analysis:s1')).toBe(true)
   })
 
+  it('stops a run whose worker died, so its sessions can be analysed again', async () => {
+    await start()
+    // The job started at 8:00, the worker stopped mid-analysis (a redeployment): no heartbeat since 9:00.
+    const run = [...world.store.runs.values()][0]
+    const analysis = [...world.store.analyses.values()][0]
+    if (!run || !analysis) throw new Error('fixture')
+    world.store.runs.set(run.id, {
+      ...run,
+      startedAt: new Date('2026-11-08T08:00:00Z'),
+      heartbeatAt: new Date('2026-11-08T09:00:00Z'),
+    })
+    world.store.analyses.set(analysis.id, { ...analysis, state: 'analysing' })
+    const { recoverStaleRuns } = await import('../application/commands/analysis-run.ts')
+    await recoverStaleRuns(world.deps)
+    const view = await world.queries.study(alice, 'study')
+    if (!view.ok) throw new Error(view.error)
+    expect(view.value.sessions[0]?.analysis).toMatchObject({ state: 'stopped', failure: 'STOPPED' })
+    expect(view.value.run).toBeNull()
+    expect(await start()).toMatchObject({ ok: true })
+  })
+
+  it('leaves a run still queued to its job, however long it waits', async () => {
+    await start()
+    // Queued at 9:00 behind another study's long job: no heartbeat since its start, it never ran.
+    const run = [...world.store.runs.values()][0]
+    if (!run) throw new Error('fixture')
+    const queuedAt = new Date('2026-11-08T09:00:00Z')
+    world.store.runs.set(run.id, { ...run, startedAt: queuedAt, heartbeatAt: queuedAt })
+    const { recoverStaleRuns } = await import('../application/commands/analysis-run.ts')
+    await recoverStaleRuns(world.deps)
+    expect(world.store.runs.get(run.id)?.state).toBe('running')
+    expect([...world.store.analyses.values()][0]?.state).toBe('waiting')
+  })
+
   it('leaves an analysed session as it was when the job cannot be queued', async () => {
     await start()
     await world.runJobs()

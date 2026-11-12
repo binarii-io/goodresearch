@@ -36,6 +36,7 @@ import type {
   DecideSurveyFactInput,
   EstimateFactsRunParams,
   FactBoardPage,
+  FactCounts,
   FactsBulkResult,
   FactsEstimate,
   FactsOverview,
@@ -1454,6 +1455,100 @@ export function useGetFactBoard<TData = Awaited<ReturnType<typeof getFactBoard>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetFactBoardQueryOptions(studyId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getGetFactCountsUrl = (studyId: string,) => {
+
+
+
+
+  return `/api/studies/${studyId}/fact-board/counts`
+}
+
+export const getFactCounts = async (studyId: string, options?: Parameters<typeof apiFetch>[1]): Promise<FactCounts> => {
+
+  return apiFetch<FactCounts>(getGetFactCountsUrl(studyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFactCountsQueryKey = (studyId: string,) => {
+    return [
+    `/api/studies/${studyId}/fact-board/counts`
+    ] as const;
+    }
+
+
+export const getGetFactCountsQueryOptions = <TData = Awaited<ReturnType<typeof getFactCounts>>, TError = unknown>(studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactCounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFactCountsQueryKey(studyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFactCounts>>> = ({ signal }) => getFactCounts(studyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: studyId !== null && studyId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFactCounts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFactCountsQueryResult = NonNullable<Awaited<ReturnType<typeof getFactCounts>>>
+export type GetFactCountsQueryError = unknown
+
+
+export function useGetFactCounts<TData = Awaited<ReturnType<typeof getFactCounts>>, TError = unknown>(
+ studyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactCounts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactCounts>>,
+          TError,
+          Awaited<ReturnType<typeof getFactCounts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactCounts<TData = Awaited<ReturnType<typeof getFactCounts>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactCounts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFactCounts>>,
+          TError,
+          Awaited<ReturnType<typeof getFactCounts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFactCounts<TData = Awaited<ReturnType<typeof getFactCounts>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactCounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetFactCounts<TData = Awaited<ReturnType<typeof getFactCounts>>, TError = unknown>(
+ studyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFactCounts>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFactCountsQueryOptions(studyId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

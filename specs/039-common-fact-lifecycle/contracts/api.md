@@ -5,6 +5,7 @@ All routes are authenticated; rights are those of the fact's study (team members
 ## New
 
 - `GET /api/studies/:studyId/fact-board?status=to-decide|accepted|rejected|all&q=&page=` → `FactBoardPage { items: FactRow[], total, counts: { toDecide, accepted, edited, rejected }, page }`. Every source of the study, 25 per page, SQL paged. `accepted` filter includes edited facts.
+- `GET /api/studies/:studyId/fact-board/counts` → `FactCounts { toDecide, accepted, edited, rejected }`: the counts alone (the usability Analysis tab's tiles and Facts tab).
 - `POST /api/facts/:factId/decision` `{ decision: 'accept'|'edit'|'reject'|'reopen', version, statement?: { en?, fr? } }` → `FactRow`. Refusals: `FACT_NOT_FOUND`, `VERSION_CONFLICT`, `NAME_IN_STATEMENT`, `FACT_NEEDS_VERBATIM`, `SPEAKER_TO_ATTRIBUTE`, `VALIDATION`, `FORBIDDEN` (reader).
 - `POST /api/facts/accept` `{ items: [{ id, version }] (1–500) }` → `{ done, changed }`: accepts facts still to decide, skips changed or decided ones.
 

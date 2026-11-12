@@ -2,7 +2,12 @@ import { type Clock, newId } from '@goodresearch/shared'
 import { z } from 'zod'
 import type { Db } from '#platform/db.ts'
 import { type JobHandler, QUEUES } from '#platform/jobs.ts'
-import { backfillFacts, makeAnalysisRun, sweep } from '../application/commands/analysis-run.ts'
+import {
+  backfillFacts,
+  makeAnalysisRun,
+  recoverStaleRuns,
+  sweep,
+} from '../application/commands/analysis-run.ts'
 import { makeObservationCommands } from '../application/commands/observation-commands.ts'
 import type {
   AnalysisAi,
@@ -15,6 +20,7 @@ import type {
   UsabilityDeps,
 } from '../application/ports.ts'
 import { makeAnalysisQueries } from '../application/queries/analysis-queries.ts'
+import { RUN_STALE_MS } from '../domain/analysis.ts'
 import type { UsabilityHandlers } from './http.routes.ts'
 import { createUsabilityStore } from './usability.drizzle-store.ts'
 
@@ -104,18 +110,29 @@ export const createUsabilityModule = (deps: {
   ]
   /** The worker sweeps screenshots nothing refers to (deleted studies, sessions, analyses). */
   const startSweeping = () => {
-    const once = () =>
-      sweep(usability).catch((error: unknown) =>
+    const once = async () => {
+      // Runs left by a worker that stopped (a redeployment) are closed first.
+      await recoverStaleRuns(usability).catch((error: unknown) =>
+        deps.log.warn({ err: error }, 'stale runs not recovered'),
+      )
+      await sweep(usability).catch((error: unknown) =>
         deps.log.warn({ err: error }, 'screenshot sweep failed'),
       )
+    }
     void once()
     // Spec 039: sessions analysed before their observations gave facts get them.
     void backfillFacts(usability).catch((error: unknown) =>
       deps.log.warn({ err: error }, 'facts backfill failed'),
     )
+    // A run left by a quick restart is not stale yet at start: once more when it can be.
+    const soon = setTimeout(once, RUN_STALE_MS + 60_000)
+    soon.unref()
     const timer = setInterval(once, SWEEP_EVERY_MS)
     timer.unref()
-    return () => clearInterval(timer)
+    return () => {
+      clearTimeout(soon)
+      clearInterval(timer)
+    }
   }
   return { handlers, jobs, startSweeping }
 }

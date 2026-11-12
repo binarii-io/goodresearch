@@ -40,3 +40,15 @@ export const makeFactBoard =
       pageSize: FACT_BOARD_PAGE,
     })
   }
+
+/** Spec 039: a study's facts per status, without their rows (an Analysis tab's tiles and tab). */
+export const makeFactCounts =
+  (deps: {
+    board: FactBoardStore
+    studyAccess: (accountId: string, studyId: string) => Promise<StudyAccess | null>
+  }) =>
+  async (accountId: string, studyId: string) => {
+    const access = await deps.studyAccess(accountId, studyId)
+    if (!access) return err('STUDY_NOT_FOUND' as const)
+    return ok(await deps.board.counts(studyId))
+  }
